@@ -11,14 +11,14 @@ import Mathlib.Probability.Moments.SubGaussian
 
 For independent random variables `X 0, X 1, …` with values in `[0, 1]` and common mean `p`, the
 average of the first `n` is more than `e` away from `p` with probability at most
-`2 * exp (-2 * n * e ^ 2)` (`measureReal_abs_sampleMean_sub_ge_le`). Read with `X i` the indicator of
-"trial `i` succeeded", this says how many independent trials it takes before the observed success
+`2 * exp (-2 * n * e ^ 2)` (`measureReal_abs_sampleMean_sub_ge_le`). Read with `X i` the indicator
+of "trial `i` succeeded", this says how many independent trials it takes before the observed success
 rate can be trusted to within `e`.
 
 `sampleSizeOK e δ k n` is a computable test on rationals: when it holds, `2 * exp (-2 * n * e ^ 2)
 ≤ δ` (`two_mul_exp_neg_le_of_sampleSizeOK`), so the observed rate is within `e` of the true one with
-probability at least `1 - δ`. It rests on `(1 + y / k) ^ k ≤ exp y`. `minSampleSize` searches for the
-least such `n`.
+probability at least `1 - δ`. It rests on `(1 + y / k) ^ k ≤ exp y`. `minSampleSize` searches for
+the least such `n`.
 
 ## What Mathlib provides
 
@@ -62,8 +62,10 @@ theorem measureReal_abs_sampleMean_sub_ge_le {X : ℕ → Ω → ℝ} (h_indep :
   have hind' : iIndepFun (fun i ω ↦ p - X i ω) μ :=
     h_indep.comp (fun _ x ↦ p - x) (fun _ ↦ measurable_const.sub measurable_id)
   have hne : (0 : ℝ) ≤ n * e := by positivity
-  have up := HasSubgaussianMGF.measure_sum_range_ge_le_of_iIndepFun hind (n := n) (fun i _ ↦ hsub i) hne
-  have dn := HasSubgaussianMGF.measure_sum_range_ge_le_of_iIndepFun hind' (n := n) (fun i _ ↦ hsub' i) hne
+  have up := HasSubgaussianMGF.measure_sum_range_ge_le_of_iIndepFun hind (n := n)
+    (fun i _ ↦ hsub i) hne
+  have dn := HasSubgaussianMGF.measure_sum_range_ge_le_of_iIndepFun hind' (n := n)
+    (fun i _ ↦ hsub' i) hne
   have hexp : -(n * e) ^ 2 / (2 * n * ((1 / 4 : NNReal) : ℝ)) = -2 * n * e ^ 2 := by
     push_cast; field_simp; ring
   rw [hexp] at up dn

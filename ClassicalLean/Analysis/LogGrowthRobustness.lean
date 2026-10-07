@@ -75,8 +75,8 @@ theorem logGrowth_lt_optimalFraction (hp0 : 0 < p) (hp1 : p < 1) (hb : 0 < b) {x
   nlinarith [mul_lt_mul_of_pos_left l1 hp0,
     mul_le_mul_of_nonneg_left l2 (by linarith : 0 ≤ 1 - p)]
 
-theorem optimalFraction_injective (hb : 0 < b) {q : ℝ} (h : optimalFraction q b = optimalFraction p b) :
-    q = p := by
+theorem optimalFraction_injective (hb : 0 < b) {q : ℝ}
+    (h : optimalFraction q b = optimalFraction p b) : q = p := by
   unfold optimalFraction at h
   field_simp at h
   nlinarith
@@ -110,7 +110,8 @@ theorem logGrowth_neg_of_lt (hp0 : 0 < p) (hp1 : p < 1) (hb : 0 < b) {x : ℝ} (
   nlinarith [mul_le_mul_of_nonneg_left l1 hp0.le, mul_le_mul_of_nonneg_left l2 hq.le,
     mul_pos hx0 hq]
 
-/-- **Half the optimal fraction keeps at least half the optimal growth**: `g x* / 2 ≤ g (x* / 2)`. -/
+/-- **Half the optimal fraction keeps at least half the optimal growth**:
+`g x* / 2 ≤ g (x* / 2)`. -/
 theorem half_logGrowth_le (hp0 : 0 < p) (hp1 : p < 1) (hb : 0 < b) :
     logGrowth p b (optimalFraction p b) / 2 ≤ logGrowth p b (optimalFraction p b / 2) := by
   have hU : 0 < 1 + b * optimalFraction p b := by
@@ -123,7 +124,8 @@ theorem half_logGrowth_le (hp0 : 0 < p) (hp1 : p < 1) (hb : 0 < b) :
   have c2 := conc.2 (Set.mem_Ioi.mpr one_pos) (Set.mem_Ioi.mpr hV)
     (by norm_num : (0 : ℝ) ≤ 1 / 2) (by norm_num : (0 : ℝ) ≤ 1 / 2) (by norm_num)
   simp only [smul_eq_mul, Real.log_one, mul_zero, zero_add] at c1 c2
-  have e1 : 1 / 2 * 1 + 1 / 2 * (1 + b * optimalFraction p b) = 1 + b * (optimalFraction p b / 2) := by
+  have e1 : 1 / 2 * 1 + 1 / 2 * (1 + b * optimalFraction p b) =
+      1 + b * (optimalFraction p b / 2) := by
     ring
   have e2 : 1 / 2 * 1 + 1 / 2 * (1 - optimalFraction p b) = 1 - optimalFraction p b / 2 := by ring
   rw [e1] at c1
