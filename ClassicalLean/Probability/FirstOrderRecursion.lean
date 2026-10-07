@@ -98,7 +98,8 @@ section Numbers
 variable {v : ℕ → ℝ} {a s : ℝ}
 
 /-- **The only steady state.** For `a² ≠ 1`, `q = a² q + s²` exactly when `q = s² / (1 - a²)`. -/
-theorem eq_steady_iff (ha : a ^ 2 ≠ 1) (q : ℝ) : q = a ^ 2 * q + s ^ 2 ↔ q = s ^ 2 / (1 - a ^ 2) := by
+theorem eq_steady_iff (ha : a ^ 2 ≠ 1) (q : ℝ) :
+    q = a ^ 2 * q + s ^ 2 ↔ q = s ^ 2 / (1 - a ^ 2) := by
   have h : 1 - a ^ 2 ≠ 0 := sub_ne_zero.mpr (Ne.symm ha)
   rw [eq_div_iff h]
   constructor <;> intro h' <;> linarith

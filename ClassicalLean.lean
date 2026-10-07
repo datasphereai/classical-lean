@@ -70,6 +70,7 @@ import ClassicalLean.Statistics.GaussMarkov
 import ClassicalLean.Probability.RelativeEntropyGrowth
 import ClassicalLean.Analysis.MinimumQuadraticForm
 import ClassicalLean.Probability.FirstOrderRecursion
+import ClassicalLean.Probability.StepUpProcedure
 
 /-!
 # ClassicalLean
