@@ -77,6 +77,7 @@ import ClassicalLean.Probability.LikelihoodScore
 import ClassicalLean.Probability.CovarianceDirections
 import ClassicalLean.Probability.TwoStateChain
 import ClassicalLean.Probability.LinearPrediction
+import ClassicalLean.InformationTheory.SignalGrowth
 
 /-!
 # ClassicalLean
