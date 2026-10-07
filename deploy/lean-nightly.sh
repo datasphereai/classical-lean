@@ -133,9 +133,27 @@ fi
 # --- 4. gates (need a built library)
 THEOREMS=""; WRITTEN=""; AXIOM_NAMES=""; AXIOM_COUNT=""
 if [ $BUILD_OK = 1 ]; then
-    # T: top-level theorem/lemma declarations, LEAN-1's grep (column 0, library files only; 894 on 2026-10-07)
-    WRITTEN=$(cd "$REPO" && find ClassicalLean ClassicalLean.lean -name '*.lean' -print0 \
-        | xargs -0 grep -hE '^(@\[[^]]*\] *)?((private|protected|noncomputable) +)*(theorem|lemma) ' | wc -l)
+    # T: top-level theorem/lemma declarations, counted in code only (LEAN-8): comments and docstrings
+    # (nested /- ... -/ blocks and -- to end of line) are removed first, so a prose line that starts
+    # with "theorem" is not counted. Library files only, declarations at the start of a line.
+    WRITTEN=$(cd "$REPO" && python3 -I -c '
+import re, pathlib
+pat = re.compile(r"^(@\[[^]]*\] *)?((private|protected|noncomputable) +)*(theorem|lemma) ")
+def code(src):
+    out, i, depth, n = [], 0, 0, len(src)
+    while i < n:
+        if src.startswith("/-", i): depth += 1; i += 2; continue
+        if depth and src.startswith("-/", i): depth -= 1; i += 2; continue
+        if depth:
+            if src[i] == "\n": out.append("\n")
+            i += 1; continue
+        if src.startswith("--", i):
+            j = src.find("\n", i); i = n if j < 0 else j; continue
+        out.append(src[i]); i += 1
+    return "".join(out)
+files = sorted(pathlib.Path("ClassicalLean").rglob("*.lean")) + [pathlib.Path("ClassicalLean.lean")]
+print(sum(1 for f in files for line in code(f.read_text()).splitlines() if pat.match(line)))
+')
     [ "${WRITTEN:-0}" -gt 0 ] || fail "theorem grep found nothing" ""
     SORRY_WARN=$(grep -cE "declaration uses .sorry." "$WORK/build")
     if run axiom-gate "$WORK/axiom" nice -n 19 lake env lean tools/AxiomGate.lean; then
