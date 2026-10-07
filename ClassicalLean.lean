@@ -73,6 +73,7 @@ import ClassicalLean.Probability.FirstOrderRecursion
 import ClassicalLean.Probability.StepUpProcedure
 import ClassicalLean.Probability.RuinBound
 import ClassicalLean.Analysis.GrowthMaximiser
+import ClassicalLean.Probability.LikelihoodScore
 
 /-!
 # ClassicalLean
