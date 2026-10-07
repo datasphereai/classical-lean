@@ -7,6 +7,7 @@ Authors: Dustin Watkins, Claude (Anthropic)
 import Mathlib.Probability.Martingale.OptionalStopping
 import Mathlib.Probability.Process.HittingTime
 import Mathlib.Analysis.SpecialFunctions.Pow.Real
+import Mathlib.Probability.BorelCantelli
 
 /-!
 # Ville's inequality over finitely many steps, and the chance of falling to half
@@ -105,5 +106,122 @@ theorem measureReal_exists_le_half {W : ℕ → Ω → ℝ} {w₀ θ : ℝ} (hw�
         measureReal_mono hsub
     _ ≤ 1 / 2 ^ θ := hville
     _ = (2 : ℝ) ^ (-θ) := by rw [Real.rpow_neg two_pos.le, one_div]
+
+/-- **The condition behind `measureReal_exists_le_half`, as an exact check.** For a bet that pays
+`b` times the stake with probability `p` and loses the stake otherwise, staking the fraction `x`
+each time, and a whole-number `θ`: `p / (1 + b x) ^ θ + (1 - p) / (1 - x) ^ θ ≤ 1`, decided exactly
+on rationals. `ruinConditionOK_iff` says this is the real-number condition. A program citing
+`measureReal_exists_le_half` must check this for its actual `p`, `b`, `x`. -/
+def ruinConditionOK (p b x : ℚ) (θ : ℕ) : Bool :=
+  decide (p / (1 + b * x) ^ θ + (1 - p) / (1 - x) ^ θ ≤ 1)
+
+/-- `ruinConditionOK` holds exactly when the real condition
+`p (1 + b x) ^ (-θ) + (1 - p) (1 - x) ^ (-θ) ≤ 1` holds (with `0 < 1 + b x` and `0 < 1 - x`). -/
+theorem ruinConditionOK_iff {p b x : ℚ} (θ : ℕ) (hu : 0 < 1 + b * x) (hv : 0 < 1 - x) :
+    ruinConditionOK p b x θ = true ↔
+      (p : ℝ) * (1 + b * x : ℝ) ^ (-(θ : ℝ)) + (1 - p) * (1 - x : ℝ) ^ (-(θ : ℝ)) ≤ 1 := by
+  have hu' : (0 : ℝ) < 1 + (b : ℝ) * x := by exact_mod_cast hu
+  have hv' : (0 : ℝ) < 1 - (x : ℝ) := by exact_mod_cast hv
+  rw [Real.rpow_neg hu'.le, Real.rpow_neg hv'.le, Real.rpow_natCast, Real.rpow_natCast]
+  simp only [ruinConditionOK, decide_eq_true_eq, div_eq_mul_inv]
+  constructor
+  · intro h; exact_mod_cast h
+  · intro h; exact_mod_cast h
+
+section Independent
+
+open ProbabilityTheory
+
+variable {Ω : Type*} {m0 : MeasurableSpace Ω} {μ : Measure Ω} [IsProbabilityMeasure μ]
+
+/-- **Products of independent factors with mean at most `1` form a supermartingale.** For
+independent, bounded, nonnegative `G i` with `E[G (i+1)] ≤ 1`, the running product
+`∏ i < n, G (i + 1)` is a supermartingale for the natural filtration of `G`. For a trader: when
+each step's factor averages at most `1` and the steps are independent, the running product
+shrinks on average. -/
+theorem supermartingale_prod {G : ℕ → Ω → ℝ} (hG : ∀ i, StronglyMeasurable (G i))
+    (hind : iIndepFun G μ) {K : ℝ} (hnn : ∀ i ω, 0 ≤ G i ω) (hK : ∀ i ω, G i ω ≤ K)
+    (hmean : ∀ i, ∫ ω, G (i + 1) ω ∂μ ≤ 1) :
+    Supermartingale (fun n ω ↦ ∏ i ∈ range n, G (i + 1) ω) (Filtration.natural G hG) μ := by
+  have hZnn : ∀ n ω, 0 ≤ ∏ i ∈ range n, G (i + 1) ω := fun n ω ↦
+    prod_nonneg fun i _ ↦ hnn _ _
+  have hZbd : ∀ n ω, ∏ i ∈ range n, G (i + 1) ω ≤ K ^ n := fun n ω ↦ by
+    calc ∏ i ∈ range n, G (i + 1) ω ≤ ∏ _i ∈ range n, K :=
+          Finset.prod_le_prod₀ (fun i _ ↦ hnn _ _) (fun i _ ↦ hK _ _)
+      _ = K ^ n := by rw [prod_const, card_range]
+  have hadp : StronglyAdapted (Filtration.natural G hG) (fun n ω ↦ ∏ i ∈ range n, G (i + 1) ω) := by
+    intro n
+    show StronglyMeasurable[Filtration.natural G hG n] (fun ω ↦ ∏ i ∈ range n, G (i + 1) ω)
+    have : (fun ω ↦ ∏ i ∈ range n, G (i + 1) ω) = ∏ i ∈ range n, G (i + 1) := by
+      funext ω; simp [Finset.prod_apply]
+    rw [this]
+    refine Finset.stronglyMeasurable_prod _ fun i hi ↦ ?_
+    exact (Filtration.stronglyAdapted_natural hG (i + 1)).mono
+      (Filtration.mono _ (by simpa using Finset.mem_range.mp hi))
+  have hint : ∀ n, Integrable (fun ω ↦ ∏ i ∈ range n, G (i + 1) ω) μ := fun n ↦
+    Integrable.of_bound ((hadp n).mono ((Filtration.natural G hG).le n)).aestronglyMeasurable (K ^ n)
+      (Eventually.of_forall fun ω ↦ by
+        rw [Real.norm_eq_abs, abs_of_nonneg (hZnn n ω)]; exact hZbd n ω)
+  have hGint : ∀ i, Integrable (G i) μ := fun i ↦
+    Integrable.of_bound (hG i).aestronglyMeasurable K
+      (Eventually.of_forall fun ω ↦ by rw [Real.norm_eq_abs, abs_of_nonneg (hnn i ω)]; exact hK i ω)
+  refine supermartingale_nat hadp hint fun n ↦ ?_
+  have hsplit : (fun ω ↦ ∏ i ∈ range (n + 1), G (i + 1) ω) =
+      (fun ω ↦ ∏ i ∈ range n, G (i + 1) ω) * G (n + 1) := by
+    funext ω; simp [prod_range_succ]
+  rw [hsplit]
+  have hpull := condExp_mul_of_stronglyMeasurable_left (m := Filtration.natural G hG n) (μ := μ)
+    (hadp n) (by rw [← hsplit]; exact hint (n + 1)) (hGint (n + 1))
+  have hindep := hind.condExp_natural_ae_eq_of_lt hG (Nat.lt_succ_self n)
+  filter_upwards [hpull, hindep] with ω h1 h2
+  rw [h1, Pi.mul_apply, h2]
+  exact mul_le_of_le_one_right (hZnn n ω) (hmean n)
+
+/-- **The chance of falling to half, for independent bets.** Let `W n = w₀ · ∏ i < n, F (i + 1)`
+with independent step factors `F i` in `[lo, hi]`, `0 < lo`, and suppose `E[F i ^ (-θ)] ≤ 1`
+for some `θ > 0`. Then `P(W n ≤ w₀ / 2 for some n ≤ N) ≤ 2 ^ (-θ)`. Here the supermartingale is
+proved, not assumed. The remaining condition is about one bet: for a bet paying `b` times the
+stake with probability `p` (fraction `x` staked) it reads
+`p (1 + b x) ^ (-θ) + (1 - p) (1 - x) ^ (-θ) ≤ 1`, which `ruinConditionOK` checks exactly. For a
+trader: if that check passes for the actual bet, the chance of ever halving within `N` bets is
+at most `2 ^ (-θ)`. -/
+theorem measureReal_exists_le_half_of_iIndepFun {F : ℕ → Ω → ℝ} (hF : ∀ i, StronglyMeasurable (F i))
+    (hind : iIndepFun F μ) {lo hi : ℝ} (hlo : 0 < lo) (hbd : ∀ i ω, lo ≤ F i ω ∧ F i ω ≤ hi)
+    {θ : ℝ} (hθ : 0 < θ) (hmean : ∀ i, ∫ ω, F i ω ^ (-θ) ∂μ ≤ 1) {w₀ : ℝ} (hw₀ : 0 < w₀)
+    (N : ℕ) :
+    μ.real {ω | ∃ n ≤ N, w₀ * ∏ i ∈ range n, F (i + 1) ω ≤ w₀ / 2} ≤ (2 : ℝ) ^ (-θ) := by
+  set G : ℕ → Ω → ℝ := fun i ω ↦ F i ω ^ (-θ) with hGdef
+  have hFpos : ∀ i ω, 0 < F i ω := fun i ω ↦ hlo.trans_le (hbd i ω).1
+  have hGm : ∀ i, StronglyMeasurable (G i) := fun i ↦
+    ((hF i).measurable.pow_const (-θ)).stronglyMeasurable
+  have hGind : iIndepFun G μ :=
+    hind.comp (fun _ x ↦ x ^ (-θ)) (fun _ ↦ measurable_id.pow_const (-θ))
+  have hGnn : ∀ i ω, 0 ≤ G i ω := fun i ω ↦ Real.rpow_nonneg (hFpos i ω).le _
+  have hGK : ∀ i ω, G i ω ≤ lo ^ (-θ) := fun i ω ↦
+    Real.rpow_le_rpow_of_nonpos hlo (hbd i ω).1 (by linarith)
+  have hsuper := supermartingale_prod hGm hGind hGnn hGK (fun i ↦ hmean (i + 1))
+  have hville := measureReal_exists_le_of_supermartingale hsuper
+    (fun n ω ↦ prod_nonneg fun i _ ↦ hGnn _ _) (Real.rpow_pos_of_pos two_pos θ) N
+  have hZ0 : ∫ ω, (fun n ω ↦ ∏ i ∈ range n, G (i + 1) ω) 0 ω ∂μ = 1 := by simp
+  rw [hZ0] at hville
+  have hsub : {ω | ∃ n ≤ N, w₀ * ∏ i ∈ range n, F (i + 1) ω ≤ w₀ / 2} ⊆
+      {ω | ∃ n ≤ N, (2 : ℝ) ^ θ ≤ ∏ i ∈ range n, G (i + 1) ω} := by
+    rintro ω ⟨n, hn, hhalf⟩
+    refine ⟨n, hn, ?_⟩
+    have hP : 0 < ∏ i ∈ range n, F (i + 1) ω := prod_pos fun i _ ↦ hFpos _ _
+    have hP2 : ∏ i ∈ range n, F (i + 1) ω ≤ 1 / 2 := by
+      have := hhalf; rw [show w₀ / 2 = w₀ * (1 / 2) by ring] at this
+      exact le_of_mul_le_mul_left this hw₀
+    have hprod : ∏ i ∈ range n, G (i + 1) ω = (∏ i ∈ range n, F (i + 1) ω) ^ (-θ) := by
+      rw [hGdef, Real.finsetProd_rpow _ _ (fun i _ ↦ (hFpos _ _).le)]
+    rw [hprod, Real.rpow_neg hP.le, ← Real.inv_rpow hP.le]
+    apply Real.rpow_le_rpow two_pos.le _ hθ.le
+    rw [le_inv_comm₀ two_pos hP]; linarith
+  calc μ.real {ω | ∃ n ≤ N, w₀ * ∏ i ∈ range n, F (i + 1) ω ≤ w₀ / 2}
+      ≤ μ.real {ω | ∃ n ≤ N, (2 : ℝ) ^ θ ≤ ∏ i ∈ range n, G (i + 1) ω} := measureReal_mono hsub
+    _ ≤ 1 / 2 ^ θ := hville
+    _ = (2 : ℝ) ^ (-θ) := by rw [Real.rpow_neg two_pos.le, one_div]
+
+end Independent
 
 end ClassicalLean.Probability.MaximalInequality
