@@ -45,6 +45,7 @@ import ClassicalLean.NumberTheory.Zsigmondy
 import ClassicalLean.NumberTheory.ZsigmondyPowSubPow
 import ClassicalLean.Order.Superadditive
 import ClassicalLean.Order.Tolerance
+import ClassicalLean.Probability.DependentSampleMean
 import ClassicalLean.Probability.FairGame
 import ClassicalLean.Probability.MaximalInequality
 import ClassicalLean.Probability.SampleMean
