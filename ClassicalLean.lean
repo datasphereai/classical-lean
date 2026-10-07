@@ -43,6 +43,7 @@ import ClassicalLean.NumberTheory.Zsigmondy
 import ClassicalLean.NumberTheory.ZsigmondyPowSubPow
 import ClassicalLean.Order.Superadditive
 import ClassicalLean.Order.Tolerance
+import ClassicalLean.Probability.SampleMean
 import ClassicalLean.Simplex.Basic
 import ClassicalLean.Simplex.CrossEntropy
 import ClassicalLean.Simplex.DesignConstants
