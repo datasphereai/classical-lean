@@ -5,6 +5,7 @@ Authors: Dustin Watkins, Claude (Anthropic)
 -/
 
 import ClassicalLean.Algebra.CompanionMatrix
+import ClassicalLean.Analysis.LogGrowthRate
 import ClassicalLean.Combinatorics.AlgebraicGeneratingFunction
 import ClassicalLean.Combinatorics.RecurrenceGeneratingFunction
 import ClassicalLean.Geometry.Helix
