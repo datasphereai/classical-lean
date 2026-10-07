@@ -1,0 +1,12 @@
+# lean-nightly.timer - classical-lean nightly check at @NIGHTLY_TIME@ local time. Rendered by
+# deploy/install.sh from deploy/lean-nightly.timer.in. Persistent: a run missed while the machine
+# was off fires at the next boot.
+[Unit]
+Description=Nightly classical-lean check, @NIGHTLY_TIME@ local
+
+[Timer]
+OnCalendar=*-*-* @NIGHTLY_TIME@:00
+Persistent=true
+
+[Install]
+WantedBy=timers.target

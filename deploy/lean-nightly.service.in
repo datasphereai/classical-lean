@@ -1,0 +1,17 @@
+# lean-nightly.service - nightly classical-lean check. Rendered by deploy/install.sh from
+# deploy/lean-nightly.service.in; edit the template and re-run the installer, not this file.
+# Started daily by lean-nightly.timer. Pulls the clone, builds it, runs the three gates and writes
+# the status file. Network is allowed: `lake exe cache get` needs it when the Mathlib pin moves.
+[Unit]
+Description=Nightly classical-lean build + gates -> @STATUS_FILE@
+
+[Service]
+Type=oneshot
+ExecStart=/bin/bash @SCRIPT@
+Nice=19
+IOSchedulingClass=idle
+# 0027 plus the script's chmod: the status file lands 0640
+UMask=0027
+# a normal run is under a minute; a Mathlib pin move means a cache download and possibly a longer build
+TimeoutStartSec=2h
+NoNewPrivileges=yes

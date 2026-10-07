@@ -1,0 +1,957 @@
+# Handoff
+
+For a session picking this up cold. Read `PROVENANCE.md` for where the current content came
+from, `RETIRED.md` for what was deliberately left behind, and `ROADMAP.md` for the subject
+areas to add next and the patterns connecting the ones already here; this file is about **what
+to do next in the small and how to be sure it is true**.
+
+---
+
+## 0. The one rule that matters
+
+**Measure the thing you are claiming, not something near it.**
+
+This project has produced the same failure nine times, and every instance was a *correct*
+measurement of the wrong object:
+
+| claim | what was measured | what was claimed |
+|---|---|---|
+| "49 restored Lean files on [retired name]" | a number copied from an older record | the state of a filesystem |
+| "0 warnings" (five porters, independently) | `lake env lean`, which does **not** apply the lakefile's linters | that the modules were warning-free |
+| "the cleanest untouched material found" | `sorry`/`native_decide` counts | that the *content* was good — two of seven files were mostly tautologies |
+| "no bound on `discr K1` is proved anywhere" | a reading of the intent | the file proves two bounds |
+| "Mathlib has no general Lucas sequence" | `grep 'Lucas sequence\|lucasSeq\|LucasSequence'` — a search for the **name** | that the object was absent; it is there as `Polynomial.dickson` |
+| "Mathlib has no `Finset.sum` version of `add_mulVec`" | `grep 'Finset.sum_mulVec'` — a search in the **wrong namespace** | that the lemma was absent; it is `Matrix.sum_mulVec`, `Data/Matrix/Basic.lean:943` |
+| "Mathlib has no rank of apparition" (ROADMAP §2.1) | `grep -rni 'apparition'` → 0 — a search for the **name** | that the theorem was absent; Mathlib proves it at `(P,Q) = (2a,1)` as `Pell.y_dvd_iff`, `NumberTheory/PellMatiyasevic.lean:412` |
+| "this module contributes N theorem constants" (PROVENANCE rounds 7–9) | a census filtered with `!isInternal` on the **raw** name, which skips every `private` declaration | a share commensurable with `AxiomGate`'s aggregate; it under-counted 17 vs 26, 18 vs 27, 6 vs 10. The gate's own source documents the trap |
+| "nothing instantiates `Superadditive` / `Tolerance`" (ROADMAP §1.12) | `grep` for the name **excluding the defining file** — i.e. uses by *other* modules | that the definitions had no instance at all; both ship one in-file, `example : Superadditive id` and `natTolerance`, the latter documented as "witnessing that the definition is inhabited" |
+
+Each was written in good faith by someone who had actually run a command. Before you write a
+number in a docstring or a commit message, ask which of the two things you measured.
+
+Corollaries that are already load-bearing here:
+
+- **Warnings only exist at the `lake build` layer.** `lake env lean <file>` is silent on the
+  Mathlib linter set. Always `lake build <ModuleName>` and `grep -c 'warning:'`.
+- **A gate that has never failed is not known to work.** Every gate in `tools/` was shown red on
+  a deliberately broken input before being trusted green. If you add or change one, do the same
+  and put both runs in the commit message.
+- **A clean proof footprint is not a claim about content.** `0 sorry, 0 native_decide` and
+  "vacuous" are compatible; that is what `tools/VacuityGate.lean` is for, and even it has a
+  stated blind spot (see §4).
+
+---
+
+## 1. Current state, and how to re-measure it
+
+```
+cd ~/work/classical-lean
+lake build                                  # rc 0, and grep -c 'warning:' must be 0
+lake env lean tools/AxiomGate.lean          # every theorem within the kernel trio
+lake env lean tools/VacuityGate.lean        # no theorem asserts nothing
+python3 tools/check_sorry.py ClassicalLean  # no sorry / admit / native_decide / bare axiom
+python3 tools/banned_vocab_scan.py ClassicalLean
+python3 tools/check_records.py             # every shipped module is named in the records
+```
+
+As of this handoff (2026-09-25 UTC, order G-10's close, the six commands run on a clean tree at
+`fad33c5`, Lean and Mathlib v4.34.0): **52 modules in 10 top-level directories, 1595 theorem
+constants, one axiom, no `sorry`, no `native_decide`, 0 warnings with the header linter on**;
+gate 5 scans the 52 modules and `ClassicalLean.lean` (round 23, step V); gate 6 searches 25
+records files. Do not trust that paragraph — it is a snapshot. Run the six commands. (Order
+G-9's close had 50 modules and 1487 at `1e63d5b`; G-10 added `NumberTheory/Wolstenholme` with 91
+theorem constants, round 29, and `Statistics/FrischWaughLovell` with 17, round 30. Order
+G-8's close had 49 modules and 1434 at `552c38a`; G-9 added `NumberTheory/EuclidSteps` with 33
+theorem constants, 17 of them `omega`'s auxiliaries, round 27, and 20 in
+`NumberTheory/LucasApparition`, 10 of them auxiliaries, round 28 (73 → 93). Order
+G-7's close had 48 modules and 1283 at `91bd2df`; G-8 added `NumberTheory/ZsigmondyPowSubPow`
+with 131 theorem constants, and 151 in all, auxiliaries included, rounds 25 and 26: Zsigmondy
+82 → 88, LucasApparition 66 → 73, AlgebraicGeneratingFunction 27 → 34. Order G-6's close had
+1225 at `020f1ef`; G-7 added no module and 58 theorem constants, auxiliaries
+included: round 23's bridges (Hopf 14 → 16, S3Quaternion 11 → 13, SecondOrder 36 → 46,
+Zsigmondy 76 → 82, Characterisations 35 → 37, Helix 28 → 26, DesignConstants 58 → 56) and round
+24's law of apparition (LucasApparition 26 → 66). Order G-5's close had 45 modules and 1098 at
+`7cac0f6`; G-6 added
+`Simplex/SecondOrder` with 36 constants and `Statistics/CramerRao` with 15, round 21, and
+`NumberTheory/Zsigmondy` with 76, round 22; every module's Authors line now credits Claude
+(Anthropic), round 21.)
+
+**Dated 2026-10-07 (order LEAN-3, round 31; branch `prove-disc-biquadratic`, DSMain):** the six
+commands on that branch: 53 modules, **1662 theorem constants, no axiom** (`0 scoped exceptions`), no
+`sorry`, no `native_decide`, 0 warnings. `NumberTheory/BiquadraticDiscriminant` is new (53 constants).
+On `master` the paragraph above still holds until the branch is pushed.
+
+**Toolchain: `leanprover/lean4:v4.34.0`, Mathlib `5ed2965256` (tag v4.34.0)**, from order 0923's J3
+(round 17), which moved the library from `v4.29.0-rc2` / `8f07524533` through v4.29.1, v4.30.0,
+v4.31.0, v4.32.2, v4.33.1 and v4.34.0. No theorem statement changed in meaning: Mathlib deprecated
+`stdSimplex`, the library's `closedSimplex` has its definition word for word (equal by `rfl`), and
+`stdSimplex ℝ X` became `closedSimplex X` in eleven theorems, renamed `*_stdSimplex →
+*_closedSimplex`, and in six declarations that kept their names — `orderedSimplex`,
+`mem_orderedSimplex`, `existsUnique_mem_orderedSimplex`, `exists_mem_orderedSimplex_and_eq`,
+`exists_mem_orderedSimplex_logSumExp_eq`, and an `example` in `Simplex/Involution`. No `backward.*`
+option was added. One linter is off, and
+a reviewer should know it: `set_option linter.defProp false in` on `isLocalId` (a `def` on
+purpose; see its docstring).
+**Dated 2026-09-23 (order G-5, round 19):** the header linter is on since round 19. Until then a
+second linter was off, `weak.linter.style.header = false` for the whole library in
+`lakefile.toml`, because it demands a Mathlib copyright block and the licence was Dustin's
+decision. He chose Apache-2.0 on 2026-09-23; `LICENSE` is Mathlib's copy byte for byte, every
+module and `ClassicalLean.lean` carry the header naming him, and the setting and its comment are
+gone from `lakefile.toml`. Two limits of Mathlib's linter, read in its source
+(`Mathlib/Tactic/Linter/Header.lean`): it never checks the library root file itself, and it finds
+that root by a path relative to where `lake build` was started, so run the build from the
+repository root or the copyright checks are silently skipped.
+Mathlib v4.34.0's cache lacks `Mathlib.Probability.Kernel.Invariance`, which this library does not
+import; the build check that stood in for `lake build --no-build Mathlib` at that step is in round
+17.
+
+**Undoing the toolchain move (dated 2026-09-23):** `git -C ~/work/classical-lean reset --keep
+7ad841e` plus the parked `~/work/_parked/classical-lean.lake-v4.29.0-rc2` (moved back as `.lake`)
+restore `v4.29.0-rc2` with round 18 kept. Order 0923's own undo line names `PRE`, `a18ab6a`, which
+predates the rebase and would also drop round 18 and the records commits before it.
+
+**Mathlib claims in this repository were measured at `8f07524533`** unless their text names
+v4.34.0 (dated 2026-09-23). Re-measured at v4.34.0 on that date and still true: "no companion
+matrix" (`Algebra/CompanionMatrix.lean`), the cross-entropy search (`Simplex/CrossEntropy.lean`), the
+logsumexp and softmax searches (`Simplex/LogSumExp.lean`), `Dickson.lean`'s content
+(`NumberTheory/LucasSequence.lean`; 277 lines now, the same 18 theorems), the conductor–discriminant
+search (`NumberTheory/CompositumDiscriminant.lean`), "Mathlib has no Lucas numbers" (§2a below; the
+same four `*lucas*` files), the `native_decide` axiom naming (`tools/AxiomGate.lean`, §4), and the
+three `InformationTheory/` modules. Not re-measured, so still claims at `8f07524533`:
+`NumberTheory/LucasApparition.lean` ("Mathlib has nothing of the shape"), the table in §0, §2 item 4,
+and the rows of `ROADMAP.md` §2 — re-run a row's command before acting on it.
+
+**Before you write anything, read `records/README.md`.** Two sessions worked this tree at once
+on 2026-09-07/08 and two shipped modules landed with no round entry, because each session
+correctly declined to edit `PROVENANCE.md` while the other held it. Rounds are now written as
+fragments under `records/rounds/`, orders as files under `records/orders/`, and gate 6
+(`tools/check_records.py`) fails if a module under `ClassicalLean/` is named in none of them.
+Claim your modules in `records/CLAIMS.md` first.
+
+The one axiom is `disc_biquadratic_23` (`|discr ℚ(√2,√3)| = 2304`) in
+`NumberTheory/CompositumDiscriminant.lean`, registered in `AxiomGate.scopedExceptions` and
+carrying exactly two theorems. **Discharging it is real work worth doing** — the module header
+records the Mathlib search that failed to close it, and Mathlib moves.
+**Dated 2026-10-07 (order LEAN-3, round 31; branch `prove-disc-biquadratic` on DSMain, not yet
+on `master`):** discharged. `disc_biquadratic_23` is a theorem with the same statement, proved
+through the ring of integers: `NumberTheory/BiquadraticDiscriminant.lean` shows `ℤ[θ] = 𝓞` for
+`θ = (√2 + √6)/2 − 1` (minpoly `X⁴ + 4X³ + 2X² − 4X − 2`, Eisenstein at 2; the prime 3 by a trace
+argument) and `discr = 2304`. `AxiomGate.scopedExceptions` is empty. The search findings below were
+right about what Mathlib lacks; they were wrong that it was needed. The remaining paragraphs of
+this section are history.
+
+**Update, 2026-09-08 — the cyclotomic route is measured, and it does not close the axiom.**
+Reported by the G-4 session and recorded here because it existed only in a chat transcript;
+**not re-measured while writing this note**, so treat the arithmetic as attributed rather than
+checked.  The Mathlib pin has not moved (`.lake` still at `8f07524533`), so "Mathlib moves" does
+not yet apply.  **(2026-09-23: the pin has since moved to v4.34.0, round 17; the G-4 searches were
+re-run there and the axiom stands — see the G-4 order.)**  An independent search adding `conductor.discriminant`,
+`discr.*tower|relativeDiscr`, `ringOfIntegers.*(quadratic|biquad)` and `index.*discr` returned
+nothing beyond what the module already cites.
+
+The sharper finding: `natAbs_discr_sq_dvd_of_tower` and `discr_cyclo24 = 5308416` already exist
+axiom-free, so realising `K1` inside the 24th cyclotomic field would give `|discr K1|` dividing
+2304.  Against the best lower bound this Mathlib has (`abs_discr_ge'`), that still leaves **ten**
+surviving divisors of 2304 in the best case — totally real, r2 = 0, bound 113.78 — and 14 at
+r2 = 2, versus 25 under the `abs_discr_gt_two` the module actually uses.  So the cyclotomic
+embedding cannot force 2304 even if it were built.  The §6 argument worked because 125 = 5^3
+leaves one square-divisor candidate.  Closing this needs the conductor-discriminant formula or the
+ring of integers of a biquadratic field, neither of which is in this Mathlib.
+
+Incidental: the module uses only `abs_discr_gt_two`, and `abs_discr_ge'` is strictly sharper, but
+exploiting it needs `nrComplexPlaces K1 = 0` and `IsTotallyReal` appears nowhere in the module.
+
+Available and not started: proving `(discr K1).natAbs` divides 2304 axiom-free, via the two square
+roots as Gauss sums in the 24th cyclotomic field plus the existing tower lemma — roughly 100 lines
+into a 1000-line module, the same shape as §6.  It narrows the axiom's content from one value to
+ten candidates; **it does not discharge it.**
+
+Build note: `.lake/` is gitignored and this project was built **offline**, by copying a
+prebuilt Mathlib from another checkout on this machine. A fresh build elsewhere needs
+`lake exe cache get`, which needs network.
+**Since 2026-09-23 (round 17)** the tree is built at v4.34.0 by `lake exe cache get`, in the
+`toolchain-bump` worktree, whose `.lake` order 0923's landing step moves into this tree; that step
+parks the `v4.29.0-rc2` `.lake` — the offline-copy build described above — at
+`~/work/_parked/classical-lean.lake-v4.29.0-rc2`.
+One module of Mathlib's v4.34.0 cache is missing (`Mathlib.Probability.Kernel.Invariance`); this
+library does not import it, so nothing is compiled — but `lake build --no-build Mathlib` exits 3
+at this pin, and is not the check to use (round 17).
+
+Second build note, and it will cost you an hour if you meet it cold: **`ring` closes no goal in
+`PowerSeries R` under this toolchain** — not even `X * X = X ^ 2` — and `rw [sub_mul]` will not
+match `1 - f`. It is not a `ring` bug. **Measured**: under `pp.explicit` with
+`pp.fullNames`, `1` and `*` elaborate through `MvPowerSeries.instOne`/`instMul` while `-` goes
+through `PowerSeries.instAddGroup` and `0` through `PowerSeries.instZero`; Mathlib declares both
+families, each `by dsimp only [PowerSeries]; infer_instance`
+(`RingTheory/PowerSeries/Basic.lean` lines 87 and 111). **Inferred**: that a lemma stated for one
+family therefore fails to match a goal built from the other. The fix is one line, `set_option backward.isDefEq.respectTransparency false`,
+which Mathlib itself sets before `PowerSeries.catalanSeries_sq_mul_X_add_one` and which
+`Geometry/Helix.lean` already sets for matrix goals. `abel`, `sub_eq_add_neg` and `coeff`-level
+`simp` work without it.
+**Measured 2026-09-23 (order 0923, J3):** at Lean and Mathlib **v4.34.0** `ring` closes
+`X * X = X ^ 2` and `(1 - X) * (1 + X) = 1 - X ^ 2` in `PowerSeries R` with **no** option, with
+`backward.isDefEq.respectTransparency.types false`, and with `respectTransparency false` alike;
+at `v4.29.0-rc2` the same file fails without the option (`~/work/_bump-evidence/RingPowerSeries.lean`,
+kept). At this library's toolchain since round 17, v4.34.0, the note therefore no longer applies;
+the ten modules' `backward.isDefEq.respectTransparency false` lines stay until the next order
+removes them.
+**Dated 2026-09-23 (order G-5, round 19):** all fifteen went — the nine file-level settings
+(`CompanionMatrix`, `AlgebraicGeneratingFunction`, `RecurrenceGeneratingFunction`, `Helix`,
+`Hopf`, `S3Quaternion`, `SU2SO3`, `LucasSequenceGeneratingFunction`, `PowerSumCases`) and the
+six scoped ones in `CompositumDiscriminant`. Each was removed alone and followed by a full
+`lake build` (rc 0, 0 warnings) and a dump of every theorem type and definition, compared with
+the dump taken before (no change). Two modules needed small proof edits, all of one kind: a
+rewrite with a `Finset.sum` lemma no longer matched the sum's instance argument syntactically,
+and `erw` does — one `example` in `LucasSequenceGeneratingFunction`, two proofs in
+`PowerSumCases`. The re-run of `RingPowerSeries.lean` (rc 0, no output) is in
+`~/work/_bump-evidence/ring-v4.34.0-g5.txt`.
+
+---
+
+## 2. What I claimed, and what I actually checked
+
+The previous session proposed five additions. **Two of the underlying observations were verified
+by grep; three were not.** Treat the unverified ones as hypotheses to test, and be willing to
+conclude "not worth it" — one earlier candidate (`[retired name]`) was correctly declined after
+measurement showed it was three Mathlib one-liners.
+
+| # | claim | status | how to check |
+|---|---|---|---|
+| 1 | The library has **no Binet formula for `lucas`** | ~~measured~~ — **done**, see below | — |
+| 2 | `Simplex/Gibbs` and `FisherRao` never reference `orderedSimplex` | **measured** — grep returns nothing | — |
+| 3 | Four modules independently build a 2×2 companion matrix and reprove trace/det/charpoly | **measured — false as stated**, and the real duplication was elsewhere; see §2c | — |
+| 4 | Lucas numbers have a rank-of-apparition theory mirroring `MersenneOrder` | **measured to be worth doing**, and larger than "one citation" — Mathlib has no `apparition` and no `Zsigmondy` at all. Scoped as `ROADMAP.md` §2.1 | — |
+| 5 | Tree C's E₈ literal facts are worth an `Examples/` module | **NOT measured** | they are `native_decide` in the source; check whether `decide` closes them at these sizes before promising anything |
+
+### 2a. The Binet connection — done
+
+**This item is closed.** `NumberTheory/Lucas.lean` now proves
+
+    lucas_isSol_fibRec  : Real.fibRec.IsSolution (fun n => (lucas n : ℝ))
+    coe_lucas_eq  (n)   : (lucas n : ℝ) = φ ^ n + ψ ^ n
+    coe_lucas_two_mul   : (lucas (2 * n) : ℝ) = (φ ^ 2) ^ n + (ψ ^ 2) ^ n
+
+and a new module `NumberTheory/LucasCompanion.lean` joins the three formerly disjoint modules
+with `companionMatrix_pow_trace : (M ^ n).trace = (lucas (2 * n) : ℝ)`, plus the determinant,
+the characteristic polynomial `x ^ 2 - L (2n) * x + 1` of `M ^ n`, the eigenvalue reading, and
+the orbit statement. `PROVENANCE.md` §"Round 3" records the Mathlib search and the gate results.
+
+Two things a next session should know rather than rediscover:
+
+- **Mathlib has no Lucas numbers.** The four files matching `*lucas*` are the Lucas–Lehmer test,
+  the Lucas primality test, the Gauss–Lucas theorem and Lucas' congruence on binomials. The
+  search is written out in `PROVENANCE.md` and in the docstring of `coe_lucas_eq`.
+- **"The orbit of that matrix" needs a seed as well as an action.** Both conventions work, on
+  different vectors: `Matrix.vecMul` advances the consecutive pair `(L (2n), L (2n + 2))`, and
+  `Matrix.mulVec` advances the signed pair `(L (2n), -L (2n + 2))`. Both are shipped. Carrying
+  the unsigned pair to the column action is what fails, and that is a spot check at `n = 0`.
+  An earlier draft of this file recorded the column action as simply wrong; it is not, and the
+  claim was withdrawn before the follow-up commit.
+
+What is **not** done, and is the obvious continuation: `lucas_sq_sub_five_mul_fib_sq` and
+`lucas_two_mul` are now one-liners from Binet, and were deliberately left on their inductive
+proofs. Whether to re-prove them is a judgement call about which proof a reader wants; the
+docstrings do not yet cross-reference Binet.
+
+### 2b. The symmetry the library proves but never uses
+
+`Simplex/Ordered.existsUnique_mem_orderedSimplex` says the sorted simplex is a fundamental
+domain for coordinate permutation. `Simplex/Gibbs.freeEnergy T i₀ x = -log (x i₀) + T * ∑ x i *
+log (x i)` — the entropy term is permutation-invariant, the barrier term is not.
+
+That asymmetry is the interesting content, not an obstacle: state that the entropy is invariant,
+that the barrier picks a coordinate, and that a permutation-invariant statement need only be
+proved on the ordered simplex. Right now the reduction exists and nothing uses it.
+
+### 2c. Item 3, measured — and what the duplication actually was
+
+**The claim was false as stated.** `grep -c '!!\[' ` over the four named modules:
+`GoldenRatio/Characterisations.lean` 4, `Geometry/Helix.lean` 5, `NumberTheory/Jacobsthal.lean`
+**0**, `NumberTheory/Pell.lean` **0**. Two modules build a 2×2 companion matrix, not four;
+Jacobsthal and Pell build no matrix at all. (`Simplex/Hessian.lean` has one, unrelated — it is
+the Hessian of a free energy.)
+
+The duplication was real but was **not** in the matrices. It was in the *identities*, and it
+was worse than the claim: `lucas_mul_fib` and `jacobsthal_mul_jacobsthalCompanion` are the same
+theorem; `lucas_sq_sub_five_mul_fib_sq` and `pellHalfCompanion_sq_sub_two_mul_sq` are the same
+theorem; four separate closed forms are one theorem at four pairs of roots. That is what
+`NumberTheory/LucasSequence.lean` now proves once, and `LucasSequenceCases.lean` records the
+identifications. `ROADMAP.md` §1.1 is the summary.
+
+The lesson is the file's own §0 read the other way round: the previous session inferred a shared
+object *from declaration names*, guessed the wrong object, and happened to be pointing at a real
+duplication anyway. Reading names found something; it did not find what it named.
+
+---
+
+## 3. Expanding into new mathematics
+
+The standing goal is a library that spans mathematics, not just the salvage from one corpus.
+Everything above is finishing the salvage. **New material is welcome and wanted.**
+
+When adding a new area:
+
+- **Check Mathlib first, and say what you searched.** The rule this project has converged on: a
+  claim that "Mathlib does not have X" must rest on a search you actually ran and record the
+  terms. Three modules were declined on these grounds and one axiom survives *because* the
+  search is documented and reproducible.
+- **Research is in scope.** If a domain needs background — a definition convention, which of
+  several equivalent formulations is standard, what the standard name for a result is — go and
+  find out rather than guessing. Getting the *name* right is part of the deliverable (§5).
+- **Prefer results with a statement someone would want to cite.** The corpus this library came
+  from was full of true statements nobody could use. `Order/Superadditive.lean` is the shape to
+  aim for: a definition, five theorems, and a worked witness that the hypothesis class is
+  inhabited so nothing is vacuously about an empty class. (Corrected 2026-09-23, order G-5
+  round 19: this said "four"; the module declares five theorems, eight theorem constants with
+  its three `_proof_1_1` auxiliaries — round 16, finding 5.)
+- **A module earns its place if it shortens something or states something new.** `[retired name]` was
+  declined because porting it would have added names, not results. That is a valid outcome and
+  should be recorded in `RETIRED.md` with the reason.
+
+Directions that would extend the library's reach rather than deepen one corner — pick by what
+you can do well, not by this list's order:
+
+- **Order/lattice theory** — `Order/` has two isolated modules (`Superadditive`, `Tolerance`).
+  `Tolerance` is a pseudometric with the codomain abstracted; the obvious next step is a
+  triangle inequality and the resulting equivalence relation, which the module explicitly does
+  *not* assume.
+- **Combinatorics** — the sequence modules (`Pell`, `Jacobsthal`, `Tribonacci`, `Catalan`,
+  `NacciTrace`) are all linear recurrences. Generating functions, or the general theory of
+  integer linear recurrences, would unify them the way `FactorialPart` unified the factorisation.
+- **Number theory** — `MersenneOrder` is the deepest thing here. Rank of apparition, cyclotomic
+  polynomials and Zsigmondy (done for `aⁿ − 1`, round 22; spelling corrected 2026-09-24) are
+  the natural continuations, and the compositum-discriminant
+  module is a doorway into algebraic number theory.
+- **Anything genuinely new.** Analysis, topology, category theory, probability — the library has
+  none of these and no reason not to.
+
+**Next in information theory, from order 0923 (2026-09-23).** `InformationTheory/` exists now
+(`ROADMAP.md` §2.8). No statement was left unproved in round 18. What comes next, in order:
+
+- **The bridge to Mathlib's `klDiv`**:
+  `(InformationTheory.klDiv μ_p μ_q).toReal = relEntropy p q + ∑ i, q i - ∑ i, p i` for `p, q ≥ 0`
+  with `q i = 0 → p i = 0`, where `μ_p` is the finite measure with weights `p`. Mathlib's `klDiv`
+  carries the mass term `ν.real univ - μ.real univ`, so the version without it is false off equal
+  totals (`p = (1)`, `q = (2)`), and without support `klDiv = ∞`. With the bridge,
+  `relEntropy_vecMul_le` becomes a corollary of Mathlib's `klDiv_comp_right_le` (v4.34.0), since a
+  channel preserves both totals, and the finite and measure theories stop being parallel.
+- **Conditional entropy and the chain rule** `H(X, Y) = H(X) + H(Y | X)`.
+- **Data processing for mutual information** along a Markov chain `X → Y → Z` — which would also
+  give `mutualInfo` its first user outside its own module.
+
+**Dated 2026-09-23 (order G-5, round 19) — the list above is declined for now.** Conditional
+entropy, the chain rule, Markov data processing, Pinsker and Fano exist, in random-variable
+form, in an Apache-2.0 library this one does not depend on (`github.com/FujiHaruka/
+information-theory`; `ROADMAP.md` §2.8 has claude-ai's measurements). The finite-vector forms
+would still be new here, so this is a ranking decision on the prior-art ground Dustin asked
+claude-ai to apply, not a finding that they add nothing; his veto is open. The three finite
+modules stay as they are; `mutualInfo` keeps no consumer (round 19 says why); the `klDiv`
+bridge stays listed as the first step if the finite layer is ever offered to Mathlib.
+
+**Next after the toolchain move (order 0923, round 17), smaller items first:**
+
+- Swap `InformationTheory/Channel.lean`'s private `vecMul_eq_sum` for Mathlib's
+  `Matrix.vecMul_apply_eq_sum` (`Data/Matrix/Mul.lean:726`, present at v4.34.0, absent at the old
+  pin). **Done 2026-09-23 (order G-5, round 19):** the statements were identical, so each of the
+  five uses now names `Matrix.vecMul_apply_eq_sum` in full (Mathlib's different
+  `Matrix.vecMul_eq_sum`, `v ᵥ* M = ∑ i, v i • M i`, makes the bare name a trap) and the
+  private theorem is gone: raw 1072 → 1071, filtered 725 → 724, no other type changed.
+- Remove the ten modules' `backward.isDefEq.respectTransparency false` lines where they are no
+  longer needed: `ring` works in `PowerSeries R` without them at v4.34.0 (§1). **Done
+  2026-09-23 (order G-5, round 19):** all fifteen settings removed (§1). Left for later, one
+  line: `finrank_K1_eq`'s `set_option maxHeartbeats 400000 in` is no longer needed at v4.34.0
+  (`#count_heartbeats` 91057, under the default 200000; the module comment has the figures).
+- `linter.style.header` is off library-wide until Dustin chooses a licence for the copyright
+  block it asks for. **Superseded 2026-09-23 (order G-5, round 19):** he chose Apache-2.0; the
+  linter is on and every module carries the header (§1).
+- `mem_closedSimplex` is an `Iff.rfl` unfolding with no user yet, kept on `mem_openSimplex`'s
+  precedent; Dustin's call whether it stays. **Settled 2026-09-23 (order G-5 §2):** it stays, by
+  `mem_openSimplex`'s precedent — claude-ai's decision on his delegation, his veto open (§6).
+
+**Statistics, from order G-5 (2026-09-23).** `Statistics/GaussMarkov.lean` exists now
+(`ROADMAP.md` §2.9). No statement was left unproved in round 20. Not started, and listed here as
+the order asks:
+
+- **The variance reading with `ProbabilityTheory.covarianceBilin`** — order G-5's optional second
+  module. It would restate `dotProduct_inv_mulVec_le` as a statement about the variance of
+  `a ⬝ᵥ β̂` for a random noise vector with covariance `σ² • 1`, through Mathlib's measure-theoretic
+  covariance; it adds 126 modules to the import closure and does not reach
+  `Mathlib.Probability.Kernel.Invariance` (the order's reviewer's count, reproduced read-only).
+  Read `covarianceBilin`'s definition before stating anything (§6 rule 2).
+- **Generalised least squares** (`Cov ε = σ² • V`), and **Cochran's theorem**; both build on
+  `leastSquares`, which has no consumer outside its own module until one of them lands.
+  **Corrected 2026-09-24 UTC (order G-6, round 21):** `leastSquares` has its first outside
+  consumer already: `Statistics/CramerRao`'s equality case `weightedCov_eq_inv_secondMoment_iff`
+  unfolds it (through `self_mul_transpose_eq_inv_iff`).
+
+**What next — re-ranked at order G-10's close (2026-09-25 UTC).** G-9's ranking below is kept as
+written; its fourth item is done (round 29: Wolstenholme's theorem, so the library proves Q1724049's
+statement) and its third item's first half is done (round 30: the Frisch–Waugh–Lovell theorem). In
+order:
+
+1. **Carmichael's theorem** (Q3889376): `F_n` has a primitive prime divisor exactly for
+   `n ∉ {1, 2, 6, 12}`. Now measured cell by cell (order G-10 §0 row 16): the elementary shape — the
+   Fibonacci cyclotomic numbers `c_n = ∏_{d ∣ n} F_d ^ μ(n/d)` by Möbius inversion, the key lemma
+   that a prime `p ∤ n` dividing `c_n` is primitive for `F_n`, the `3 · 2^k` anomaly at `p = 2`
+   (cells to `n = 150`), the Binet size bound (measured `15 ≤ n ≤ 400`, to be proved in general),
+   and the finite check `n ≤ 14`. Proposed as order G-11's work once its Lean-side needs are
+   measured (Mathlib's Möbius inversion for products, a Binet lower bound on `Nat.fib`, the rank of
+   apparition and `α(p) ≤ p + 1` from round 24, and `decide` on `F_n` for `n ≤ 14`) — one order's
+   J2 and J3 together, with a new module.
+2. **Majorization** (P7; Mathlib's own TODO, `Analysis/Convex/Birkhoff.lean:29–30`), which no cycle
+   has measured. Offering it to Mathlib would be Dustin's decision.
+3. **Cochran's theorem** (Q599876), the second half of the third item, over J3's
+   `Statistics/FrischWaughLovell` module and `GaussMarkov`'s `leastSquares`.
+4. **Max-flow min-cut, then Menger** (Q608294, Q928813; `ROADMAP.md` §2.10), with
+   `Applied/Integrity` folded in.
+5. **Mathlib's wanted list** (§2.12).
+
+Also open, not ranked: the two islands (`NumberTheory/CompositumDiscriminant`, `Order/Tolerance`;
+`ROADMAP.md` §1.15), the other pairs of order G-10 §0 row 6, the `ExpChar` form, a `lucasV` analogue
+of the rank of apparition, and order G-10 §0 row 9's weaker Frisch–Waugh–Lovell hypothesis (`IsUnit
+(X₁ᵀ X₁).det` alone; measured, not proved — this order did not take it).
+
+**What next — re-ranked at order G-9's close (2026-09-25 UTC).** G-8's ranking below is kept as
+written. Its fourth item is done (round 27: Lamé's theorem, so the library proves Q230848's
+statement), and so are two of its open items (round 28: `V_{p^k} = P ^ (p ^ k)` in characteristic
+`p`, with `V (p n)`, `U (p n)`, `U (p ^ k)` and the `dickson` form; round 27: `land.sh` under
+`LC_ALL=C`). In order:
+
+1. **Carmichael's theorem** (Q3889376): `F_n` has a primitive prime divisor exactly for
+   `n ∉ {1, 2, 6, 12}`. Order G-8 §0 row 13 measured what the cyclotomic route needs (a lower bound
+   on the Fibonacci cyclotomic numbers that the triangle inequality does not give; no `Φₙ(−X)`
+   identity or reversal lemma in Mathlib; round 22's key lemma fails at `n = 6, 12`; `p = 2` and
+   `p = 5` apart). The elementary route (Yabuta 2001, through the rank of apparition and the bound
+   `α(p) ≤ p + 1`, which round 24 has) is measured cell by cell by claude-ai before any order
+   proposes the theorem (order G-9 §0 row 16).
+2. **Majorization** (P7; Mathlib's own TODO, `Analysis/Convex/Birkhoff.lean:29–30`). Offering it
+   to Mathlib would be Dustin's decision.
+3. **The Frisch–Waugh–Lovell theorem, then Cochran's theorem** (Q1059151, Q599876), as matrix
+   algebra over round 20's `leastSquares`. **First half done 2026-09-25 UTC (order G-10, J3, round
+   30):** the Frisch–Waugh–Lovell theorem, `Statistics/FrischWaughLovell.lean` (`residualMaker` the
+   annihilator `M₁`, (S1)–(S5), the vector and matrix forms (F1)–(F4), and the witness that the
+   invertibility hypothesis cannot be dropped), over `GaussMarkov`'s `leastSquares` (`GaussMarkov`
+   now `usedBy=2`). Cochran's theorem, the second half, is not in this order and stays ranked.
+4. **Wolstenholme's theorem** (Q1724049): `C(2p − 1, p − 1) ≡ 1 (mod p³)` for primes `p ≥ 5`;
+   Mathlib has no harmonic sum modulo a prime (order G-9 §0 row 12: the one hit is a docstring,
+   and `NumberTheory/Harmonic/` is real-analytic), so the route through `H_{p−1} ≡ 0 (mod p²)` is
+   all new. (Corrected 2026-09-25 UTC, order G-9's Close check, round 28 addendum item 13:
+   `NumberTheory/Harmonic/` is not real-analytic — it defines the rational `harmonic`
+   (`Harmonic/Defs.lean:23`) and proves `padicValRat_two_harmonic` and `harmonic_not_int`
+   (`Harmonic/Int.lean:30, 52`); it has no congruence modulo a prime, so the congruence is new and
+   can start from Mathlib's `harmonic`.) **Done 2026-09-25 UTC (order G-10, J2, round 29):**
+   `NumberTheory/Wolstenholme.lean`, both classical forms (`choose_two_mul_sub_one_modEq_one`,
+   `two_le_padicValRat_harmonic`) and the central and Catalan corollaries, for every prime `p ≥ 5`;
+   the library now proves Q1724049's statement, the first congruence modulo a prime power here, and
+   the island `Catalan` gets its first user.
+5. **Max-flow min-cut, then Menger** (Q608294, Q928813; `ROADMAP.md` §2.10), with
+   `Applied/Integrity` folded in.
+6. **Mathlib's wanted list** (§2.12).
+
+Also open, not ranked: the three islands (`NumberTheory/Catalan`,
+`NumberTheory/CompositumDiscriminant`, `Order/Tolerance`; `ROADMAP.md` §1.15; retiring a module is
+Dustin's decision); the other pairs of `pairs.py` (91 at `1e63d5b`: pairs of modules with no edge
+between them that share a rare constant, `S3Quaternion ~ SU2SO3` first); the `ExpChar` form of the
+characteristic-`p` results; and a `lucasV` analogue of the rank of apparition.
+
+**What next — re-ranked at order G-8's close (2026-09-24 UTC).** G-7's ranking below is kept as
+written. Its first item is done (round 25: Zsigmondy's theorem for `aⁿ − bⁿ` with the sum clause,
+so the library proves `docs/1000.yaml`'s Q8074796 in full), and so are two of its open items
+(round 26: `V_p = P ^ p` in characteristic `p`; round 25: the type dump up to proof irrelevance).
+In order:
+
+1. **Carmichael's theorem** (Q3889376): `F_n` has a primitive prime divisor exactly for
+   `n ∉ {1, 2, 6, 12}` (checked from the definition for `n ≤ 400`). Order G-8 §0 row 13 measured
+   what it needs: the Fibonacci cyclotomic numbers `c_n = ∏_{d ∣ n} F_d ^ μ(n / d)` with a lower
+   bound (`c_n ≥ 0.618 · φ ^ φ(n)` held for `3 ≤ n ≤ 300`; the triangle inequality gives only
+   `c_n ≥ 1`); round 22's key lemma does not carry over (`c_6 = 4` and `c_12 = 6` exceed
+   `P(n) = 3`, and `2` divides both `n` and `c_n`); Mathlib has no identity for `Φₙ(−X)` and no
+   reversal lemma; `p = 2` and `p = 5` need their own treatment. Round 25's
+   `exists_prime_lucasApparition_add_mul_eq_iff` is the case of integer roots; Fibonacci's roots
+   are conjugate quadratic irrationals.
+2. **Majorization** (P7; Mathlib's own TODO, `Analysis/Convex/Birkhoff.lean:29–30`). Offering it
+   to Mathlib would be Dustin's decision.
+3. **The Frisch–Waugh–Lovell theorem, then Cochran's theorem** (Q1059151, Q599876), as matrix
+   algebra over round 20's `leastSquares`.
+4. **Lamé's theorem** (Q230848), the Euclidean algorithm's step bound, through the Fibonacci
+   numbers the library already has.
+5. **Wolstenholme's theorem** (Q1724049, new; order G-8 §0 row 15): `C(2p − 1, p − 1) ≡ 1
+   (mod p³)` for primes `p ≥ 5`; title only in `docs/1000.yaml`, and `wolstenholme` has 0 hits in
+   Mathlib; claude-ai's cells hold for the primes `5 ≤ p < 400` and for no composite `n < 2000`.
+6. **Max-flow min-cut, then Menger** (Q608294, Q928813; `ROADMAP.md` §2.10), with
+   `Applied/Integrity` folded in.
+7. **Mathlib's wanted list** (§2.12).
+
+Also open, not ranked: the three remaining islands (`NumberTheory/Catalan`,
+`NumberTheory/CompositumDiscriminant`, `Order/Tolerance`; `ROADMAP.md` §1.15; retiring a module is
+Dustin's decision) and the other pairs of order G-8 §0 row 6 (`pairs.py`: 87 pairs of modules with
+no edge between them that share a rare constant, at `87653a4`); `V_{p^k} = P ^ (p ^ k)` and the
+`ExpChar` form (the dated paragraph under G-7's ranking); a `lucasV` analogue of the rank of
+apparition; and running `land.sh`'s path comparison under `LC_ALL=C` (round 26's Close).
+
+**Dated 2026-09-25 UTC (order G-9, rounds 27 and 28):** item 4 above is done: Lamé's theorem, in
+the new module `NumberTheory/EuclidSteps` (`ROADMAP.md` §2.13) — the step count of the Euclidean
+algorithm, the Fibonacci bounds with their attaining pairs, and at most five steps per decimal digit
+of the second argument, so the library proves the statement of `docs/1000.yaml`'s Q230848 (listing
+it there is Dustin's decision). Two of the open items are done: `V_{p^k} = P ^ (p ^ k)` in
+characteristic `p` (`lucasV_prime_pow_eq_pow`), with `V (p n) = V n ^ p`, `U (p n)`, `U (p ^ k)`, the
+`dickson` form at prime powers and the characteristic-2 identities (round 28; `ROADMAP.md` §2.1);
+and `land.sh`'s path comparison, which now runs under `LC_ALL=C` and reads `comm`'s exit status
+(round 27). Still open: the `ExpChar` form, and a `lucasV` analogue of the rank of apparition.
+
+**What next — re-ranked at order G-7's close (2026-09-24 UTC).** G-6's ranking below is kept as
+written; its first item is done (round 24: the law of apparition, the bound `α(p) ∣ p − (D/p)`
+for odd `p ∤ Q`, and the Fibonacci case), and round 23 bridged two of the six islands. In order:
+
+1. **Zsigmondy's theorem for `aⁿ − bⁿ`**, coprime `a > b > 0` (`ROADMAP.md` §2.5): it completes
+   `docs/1000.yaml`'s Q8074796, whose statement is for `aⁿ − bⁿ`; the library proves `b = 1`
+   (round 22). Both prior-art proofs state the two-variable form; their route is the one round
+   22 used, and it is credited, not adapted.
+2. **Carmichael's theorem** (Q3889376): every Fibonacci number beyond `F₁₂` has a primitive prime
+   divisor. In reach now that the law of apparition is proved (round 24), with round 22's
+   primitive-divisor machinery.
+3. **Majorization** (P7; Mathlib's own TODO, `Analysis/Convex/Birkhoff.lean:29–30`). Offering it
+   to Mathlib would be Dustin's decision.
+4. **The Frisch–Waugh–Lovell theorem, then Cochran's theorem** (Q1059151, Q599876), as matrix
+   algebra over round 20's `leastSquares`.
+5. **Lamé's theorem** (Q230848), the Euclidean algorithm's step bound, through the Fibonacci
+   numbers the library already has.
+6. **Max-flow min-cut, then Menger** (Q608294, Q928813; `ROADMAP.md` §2.10), with
+   `Applied/Integrity` folded in.
+7. **Mathlib's wanted list** (§2.12).
+
+Also open, not ranked: the four remaining islands (`ROADMAP.md` §1.15; recorded, not bridged;
+retiring a module is Dustin's decision); `lucasV P Q p = P ^ p` in any ring of characteristic
+`p`, which would extend Mathlib's `dickson_one_one_charP` from `Q = 1` to every `Q` (the J3
+statement review's suggestion, round 24); and a tooling item from round 23's step 4 —
+`g5_typediff.py` reports a record as changed when only a `Prop`-valued instance argument's proof
+term moved (an import widened instance search), so it cannot tell a changed statement from a
+definitionally equal one; comparing such arguments up to proof irrelevance would resolve it.
+
+**Dated 2026-09-24 UTC (order G-8, rounds 25 and 26):** item 1 above is done: Zsigmondy's theorem
+for `aⁿ − bⁿ`, with the sum clause and the ranks of apparition in `U(a + b, ab)`, in the new module
+`NumberTheory/ZsigmondyPowSubPow` (`ROADMAP.md` §2.5). Two of the open items are done:
+`lucasV P Q p = P ^ p` in any commutative ring of prime characteristic `p` (`lucasV_prime_eq_pow`,
+with `dickson_one_eq_X_pow_of_charP`, `dickson 1 a p = X ^ p` for every `a`), and the tooling item
+(`TypeDumpPI.lean` with `g8_typediff.py`, rule 25). Offering the `dickson` form to Mathlib is
+Dustin's decision. For that offer, the J3 statement review recorded that Mathlib puts the `ExpChar`
+form of such results first (`add_pow_expChar`, `Algebra/CharP/Lemmas.lean:162`, with the `CharP`
+form derived from it at `:176`; 100 lines with an `[ExpChar …]` binder against 26 with `CharP` and
+a `Fact`-prime), so a Mathlib reviewer is likely to ask for it; the library's binders are
+`dickson_one_one_charP`'s. Open, and not required by order G-8: `V_{p^k} = P ^ (p ^ k)` in
+characteristic `p` (the statement review's cell D), whose route needs a composition law Mathlib has
+only at `a = 1` (`dickson_one_one_mul`, `Dickson.lean:183`) or the iterated Frobenius in the matrix
+ring. Three islands remain (`ROADMAP.md` §1.15): `AlgebraicGeneratingFunction` now uses
+`RecurrenceGeneratingFunction`.
+
+**What next — re-ranked at order G-6's close (2026-09-24 UTC).** Order G-5's ranking below is
+kept as written; its first item is done (round 22: Zsigmondy for `aⁿ − 1`, base `2` included,
+with no new analytic inequality), and G-6's patterns add two candidates (`ROADMAP.md` §1.14). In
+order:
+
+1. **The law of apparition** `α(p) ∣ p − (D/p)` for a Lucas sequence (P6): it continues
+   `NumberTheory/LucasApparition` and `MersenneOrder`, which record the general bound as not
+   proved, and it uses the same `orderOf`-in-`ZMod p` machinery Zsigmondy just exercised.
+2. **Majorization** (P7): Mathlib's own TODO, `Analysis/Convex/Birkhoff.lean:29–30`; the library
+   has the pieces (`InformationTheory/Channel`, `Simplex/Ordered`, `Simplex/Symmetry`). Offering
+   it to Mathlib would be Dustin's decision.
+3. **Max-flow min-cut, then Menger** (`ROADMAP.md` §2.10), with `Applied/Integrity` folded in
+   (§2.11).
+4. **More statistics** (§2.9): the Frisch–Waugh–Lovell theorem (`docs/1000.yaml` Q1059151, title
+   only, no formalisation recorded, checked 2026-09-24), generalised least squares, and Cochran's
+   theorem as matrix algebra.
+5. **Mathlib's wanted list** (§2.12).
+
+Also open and not ranked: Zsigmondy's two-variable form `aⁿ − bⁿ` for coprime `a > b > 0`
+(`ROADMAP.md` §2.5, dated 2026-09-24), which both prior-art proofs state.
+**Dated 2026-09-24 UTC (order G-7, J2 step 7):** two more, `docs/1000.yaml` entries with no
+formalisation recorded (order G-7 §0 row 12, claude-ai's measurement at Mathlib v4.34.0):
+**Carmichael's theorem** (Q3889376; it needs the law of apparition, order G-7 J3) and
+**Lamé's theorem** (Q230848). The Frisch–Waugh–Lovell theorem is already item 4 above.
+
+**What next — claude-ai's ranking in order G-5's Close, checked against what G-5 found
+(2026-09-23).** Each item has a `ROADMAP.md` §2 row with its searches and counts, re-run at
+v4.34.0 by this session. The ranking holds, with two changes of scope:
+
+1. **Zsigmondy's theorem** (`ROADMAP.md` §2.5, dated update) — **first, scoped to `aⁿ − 1`**: an
+   `iff` with the exact exceptional set, stated with `PrimitiveDivisor`'s `IsPrimitiveDivisor`,
+   proved here. The code `docs/1000.yaml` could not find is found and is not in Mathlib:
+   Bakšys's Lean 3 branch (2022, unmerged) and a Lean 4 port, mathlib4 #28895, closed unmerged
+   on 2026-09-18 and never built green. The recorded blocker is stronger than needed: only
+   base `a = 2` needs a new cyclotomic inequality.
+2. **Max-flow min-cut, then Menger** (§2.10) — second, as ranked. 0 Mathlib hits; Mathlib has
+   the cut side of edge-Menger for `SimpleGraph` (`IsEdgeReachable`), which Menger can be
+   stated against. Its hard step is a path-shortening lemma for a relation on a finite type,
+   which Mathlib lacks.
+3. **More statistics** (§2.9, dated update) — generalised least squares first (every ingredient
+   is in Mathlib; it gives `leastSquares` its first outside consumer), then Cochran's theorem
+   as matrix algebra; the distributional Cochran needs a chi-squared law Mathlib lacks.
+   (Corrected 2026-09-24 UTC, order G-6: the first outside consumer of `leastSquares` is
+   `Statistics/CramerRao`, round 21.)
+4. **`Applied/Integrity`** (§2.11) — **fold into item 2**: its one real lemma, decidable
+   transitive closure of a finite relation, is item 2's path-shortening lemma; the append-only
+   half is `List.foldl_append`.
+5. **Mathlib's wanted list** (§2.12) — fifth: `Order.height_of_linearOrder`,
+   `Order.coheight_of_linearOrder` and `ProbabilityTheory.variance_of_hasLaw_binomial` are in
+   reach; the research also found a wanted statement that reads as false
+   (`condVar_of_hasLaw_binomial`). Offering anything to Mathlib is Dustin's decision.
+
+**Two more candidates, dated 2026-09-24 UTC (order G-6, J2 step 5)** — measured by claude-ai on
+2026-09-23 and not proved; `ROADMAP.md` §1.14 has the measurements:
+
+- **The law of apparition** `α(p) ∣ p − (D/p)` for a Lucas sequence (P6): 684 checks over nine
+  pairs `(P, Q)`, primes below 400 not dividing `2QD`, 0 failures. `LucasApparition` records
+  that the general bound is not proved; its split case `(3, 2)` is Fermat's little theorem in
+  `MersenneOrder`.
+- **Majorization** (P7): Mathlib's own TODO, `Analysis/Convex/Birkhoff.lean:29–30` — `x` is
+  majorized by `y` if and only if `M *ᵥ y = x` for a doubly stochastic `M`. The library already
+  has entropy under doubly stochastic matrices (`InformationTheory/Channel`), the sorted simplex
+  (`Simplex/Ordered`) and permutation invariance (`Simplex/Symmetry`). Offering the result to
+  Mathlib would be Dustin's decision.
+
+---
+
+## 4. The gates, and their known limits
+
+Five gates, in `tools/`. Each was fail-tested; if you change one, fail-test it again.
+
+- **`AxiomGate.lean`** — enumerates every theorem constant under `ClassicalLean` and requires its
+  kernel dependencies to be a subset of `{propext, Classical.choice, Quot.sound}`, plus named
+  `scopedExceptions`. Written as an **allowlist** on purpose: `native_decide` emits a
+  *per-declaration* axiom on v4.29 (`<thm>._native.native_decide.ax_1_1`), not the
+  `Lean.ofReduceBool` older Lean used, so a denylist of known axiom names would miss it. Still so
+  at v4.34.0: round 17's gate probe produced `probe_native._native.native_decide.ax_1_1`.
+- **`VacuityGate.lean`** — four rules: conclusion is `True`; conclusion is one of the theorem's
+  own hypotheses; conclusion is an *instance* of a ∀-hypothesis; conclusion is `∃ y, y = e` with
+  `e` independent of `y`. **Stated blind spot:** a true-but-contentless statement such as
+  `[retired name]` for `psi` valued in `ℕ` is *not* caught, because being uninformative is not
+  a syntactic property. That exact shape was found in the wild presented as a named law. Only
+  review catches it.
+- **`check_sorry.py`** — text-level, so it sees modules nobody wired into the aggregator. Scoped
+  to `ClassicalLean/`; skips `.lake/` and `tools/`, and the reason is written in the file
+  (it does not parse string literals, and the gates quote the words they detect).
+- **`banned_vocab_scan.py`** — 31 retired terms plus 8 provenance patterns, over code *and*
+  prose. An audit-marker allowlist lets `RETIRED.md` name what it retires without tripping.
+  **Dated 2026-09-23 (order G-5, round 19):** its first live `EXCEPTIONS` entry permits the
+  retired corpus's eponym on exactly two lines, the licence header's copyright line and its
+  Authors line (case-exact, whole line, ASCII year `20[0-9][0-9]`), and nowhere else. Fail-tested
+  before it landed: without it the header gives 2 hits; with it a scratch line, an Authors line
+  with trailing text and a lowercase Authors line each still fail, and the header alone passes.
+  The runs are in the commit that added it.
+  **Dated 2026-09-24 UTC (order G-6, J2 step 1):** the Authors alternative is now
+  `Authors: Dustin [surname], Claude \(Anthropic\)`, still case-exact and whole-line. Fail-tested in
+  place on `NumberTheory/Catalan.lean` before it landed: the new header passes; the old Authors
+  line, the new line in lower case, the new line followed by `, X`, and a scratch line naming the
+  eponym each fail with one hit. The runs are in the commit that changed it.
+  **Dated 2026-09-24 UTC (order G-7, J2 step V, approved by Dustin):** the audit-marker
+  allowlist is removed (the scanner reads only `.lean` files, so it never saw `RETIRED.md`;
+  inside its scope it only hid lines, four at removal, none with a banned term);
+  `ClassicalLean.lean` is scanned too; an `EXCEPTIONS` entry forgives only its own term and
+  only a hit inside its context (`finditer`, span containment); `(r"[retired term]",
+  r"unconscious statistician")` is a second entry. Fail-tested before and after, ten tests,
+  both runs in the commit that changed it (round 23).
+- **`check_records.py`** — every `.lean` module under `ClassicalLean/` must be named in
+  `PROVENANCE.md`, in a fragment under `records/rounds/`, or in an order under
+  `records/orders/`. A **tree** check rather than a `git log` audit, deliberately: a commit
+  cannot cite its own hash, so a history audit cannot be run by the commit that needs it, while
+  module paths are known before the commit is made. **Stated limit:** it checks that a module is
+  *named*, not that what the record says about it is true — a wrong round entry passes. It exists
+  because the other five gates check axioms, vacuity, holes and vocabulary, and none of them can
+  see a records gap; on 2026-09-07/08 two concurrent sessions shipped `Simplex/Symmetry.lean` and
+  `Simplex/Temperature.lean` with no round entry and every gate stayed green. One named
+  exemption, `Simplex/Hessian.lean`, carrying its evidence in the script.
+
+**Both Lean gates test `privateToUserName`.** A `private theorem` is stored as
+`_private.<Module>.0.<name>`, which no namespace-prefix test matches — before that fix, every
+private declaration in the library was exempt from the axiom gate (89 of 625 constants at the
+time). If you write a new gate that filters by namespace, this is the trap.
+
+---
+
+## 5. Naming
+
+**Dated 2026-10-07 (order LEAN-5):** the term list is no longer in the repository. The scanner
+reads it from `~/.config/classical-lean/banned-terms` (JSON, mode 0600) and exits 2 if it is
+missing. `RETIRED.md` and `PROVENANCE.md` are removed, and retired words quoted in this file and the
+records are replaced by `[surname]`, `[retired term]` and `[retired name]`; see `records/README.md`.
+Mentions of the two files below are history.
+
+**Results are named for what they are about.** No eponyms, no project nouns, no acronyms from
+the source corpus. `orderedSimplex`, `freeEnergy`, `factorialPart`, `CompositumDiscriminant` —
+not the names the sources used. `banned_vocab_scan.py` enforces this on every build and the
+shipped library has zero hits.
+**Dated 2026-09-23 (order G-5, round 19):** the only permitted occurrences of the retired
+corpus's eponym in `ClassicalLean/`, outside audit-marked lines, are the two licence-header
+lines naming the copyright holder (Apache-2.0, Dustin's choice of 2026-09-23); the scanner
+permits exactly those and fails on any other. "On every build" is loose: the scanner is gate 5
+of the six manual commands in §1, not part of `lake build`.
+**Dated 2026-09-24 UTC (order G-6, J2 step 1):** the two permitted lines are the copyright line,
+which names Dustin alone, and the Authors line, which now credits Claude as a co-author:
+`Authors: Dustin [surname], Claude (Anthropic)`.
+**Dated 2026-09-24 UTC (order G-7, J2 step V):** "outside audit-marked lines" no longer
+applies — the allowlist is removed — and the scan covers `ClassicalLean.lean` as well.
+
+Where such a name appears in `PROVENANCE.md` or `RETIRED.md` it is a **quoted source identifier
+being retired** — the record of a removal, not a use — and `RETIRED.md` says so at the top. Keep
+that distinction. If you add a term to the retired list, add it to the scanner too; the list is
+the record.
+
+For new material, use the standard name from the literature. If you are unsure what a result is
+conventionally called, find out — "the theorem is right but nobody can find it" is a real
+failure mode, and it is the one this library was built in reaction to.
+
+---
+
+## 6. Working agreement
+
+- **Local commits only.** Neither repository has a remote and neither should acquire one without
+  being asked. `~/work/classical-lean` is the library; `~/Cowork/lean-rebuild` is the evidence,
+  pinned from `PROVENANCE.md` at a commit hash so the link survives a move.
+  **Corrected 2026-09-23:** both repositories now have one remote, `dsmain`
+  (`dsmain:/data/git/classical-lean.git` and `dsmain:/data/git/lean-rebuild.git`, through the
+  `dsmain` ssh alias). First pushes, read from each repository's `dsmain` reflog: `lean-rebuild`
+  2026-09-08T23:27:12Z, `classical-lean` 2026-09-09T19:41:09Z. What still holds: commit locally;
+  push to `dsmain` only when Dustin says yes; never push to GitHub and never add another remote.
+  Pushes so far, each on his yes and fast-forward only: on 2026-09-23, `lean-rebuild` to `b84de8f`
+  and `classical-lean` to `7ad841e`.
+  **Dated 2026-09-23 (order G-5, round 19):** one later push is missing from that list:
+  `classical-lean` to `025b729`, fast-forward, at 13:12:36 -0400 — the `dsmain/master` reflog
+  (`update by push`) and `~/work/_bump-evidence/push.log` (`rc=0 push :: 7ad841e..025b729`). It
+  came one second after order 0923's last records commit, which therefore could not list it.
+  Whether it was on his yes is not recorded in this repository.
+  **Dated 2026-09-23 (order G-5, after its close):** `classical-lean` to `59fa0d9`, on Dustin's
+  yes to the Close's push question, fast-forward from `025b729`, at 17:04:46 -0400 — the
+  `dsmain/master` reflog (`update by push`) and `~/work/_bump-evidence/push.log`
+  (`rc=0 push … 025b729..59fa0d9 master -> master`; `ls-remote` afterwards `59fa0d9…`). This line
+  is committed after that push, so `master` is one commit ahead of DSMain until the next push.
+  **Dated 2026-09-24 UTC (order G-6, J1):** one earlier push is also missing from this list:
+  `classical-lean` to `202394a`, fast-forward from `38a1252`, at 2026-09-13T06:42:22Z
+  (02:42:22 -0400) — the `dsmain/master` reflog (`update by push`) and order 0923's §0 row 2. It
+  predates `~/work/_bump-evidence/push.log`, whose first line is the later `202394a..7ad841e`.
+  Whether it was on Dustin's yes is not recorded in this repository.
+  **Dated 2026-09-24 UTC (order G-7, J2 step 7):** `classical-lean` to `cca6f8a`, on Dustin's
+  yes to order G-6's push question, fast-forward from `59fa0d9`, at 2026-09-24T02:05:15Z
+  (22:05:15 -0400 on 2026-09-23) — the `dsmain/master` reflog (`update by push`) and
+  `~/work/_bump-evidence/push.log` (`rc=0 push [G-6, Dustin's yes 2026-09-24] ::
+  59fa0d9..cca6f8a master -> master`; `ls-remote` afterwards `cca6f8a…`). push.log's date is the
+  UTC date.
+  **Dated 2026-09-24 UTC (order G-8, records):** `classical-lean` to `87683e3`, on Dustin's yes
+  to order G-7's push question, fast-forward from `cca6f8a`, at 2026-09-24T17:43:46Z (13:43:46
+  -0400) — the `dsmain/master` reflog (`update by push`) and `~/work/_bump-evidence/push.log`
+  (`rc=0 push [G-7, Dustin's yes 2026-09-24] :: [...] cca6f8a..87683e3 master -> master`;
+  `ls-remote` afterwards `87683e3…`).
+  **Dated 2026-09-25 UTC (order G-9, records):** `classical-lean` to `196a87d`, on Dustin's yes
+  to order G-8's push question, fast-forward from `87683e3`, at 2026-09-24T23:25:19Z (19:25:19
+  -0400) — the `dsmain/master` reflog (`update by push`) and `~/work/_bump-evidence/push.log`
+  (`rc=0 push [G-8, Dustin's yes 2026-09-24] :: To dsmain:/data/git/classical-lean.git
+  87683e3..196a87d master -> master`; `ls-remote` afterwards `196a87d…`).
+  **Dated 2026-09-25 UTC (order G-10, records):** `classical-lean` to `432aa26`, on Dustin's yes to
+  order G-9's push question, fast-forward from `196a87d`, at 2026-09-25T04:29:35Z — the
+  `dsmain/master` reflog (`update by push`) and `~/work/_bump-evidence/push.log`
+  (`rc=0 push [G-9, Dustin's yes 2026-09-25] :: To dsmain:/data/git/classical-lean.git
+  196a87d..432aa26 master -> master`; `ls-remote` afterwards `432aa26…`); recorded now by G-9's
+  Close step 4 (order G-10 §0 row 1). This order's own push, if Dustin says yes at the close, the
+  next order records.
+  **Dated 2026-10-07 (order LEAN-4):** `classical-lean` to `299cc09`, by Dustin from his terminal on
+  DSMain, fast-forward from `ea592cf`: `ea592cf..299cc09  prove-disc-biquadratic -> master` for
+  `To /data/git/classical-lean.git`. The order gives the time as 15:32 EDT (his terminal). Measured
+  on DSMain: the clone's `origin/master` reflog shows `update by push` at 2026-10-07 15:31:38 -0400,
+  and `git ls-remote origin master` gives `299cc09…`. This push landed order LEAN-3 (round 31).
+  **Dated 2026-10-07 (order LEAN-5):** `classical-lean` to `2e79a0c`, by Dustin from DSMain,
+  fast-forward from `299cc09` (`package-nightly` → `master`), landing order LEAN-4 (round 32). Measured
+  on DSMain: the clone's `origin/master` reflog shows `update by push` at 2026-10-07 16:04:34 -0400,
+  and `git ls-remote origin master` gives `2e79a0c…`.
+- **Rules learned in the runs of order 0923 (rules 1–7), order G-5 (rules 8–15), order G-6
+  (rules 16–19), order G-7 (rules 20–25), order G-8 (rules 26–30) and order G-9 (rules 31–34).**
+  Rules 1–7
+  are dated 2026-09-23; source: order G-5 §1, which cites round 17's dated amendment, Findings 1
+  and 3 and "Options and linters", round 18's Findings 1 and 2 and closing addendum, and order
+  0923's final report. Rules 8–15 are dated 2026-09-24 UTC; source: order G-6 §1, which cites the
+  round named with each. Rules 16–19 are dated 2026-09-24 UTC; source: order G-7 §1, which cites
+  its §0 row 13, rounds 21 and 22 and order G-6's Close check (lead-in dated 2026-09-24 UTC,
+  order G-7, J2 step 7). Rules 20–25 are dated 2026-09-24 UTC; source: order G-8 §1, which cites
+  its §0 rows 16–18, round 24 and round 24's addendum (lead-in extended 2026-09-24 UTC, order
+  G-8). Rules 26–30 are dated 2026-09-24 UTC; source: order G-9 §1, which cites its §0 rows 14
+  and 15, round 25's timeline and round 26's addendum (lead-in extended 2026-09-25 UTC, order G-9,
+  records; the rules' text is order G-9's, with "§0 row" qualified as order G-9's). Rules 31–34 are
+  dated 2026-09-25 UTC; source: order G-10 §1, which cites order G-9's run (its §0 rows 14 and 15,
+  round 27, and round 28's addendum items 11, 17, 20 and 23); lead-in extended 2026-09-25 UTC,
+  order G-10, records. The next order
+  cites these instead of repeating them:
+  1. *Check the invariant, not a proxy* — §0 applied to a gate: the cache check tested all of
+     Mathlib, and so it stopped the toolchain move over a module this library never imports.
+  2. *Read a Mathlib definition before stating anything about it.* The `klDiv` bridge was
+     written from the name; the definition carries a mass term.
+  3. *Junk cells need random trials plus constructed exact-zero cases.* Random search missed a
+     measure-zero failure.
+  4. *Stage every commit by path*, branch commits included.
+  5. *Every evidence-log line carries its command and its rc.*
+  6. *Any linter or option switched off or on* goes in the first paragraph of the commit
+     message, and in §1.
+  7. *Write a commit message only after its gates have run.*
+  8. *An evidence log records only a measured rc*, taken from the command's own `$?`. A run that
+     did not happen is logged `NOT RUN`, never a placeholder (round 20, the Close check's
+     addendum).
+  9. *Time windows use epoch seconds, or `find -newer <reference file>`*, never a formatted UTC
+     time without its `Z` (order G-5's session page, as claude-ai read it; not recorded in round
+     20).
+  10. *Test harnesses match identifiers exactly, never by prefix.* Suspect the harness first when
+      a result surprises (round 20: `S1` matched `S10`).
+  11. *`lake env lean` checks types only.* Linter results count only from `lake build`, run from
+      the repository root: `[leanOptions]` apply only there, and the header linter finds the
+      root by a relative path (rounds 19 and 20).
+  12. *Reviewers work in a scratch directory outside the repository*, with
+      `PYTHONDONTWRITEBYTECODE=1`, copy a repository script before importing it, and are followed
+      by a `git status` check (round 20: two reviewers wrote outside their brief).
+  13. *Every new declaration, private helpers included, is reviewed cold before its commit*
+      (round 20: three helpers were reviewed only after proving).
+  14. *Before-and-after evidence is `TypeDump.lean` with `g5_typediff.py`*, not name lists alone
+      (round 19). Read its `DIFF removed= added= changed=` line, not its exit code, which is 0
+      whenever nothing changed even if records were removed or added (order G-6, round 21).
+      **Amended 2026-09-24 UTC (order G-8, rule 25):** the pair is now
+      `~/work/_bump-evidence/TypeDumpPI.lean` with `g8_typediff.py`, which print today's fields
+      and the same forms with every proof replaced by one placeholder; their `DIFF` line adds
+      `proof_only=`. They passed their controls in order G-8's J1 (round 25). `TypeDump.lean`
+      and `g5_typediff.py` are kept, unchanged.
+  15. *A pattern written for a tool is tested under that tool's own compile flags* (round 19:
+      claude-ai's exception, compiled with `re.I`, also admitted lowercase variants).
+  16. *A statement review's verdict is in before any proof of those statements is written.*
+      Research, other jobs' drafting, and gate runs may overlap a review; proofs of the
+      statements under review may not (order G-6's run: J2's and J3's statement reviews
+      returned after their proofs were written, J2's compiled; §0 row 13 of order G-7, rounds
+      21 and 22).
+  17. *Every reviewer and checker output is saved verbatim, with its sha256, in the order's
+      evidence directory when it returns.* Fragments quote from the saved file (order G-6's
+      Close check: the statement reviews were paraphrased and their outputs not kept).
+  18. *Records follow the clock.* When a step runs out of the order's sequence, or overlaps
+      another (a search re-run after the proof, step commits cut from a finished module,
+      proving while a review runs), the fragment says so at that step, with times (order G-7
+      §0 row 13; rounds 21 and 22).
+  19. *Research notes name the source of every proof route they propose*: derived here, a
+      textbook with its reference, or a prior-art file, so that the module docstring's credit
+      can be exact (round 22: the base-2 route was the prior art's).
+  20. *Scratch proofs are elaborated with the lakefile's options*: `lake env lean
+      -Dpp.unicode.fun=true -DrelaxedAutoImplicit=false -Dweak.linter.mathlibStandardSet=true
+      -DmaxSynthPendingDepth=3 <file>`. Plain `lake env lean` applies none of `[leanOptions]`, so
+      a proof checked only that way can land with linter warnings; rule 11 still holds (round 24:
+      four `flexible` warnings at order G-7's first J3 build; order G-8 §0 row 17).
+  21. *A statement drafted in a plan is drafted.* A job's recorded searches and junk cells come
+      before any of its statements is drafted, the plan's drafts included (round 24's addendum,
+      item 2).
+  22. *Every quote in a fragment is checked by a script against its saved source before the
+      fragment is committed*, with a negative control, and every omission inside a quote is
+      marked `[...]` (round 24's addendum, items 3 and 4; `g7/close/quotecheck.py`).
+  23. *Evidence commands run through one helper* that takes the prediction as an argument,
+      refuses to run without one, and logs the command with its own `$?`; a commit runs only
+      when its gates exited 0 in the same run (round 24's addendum, items 7, 8 and 9; order G-8's
+      `ev.sh` and `land.sh`, round 25).
+  24. *Every reader, research and review brief quotes the rules it will be checked against*, at
+      least rules 16–25 (round 24's addendum, item 6).
+  25. *Type-dump Done-means are judged up to proof irrelevance.* A record whose raw form differs
+      only inside proof terms is `PROOF-ONLY`: listed, explained, and not counted as changed
+      (round 24's addendum, item 1; order G-8 §2's ruling). Without a tool that has passed its
+      controls, such a record is settled by a Lean file with a fire test, as round 23 did
+      (`DefeqCheck.lean`).
+  26. *Every brief is built by script from `HANDOFF.md` and saved with its sha256 before it is
+      sent*, as order G-8's Close-check brief was (`close-brief-make`); a brief that claims to
+      quote a rule verbatim quotes it verbatim, cuts marked `[...]` (round 26's addendum, item 16:
+      the J3 post-proof brief shortened rules 16–25 without marking the cuts, and the J2 briefs
+      were never saved).
+  27. *A count that Lean generates is predicted by a Lean measurement of the scratch file, not by
+      hand.* Theorem constants: a census of the elaborated scratch file's environment under the
+      axiom gate's `.thmInfo` predicate, restricted to the declarations being landed, auxiliaries
+      included; import closures: `env.header.moduleNames` of a file importing the module alone
+      (order G-8: 1421 against a hand prediction of 1326–1345, 16 modules against 5–8; order G-9
+      §0 row 14). A hand prediction may accompany the measurement; it does not replace it.
+  28. *A workflow or script that consumes inputs takes them as arguments and refuses to run
+      without them.* Order G-8's critic script ignored its arguments; re-invoked by mistake it
+      would have re-run four critics over the old draft and overwritten their saved reports
+      (round 25's timeline, 20:29:42Z; order G-9 §0 row 14).
+  29. *A review fix that touches a proof line gets its delta check before the landing*, as the
+      review's condition asked (round 26's addendum, item 18: `hp.out` to `(Fact.out : p.Prime)`
+      landed without it; the gates and the type dump then held, which is luck, not a check).
+  30. *A refused call is logged `NOT RUN`* (rule 8) in the next helper call, with the refused
+      command's label and the guard's message, so that the final report's count of refusals is a
+      `grep` of `evidence.log` and not a recollection (order G-9 §0 row 15: the report said
+      "nothing stopped" and "the only refusals were my own tools" over one guard refusal the log
+      never saw).
+  31. *No statement of a job is drafted until the job's last search and cell has run*, the ones a
+      plan critic adds included; a cell a review adds after a draft is run and logged, and the draft
+      re-hashed and re-elaborated after it (rule 18); J1 item 12 checks it by mtime against the log
+      (order G-9's J1 ran cells and reads after the first drafts — round 28's addendum item 17, a
+      MAJOR finding).
+  32. *Every write, hash and edit of an evidence or records file runs through the helper* (rule 23),
+      or is listed in the plan and the fragment before the commit that carries it (order G-9 ran
+      five such commands outside it — round 28's addendum item 20).
+  33. *A workflow returns each report's text with its sha256, and the saving command compares the
+      two before the report is read* (rule 17): nothing in orders G-5 to G-9 had checked that a
+      saved review was the text its agent returned, until G-9's addendum compared all twelve against
+      the harness's journal (round 28's addendum item 23). Where reviews are dispatched outside a
+      workflow, the same holds by extracting each agent's returned text from its hand-back and
+      hashing the saved file against it.
+  34. *Every inline quote in a fragment — a phrase in quotation marks or backticks attributed to a
+      document — is checked by script against its source, as block quotes are* (rule 22), with a
+      planted misquote as the negative control (`inlinecheck.py`; round 28's addendum items 11 and
+      23: three inline quotes cut or paraphrased their sources and the block-quote check never saw
+      them).
+- **Standing answers** (dated 2026-09-23; source: order G-5 §2):
+  - A Mathlib cache gap outside this library's import closure: use the import-closure check plus
+    the `.olean` sha256 manifest taken before and after `lake build` (ruled for order 0923's J3).
+  - A deprecation whose replacement changes what a statement says: give the library its own
+    object with the identical definition, check it equal by `rfl` in a scratch file, switch to it
+    (same ruling; `closedSimplex`, round 17).
+  - The licence is **Apache-2.0**, chosen by Dustin; the copyright and Authors lines name him
+    (`LICENSE`, the header on every module, §1).
+  - The retired corpus's eponym stays banned. One anchored exception in
+    `tools/banned_vocab_scan.py` permits exactly the two licence lines; as landed it is
+    case-exact with an ASCII year, `(?-i:^(Copyright \(c\) 20[0-9][0-9] Dustin [surname]\. All
+    rights reserved\.|Authors: Dustin [surname])$)`, stricter than the order's `\d` form because the
+    scanner compiles exceptions case-insensitively (the executing session's ruling; round 19).
+    **Dated 2026-09-24 UTC (order G-6, J2 step 1):** at Dustin's wish of 2026-09-23 the Authors
+    line credits Claude as a co-author, `Authors: Dustin [surname], Claude (Anthropic)`, on every
+    module and `ClassicalLean.lean`; the copyright line stays his alone. The exception's second
+    alternative is now `Authors: Dustin [surname], Claude \(Anthropic\)`, in the same `(?-i:…)`
+    form; the old Authors line fails the gate.
+    **Dated 2026-09-24 UTC (order G-7, J2 step V):** the exception now forgives only a
+    `[surname]` hit lying inside one of those two whole lines, and `ClassicalLean.lean` is
+    scanned too, so its two licence lines are checked by the same entry.
+  - `mem_closedSimplex` stays, by `mem_openSimplex`'s precedent (claude-ai's decision on Dustin's
+    delegation; his veto is open).
+  - The parked `v4.29.0-rc2` build (`~/work/_parked/classical-lean.lake-v4.29.0-rc2`) stays
+    parked; only Dustin deletes it.
+  - Anything that needs Dustin: ask in one line, recommended answer first, and keep working on
+    what does not depend on it. Publishing, and offering anything to Mathlib, are his decisions,
+    like pushing.
+  - **Dated 2026-09-24 UTC (order G-7 §1, measured in order G-6's run):** the local guard
+    blocks a heredoc commit message that contains `*` and refuses inline `python3 -c` and
+    chained in-place edits: write every commit message to a
+    file and commit with `git commit -F <file>`; write scripts to files in the evidence
+    directory and run them.
+  - **Dated 2026-09-24 UTC (order G-8 §1 and J1):** the guard also refuses any Bash call that
+    contains `python3 -` reading from stdin: run scripts as `python3 <file>`. helios's `BASH_ENV`
+    (`~/.bash_env`) switches `pipefail` on in every non-interactive bash, so a pipeline's rc
+    depends on the calling shell; the evidence helper sets `pipefail` itself. A plain
+    `git status` takes `index.lock` for an optional refresh and moves `.git`'s mtime; a read-only
+    status runs as `GIT_OPTIONAL_LOCKS=0 git status` (round 25).
+  - **Dated 2026-09-25 UTC (order G-9 §1, J1 and J3):** helios's `ls` prints local time (EDT); read
+    evidence times with `TZ=UTC` (`TZ=UTC ls --time-style=full-iso`), as `evidence.log`'s are UTC.
+    `sort` and `comm` on helios are the Rust coreutils, and under a UTF-8 locale `sort` collates by
+    the locale while `comm` compares bytes: run any `sort`/`comm` comparison under `LC_ALL=C`
+    (`land.sh` exports it since order G-9's J1; round 28 records a comparison that did not).
+  - **Dated 2026-09-24 UTC (order G-8 §2):** order G-7's J2 Done-means 3 is ruled. The two
+    records `hasDerivAt_softmax` and `hasDerivAt_softmax_categoricalCov` changed only inside a
+    `Prop`-valued instance argument, and their statements did not change: claude-ai, as order
+    G-7's author, confirmed its executor's ruling (order G-8 §0 row 18; re-run in J1,
+    `DefeqCheck.lean` rc 0 and its fire test rc 1). Dustin's veto stays open. Under rule 25 such
+    records are `PROOF-ONLY`.
+  - **Dated 2026-09-25 UTC (order G-10, J2 records; source order G-9 §0 row 14):** the Edit tool
+    refuses a file that has not been read in the session ("File has not been read yet"). Read a file
+    before editing it, and never run a measurement of a file in the same call as its edit.
+  - **Dated 2026-09-25 UTC (order G-10, §2):** on the two-commit close, the Close commit sets the
+    `INDEX.md` row's State to "Close check pending" alone; the Close-check addendum's commit is what
+    closes the row.
+- **Keep the records true.** A source theorem that is neither shipped nor explicitly dropped is
+  silence, not a decision. Per-declaration drop reasons live in the module header that inherited
+  the source file; `RETIRED.md` records the file- and block-level decisions and points at them.
+- **Report what you measured.** If a step was skipped, say so. If a claim is a reading rather
+  than a measurement, label it — §2 of this file does that, and the labels are the useful part.

@@ -1,0 +1,23 @@
+# Lake's build tree and its vendored dependencies.
+#
+# This is not a size convenience, it is a correctness one: `.lake/packages` holds a
+# full built Mathlib (~7.7 G, 8687 Mathlib oleans at v4.34.0). What pins the build is
+# tracked instead — `lean-toolchain` names the toolchain and `lake-manifest.json` pins
+# Mathlib to rev 5ed2965256430c3649e86755f9576b54eca72435 (tag v4.34.0) — so the tree is
+# reproducible from the two small files rather than from the artefacts.
+#
+# Note for whoever rebuilds this: since 2026-09-23 (order 0923, J3) the tree is built with
+# `lake exe cache get`, which needs network, and Mathlib v4.34.0's cache lacks one module
+# this library does not import (`Mathlib.Probability.Kernel.Invariance`; see round 17).
+# Before that the pin was 8f07524533b483cffcf3c5a50b9633c6af0defdc and the tree was built
+# offline by copying `.lake/packages` from another checkout; see PROVENANCE.md.
+/.lake/
+
+# Python bytecode from tools/
+__pycache__/
+*.pyc
+
+# Editor and OS noise
+.DS_Store
+*.swp
+*~
