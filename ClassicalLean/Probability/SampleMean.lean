@@ -151,5 +151,72 @@ theorem measureReal_abs_sampleMean_sub_ge_le_of_sampleSizeOK {Ω : Type*} [Measu
 
 end SampleSize
 
+section ManyRules
+
+/-! ### Judging many rules at once
+
+If `k` rules are each judged on `n` independent trials of their own, the chance that *any* of their
+observed rates is more than `e` from its true value is at most `2 k exp (-2 n e²)`: the union of the
+`k` events, bounded by the sum of their probabilities (`measureReal_biUnion_finset_le`). No
+independence *between* the rules is needed. The price of trying `k` rules is the factor `k`, which
+`sampleSizeOKMany` pays for by testing with `δ / k`. -/
+
+/-- **The price of trying many rules.** For `k` families `X j` (`j < k`), each independent within
+itself, `[0, 1]`-valued with common mean `p j`: `P(∃ j < k, |mean of n of X j − p j| ≥ e) ≤
+2 k exp (-2 n e²)`. -/
+theorem measureReal_exists_abs_sampleMean_sub_ge_le {Ω : Type*} [MeasurableSpace Ω]
+    {μ : Measure Ω} [IsProbabilityMeasure μ] {k : ℕ} {X : ℕ → ℕ → Ω → ℝ}
+    (h_indep : ∀ j < k, iIndepFun (X j) μ) (h_meas : ∀ j < k, ∀ i, Measurable (X j i))
+    (h_bdd : ∀ j < k, ∀ i, ∀ᵐ ω ∂μ, X j i ω ∈ Set.Icc (0 : ℝ) 1) {p : ℕ → ℝ}
+    (h_mean : ∀ j < k, ∀ i, μ[X j i] = p j) {n : ℕ} (hn : 0 < n) {e : ℝ} (he : 0 ≤ e) :
+    μ.real {ω | ∃ j < k, e ≤ |(∑ i ∈ range n, X j i ω) / n - p j|} ≤
+      2 * k * exp (-2 * n * e ^ 2) := by
+  have hset : {ω | ∃ j < k, e ≤ |(∑ i ∈ range n, X j i ω) / n - p j|} =
+      ⋃ j ∈ range k, {ω | e ≤ |(∑ i ∈ range n, X j i ω) / n - p j|} := by
+    ext ω; simp
+  rw [hset]
+  calc μ.real (⋃ j ∈ range k, {ω | e ≤ |(∑ i ∈ range n, X j i ω) / n - p j|})
+      ≤ ∑ j ∈ range k, μ.real {ω | e ≤ |(∑ i ∈ range n, X j i ω) / n - p j|} :=
+        measureReal_biUnion_finset_le _ _
+    _ ≤ ∑ _j ∈ range k, 2 * exp (-2 * n * e ^ 2) := by
+        apply sum_le_sum
+        intro j hj
+        have hj' := mem_range.mp hj
+        exact measureReal_abs_sampleMean_sub_ge_le (h_indep j hj') (h_meas j hj') (h_bdd j hj')
+          (h_mean j hj') hn he
+    _ = 2 * k * exp (-2 * n * e ^ 2) := by rw [sum_const, card_range, nsmul_eq_mul]; ring
+
+/-- The sample-size test for `m` rules: `sampleSizeOK` with `δ / m`. -/
+def sampleSizeOKMany (e δ : ℚ) (m kk n : ℕ) : Bool := sampleSizeOK e (δ / m) kk n
+
+/-- The least `n < bound` passing `sampleSizeOKMany e δ m kk`, if there is one. -/
+def minSampleSizeMany (e δ : ℚ) (m kk bound : ℕ) : Option ℕ :=
+  (List.range bound).find? (fun n ↦ sampleSizeOKMany e δ m kk n)
+
+/-- `sampleSizeOKMany` gives `2 m exp (-2 n e²) ≤ δ`. -/
+theorem two_mul_mul_exp_neg_le_of_sampleSizeOKMany {e δ : ℚ} {m kk n : ℕ} (hm : 0 < m)
+    (hkk : 0 < kk) (h : sampleSizeOKMany e δ m kk n = true) :
+    2 * m * exp (-2 * n * (e : ℝ) ^ 2) ≤ δ := by
+  have h1 := two_mul_exp_neg_le_of_sampleSizeOK hkk h
+  have hm' : (0 : ℝ) < m := Nat.cast_pos.mpr hm
+  push_cast at h1
+  rw [le_div_iff₀ hm'] at h1
+  linarith
+
+/-- **Judging `m` rules with the right number of trials.** If `sampleSizeOKMany e δ m kk n` holds,
+the chance that any of the `m` rules' observed rates is `e` or more from its true value is at
+most `δ`. -/
+theorem measureReal_exists_abs_sampleMean_sub_ge_le_of_sampleSizeOKMany {Ω : Type*}
+    [MeasurableSpace Ω] {μ : Measure Ω} [IsProbabilityMeasure μ] {m : ℕ} {X : ℕ → ℕ → Ω → ℝ}
+    (h_indep : ∀ j < m, iIndepFun (X j) μ) (h_meas : ∀ j < m, ∀ i, Measurable (X j i))
+    (h_bdd : ∀ j < m, ∀ i, ∀ᵐ ω ∂μ, X j i ω ∈ Set.Icc (0 : ℝ) 1) {p : ℕ → ℝ}
+    (h_mean : ∀ j < m, ∀ i, μ[X j i] = p j) {e δ : ℚ} (he : 0 ≤ e) {kk n : ℕ} (hm : 0 < m)
+    (hkk : 0 < kk) (hn : 0 < n) (h : sampleSizeOKMany e δ m kk n = true) :
+    μ.real {ω | ∃ j < m, (e : ℝ) ≤ |(∑ i ∈ range n, X j i ω) / n - p j|} ≤ δ :=
+  (measureReal_exists_abs_sampleMean_sub_ge_le h_indep h_meas h_bdd h_mean hn
+    (by exact_mod_cast he)).trans (two_mul_mul_exp_neg_le_of_sampleSizeOKMany hm hkk h)
+
+end ManyRules
+
 
 end ClassicalLean.Probability.SampleMean
