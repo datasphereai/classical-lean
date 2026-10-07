@@ -7,6 +7,7 @@ Authors: Dustin Watkins, Claude (Anthropic)
 import ClassicalLean.Algebra.CompanionMatrix
 import ClassicalLean.Analysis.LogDrag
 import ClassicalLean.Analysis.LogGrowthRate
+import ClassicalLean.Analysis.RepeatedFees
 import ClassicalLean.Analysis.LogGrowthRobustness
 import ClassicalLean.Combinatorics.AlgebraicGeneratingFunction
 import ClassicalLean.Combinatorics.RecurrenceGeneratingFunction
@@ -49,6 +50,7 @@ import ClassicalLean.Probability.DependentSampleMean
 import ClassicalLean.Probability.FairGame
 import ClassicalLean.Probability.MaximalInequality
 import ClassicalLean.Probability.SampleMean
+import ClassicalLean.Probability.TwoVariableMix
 import ClassicalLean.Simplex.Basic
 import ClassicalLean.Simplex.CrossEntropy
 import ClassicalLean.Simplex.DesignConstants
