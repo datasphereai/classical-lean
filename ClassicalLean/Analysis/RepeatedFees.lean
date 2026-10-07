@@ -30,7 +30,8 @@ theorem prod_mul_deductions (G : ℕ → ℝ) (f : ℝ) (N : ℕ) :
     ∏ i ∈ range N, (G i * (1 - f) ^ 2) = (1 - f) ^ (2 * N) * ∏ i ∈ range N, G i := by
   rw [prod_mul_distrib, prod_const, card_range, ← pow_mul, mul_comm]
 
-/-- **Break-even over `N` trips.** For `f < 1`: `1 ≤ ∏ (G i (1 - f)²) ↔ (1 / (1 - f) ^ 2) ^ N ≤ ∏ G i`.
+/-- **Break-even over `N` trips.** For `f < 1`:
+`1 ≤ ∏ (G i (1 - f)²) ↔ (1 / (1 - f) ^ 2) ^ N ≤ ∏ G i`.
 For a trader: over `N` trades, the trades' own factors must multiply to at least
 `(1 / (1 - f)²) ^ N` just to stand still. -/
 theorem one_le_prod_mul_deductions_iff (G : ℕ → ℝ) {f : ℝ} (hf : f < 1) (N : ℕ) :

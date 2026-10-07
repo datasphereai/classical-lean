@@ -5,6 +5,7 @@ Authors: Dustin Watkins, Claude (Anthropic)
 -/
 
 import ClassicalLean.Algebra.CompanionMatrix
+import ClassicalLean.Analysis.GeneralGrowth
 import ClassicalLean.Analysis.LogDrag
 import ClassicalLean.Analysis.LogGrowthRate
 import ClassicalLean.Analysis.RepeatedFees

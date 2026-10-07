@@ -151,7 +151,7 @@ theorem supermartingale_prod {G : ℕ → Ω → ℝ} (hG : ∀ i, StronglyMeasu
       _ = K ^ n := by rw [prod_const, card_range]
   have hadp : StronglyAdapted (Filtration.natural G hG) (fun n ω ↦ ∏ i ∈ range n, G (i + 1) ω) := by
     intro n
-    show StronglyMeasurable[Filtration.natural G hG n] (fun ω ↦ ∏ i ∈ range n, G (i + 1) ω)
+    change StronglyMeasurable[Filtration.natural G hG n] (fun ω ↦ ∏ i ∈ range n, G (i + 1) ω)
     have : (fun ω ↦ ∏ i ∈ range n, G (i + 1) ω) = ∏ i ∈ range n, G (i + 1) := by
       funext ω; simp [Finset.prod_apply]
     rw [this]
@@ -159,7 +159,8 @@ theorem supermartingale_prod {G : ℕ → Ω → ℝ} (hG : ∀ i, StronglyMeasu
     exact (Filtration.stronglyAdapted_natural hG (i + 1)).mono
       (Filtration.mono _ (by simpa using Finset.mem_range.mp hi))
   have hint : ∀ n, Integrable (fun ω ↦ ∏ i ∈ range n, G (i + 1) ω) μ := fun n ↦
-    Integrable.of_bound ((hadp n).mono ((Filtration.natural G hG).le n)).aestronglyMeasurable (K ^ n)
+    Integrable.of_bound ((hadp n).mono ((Filtration.natural G hG).le n)).aestronglyMeasurable
+      (K ^ n)
       (Eventually.of_forall fun ω ↦ by
         rw [Real.norm_eq_abs, abs_of_nonneg (hZnn n ω)]; exact hZbd n ω)
   have hGint : ∀ i, Integrable (G i) μ := fun i ↦

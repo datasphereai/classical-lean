@@ -84,7 +84,8 @@ theorem log_one_add_bounds {r R : ℝ} (hR : R < 1) (hr : |r| ≤ R) :
 
 /-- **Average log growth, upper bound.** For returns with `|r i| ≤ R < 1`, the average of
 `log (1 + r i)` is at most the average return minus `(1/2 - R/(1-R))` times the average square.
-For a trader: with average return `0`, swings of size `σ` cost at least about `σ ^ 2 / 2` per step. -/
+For a trader: with average return `0`, swings of size `σ` cost at least about `σ ^ 2 / 2` per
+step. -/
 theorem mean_log_one_add_le {n : ℕ} {r : ℕ → ℝ} {R : ℝ} (hR : R < 1)
     (hr : ∀ i ∈ range n, |r i| ≤ R) :
     ∑ i ∈ range n, log (1 + r i) ≤

@@ -97,7 +97,8 @@ variable {Ω : Type*} {m m0 : MeasurableSpace Ω} [StandardBorelSpace Ω] {μ : 
 expectation given `m` is `0` is conditionally sub-Gaussian given `m`, with parameter
 `((b - a) / 2) ^ 2`. For a trader: a trade outcome that is bounded and has no predictable part
 given the past behaves, for the purpose of averaging, like an independent one. -/
-theorem hasCondSubgaussianMGF_of_mem_Icc_of_condExp_eq_zero (hm : m ≤ m0) {X : Ω → ℝ} {a b : ℝ} (hX : Measurable X)
+theorem hasCondSubgaussianMGF_of_mem_Icc_of_condExp_eq_zero (hm : m ≤ m0) {X : Ω → ℝ} {a b : ℝ}
+    (hX : Measurable X)
     (hb : ∀ᵐ ω ∂μ, X ω ∈ Set.Icc a b) (hc : μ[X | m] =ᵐ[μ] 0) :
     HasCondSubgaussianMGF m hm X ((‖b - a‖₊ / 2) ^ 2) μ := by
   have hXint : Integrable X μ := Integrable.of_mem_Icc a b hX.aemeasurable hb
