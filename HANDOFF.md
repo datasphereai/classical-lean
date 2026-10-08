@@ -22,7 +22,7 @@ measurement of the wrong object:
 | "Mathlib has no general Lucas sequence" | `grep 'Lucas sequence\|lucasSeq\|LucasSequence'` — a search for the **name** | that the object was absent; it is there as `Polynomial.dickson` |
 | "Mathlib has no `Finset.sum` version of `add_mulVec`" | `grep 'Finset.sum_mulVec'` — a search in the **wrong namespace** | that the lemma was absent; it is `Matrix.sum_mulVec`, `Data/Matrix/Basic.lean:943` |
 | "Mathlib has no rank of apparition" (ROADMAP §2.1) | `grep -rni 'apparition'` → 0 — a search for the **name** | that the theorem was absent; Mathlib proves it at `(P,Q) = (2a,1)` as `Pell.y_dvd_iff`, `NumberTheory/PellMatiyasevic.lean:412` |
-| "this module contributes N theorem constants" (PROVENANCE rounds 7–9) | a census filtered with `!isInternal` on the **raw** name, which skips every `private` declaration | a share commensurable with `AxiomGate`'s aggregate; it under-counted 17 vs 26, 18 vs 27, 6 vs 10. The gate's own source documents the trap |
+| "this module contributes N theorem constants" (rounds 7–9, archived history) | a census filtered with `!isInternal` on the **raw** name, which skips every `private` declaration | a share commensurable with `AxiomGate`'s aggregate; it under-counted 17 vs 26, 18 vs 27, 6 vs 10. The gate's own source documents the trap |
 | "nothing instantiates `Superadditive` / `Tolerance`" (ROADMAP §1.12) | `grep` for the name **excluding the defining file** — i.e. uses by *other* modules | that the definitions had no instance at all; both ship one in-file, `example : Superadditive id` and `natTolerance`, the latter documented as "witnessing that the definition is inhabited" |
 
 Each was written in good faith by someone who had actually run a command. Before you write a
@@ -122,7 +122,7 @@ and the rows of `ROADMAP.md` §2 — re-run a row's command before acting on it.
 
 **Before you write anything, read `records/README.md`.** Two sessions worked this tree at once
 on 2026-09-07/08 and two shipped modules landed with no round entry, because each session
-correctly declined to edit `PROVENANCE.md` while the other held it. Rounds are now written as
+correctly declined to edit the shared round file while the other held it. Rounds are now written as
 fragments under `records/rounds/`, orders as files under `records/orders/`, and gate 6
 (`tools/check_records.py`) fails if a module under `ClassicalLean/` is named in none of them.
 Claim your modules in `records/CLAIMS.md` first.
@@ -233,13 +233,14 @@ measurement showed it was three Mathlib one-liners.
 and a new module `NumberTheory/LucasCompanion.lean` joins the three formerly disjoint modules
 with `companionMatrix_pow_trace : (M ^ n).trace = (lucas (2 * n) : ℝ)`, plus the determinant,
 the characteristic polynomial `x ^ 2 - L (2n) * x + 1` of `M ^ n`, the eigenvalue reading, and
-the orbit statement. `PROVENANCE.md` §"Round 3" records the Mathlib search and the gate results.
+the orbit statement. Round 3, in the archived history,
+records the Mathlib search and the gate results.
 
 Two things a next session should know rather than rediscover:
 
 - **Mathlib has no Lucas numbers.** The four files matching `*lucas*` are the Lucas–Lehmer test,
   the Lucas primality test, the Gauss–Lucas theorem and Lucas' congruence on binomials. The
-  search is written out in `PROVENANCE.md` and in the docstring of `coe_lucas_eq`.
+  search is written out in the docstring of `coe_lucas_eq` (and in round 3, archived history).
 - **"The orbit of that matrix" needs a seed as well as an action.** Both conventions work, on
   different vectors: `Matrix.vecMul` advances the consecutive pair `(L (2n), L (2n + 2))`, and
   `Matrix.mulVec` advances the signed pair `(L (2n), -L (2n + 2))`. Both are shipped. Carrying
@@ -305,7 +306,7 @@ When adding a new area:
   its three `_proof_1_1` auxiliaries — round 16, finding 5.)
 - **A module earns its place if it shortens something or states something new.** `[retired name]` was
   declined because porting it would have added names, not results. That is a valid outcome and
-  should be recorded in `RETIRED.md` with the reason.
+  should be recorded in a fragment under `records/rounds/` with the reason.
 
 Directions that would extend the library's reach rather than deepen one corner — pick by what
 you can do well, not by this list's order:
@@ -630,7 +631,8 @@ Five gates, in `tools/`. Each was fail-tested; if you change one, fail-test it a
   to `ClassicalLean/`; skips `.lake/` and `tools/`, and the reason is written in the file
   (it does not parse string literals, and the gates quote the words they detect).
 - **`banned_vocab_scan.py`** — 31 retired terms plus 8 provenance patterns, over code *and*
-  prose. An audit-marker allowlist lets `RETIRED.md` name what it retires without tripping.
+  prose. An audit-marker allowlist let the old retirement list name what it retired
+  without tripping.
   **Dated 2026-09-23 (order G-5, round 19):** its first live `EXCEPTIONS` entry permits the
   retired corpus's eponym on exactly two lines, the licence header's copyright line and its
   Authors line (case-exact, whole line, ASCII year `20[0-9][0-9]`), and nowhere else. Fail-tested
@@ -643,15 +645,15 @@ Five gates, in `tools/`. Each was fail-tested; if you change one, fail-test it a
   line, the new line in lower case, the new line followed by `, X`, and a scratch line naming the
   eponym each fail with one hit. The runs are in the commit that changed it.
   **Dated 2026-09-24 UTC (order G-7, J2 step V, approved by Dustin):** the audit-marker
-  allowlist is removed (the scanner reads only `.lean` files, so it never saw `RETIRED.md`;
+  allowlist is removed (the scanner reads only `.lean` files, so it never saw the retirement list;
   inside its scope it only hid lines, four at removal, none with a banned term);
   `ClassicalLean.lean` is scanned too; an `EXCEPTIONS` entry forgives only its own term and
   only a hit inside its context (`finditer`, span containment); `(r"[retired term]",
   r"unconscious statistician")` is a second entry. Fail-tested before and after, ten tests,
   both runs in the commit that changed it (round 23).
 - **`check_records.py`** — every `.lean` module under `ClassicalLean/` must be named in
-  `PROVENANCE.md`, in a fragment under `records/rounds/`, or in an order under
-  `records/orders/`. A **tree** check rather than a `git log` audit, deliberately: a commit
+  the old round archive (read only if present), in a fragment under `records/rounds/`,
+  or in an order under `records/orders/`. A **tree** check rather than a `git log` audit, deliberately: a commit
   cannot cite its own hash, so a history audit cannot be run by the commit that needs it, while
   module paths are known before the commit is made. **Stated limit:** it checks that a module is
   *named*, not that what the record says about it is true — a wrong round entry passes. It exists
@@ -671,9 +673,11 @@ time). If you write a new gate that filters by namespace, this is the trap.
 
 **Dated 2026-10-07 (order LEAN-5):** the term list is no longer in the repository. The scanner
 reads it from `~/.config/classical-lean/banned-terms` (JSON, mode 0600) and exits 2 if it is
-missing. `RETIRED.md` and `PROVENANCE.md` are removed, and retired words quoted in this file and the
+missing. The old round archive (rounds 1–14 and 10a) and the retirement list are removed, and
+retired words quoted in this file and the
 records are replaced by `[surname]`, `[retired term]` and `[retired name]`; see `records/README.md`.
-Mentions of the two files below are history.
+Both survive only in the full history, archived outside this repository; where this file cites
+an early round, that is where it is.
 
 **Results are named for what they are about.** No eponyms, no project nouns, no acronyms from
 the source corpus. `orderedSimplex`, `freeEnergy`, `factorialPart`, `CompositumDiscriminant` —
@@ -690,8 +694,9 @@ which names Dustin alone, and the Authors line, which now credits Claude as a co
 **Dated 2026-09-24 UTC (order G-7, J2 step V):** "outside audit-marked lines" no longer
 applies — the allowlist is removed — and the scan covers `ClassicalLean.lean` as well.
 
-Where such a name appears in `PROVENANCE.md` or `RETIRED.md` it is a **quoted source identifier
-being retired** — the record of a removal, not a use — and `RETIRED.md` says so at the top. Keep
+Where such a name appeared in the old round archive or the retirement list it was a **quoted source
+identifier being retired** — the record of a removal, not a use — and the list said so at the top.
+Keep
 that distinction. If you add a term to the retired list, add it to the scanner too; the list is
 the record.
 
@@ -705,7 +710,7 @@ failure mode, and it is the one this library was built in reaction to.
 
 - **Local commits only.** Neither repository has a remote and neither should acquire one without
   being asked. `~/work/classical-lean` is the library; `~/Cowork/lean-rebuild` is the evidence,
-  pinned from `PROVENANCE.md` at a commit hash so the link survives a move.
+  pinned from the round archive at a commit hash so the link survives a move.
   **Corrected 2026-09-23:** both repositories now have one remote, `dsmain`
   (`dsmain:/data/git/classical-lean.git` and `dsmain:/data/git/lean-rebuild.git`, through the
   `dsmain` ssh alias). First pushes, read from each repository's `dsmain` reflog: `lean-rebuild`
@@ -951,6 +956,7 @@ failure mode, and it is the one this library was built in reaction to.
     closes the row.
 - **Keep the records true.** A source theorem that is neither shipped nor explicitly dropped is
   silence, not a decision. Per-declaration drop reasons live in the module header that inherited
-  the source file; `RETIRED.md` records the file- and block-level decisions and points at them.
+  the source file; record file- and block-level decisions in the round fragment under
+  `records/rounds/` and point at them.
 - **Report what you measured.** If a step was skipped, say so. If a claim is a reading rather
   than a measurement, label it — §2 of this file does that, and the labels are the useful part.

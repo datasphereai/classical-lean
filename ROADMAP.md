@@ -335,7 +335,8 @@ one-line consequence of Mathlib's `dist` API — so the generality is currently 
 thing the abstraction buys, widths outside `ℝ≥0`, has exactly one witness (`natTolerance`) and no
 consumer either.
 
-By `RETIRED.md`:111 — "porting would add names, not results" — that is a generalisation in search
+By the project's test in `HANDOFF.md` — "porting would add names, not results" — that is a
+generalisation in search
 of a use case.  It is kept, not retired: the abstraction is correct and cheap, and a future module
 needing graded closeness with non-real widths would want it.  But it should not be counted as
 evidence the library does order theory.  The module header now says so.  What would retire the
@@ -372,7 +373,8 @@ script and its output are in round 16's fragment.
 ### 1.13 The `Simplex` order batch (G-3, G-2) — what it closed, and what it did not
 
 Recorded late, on 2026-09-08. Both modules shipped on 2026-09-07 and neither was named in this
-file until now; `PROVENANCE.md` round 10a carries the full account and `records/README.md` carries
+file until now; round 10a, in the archived history, carries the full account and
+`records/README.md` carries
 the mechanism that is meant to stop it recurring.
 
 **`Simplex/Symmetry.lean` (`b525cef`) closed a loop §1.12 did not name.** `Ordered.lean` proves
@@ -520,7 +522,7 @@ they sound. Every Mathlib status is measured; the command is in the row.
 ### Tier 1 — finishes something already started
 
 **2.1 Rank of apparition of a Lucas sequence** — **DONE**, see
-`NumberTheory/LucasApparition.lean` (round 7 in `PROVENANCE.md`)
+`NumberTheory/LucasApparition.lean` (round 7, archived history)
 
 `MersenneOrder.lean` proves that a prime divides `2^n - 1` exactly when the multiplicative order
 of `2` divides `n`. Under §1.1 that is: *the rank of apparition of `U(3,2)` at `p`.* The general
@@ -636,7 +638,7 @@ reversed characteristic polynomial.
 
 **2.4 Enumerative sequences Mathlib lacks** — audited, and the answer was **build none of
 them**.  What shipped instead is `Combinatorics/AlgebraicGeneratingFunction.lean`; see round 8
-in `PROVENANCE.md`.
+in the archived history.
 
 *The five absence claims were re-run and all five hold.*  Motzkin raw 17 / residual 0, Narayana
 12 / 0, Eulerian 54 / 0, Delannoy 0, Stern 4 anchored (15 unanchored) / 0 — identical to the
@@ -655,7 +657,7 @@ mentions.
 nonnegative-but-not-a-sum-of-squares *polynomial* — a different object from the Motzkin
 *numbers*.  Any absence claim about Motzkin must say which Motzkin.
 
-*Why none of the five shipped as a module.*  The project's test is `RETIRED.md`:111, "porting
+*Why none of the five shipped as a module.*  The project's test, stated in `HANDOFF.md`, is "porting
 would add names, not results".  Applied honestly:
 
 | candidate | verdict |
@@ -694,7 +696,7 @@ Mathlib citations in this entry have moved at v4.34.0: `Catalan.lean:48` is `:47
 carries the correction. The extension to `f = p + X ^ d * q f` is still not attempted.
 
 **2.5 Primitive divisors / Zsigmondy** — **DONE in the shape described below**, see
-`NumberTheory/PrimitiveDivisor.lean` and round 9 in `PROVENANCE.md`.  Zsigmondy proper is
+`NumberTheory/PrimitiveDivisor.lean` and round 9 in the archived history.  Zsigmondy proper is
 **deferred**, and the four open items at the end of this entry are what remains.
 **(Dated 2026-09-24 UTC: Zsigmondy for `aⁿ − 1` is done, order G-6, round 22; see the dated
 paragraph at the end of this entry.)**
