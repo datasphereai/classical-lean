@@ -1,9 +1,8 @@
 # Handoff
 
-For a session picking this up cold. Read `PROVENANCE.md` for where the current content came
-from, `RETIRED.md` for what was deliberately left behind, and `ROADMAP.md` for the subject
-areas to add next and the patterns connecting the ones already here; this file is about **what
-to do next in the small and how to be sure it is true**.
+For a session picking this up cold. Read `ROADMAP.md` for the subject areas to add next and
+the patterns connecting the ones already here; this file is about **what to do next in the
+small and how to be sure it is true**.
 
 ---
 

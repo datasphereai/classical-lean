@@ -2,8 +2,7 @@
 
 Categories to add, and the patterns that connect the ones already here.
 
-`PROVENANCE.md` says where the current content came from, `RETIRED.md` what was left behind,
-`HANDOFF.md` what to do next in the small. This file is the map at the level of *subject areas*,
+`HANDOFF.md` says what to do next in the small. This file is the map at the level of *subject areas*,
 for the standing goal in `HANDOFF.md` §3: a library that spans mathematics rather than one
 corner of it.
 
