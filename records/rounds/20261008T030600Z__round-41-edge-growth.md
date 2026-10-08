@@ -41,3 +41,7 @@ Measurability, and `C` outside (b): not shown needed, kept for convenience. Item
 (`Q` seeing only the previous outcome) fails (rc 1). The banned-vocabulary gate could not run here
 (its term list is kept outside the repository); see the LEAN-13 report. Details are in the LEAN-13
 report.
+
+Commits: records first `a5048c4`; modules and this fragment `30715ce`. On the clean tree at
+`30715ce`: `lake build` rc 0, 0 warnings; axiom gate PASS, 2091; vacuity gate PASS; check_sorry PASS
+(79 files); check_records PASS (79 modules); banned_vocab_scan rc 2 (term list missing here).
