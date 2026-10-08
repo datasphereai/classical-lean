@@ -66,3 +66,9 @@ for `lake build ClassicalLean.Probability.EdgeGrowth`); axiom gate PASS, 2106 (2
 gate PASS; check_sorry PASS (79 files); banned_vocab_scan PASS (79 files, 0 hits); check_records
 PASS (79 modules). `#print axioms` on the five new theorems: `[propext, Classical.choice,
 Quot.sound]`. Re-run on the clean tree after the commit; see the LEAN-14 report.
+
+Commits: records first `62fb83d`; module and this fragment `55a6a8f`. On the clean tree at `55a6a8f`:
+`lake build` rc 0, 0 warnings (0 also for `lake build ClassicalLean.Probability.EdgeGrowth`); axiom
+gate PASS, 2106; vacuity gate PASS; check_sorry PASS (79 files); banned_vocab_scan PASS (0 hits);
+check_records PASS (79 modules). Program (`~/trading/paper`, master): plan `fde77e6`, code `e0c80e2`,
+run `441df64`.
