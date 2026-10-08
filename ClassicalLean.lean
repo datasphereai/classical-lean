@@ -81,6 +81,8 @@ import ClassicalLean.Probability.TwoStateChain
 import ClassicalLean.Probability.LinearPrediction
 import ClassicalLean.InformationTheory.SignalGrowth
 import ClassicalLean.Analysis.RoundingError
+import ClassicalLean.Probability.EdgeGrowth
+import ClassicalLean.Probability.ScoreLookahead
 
 /-!
 # ClassicalLean
