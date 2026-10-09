@@ -94,6 +94,7 @@ import ClassicalLean.Analysis.ExponentialWeights
 import ClassicalLean.Statistics.RaoBlackwell
 import ClassicalLean.Statistics.Cochran
 import ClassicalLean.Probability.YuleWalker
+import ClassicalLean.Probability.MovingAverage
 
 /-!
 # ClassicalLean
