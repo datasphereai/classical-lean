@@ -108,6 +108,7 @@ import ClassicalLean.Algebra.HadamardInequality
 import ClassicalLean.Probability.BinomialVariance
 import ClassicalLean.Probability.KalmanVariance
 import ClassicalLean.Probability.Extinction
+import ClassicalLean.Probability.GamblersRuin
 
 /-!
 # ClassicalLean

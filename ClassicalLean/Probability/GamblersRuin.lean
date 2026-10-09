@@ -1,0 +1,581 @@
+/-
+Copyright (c) 2026 Dustin Watkins. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Dustin Watkins, Claude (Anthropic)
+-/
+
+import ClassicalLean.Probability.FairGame
+import Mathlib.Probability.Process.HittingTime
+import Mathlib.MeasureTheory.Integral.DominatedConvergence
+
+/-!
+# Gambler's ruin for the fair `±1` walk
+
+A walk starts at `0` and moves up or down by `1` at each step (`walk X n = X 0 + ⋯ + X (n − 1)`),
+each step `X n = ±1` with mean `0` and independent of the past. `exitTime X a b` is the first time
+the walk is at `a` or above, or at `-b` or below (`⊤` if never). Order LEAN-22 (item 44 of the
+plan) proves, for whole numbers `a, b ≥ 0`:
+
+* `ae_exitTime_ne_top`: the walk leaves `(-b, a)` with chance `1`;
+* `measureReal_hit_eq`: it reaches `a` before `-b` with chance `b / (a + b)`
+  (`add_mul_measureReal_hit_eq`: `(a + b) P = b`, with no division);
+* `integral_exitTime_eq`: the mean time until it reaches `a` or `-b` is `a b`, and
+  `integrable_exitTime`: that mean is finite.
+
+The steps: Wald's identity at a bounded stopping time (the library's `FairGame`) gives
+`E[S τ'] = 0` and `E[S τ' ²] = E[τ']` for the exit time capped at `N`
+(`integral_stoppedValue_walk`, `integral_stoppedValue_walk_sq`); up to the exit time the walk
+stays in `[-b, a]`, since it moves by `1` through whole numbers (`walk_mem_Icc_of_le_exitTime`);
+so `E[τ'] ≤ (a + b)²`, and Markov's inequality makes the exit time finite with chance `1`. Letting
+`N` grow (dominated convergence for the walk, monotone convergence for the time), `E[S τ] = 0`
+and `E[τ] = E[S τ ²]`. At the exit time the walk is at `a` on the event of reaching `a` first and
+at `-b` otherwise, so `a P − b (1 − P) = 0` and `E[τ] = a² P + b² (1 − P) = a b`.
+
+## Hypotheses
+
+Measured in order LEAN-22's checks (check C44, exact arithmetic): `b / (a + b)` and
+`(a − x)(x + b)` solve the boundary problems of the walk started at `x`; and for `a, b` from `1`
+to `4`, the exact law of the walk stopped at the exit time or at step 200 gives a chance of `a`
+first within the unstopped mass of `b / (a + b)`, and `E[min(τ, 200)] ≤ a b`. Each hypothesis is
+needed; drop it alone and a conclusion fails (the first two cases computed exactly by the checks,
+the rest worked out by hand):
+
+* steps `±1`: fair steps of `±2` with `a = b = 1` never land on `1`, so the chance is `0`, not
+  `1/2`; with `a = 1`, `b = 2` the mean time is `1`, not `2`.
+* mean `0`: every step `+1` with `a = b = 1` gives chance `1`, not `1/2`.
+* independence: `X n = X 0` for every `n`, `X 0` fair, `a = 1`, `b = 2`: chance `1/2` (not `2/3`)
+  and mean time `3/2` (not `2`).
+
+* each step known by the next time: with the filtration that knows nothing at every time,
+  independence holds for any steps, and `X n = X 0` as above gives `1/2`, not `2/3` (review r44).
+* a probability measure: the zero measure satisfies the other hypotheses and gives chance `0`.
+
+No hypothesis on `a` and `b` is needed (worked out by hand): with `a = 0 < b` the event holds at
+`n = 0` and the chance is `1 = b / b`; with `b = 0` the condition `-0 < walk 0` fails, so the chance
+is `0`; with `a = b = 0` the chance is Lean's `0 / 0 = 0`; in all three the exit time is `0`.
+
+## What Mathlib provides
+
+Hitting times as stopping times (`hittingAfter`, `Adapted.isStoppingTime_hittingAfter`),
+`IsStoppingTime.min_const`, `integrable_stoppedValue`, `condExp_indep_eq`,
+`condExp_mul_of_stronglyMeasurable_left`, dominated and monotone convergence. No random walk and no
+gambler's ruin: `gambler|ruin` has 2 unrelated hits and `random ?walk|simple random|symmetric walk`
+none in Mathlib v4.34.0 (order LEAN-22's search).
+-/
+
+open MeasureTheory ProbabilityTheory Finset Filter Topology
+
+namespace ClassicalLean.Probability.GamblersRuin
+
+variable {Ω : Type*} {m0 : MeasurableSpace Ω} {μ : Measure Ω} {𝒢 : Filtration ℕ m0}
+
+/-- The walk: the sum of the first `n` steps. -/
+def walk (X : ℕ → Ω → ℝ) (n : ℕ) (ω : Ω) : ℝ := ∑ i ∈ range n, X i ω
+
+/-- The first time the walk is at `a` or above, or at `-b` or below (`⊤` if never). -/
+noncomputable def exitTime (X : ℕ → Ω → ℝ) (a b : ℕ) : Ω → WithTop ℕ :=
+  hittingAfter (walk X) {x | x ≤ -(b : ℝ) ∨ (a : ℝ) ≤ x} 0
+
+section Path
+
+variable {X : ℕ → Ω → ℝ}
+
+omit m0 in
+/-- The walk starts at `0`. -/
+theorem walk_zero (ω : Ω) : walk X 0 ω = 0 := by simp [walk]
+
+omit m0 in
+/-- Each step adds `X n`. -/
+theorem walk_succ (n : ℕ) (ω : Ω) : walk X (n + 1) ω = walk X n ω + X n ω := by
+  simp [walk, sum_range_succ]
+
+omit m0 in
+/-- The walk takes whole-number values. -/
+theorem exists_int_walk (hpm : ∀ n ω, X n ω = 1 ∨ X n ω = -1) (n : ℕ) (ω : Ω) :
+    ∃ z : ℤ, walk X n ω = z := by
+  induction n with
+  | zero => exact ⟨0, by simp [walk_zero]⟩
+  | succ n ih =>
+    obtain ⟨z, hz⟩ := ih
+    rcases hpm n ω with h | h
+    · exact ⟨z + 1, by rw [walk_succ, hz, h]; push_cast; ring⟩
+    · exact ⟨z - 1, by rw [walk_succ, hz, h]; push_cast; ring⟩
+
+omit m0 in
+/-- After `n` steps of `±1` the walk is within `n` of `0`. -/
+theorem abs_walk_le (hpm : ∀ n ω, X n ω = 1 ∨ X n ω = -1) (n : ℕ) (ω : Ω) :
+    |walk X n ω| ≤ n := by
+  induction n with
+  | zero => simp [walk_zero]
+  | succ n ih =>
+    rw [walk_succ]
+    have : |X n ω| = 1 := by rcases hpm n ω with h | h <;> simp [h]
+    calc |walk X n ω + X n ω| ≤ |walk X n ω| + |X n ω| := abs_add_le _ _
+      _ ≤ n + 1 := by linarith
+      _ = ((n + 1 : ℕ) : ℝ) := by push_cast; ring
+
+omit m0 in
+/-- Up to the exit time the walk stays in `[-b, a]`. -/
+theorem walk_mem_Icc_of_le_exitTime (hpm : ∀ n ω, X n ω = 1 ∨ X n ω = -1) (a b : ℕ) {ω : Ω}
+    {k : ℕ} (hk : (k : WithTop ℕ) ≤ exitTime X a b ω) :
+    walk X k ω ∈ Set.Icc (-(b : ℝ)) a := by
+  induction k with
+  | zero => rw [walk_zero]; exact ⟨by simp, by simp⟩
+  | succ k ih =>
+    have hlt : (k : WithTop ℕ) < exitTime X a b ω :=
+      lt_of_lt_of_le (WithTop.coe_lt_coe.mpr (Nat.lt_succ_self k)) hk
+    have hnot : walk X k ω ∉ {x : ℝ | x ≤ -(b : ℝ) ∨ (a : ℝ) ≤ x} :=
+      notMem_of_lt_hittingAfter hlt (Nat.zero_le k)
+    simp only [Set.mem_ofPred_eq, not_or, not_le] at hnot
+    obtain ⟨z, hz⟩ := exists_int_walk hpm k ω
+    rw [hz] at hnot
+    have h1 : -(b : ℤ) < z := by exact_mod_cast hnot.1
+    have h2 : z < (a : ℤ) := by exact_mod_cast hnot.2
+    have e1 : ((-(b : ℤ) : ℤ) : ℝ) ≤ ((z - 1 : ℤ) : ℝ) := Int.cast_le.mpr (by omega)
+    have e2 : ((z + 1 : ℤ) : ℝ) ≤ ((a : ℤ) : ℝ) := Int.cast_le.mpr (by omega)
+    push_cast at e1 e2
+    rw [walk_succ, hz]
+    rcases hpm k ω with h | h <;> rw [h] <;> constructor <;> linarith
+
+end Path
+
+section Mean
+
+variable [IsProbabilityMeasure μ] {X : ℕ → Ω → ℝ}
+
+omit [IsProbabilityMeasure μ] in
+private theorem stronglyMeasurable_walk (hX : ∀ n, StronglyMeasurable[𝒢 (n + 1)] (X n)) (n : ℕ) :
+    StronglyMeasurable[𝒢 n] (walk X n) :=
+  Finset.stronglyMeasurable_fun_sum _ fun i hi ↦
+    (hX i).mono (𝒢.mono (Nat.succ_le_of_lt (mem_range.mp hi)))
+
+private theorem integrable_step (hX : ∀ n, StronglyMeasurable[𝒢 (n + 1)] (X n))
+    (hpm : ∀ n ω, X n ω = 1 ∨ X n ω = -1) (n : ℕ) : Integrable (X n) μ :=
+  Integrable.of_bound ((hX n).mono (𝒢.le _)).aestronglyMeasurable 1
+    (ae_of_all _ fun ω ↦ by rcases hpm n ω with h | h <;> simp [h])
+
+private theorem integrable_walk_mul (hX : ∀ n, StronglyMeasurable[𝒢 (n + 1)] (X n))
+    (hpm : ∀ n ω, X n ω = 1 ∨ X n ω = -1) (n : ℕ) (c : ℝ) {g : Ω → ℝ}
+    (hg : StronglyMeasurable g) (hgb : ∀ ω, |g ω| ≤ 1) :
+    Integrable (fun ω ↦ c * walk X n ω * g ω) μ :=
+  Integrable.of_bound
+    ((((stronglyMeasurable_walk hX n).mono (𝒢.le n)).const_mul c).mul hg).aestronglyMeasurable
+    (|c| * n) (ae_of_all _ fun ω ↦ by
+      rw [Real.norm_eq_abs, abs_mul, abs_mul]
+      calc |c| * |walk X n ω| * |g ω| ≤ |c| * n * 1 :=
+            mul_le_mul (mul_le_mul_of_nonneg_left (abs_walk_le hpm n ω) (abs_nonneg c)) (hgb ω)
+              (abs_nonneg _) (by positivity)
+        _ = |c| * n := mul_one _)
+
+private theorem integrable_walk (hX : ∀ n, StronglyMeasurable[𝒢 (n + 1)] (X n))
+    (hpm : ∀ n ω, X n ω = 1 ∨ X n ω = -1) (n : ℕ) : Integrable (walk X n) μ :=
+  Integrable.of_bound ((stronglyMeasurable_walk hX n).mono (𝒢.le n)).aestronglyMeasurable n
+    (ae_of_all _ fun ω ↦ by rw [Real.norm_eq_abs]; exact abs_walk_le hpm n ω)
+
+private theorem integrable_walk_sq (hX : ∀ n, StronglyMeasurable[𝒢 (n + 1)] (X n))
+    (hpm : ∀ n ω, X n ω = 1 ∨ X n ω = -1) (n : ℕ) :
+    Integrable (fun ω ↦ walk X n ω ^ 2) μ :=
+  Integrable.of_bound (((stronglyMeasurable_walk hX n).mono (𝒢.le n)).pow 2).aestronglyMeasurable
+    ((n : ℝ) ^ 2) (ae_of_all _ fun ω ↦ by
+      rw [Real.norm_eq_abs, abs_pow]
+      exact pow_le_pow_left₀ (abs_nonneg _) (abs_walk_le hpm n ω) 2)
+
+/-- At a stopping time bounded by `N`, the walk has mean `0` (Wald's identity, `m = 0`). -/
+theorem integral_stoppedValue_walk (hX : ∀ n, StronglyMeasurable[𝒢 (n + 1)] (X n))
+    (hind : ∀ n, Indep (MeasurableSpace.comap (X n) inferInstance) (𝒢 n) μ)
+    (hpm : ∀ n ω, X n ω = 1 ∨ X n ω = -1) (hmean : ∀ n, ∫ ω, X n ω ∂μ = 0)
+    {τ : Ω → WithTop ℕ} (hτ : IsStoppingTime 𝒢 τ) {N : ℕ} (hbdd : ∀ ω, τ ω ≤ N) :
+    ∫ ω, stoppedValue (walk X) τ ω ∂μ = 0 := by
+  have := FairGame.integral_stoppedValue_sum_eq hX (integrable_step hX hpm) hmean hind hτ hbdd
+  rw [zero_mul] at this
+  exact this
+
+/-- At a stopping time bounded by `N`, the walk's square has mean `E[τ]`. -/
+theorem integral_stoppedValue_walk_sq (hX : ∀ n, StronglyMeasurable[𝒢 (n + 1)] (X n))
+    (hind : ∀ n, Indep (MeasurableSpace.comap (X n) inferInstance) (𝒢 n) μ)
+    (hpm : ∀ n ω, X n ω = 1 ∨ X n ω = -1) (hmean : ∀ n, ∫ ω, X n ω ∂μ = 0)
+    {τ : Ω → WithTop ℕ} (hτ : IsStoppingTime 𝒢 τ) {N : ℕ} (hbdd : ∀ ω, τ ω ≤ N) :
+    ∫ ω, stoppedValue (fun n ω ↦ walk X n ω ^ 2) τ ω ∂μ = ∫ ω, ((τ ω).untopA : ℝ) ∂μ := by
+  have hadp : StronglyAdapted 𝒢 fun n ω ↦ walk X n ω ^ 2 := fun n ↦
+    (stronglyMeasurable_walk hX n).pow 2
+  have hint := integrable_walk_sq (μ := μ) hX hpm
+  have hstep : ∀ n, μ[(fun ω ↦ walk X (n + 1) ω ^ 2) - (fun ω ↦ walk X n ω ^ 2) | 𝒢 n] =ᵐ[μ]
+      fun _ ↦ (1 : ℝ) := fun n ↦ by
+    have e : (fun ω ↦ walk X (n + 1) ω ^ 2) - (fun ω ↦ walk X n ω ^ 2) =
+        (fun ω ↦ 2 * walk X n ω) * X n + fun _ ↦ 1 := by
+      funext ω
+      simp only [Pi.sub_apply, Pi.add_apply, Pi.mul_apply, walk_succ]
+      rcases hpm n ω with h | h <;> rw [h] <;> ring
+    rw [e]
+    have hXm : Measurable (X n) := (hX n).measurable.mono (𝒢.le (n + 1)) le_rfl
+    have hce := condExp_indep_eq hXm.comap_le (𝒢.le n)
+      (comap_measurable (X n)).stronglyMeasurable (hind n)
+    rw [hmean n] at hce
+    have hi1 : Integrable ((fun ω ↦ 2 * walk X n ω) * X n) μ := by
+      have := integrable_walk_mul (μ := μ) hX hpm n 2 ((hX n).mono (𝒢.le _))
+        fun ω ↦ by rcases hpm n ω with h | h <;> simp [h]
+      exact this
+    have hmul := condExp_mul_of_stronglyMeasurable_left (m := 𝒢 n)
+      ((stronglyMeasurable_walk hX n).const_mul 2) hi1 (integrable_step hX hpm n)
+    filter_upwards [condExp_add hi1 (integrable_const (1 : ℝ)) (𝒢 n), hmul, hce] with ω h1 h2 h3
+    rw [h1, Pi.add_apply, h2, Pi.mul_apply, h3, condExp_const (𝒢.le n)]
+    simp
+  have := FairGame.integral_stoppedValue_eq_mul hadp hint (fun ω ↦ by simp [walk_zero]) hstep hτ
+    hbdd
+  rw [one_mul] at this
+  exact this
+
+end Mean
+
+section Ruin
+
+omit m0 in
+private theorem min_coe_coe (n N : ℕ) :
+    min (WithTop.some n) (WithTop.some N) = WithTop.some (min n N) := by
+  rcases le_total n N with h | h
+  · rw [min_eq_left (WithTop.coe_le_coe.mpr h), min_eq_left h]
+  · rw [min_eq_right (WithTop.coe_le_coe.mpr h), min_eq_right h]
+
+omit m0 in
+private theorem untopA_min_top (N : ℕ) : (min (⊤ : WithTop ℕ) (WithTop.some N)).untopA = N := by
+  rw [min_eq_right le_top]; rfl
+
+omit m0 in
+private theorem untopA_min_coe (n N : ℕ) :
+    (min (WithTop.some n) (WithTop.some N)).untopA = min n N := by
+  rw [min_coe_coe]; rfl
+
+omit m0 in
+private theorem coe_untopA_min (t : WithTop ℕ) (N : ℕ) :
+    (WithTop.some (min t (WithTop.some N)).untopA) = min t (WithTop.some N) := by
+  cases t with
+  | top => rw [untopA_min_top, min_eq_right le_top]
+  | coe n => rw [untopA_min_coe, min_coe_coe]
+
+omit m0 in
+private theorem untopA_min_le (t : WithTop ℕ) (N : ℕ) : (min t (WithTop.some N)).untopA ≤ N := by
+  cases t with
+  | top => rw [untopA_min_top]
+  | coe n => rw [untopA_min_coe]; exact min_le_right _ _
+
+variable [IsProbabilityMeasure μ] {X : ℕ → Ω → ℝ}
+
+omit [IsProbabilityMeasure μ] in
+/-- The exit time is a stopping time. -/
+theorem isStoppingTime_exitTime (hX : ∀ n, StronglyMeasurable[𝒢 (n + 1)] (X n)) (a b : ℕ) :
+    IsStoppingTime 𝒢 (exitTime X a b) :=
+  Adapted.isStoppingTime_hittingAfter (fun n ↦ (stronglyMeasurable_walk hX n).measurable)
+    ((measurableSet_le measurable_id measurable_const).union
+      (measurableSet_le measurable_const measurable_id))
+
+omit m0 in
+/-- The walk stopped at the exit time, or at `N` if that is earlier, is in `[-b, a]`. -/
+theorem stoppedValue_min_mem_Icc (hpm : ∀ n ω, X n ω = 1 ∨ X n ω = -1) (a b N : ℕ) (ω : Ω) :
+    stoppedValue (walk X) (fun ω ↦ min (exitTime X a b ω) (WithTop.some N)) ω ∈
+      Set.Icc (-(b : ℝ)) a :=
+  walk_mem_Icc_of_le_exitTime hpm a b (by
+    change (WithTop.some (min (exitTime X a b ω) (WithTop.some N)).untopA) ≤ _
+    rw [coe_untopA_min]; exact min_le_left _ _)
+
+omit m0 in
+private theorem abs_stoppedValue_min_le (hpm : ∀ n ω, X n ω = 1 ∨ X n ω = -1) (a b N : ℕ)
+    (ω : Ω) :
+    |stoppedValue (walk X) (fun ω ↦ min (exitTime X a b ω) (WithTop.some N)) ω| ≤ a + b := by
+  have h := stoppedValue_min_mem_Icc hpm a b N ω
+  rw [abs_le]
+  constructor <;> linarith [h.1, h.2, (Nat.cast_nonneg a : (0 : ℝ) ≤ a),
+    (Nat.cast_nonneg b : (0 : ℝ) ≤ b)]
+
+omit [IsProbabilityMeasure μ] in
+private theorem measurable_untopA_min {τ : Ω → WithTop ℕ} (hτ : IsStoppingTime 𝒢 τ) (N : ℕ) :
+    Measurable fun ω ↦ ((min (τ ω) (WithTop.some N)).untopA : ℝ) :=
+  (measurable_of_countable fun t : WithTop ℕ ↦ ((min t (WithTop.some N)).untopA : ℝ)).comp
+    hτ.measurable'
+
+private theorem integrable_untopA_min {τ : Ω → WithTop ℕ} (hτ : IsStoppingTime 𝒢 τ) (N : ℕ) :
+    Integrable (fun ω ↦ ((min (τ ω) (WithTop.some N)).untopA : ℝ)) μ :=
+  Integrable.of_bound (measurable_untopA_min hτ N).aestronglyMeasurable N
+    (ae_of_all _ fun ω ↦ by
+      rw [Real.norm_eq_abs, abs_of_nonneg (Nat.cast_nonneg _), Nat.cast_le]
+      exact untopA_min_le _ _)
+
+/-- The mean of the exit time capped at `N` is at most `(a + b)²`. -/
+private theorem integral_untopA_min_le (hX : ∀ n, StronglyMeasurable[𝒢 (n + 1)] (X n))
+    (hind : ∀ n, Indep (MeasurableSpace.comap (X n) inferInstance) (𝒢 n) μ)
+    (hpm : ∀ n ω, X n ω = 1 ∨ X n ω = -1) (hmean : ∀ n, ∫ ω, X n ω ∂μ = 0) (a b N : ℕ) :
+    ∫ ω, ((min (exitTime X a b ω) (WithTop.some N)).untopA : ℝ) ∂μ ≤ ((a : ℝ) + b) ^ 2 := by
+  have hτ := (isStoppingTime_exitTime hX a b).min_const N
+  have h := integral_stoppedValue_walk_sq hX hind hpm hmean hτ fun ω ↦ min_le_right _ _
+  rw [← h]
+  calc ∫ ω, stoppedValue (fun n ω ↦ walk X n ω ^ 2)
+        (fun ω ↦ min (exitTime X a b ω) (WithTop.some N)) ω ∂μ
+      ≤ ∫ _ω, ((a : ℝ) + b) ^ 2 ∂μ := by
+        refine integral_mono (integrable_stoppedValue ℕ hτ (integrable_walk_sq hX hpm)
+          fun ω ↦ min_le_right _ _) (integrable_const _) fun ω ↦ ?_
+        have e : stoppedValue (fun n ω ↦ walk X n ω ^ 2)
+            (fun ω ↦ min (exitTime X a b ω) (WithTop.some N)) ω =
+            stoppedValue (walk X) (fun ω ↦ min (exitTime X a b ω) (WithTop.some N)) ω ^ 2 := rfl
+        rw [e, ← sq_abs]
+        exact pow_le_pow_left₀ (abs_nonneg _) (abs_stoppedValue_min_le hpm a b N ω) 2
+    _ = ((a : ℝ) + b) ^ 2 := by simp
+
+/-- The walk leaves `(-b, a)` with chance `1`. -/
+theorem ae_exitTime_ne_top (hX : ∀ n, StronglyMeasurable[𝒢 (n + 1)] (X n))
+    (hind : ∀ n, Indep (MeasurableSpace.comap (X n) inferInstance) (𝒢 n) μ)
+    (hpm : ∀ n ω, X n ω = 1 ∨ X n ω = -1) (hmean : ∀ n, ∫ ω, X n ω ∂μ = 0) (a b : ℕ) :
+    ∀ᵐ ω ∂μ, exitTime X a b ω ≠ ⊤ := by
+  have hτ := isStoppingTime_exitTime hX a b
+  have hbound : ∀ N : ℕ, 0 < N → μ.real {ω | exitTime X a b ω = ⊤} ≤ ((a : ℝ) + b) ^ 2 / N := by
+    intro N hN
+    have hNpos : (0 : ℝ) < N := Nat.cast_pos.mpr hN
+    have hint := integrable_untopA_min (μ := μ) hτ N
+    have hmk := mul_meas_ge_le_integral_of_nonneg (ae_of_all _ fun ω ↦ Nat.cast_nonneg _) hint N
+    have hsub : {ω | exitTime X a b ω = ⊤} ⊆
+        {ω | (N : ℝ) ≤ ((min (exitTime X a b ω) (WithTop.some N)).untopA : ℝ)} := fun ω hω ↦ by
+      simp only [Set.mem_ofPred_eq] at hω ⊢
+      rw [hω, untopA_min_top]
+    rw [le_div_iff₀ hNpos, mul_comm]
+    exact (mul_le_mul_of_nonneg_left (measureReal_mono hsub) hNpos.le).trans
+      (hmk.trans (integral_untopA_min_le hX hind hpm hmean a b N))
+  have h0 : μ.real {ω | exitTime X a b ω = ⊤} ≤ 0 := by
+    refine ge_of_tendsto (tendsto_const_div_atTop_nhds_zero_nat (((a : ℝ) + b) ^ 2)) ?_
+    filter_upwards [eventually_gt_atTop 0] with N hN
+    exact hbound N hN
+  have hzero : μ {ω | exitTime X a b ω = ⊤} = 0 :=
+    (measureReal_eq_zero_iff).mp (le_antisymm h0 measureReal_nonneg)
+  rw [ae_iff]
+  simpa only [ne_eq, not_not] using hzero
+
+open scoped Classical in
+omit m0 in
+/-- At the exit time (when finite) the walk is at `a` if it reached `a` before `-b`, else at
+`-b`. -/
+private theorem stoppedValue_exitTime_eq (hpm : ∀ n ω, X n ω = 1 ∨ X n ω = -1) (a b : ℕ)
+    {ω : Ω} (hω : exitTime X a b ω ≠ ⊤) :
+    stoppedValue (walk X) (exitTime X a b) ω =
+      if ω ∈ {ω | ∃ n, walk X n ω = a ∧ ∀ k ≤ n, -(b : ℝ) < walk X k ω} then (a : ℝ)
+      else -(b : ℝ) := by
+  obtain ⟨n, hn⟩ := WithTop.ne_top_iff_exists.mp hω
+  have hV : stoppedValue (walk X) (exitTime X a b) ω = walk X n ω := by
+    simp only [stoppedValue, ← hn]; rfl
+  have hmem : walk X n ω ∈ {x : ℝ | x ≤ -(b : ℝ) ∨ (a : ℝ) ≤ x} := by
+    have := hittingAfter_mem_set_of_ne_top hω
+    change walk X (exitTime X a b ω).untopA ω ∈ _ at this
+    rw [← hn] at this
+    exact this
+  have hIcc := walk_mem_Icc_of_le_exitTime hpm a b (le_of_eq hn)
+  have h2 : walk X n ω = -(b : ℝ) ∨ walk X n ω = a := by
+    rcases hmem with h | h
+    · exact Or.inl (le_antisymm h hIcc.1)
+    · exact Or.inr (le_antisymm hIcc.2 h)
+  rw [hV]
+  split_ifs with hA
+  · obtain ⟨m, hm, hlt⟩ := hA
+    have hle : exitTime X a b ω ≤ m := hittingAfter_le_of_mem (Nat.zero_le m) (Or.inr hm.symm.le)
+    have hnm : n ≤ m := WithTop.coe_le_coe.mp (hn ▸ hle)
+    have := hlt n hnm
+    rcases h2 with h | h
+    · linarith
+    · exact h
+  · rcases h2 with h | h
+    · exact h
+    · by_cases hab : (a : ℝ) = -(b : ℝ)
+      · rw [h, hab]
+      · exfalso
+        refine hA ⟨n, h, fun k hk ↦ ?_⟩
+        rcases lt_or_eq_of_le hk with hk | rfl
+        · have hnot : walk X k ω ∉ {x : ℝ | x ≤ -(b : ℝ) ∨ (a : ℝ) ≤ x} :=
+            notMem_of_lt_hittingAfter (lt_of_lt_of_eq (WithTop.coe_lt_coe.mpr hk) hn)
+              (Nat.zero_le k)
+          simp only [Set.mem_ofPred_eq, not_or, not_le] at hnot
+          exact hnot.1
+        · rw [h]
+          have : -(b : ℝ) ≤ a := by
+            linarith [(Nat.cast_nonneg a : (0 : ℝ) ≤ a), (Nat.cast_nonneg b : (0 : ℝ) ≤ b)]
+          exact lt_of_le_of_ne this (Ne.symm hab)
+
+omit [IsProbabilityMeasure μ] in
+private theorem measurableSet_hit (hX : ∀ n, StronglyMeasurable[𝒢 (n + 1)] (X n)) (a b : ℕ) :
+    MeasurableSet {ω | ∃ n, walk X n ω = a ∧ ∀ k ≤ n, -(b : ℝ) < walk X k ω} := by
+  have hm : ∀ n, Measurable (walk X n) := fun n ↦
+    ((stronglyMeasurable_walk hX n).mono (𝒢.le n)).measurable
+  have e : {ω | ∃ n, walk X n ω = a ∧ ∀ k ≤ n, -(b : ℝ) < walk X k ω} =
+      ⋃ n, ({ω | walk X n ω = a} ∩ ⋂ k ∈ Set.Iic n, {ω | -(b : ℝ) < walk X k ω}) := by
+    ext ω; simp
+  rw [e]
+  exact MeasurableSet.iUnion fun n ↦ (measurableSet_eq_fun (hm n) measurable_const).inter
+    (MeasurableSet.biInter (Set.to_countable _) fun k _ ↦ measurableSet_lt measurable_const (hm k))
+
+omit m0 in
+private theorem tendsto_stoppedValue_min {τ : Ω → WithTop ℕ} {ω : Ω} (hω : τ ω ≠ ⊤)
+    (f : ℕ → Ω → ℝ) :
+    Tendsto (fun N : ℕ ↦ stoppedValue f (fun ω ↦ min (τ ω) (WithTop.some N)) ω) atTop
+      (𝓝 (stoppedValue f τ ω)) := by
+  obtain ⟨n, hn⟩ := WithTop.ne_top_iff_exists.mp hω
+  refine tendsto_atTop_of_eventually_const (i₀ := n) fun N hN ↦ ?_
+  simp only [stoppedValue, ← hn, min_coe_coe, min_eq_left hN]
+
+open scoped Classical in
+private theorem integral_ite {A : Set Ω} (hA : MeasurableSet A) (c d : ℝ) :
+    ∫ ω, (if ω ∈ A then c else d) ∂μ = d + (c - d) * μ.real A := by
+  have e : (fun ω ↦ if ω ∈ A then c else d) =
+      fun ω ↦ d + (c - d) * A.indicator (fun _ ↦ (1 : ℝ)) ω := by
+    funext ω; by_cases h : ω ∈ A <;> simp [h]
+  rw [e, integral_add (integrable_const d) (((integrable_const (1 : ℝ)).indicator hA).const_mul _),
+    integral_const_mul, integral_indicator_const _ hA]
+  simp
+
+/-- The two limits behind the main theorems: `E[V] = 0` and `E[τ] = E[V²]`, where `V` is the
+walk at the exit time `τ`. -/
+private theorem integral_stoppedValue_exitTime
+    (hX : ∀ n, StronglyMeasurable[𝒢 (n + 1)] (X n))
+    (hind : ∀ n, Indep (MeasurableSpace.comap (X n) inferInstance) (𝒢 n) μ)
+    (hpm : ∀ n ω, X n ω = 1 ∨ X n ω = -1) (hmean : ∀ n, ∫ ω, X n ω ∂μ = 0) (a b : ℕ) :
+    ∫ ω, stoppedValue (walk X) (exitTime X a b) ω ∂μ = 0 ∧
+      Integrable (fun ω ↦ ((exitTime X a b ω).untopA : ℝ)) μ ∧
+      ∫ ω, ((exitTime X a b ω).untopA : ℝ) ∂μ =
+        ∫ ω, stoppedValue (walk X) (exitTime X a b) ω ^ 2 ∂μ := by
+  set τ := exitTime X a b
+  have hτ := isStoppingTime_exitTime hX a b
+  have hae := ae_exitTime_ne_top hX hind hpm hmean a b
+  have hτN : ∀ N : ℕ, IsStoppingTime 𝒢 fun ω ↦ min (τ ω) (WithTop.some N) := hτ.min_const
+  -- the walk
+  have hlim1 := tendsto_integral_of_dominated_convergence (μ := μ)
+    (F := fun N ω ↦ stoppedValue (walk X) (fun ω ↦ min (τ ω) (WithTop.some N)) ω)
+    (fun _ ↦ (a : ℝ) + b)
+    (fun N ↦ (integrable_stoppedValue ℕ (hτN N) (integrable_walk hX hpm)
+      fun ω ↦ min_le_right _ _).aestronglyMeasurable) (integrable_const _)
+    (fun N ↦ ae_of_all _ fun ω ↦ by
+      rw [Real.norm_eq_abs]; exact abs_stoppedValue_min_le hpm a b N ω)
+    (by filter_upwards [hae] with ω hω using tendsto_stoppedValue_min hω (walk X))
+  have h0 : ∀ N : ℕ, ∫ ω, stoppedValue (walk X) (fun ω ↦ min (τ ω) (WithTop.some N)) ω ∂μ = 0 :=
+    fun N ↦ integral_stoppedValue_walk hX hind hpm hmean (hτN N) fun ω ↦ min_le_right _ _
+  simp only [h0] at hlim1
+  refine ⟨(tendsto_nhds_unique tendsto_const_nhds hlim1).symm, ?_⟩
+  -- the square of the walk
+  have hlim2 := tendsto_integral_of_dominated_convergence (μ := μ)
+    (F := fun N ω ↦ stoppedValue (fun n ω ↦ walk X n ω ^ 2)
+      (fun ω ↦ min (τ ω) (WithTop.some N)) ω)
+    (fun _ ↦ ((a : ℝ) + b) ^ 2)
+    (fun N ↦ (integrable_stoppedValue ℕ (hτN N) (integrable_walk_sq hX hpm)
+      fun ω ↦ min_le_right _ _).aestronglyMeasurable) (integrable_const _)
+    (fun N ↦ ae_of_all _ fun ω ↦ by
+      have e : stoppedValue (fun n ω ↦ walk X n ω ^ 2)
+          (fun ω ↦ min (τ ω) (WithTop.some N)) ω =
+          stoppedValue (walk X) (fun ω ↦ min (τ ω) (WithTop.some N)) ω ^ 2 := rfl
+      rw [e, Real.norm_eq_abs, abs_pow]
+      exact pow_le_pow_left₀ (abs_nonneg _) (abs_stoppedValue_min_le hpm a b N ω) 2)
+    (by filter_upwards [hae] with ω hω using tendsto_stoppedValue_min hω _)
+  have h2 : ∀ N : ℕ, ∫ ω, stoppedValue (fun n ω ↦ walk X n ω ^ 2)
+      (fun ω ↦ min (τ ω) (WithTop.some N)) ω ∂μ =
+      ∫ ω, ((min (τ ω) (WithTop.some N)).untopA : ℝ) ∂μ :=
+    fun N ↦ integral_stoppedValue_walk_sq hX hind hpm hmean (hτN N) fun ω ↦ min_le_right _ _
+  have hlim3 : Tendsto (fun N : ℕ ↦ ∫ ω, ((min (τ ω) (WithTop.some N)).untopA : ℝ) ∂μ) atTop
+      (𝓝 (∫ ω, stoppedValue (walk X) τ ω ^ 2 ∂μ)) := hlim2.congr h2
+  -- monotone convergence for the capped exit times
+  have hfi := integrable_untopA_min (μ := μ) hτ
+  have hmct := lintegral_tendsto_of_tendsto_of_monotone (μ := μ)
+    (f := fun N ω ↦ ENNReal.ofReal ((min (τ ω) (WithTop.some N)).untopA : ℝ))
+    (F := fun ω ↦ ENNReal.ofReal ((τ ω).untopA : ℝ))
+    (fun N ↦ ENNReal.measurable_ofReal.comp_aemeasurable
+      (measurable_untopA_min hτ N).aemeasurable)
+    (ae_of_all _ fun ω ↦ by
+      intro N M hNM
+      refine ENNReal.ofReal_le_ofReal (Nat.cast_le.mpr ?_)
+      cases τ ω with
+      | top => rw [untopA_min_top, untopA_min_top]; exact hNM
+      | coe n => rw [untopA_min_coe, untopA_min_coe]; exact min_le_min_left n hNM)
+    (by
+      filter_upwards [hae] with ω hω
+      exact (ENNReal.continuous_ofReal.tendsto _).comp
+        (tendsto_stoppedValue_min hω fun n _ ↦ (n : ℝ)))
+  have hmct' : Tendsto (fun N : ℕ ↦ ENNReal.ofReal
+      (∫ ω, ((min (τ ω) (WithTop.some N)).untopA : ℝ) ∂μ)) atTop
+      (𝓝 (∫⁻ ω, ENNReal.ofReal ((τ ω).untopA : ℝ) ∂μ)) := by
+    refine hmct.congr fun N ↦ ?_
+    exact (ofReal_integral_eq_lintegral_ofReal (hfi N)
+      (ae_of_all _ fun ω ↦ Nat.cast_nonneg _)).symm
+  have hlin := tendsto_nhds_unique hmct' (ENNReal.tendsto_ofReal hlim3)
+  have hmeas : AEStronglyMeasurable (fun ω ↦ ((τ ω).untopA : ℝ)) μ :=
+    ((measurable_of_countable fun t : WithTop ℕ ↦ (t.untopA : ℝ)).comp
+      hτ.measurable').aestronglyMeasurable
+  refine ⟨⟨hmeas, ?_⟩, ?_⟩
+  · rw [hasFiniteIntegral_iff_ofReal (ae_of_all _ fun ω ↦ Nat.cast_nonneg _), hlin]
+    exact ENNReal.ofReal_lt_top
+  · rw [integral_eq_lintegral_of_nonneg_ae (ae_of_all _ fun ω ↦ Nat.cast_nonneg _) hmeas, hlin,
+      ENNReal.toReal_ofReal (integral_nonneg fun ω ↦ sq_nonneg _)]
+
+/-- **Gambler's ruin, without division.** For the fair `±1` walk from `0`, with `P` the chance of
+reaching `a` before `-b`, `(a + b) P = b`. -/
+theorem add_mul_measureReal_hit_eq (hX : ∀ n, StronglyMeasurable[𝒢 (n + 1)] (X n))
+    (hind : ∀ n, Indep (MeasurableSpace.comap (X n) inferInstance) (𝒢 n) μ)
+    (hpm : ∀ n ω, X n ω = 1 ∨ X n ω = -1) (hmean : ∀ n, ∫ ω, X n ω ∂μ = 0) (a b : ℕ) :
+    ((a : ℝ) + b) * μ.real {ω | ∃ n, walk X n ω = a ∧ ∀ k ≤ n, -(b : ℝ) < walk X k ω} = b := by
+  classical
+  have hA := measurableSet_hit hX a b
+  have hV := (integral_stoppedValue_exitTime hX hind hpm hmean a b).1
+  rw [integral_congr_ae ((ae_exitTime_ne_top hX hind hpm hmean a b).mono
+    fun ω hω ↦ stoppedValue_exitTime_eq hpm a b hω), integral_ite hA] at hV
+  linarith
+
+/-- **Gambler's ruin, the chance.** For the fair `±1` walk from `0`, the chance of reaching `a`
+before `-b` is `b / (a + b)` (at `a = b = 0` both sides are `0`, the right one as Lean's
+`0 / 0`). -/
+theorem measureReal_hit_eq (hX : ∀ n, StronglyMeasurable[𝒢 (n + 1)] (X n))
+    (hind : ∀ n, Indep (MeasurableSpace.comap (X n) inferInstance) (𝒢 n) μ)
+    (hpm : ∀ n ω, X n ω = 1 ∨ X n ω = -1) (hmean : ∀ n, ∫ ω, X n ω ∂μ = 0) (a b : ℕ) :
+    μ.real {ω | ∃ n, walk X n ω = a ∧ ∀ k ≤ n, -(b : ℝ) < walk X k ω} = b / (a + b) := by
+  set A := {ω | ∃ n, walk X n ω = a ∧ ∀ k ≤ n, -(b : ℝ) < walk X k ω}
+  have hV := add_mul_measureReal_hit_eq hX hind hpm hmean a b
+  have ha : (0 : ℝ) ≤ a := Nat.cast_nonneg a
+  have hb : (0 : ℝ) ≤ b := Nat.cast_nonneg b
+  rcases eq_or_lt_of_le (add_nonneg ha hb) with hab | hab
+  · have hb0 : (b : ℝ) = 0 := by linarith
+    have hempty : A = ∅ := by
+      ext ω
+      simp only [A, Set.mem_ofPred_eq, Set.mem_empty_iff_false, iff_false, not_exists, not_and]
+      intro n _ h
+      have := h 0 (Nat.zero_le n)
+      rw [walk_zero, hb0] at this
+      simp at this
+    rw [hempty, measureReal_empty, ← hab, div_zero]
+  · rw [eq_div_iff hab.ne', mul_comm]
+    exact hV
+
+/-- The exit time has a finite mean (so `integral_exitTime_eq` is about a true mean, not Lean's
+`0` for a function that is not integrable). -/
+theorem integrable_exitTime (hX : ∀ n, StronglyMeasurable[𝒢 (n + 1)] (X n))
+    (hind : ∀ n, Indep (MeasurableSpace.comap (X n) inferInstance) (𝒢 n) μ)
+    (hpm : ∀ n ω, X n ω = 1 ∨ X n ω = -1) (hmean : ∀ n, ∫ ω, X n ω ∂μ = 0) (a b : ℕ) :
+    Integrable (fun ω ↦ ((exitTime X a b ω).untopA : ℝ)) μ :=
+  (integral_stoppedValue_exitTime hX hind hpm hmean a b).2.1
+
+/-- **Gambler's ruin, the duration.** For the fair `±1` walk from `0`, the mean time to reach `a`
+or `-b` is `a b`. -/
+theorem integral_exitTime_eq (hX : ∀ n, StronglyMeasurable[𝒢 (n + 1)] (X n))
+    (hind : ∀ n, Indep (MeasurableSpace.comap (X n) inferInstance) (𝒢 n) μ)
+    (hpm : ∀ n ω, X n ω = 1 ∨ X n ω = -1) (hmean : ∀ n, ∫ ω, X n ω ∂μ = 0) (a b : ℕ) :
+    ∫ ω, ((exitTime X a b ω).untopA : ℝ) ∂μ = a * b := by
+  classical
+  set A := {ω | ∃ n, walk X n ω = a ∧ ∀ k ≤ n, -(b : ℝ) < walk X k ω}
+  have hA := measurableSet_hit hX a b
+  have hP := measureReal_hit_eq hX hind hpm hmean a b
+  rw [(integral_stoppedValue_exitTime hX hind hpm hmean a b).2.2]
+  have hsq : (fun ω ↦ stoppedValue (walk X) (exitTime X a b) ω ^ 2) =ᵐ[μ]
+      fun ω ↦ if ω ∈ A then (a : ℝ) ^ 2 else (b : ℝ) ^ 2 := by
+    filter_upwards [ae_exitTime_ne_top hX hind hpm hmean a b] with ω hω
+    rw [stoppedValue_exitTime_eq hpm a b hω]
+    split_ifs <;> ring
+  rw [integral_congr_ae hsq, integral_ite hA, hP]
+  have ha : (0 : ℝ) ≤ a := Nat.cast_nonneg a
+  have hb : (0 : ℝ) ≤ b := Nat.cast_nonneg b
+  rcases eq_or_lt_of_le (add_nonneg ha hb) with hab | hab
+  · have ha0 : (a : ℝ) = 0 := by linarith
+    have hb0 : (b : ℝ) = 0 := by linarith
+    rw [ha0, hb0]; ring
+  · field_simp
+    ring
+
+end Ruin
+
+end ClassicalLean.Probability.GamblersRuin
