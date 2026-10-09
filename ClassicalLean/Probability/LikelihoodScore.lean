@@ -6,6 +6,7 @@ Authors: Dustin Watkins, Claude (Anthropic)
 
 import ClassicalLean.Probability.RuinBound
 import Mathlib.MeasureTheory.Function.ConditionalExpectation.PullOut
+import ClassicalLean.InformationTheory.Entropy
 
 /-!
 # A score that may be checked after every outcome
@@ -23,6 +24,24 @@ chance of a win given the past is at most `p₀`: `μ[W (n+1) | 𝒢 n] ≤ p₀
 * `measureReal_exists_le_score`: the chance that it reaches `1/α` (for `0 < α`) within `N`
   outcomes is at most `α` (Ville's inequality, `MaximalInequality`).
 * `measureReal_exists_le_score_ever`: the same with no limit on the number of outcomes.
+* `measureReal_sum_ge_le_exp_neg_relEntropy` (order LEAN-17): for `p₀ ≤ q < 1`, the chance that
+  the first `N` outcomes sum to at least `q N` is at most `exp (-N · D(q ‖ p₀))`, `D` the relative
+  entropy of `(q, 1 - q)` to `(p₀, 1 - p₀)`: the Chernoff–Hoeffding bound (Hoeffding 1963,
+  Theorem 1) with no independence, only the conditional win chance. On that event the score is at
+  least `exp (N · D)` (`exp_mul_relEntropy_le_score`, by concavity of `log`), so Ville's inequality
+  gives the bound. `measureReal_sum_ge_le_exp_neg_sq`: so, by Pinsker's inequality for two
+  outcomes, at most `exp (-2 N (q - p₀)²)`: the one-sided form of `DependentSampleMean`'s bound,
+  without its factor `2`, for a conditional mean at most `p₀` rather than equal to it, and with no
+  `StandardBorelSpace`.
+  Needed (order LEAN-17's checks, line C5): the conditional chance (`W = 1` always, `p₀ = 1/2`,
+  `q = 3/4`, `N = 4`: chance `1` against `0.593`), `p₀ ≤ q` (`q = 0`: `1` against `0.125`),
+  `0 ≤ W` (`W = 1` or `-9` with chances `0.9`, `0.1`, `p₀ = 0.1`, `q = 1/2`, `N = 1`: `0.9`
+  against `0.600`), `W ≤ 1` (`W = 2` or `0` with chances `1/4`, `3/4`, `p₀ = 1/2`, `q = 3/4`,
+  `N = 20`: `0.102` against `0.073`) and adapted outcomes (every outcome a copy of one fair coin,
+  trivial filtration, `N = 10`: `1/2` against `0.270`). `q < 1` is not shown needed: at `q = 1` the
+  event is that every outcome is `1`, and the bound `p₀ ^ N` still holds; the proof uses `q < 1`
+  so that both factors of the score are positive. Neither `0 < p₀` nor `p₀ < 1` is claimed needed;
+  the second follows from `p₀ ≤ q < 1`.
 
 So the score may be looked at after every outcome, and stopping the first time it reaches `1/α`
 raises a false alarm with chance at most `α`. A fixed-size test at level `0.05` re-run after every
@@ -216,5 +235,93 @@ theorem measureReal_exists_le_score_ever {W : ℕ → Ω → ℝ} (hadp : Strong
   rw [hU]
   refine measureReal_iUnion_le_of_monotone hmono
     fun N ↦ measureReal_exists_le_score hadp hW0 hW1 hcond hp0 hp1 hq0 hq1 hα N
+
+section RelativeEntropy
+
+open ClassicalLean.Simplex
+
+/-- On a sequence of outcomes in `[0, 1]` whose sum after `N` of them is at least `q N`, the score
+is at least `exp (N · D(q ‖ p₀))`, for `0 < p₀ ≤ q < 1`. -/
+lemma exp_mul_relEntropy_le_score {W : ℕ → Ω → ℝ} (hW0 : ∀ n ω, 0 ≤ W n ω)
+    (hW1 : ∀ n ω, W n ω ≤ 1) (hp0 : 0 < p₀) (hp1 : p₀ < 1) (hq0 : p₀ ≤ q) (hq1 : q < 1)
+    (N : ℕ) (ω : Ω) (hS : q * N ≤ ∑ i ∈ range N, W (i + 1) ω) :
+    Real.exp (N * relEntropy ![q, 1 - q] ![p₀, 1 - p₀]) ≤ score p₀ q W N ω := by
+  set a := (1 - q) / (1 - p₀) with ha
+  set b := q / p₀ with hb
+  have ha0 : 0 < a := div_pos (by linarith) (by linarith)
+  have hb0 : 0 < b := div_pos (by linarith) hp0
+  have hla : Real.log a ≤ 0 := Real.log_nonpos ha0.le ((div_le_one (by linarith)).mpr (by linarith))
+  have hlb : 0 ≤ Real.log b := Real.log_nonneg ((le_div_iff₀ hp0).mpr (by linarith))
+  -- each factor is the mix `(1 - w) a + w b`, so its log is at least `(1 - w) log a + w log b`
+  have hfac : ∀ w, 0 ≤ w → w ≤ 1 →
+      (1 - w) * Real.log a + w * Real.log b ≤ Real.log (scoreFactor p₀ q w) ∧
+        0 < scoreFactor p₀ q w := by
+    intro w hw0 hw1
+    have he : scoreFactor p₀ q w = (1 - w) * a + w * b := by
+      simp only [scoreFactor, ha, hb]; ring
+    have hpos : 0 < (1 - w) * a + w * b := by
+      rcases eq_or_lt_of_le hw1 with rfl | hw1'
+      · simp [hb0]
+      · exact add_pos_of_pos_of_nonneg (mul_pos (by linarith) ha0) (mul_nonneg hw0 hb0.le)
+    refine ⟨?_, he ▸ hpos⟩
+    rw [he]
+    have := strictConcaveOn_log_Ioi.concaveOn.2 (Set.mem_Ioi.mpr ha0) (Set.mem_Ioi.mpr hb0)
+      (by linarith : (0 : ℝ) ≤ 1 - w) hw0 (by ring)
+    simpa [smul_eq_mul] using this
+  have hpos : ∀ i ∈ range N, 0 < scoreFactor p₀ q (W (i + 1) ω) := fun i _ ↦
+    (hfac _ (hW0 _ ω) (hW1 _ ω)).2
+  have hscore : 0 < score p₀ q W N ω := prod_pos hpos
+  have hlog : Real.log (score p₀ q W N ω) =
+      ∑ i ∈ range N, Real.log (scoreFactor p₀ q (W (i + 1) ω)) :=
+    Real.log_prod fun i hi ↦ (hpos i hi).ne'
+  have hsum : ∑ i ∈ range N, ((1 - W (i + 1) ω) * Real.log a + W (i + 1) ω * Real.log b) ≤
+      Real.log (score p₀ q W N ω) :=
+    hlog ▸ sum_le_sum fun i _ ↦ (hfac _ (hW0 _ ω) (hW1 _ ω)).1
+  have hD : relEntropy ![q, 1 - q] ![p₀, 1 - p₀] = q * Real.log b + (1 - q) * Real.log a := by
+    rw [relEntropy_fin_two]
+  rw [← Real.exp_log hscore]
+  apply Real.exp_le_exp.mpr
+  refine le_trans ?_ hsum
+  rw [hD, sum_add_distrib, ← sum_mul, ← sum_mul, sum_sub_distrib, sum_const, card_range,
+    nsmul_eq_mul, mul_one]
+  nlinarith [mul_le_mul_of_nonneg_right hS (sub_nonneg.mpr (hla.trans hlb))]
+
+/-- **The Chernoff bound in relative-entropy form, with no independence.** Outcomes in `[0, 1]`,
+adapted, each with mean at most `p₀` given the past (`0 < p₀ < 1`): for `p₀ ≤ q < 1`, the chance
+that the first `N` sum to at least `q N` is at most `exp (-N · D(q ‖ p₀))`, with `D` the relative
+entropy of `(q, 1 - q)` to `(p₀, 1 - p₀)` (Hoeffding 1963, Theorem 1, here for dependent outcomes).
+It is Ville's inequality for the score: on that event the score is at least `exp (N · D)`. -/
+theorem measureReal_sum_ge_le_exp_neg_relEntropy {W : ℕ → Ω → ℝ} (hadp : StronglyAdapted 𝒢 W)
+    (hW0 : ∀ n ω, 0 ≤ W n ω) (hW1 : ∀ n ω, W n ω ≤ 1)
+    (hcond : ∀ n, μ[W (n + 1) | 𝒢 n] ≤ᵐ[μ] fun _ ↦ p₀) (hp0 : 0 < p₀) (hp1 : p₀ < 1)
+    (hq0 : p₀ ≤ q) (hq1 : q < 1) (N : ℕ) :
+    μ.real {ω | q * N ≤ ∑ i ∈ range N, W (i + 1) ω} ≤
+      Real.exp (-(N * relEntropy ![q, 1 - q] ![p₀, 1 - p₀])) := by
+  set α := Real.exp (-(N * relEntropy ![q, 1 - q] ![p₀, 1 - p₀]))
+  have hα : 0 < α := Real.exp_pos _
+  have hsub : {ω | q * N ≤ ∑ i ∈ range N, W (i + 1) ω} ⊆
+      {ω | ∃ n ≤ N, 1 / α ≤ score p₀ q W n ω} := by
+    intro ω hω
+    refine ⟨N, le_rfl, ?_⟩
+    rw [one_div, ← Real.exp_neg, neg_neg]
+    exact exp_mul_relEntropy_le_score hW0 hW1 hp0 hp1 hq0 hq1 N ω hω
+  exact (measureReal_mono hsub).trans
+    (measureReal_exists_le_score hadp hW0 hW1 hcond hp0 hp1 hq0 hq1.le hα N)
+
+/-- **Hoeffding's bound, from the relative-entropy form.** Under the same hypotheses the chance is
+at most `exp (-2 N (q - p₀)²)`, by Pinsker's inequality for two outcomes
+(`Simplex.two_mul_sq_sub_le_relEntropy`). -/
+theorem measureReal_sum_ge_le_exp_neg_sq {W : ℕ → Ω → ℝ} (hadp : StronglyAdapted 𝒢 W)
+    (hW0 : ∀ n ω, 0 ≤ W n ω) (hW1 : ∀ n ω, W n ω ≤ 1)
+    (hcond : ∀ n, μ[W (n + 1) | 𝒢 n] ≤ᵐ[μ] fun _ ↦ p₀) (hp0 : 0 < p₀) (hp1 : p₀ < 1)
+    (hq0 : p₀ ≤ q) (hq1 : q < 1) (N : ℕ) :
+    μ.real {ω | q * N ≤ ∑ i ∈ range N, W (i + 1) ω} ≤ Real.exp (-(2 * N * (q - p₀) ^ 2)) := by
+  refine (measureReal_sum_ge_le_exp_neg_relEntropy hadp hW0 hW1 hcond hp0 hp1 hq0 hq1 N).trans ?_
+  apply Real.exp_le_exp.mpr
+  have h := two_mul_sq_sub_le_relEntropy hp0 hp1 (hp0.le.trans hq0) hq1.le
+  have hN : (0 : ℝ) ≤ N := Nat.cast_nonneg N
+  nlinarith [mul_le_mul_of_nonneg_left h hN]
+
+end RelativeEntropy
 
 end ClassicalLean.Probability.LikelihoodScore
