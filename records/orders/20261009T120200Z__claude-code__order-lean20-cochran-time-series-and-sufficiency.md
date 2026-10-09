@@ -1,0 +1,50 @@
+<!-- Written on 2026-10-09 by Claude Code session_01JNjgq2PB4rcJA4c8fQNFpA on DSMain, from the plan /opt/datasphere/lane/inbox/threads/staging/MATH-PLAN-library.md (sha256 62001c8f9ac4d6cf7947c055c929967d6474ede8b47830f3c208f52213161e44, checked by sha256sum before this file was written), as Dustin ordered in chat on 2026-10-09. Batch 4 of the plan and Dustin's order are copied verbatim below. Written before the work began, per records/README.md rule 2. -->
+
+# LEAN-20: Cochran's theorem, autocovariances of AR and MA, Cantelli and Paley–Zygmund, the condition number, linear ODEs, Euler's method, and sufficiency with Rao–Blackwell, Fisher–Neyman and Lehmann–Scheffé
+
+## Goal
+
+Batch 4 of MATH-PLAN-library (items 24 to 31 and 50 to 54): thirteen named results, proved in the library with no sorry and no axiom. Items 50 to 54 build on order LEAN-19's conditioning inequality in ClassicalLean.Statistics.RaoBlackwell, used and not proved again. Items 30 and 31 are done last; if the session cannot finish them, they move to the head of batch 5, as the plan says, and the report says so.
+
+Re-checked against Mathlib v4.34.0 (`5ed2965256`) before this file was written, as the order asks (`grep -rniE` over Mathlib; patterns, counts and the first hits in the session's evidence file `search.out`): none of the thirteen items is in Mathlib, so none is dropped. Hits that exist: `cantelli` 41 lines, all Borel–Cantelli; "sufficient statistic" only in citations of Fritz 2020; `Walker` only an author's name. Reduced to what Mathlib lacks: item 30 is Mathlib's `hasDerivAt_exp_smul_const` and `ODE_solution_unique_univ` applied to `t ↦ exp (t A) x₀`, which Mathlib does not state; item 27 uses Markov's inequality from Mathlib, as Mathlib's Chebyshev does; items 25 and 26 use Mathlib's covariance of finite sums (`covariance_sum_left`, `covariance_fun_sum_fun_sum`); item 50 extends from events to integrable statistics with Mathlib's `condExp_tsum` and `SimpleFunc.eapproxDiff`; item 53 builds the coin flips from Mathlib's `bernoulliMeasure` and `Measure.pi`.
+
+## Scope
+
+### Batch 4 — order LEAN-20
+
+| # | area | the result | Lean names | module | rests on | cost |
+|---|---|---|---|---|---|---|
+| 24 | 1 | Cochran's theorem, matrix form: square matrices summing to `1` have ranks adding to `n` exactly when each is idempotent; then they are orthogonal. | `sum_rank_eq_iff` | new ClassicalLean.Statistics.Cochran | Mathlib `LinearMap.rank_add_le`, `IsProj.trace`, `CompleteOrthogonalIdempotents`; item 1 as its example | M |
+| 25 | 9, bridge | Yule–Walker: for a covariance-stationary AR(p) with noise uncorrelated with the past, `γ k = ∑ a i γ (k − i)` for `k ≥ 1`, so the autocovariances solve a `LinearRecurrence` and have a rational generating function. | `covariance_eq_sum`, `isSolution_autocovariance` | new ClassicalLean.Probability.YuleWalker | Mathlib covariance bilinearity; library `isSolution_iff_coeff_recDenom_mul_mk` (RecurrenceGeneratingFunction) | M |
+| 26 | 9 | Moving average of order `q`: `γ k = σ² ∑ θ j θ (j + k)`, and `0` for `k > q`. | `covariance_movingAverage` | new ClassicalLean.Probability.MovingAverage | Mathlib `covariance_add_right`, `covariance_const_mul_right` | S–M |
+| 27 | 2 | Cantelli's inequality: `P(X − E X ≥ t) ≤ σ² / (σ² + t²)` for `t > 0`. | `measureReal_sub_integral_ge_le` | new ClassicalLean.Probability.TailBounds | Mathlib `mul_meas_ge_le_integral_of_nonneg`, `variance` | S |
+| 28 | 2 | Paley–Zygmund: for `X ≥ 0`, `P(X > θ E X) ≥ (1 − θ)² (E X)² / E[X²]`. | `measureReal_gt_ge` | ClassicalLean.Probability.TailBounds | Mathlib Cauchy–Schwarz for integrals | S–M |
+| 29 | 6 | Condition number: `‖Δx‖/‖x‖ ≤ ‖A‖ ‖A⁻¹‖ ‖Δb‖/‖b‖`. | `norm_sub_div_le_cond` | new ClassicalLean.Analysis.ConditionNumber | Mathlib matrix operator norms, `ContinuousLinearMap.le_opNorm` | S |
+| 30 | 4 | `t ↦ exp (t A) x₀` is the one solution of `x' = A x`, `x 0 = x₀`. | `hasDerivAt_exp_smul_mulVec`, `eq_exp_smul_mulVec` | new ClassicalLean.Analysis.LinearODE | Mathlib `hasDerivAt_exp_smul_const` (Exponential.lean:382), `ODE_solution_unique` (ODE/Gronwall.lean) | S–M |
+| 31 | 4, 6 | Euler's method has global error at most `(h M / (2 L)) (exp (L t) − 1)`. | `abs_sub_eulerStep_le` | new ClassicalLean.Analysis.EulerMethod | Mathlib `discrete_gronwall` (DiscreteGronwall.lean:79), `taylor_mean_remainder_lagrange` | M |
+| 50 | 2 | Sufficiency for a family of distributions: `P : Θ → Measure Ω`, each a probability measure, and a sub-σ-algebra `m` (for example the one a statistic `S` generates) are sufficient when, for every event `A`, one `m`-measurable function is a version of the chance of `A` given `m` under every `P θ` at once. Then the same holds for every `T` integrable under every `P θ`: one `m`-measurable `g` equals `(P θ)[T given m]` almost surely under every `P θ`. | `IsSufficient`, `IsSufficient.exists_condExp_eq` | new ClassicalLean.Statistics.Sufficiency | Mathlib `condExp`, `condExp_indicator`, simple-function approximation; Mathlib has no definition of sufficiency (searched 2026-10-09: "sufficient statistic" appears only in citations of Fritz 2020). If extending from events to all integrable `T` costs too much, define sufficiency for bounded measurable `T` and say so | M–L |
+| 51 | 2 | Rao–Blackwell, the full theorem: if `m` is sufficient and `T` is square-integrable under every `P θ`, the improved estimator `g` of item 50 is one statistic for all `θ` (computing it does not need the true `θ`), keeps `T`'s mean under every `P θ`, and for every `θ` and target `τ θ` has mean squared error at most `T`'s, with equality only when `T = g` almost surely under `P θ`. | `IsSufficient.raoBlackwell` | ClassicalLean.Statistics.Sufficiency | item 50; LEAN-19's conditioning inequality (item 22) | S–M |
+| 52 | 2 | Fisher–Neyman factorization, finite form: on a finite sample space with every `p θ ω > 0`, `S` is sufficient exactly when `p θ ω = a θ (S ω) * b ω` for some `a` and `b`. | `isSufficient_iff_factorization` | ClassicalLean.Statistics.Sufficiency | item 50; finite sums over the fibres of `S` | M |
+| 53 | 2 | Worked example, which also shows every hypothesis can hold at once: for `n` independent coin flips with chance `θ`, the number of heads is sufficient, and Rao–Blackwell turns the first flip into the sample mean. | `isSufficient_sum_bernoulli` | ClassicalLean.Statistics.Sufficiency | items 51 and 52 | S–M |
+| 54 | 2 | Lehmann–Scheffé: if `m` is sufficient and complete (an `m`-measurable function whose mean is 0 under every `P θ` is 0 almost surely under every `P θ`), an unbiased estimator that is `m`-measurable has the smallest variance among all unbiased estimators, under every `θ` at once, and is the only such one up to almost-sure equality. | `IsComplete`, `variance_le_of_isSufficient_of_isComplete` | ClassicalLean.Statistics.Sufficiency | items 50 and 51; Mathlib has no completeness of a statistic (searched 2026-10-09: "Lehmann" 0 files) | M |
+
+Items 50 to 54 were added on 2026-10-09 by claude-ai at Dustin's request, after LEAN-19 found that its item 22 proves only the conditioning inequality behind Rao–Blackwell: the full theorem needs a sufficient statistic over a family of distributions; Lehmann–Scheffé (item 54) was his follow-up. They are numbered after the plan's last item (49) and belong to batch 4, which grows to 13 items. If that is more than one session's work, items 30 and 31 move to the head of batch 5.
+
+Not in scope: batches 5 to 8 of the plan; anything under ~/trading; anything under ~/lean/recheck; any push.
+
+## Done-means
+
+Dustin's order, verbatim:
+
+Do batch 4 of /opt/datasphere/lane/inbox/threads/staging/MATH-PLAN-library.md as order LEAN-20. It continues the Lean library where order LEAN-19 left off.
+
+1. Run sha256sum on that plan. I expect 62001c8f9ac4d6cf7947c055c929967d6474ede8b47830f3c208f52213161e44. If it differs, stop and tell me.
+2. Read /opt/datasphere/lane/inbox/threads/staging/MATH-PLAN-library-HANDOFF.md first, then the plan in full (sections 4 and 9 matter most), then LEAN-19-report.md, and the "Known traps" section of LEAN-16-order.md, all in that same lane folder.
+3. git fetch origin; origin/master must be dab0d3e (LEAN-19, pushed). If it is not, stop and tell me. Branch paper-crypto-15 from it.
+4. Batch 4 is items 24 to 31 and 50 to 54. Items 50 to 54 (sufficiency, the full Rao–Blackwell, Fisher–Neyman in finite form, the coin-flip example, Lehmann–Scheffé) build on LEAN-19's conditioning inequality in ClassicalLean.Statistics.RaoBlackwell; use it, don't re-prove it. If the whole batch is more than one session's work, move items 30 and 31 to batch 5 as the plan says, and say so.
+5. Before writing anything, re-check each item against Mathlib v4.34.0 by search. If Mathlib has an item, drop it or reduce it to what is missing, and say which. Check every citation of a book or paper against the statement you actually prove; LEAN-19 found the plan had credited a bound to the wrong theorem.
+6. Work exactly as LEAN-19 did: records first; the round fragment naming each new module's path before that module's commit (in the order copy, new modules in dotted form only); statements with sorry first, then proofs; a dropped-hypothesis table with exact cases; a check script that exits with an error on any failure; one cold review per module by a reviewer subagent without persistent memory, before its commit; no sorry, no axiom, plain-words docstrings, no trading words in names; all six gates pass, and the constant count against 2316, with your prediction written first.
+7. Nothing in ~/trading, nothing in ~/lean/recheck (another session works there), no push.
+8. Write the report at /opt/datasphere/lane/inbox/threads/staging/LEAN-20-report.md through ds_write_staging, comparing post_sha256 with your own hash. End it with the push line for me, not run. Then stop.
+
+I am still learning to read code and have adopted the habit of reading markdowns when I am uncertain, but I read your replies meticulously. Put everything I need in the reply, in plain language. When you need a decision from me, ask in one line with your recommended answer first.
