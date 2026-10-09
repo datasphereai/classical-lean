@@ -24,6 +24,10 @@ Continuing `ClassicalLean.Analysis.LogGrowthRate`, with `0 < p < 1`, `0 < b`,
 * **Half the optimal fraction keeps at least half the optimal growth** (`half_logGrowth_le`):
   `g x* / 2 ≤ g (x* / 2)`, by concavity of the logarithm. This, with the first two items, is the
   usual reason for betting a fraction of the optimum when `p` is only estimated.
+* **A fraction of every stake, on every sequence** (`mul_log_one_add_le`, `mul_sum_log_le`): for
+  `θ ∈ [0, 1]` and factors `1 + y i` with `y i > -1`, `θ ∑ log (1 + y i) ≤ ∑ log (1 + θ y i)`.
+  Scaling every stake by `θ` keeps at least the fraction `θ` of the log gain, and loses at most the
+  fraction `θ` of the log loss, whatever the sequence; no probability is involved.
 * **Gains combine by multiplying** (`log_prod_growth`, which is Mathlib's `Real.log_prod`): the log
   of total growth over several steps is the sum of the per-step logs. **A rise of `r` followed by a
   fall of `r` loses** (`one_add_mul_one_sub_lt_one`): `(1 + r) (1 - r) < 1` for `r ≠ 0`.
@@ -151,5 +155,30 @@ theorem log_one_add_add_log_one_sub_neg {r : ℝ} (hr : r ≠ 0) (hr1 : |r| < 1)
   have h2 : 0 < 1 - r := by linarith [le_abs_self r]
   rw [← Real.log_mul h1.ne' h2.ne']
   exact Real.log_neg (by positivity) (one_add_mul_one_sub_lt_one hr)
+
+/-! ### A fraction of every stake, on every sequence -/
+
+/-- **A fraction of a gain or loss, in log terms.** `θ log (1 + y) ≤ log (1 + θ y)` for
+`θ ∈ [0, 1]` and `y > -1`, by concavity of the logarithm between `1` and `1 + y`. With `θ = 1/2`,
+at `y = b x*` and `y = -x*`, this is the step in `half_logGrowth_le`'s proof. Taking exponentials,
+it is Mathlib's `rpow_one_add_le_one_add_mul_self`. -/
+theorem mul_log_one_add_le {θ y : ℝ} (hθ0 : 0 ≤ θ) (hθ1 : θ ≤ 1) (hy : -1 < y) :
+    θ * Real.log (1 + y) ≤ Real.log (1 + θ * y) := by
+  have hy1 : 0 < 1 + y := by linarith
+  have c := strictConcaveOn_log_Ioi.concaveOn.2 (Set.mem_Ioi.mpr one_pos) (Set.mem_Ioi.mpr hy1)
+    (by linarith : 0 ≤ 1 - θ) hθ0 (by ring)
+  simp only [smul_eq_mul, Real.log_one, mul_zero, zero_add] at c
+  have e : (1 - θ) * 1 + θ * (1 + y) = 1 + θ * y := by ring
+  rwa [e] at c
+
+/-- **A fraction of every stake, on every sequence.** Scaling every factor's gain or loss by
+`θ ∈ [0, 1]`, the sum of the logs of the scaled factors is at least `θ` times the sum of the logs of
+the unscaled ones (by `log_prod_growth` these are the logs of the products, every factor being
+positive). No probability is involved. -/
+theorem mul_sum_log_le {n : ℕ} {θ : ℝ} (hθ0 : 0 ≤ θ) (hθ1 : θ ≤ 1) {y : ℕ → ℝ}
+    (hy : ∀ i ∈ range n, -1 < y i) :
+    θ * ∑ i ∈ range n, Real.log (1 + y i) ≤ ∑ i ∈ range n, Real.log (1 + θ * y i) := by
+  rw [mul_sum]
+  exact sum_le_sum fun i hi ↦ mul_log_one_add_le hθ0 hθ1 (hy i hi)
 
 end ClassicalLean.Analysis.LogGrowthRobustness
