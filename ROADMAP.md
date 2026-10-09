@@ -420,8 +420,12 @@ Each entry names its hypotheses.
   Jacobian.** *Proved, round 21* (`Simplex/SecondOrder`): `categoricalCov_mulVec_div` and
   `fisherRao_categoricalCov_mulVec` (no `p i` zero, tangent vector summing to `0`),
   `fisherRaoChart_mul_categoricalCov` (`lam`, `kap`, `eta` nonzero), `categoricalCov_posSemidef`
-  (`0 ≤ p`, `∑ p ≤ 1`), `hasDerivAt_softmax_categoricalCov` (no hypothesis). Not stated as one
-  theorem: the composite "the Hessian of `logSumExp` is `categoricalCov (softmax x)`".
+  (`0 ≤ p`, `∑ p ≤ 1`), `hasDerivAt_softmax_categoricalCov` (no hypothesis). The composite "the
+  Hessian of `logSumExp` is `categoricalCov (softmax x)`" is now proved, *order LEAN-18, round 46*
+  (`Simplex/SecondOrder`, `da86558`), no hypothesis: `hasFDerivAt_logSumExp` (the derivative of
+  `logSumExp` is the softmax functional), `hasFDerivAt_softmax` (the derivative of `softmax` is
+  `categoricalCov (softmax x)`), and `hasFDerivAt_fderiv_logSumExp_apply` (so the derivative of
+  `y ↦ fderiv logSumExp y v` is `v ᵥ* categoricalCov (softmax x)`, one direction `v` at a time).
 - **P3 — Gauss–Markov in weighted coordinates is Cramér–Rao on a finite outcome set.** *Proved,
   round 21* (`Statistics/CramerRao`): `posSemidef_weightedCov_sub_inv_secondMoment` (`0 ≤ p` and
   the cross-moment identity; `∑ p = 1` and `E S = 0` not needed), the equality case
