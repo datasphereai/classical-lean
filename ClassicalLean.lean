@@ -103,6 +103,7 @@ import ClassicalLean.Analysis.EulerMethod
 import ClassicalLean.Analysis.JacobiIteration
 import ClassicalLean.Analysis.NewtonMethod
 import ClassicalLean.Probability.FiniteChain
+import ClassicalLean.InformationTheory.Fano
 
 /-!
 # ClassicalLean
