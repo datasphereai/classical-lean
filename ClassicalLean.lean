@@ -86,6 +86,7 @@ import ClassicalLean.Probability.EdgeGrowth
 import ClassicalLean.Probability.ScoreLookahead
 import ClassicalLean.Probability.EffectiveSampleSize
 import ClassicalLean.Analysis.UniversalMixture
+import ClassicalLean.InformationTheory.SourceCoding
 
 /-!
 # ClassicalLean
