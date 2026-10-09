@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Dustin Watkins, Claude (Anthropic)
 -/
 
-import ClassicalLean.InformationTheory.Entropy
+import ClassicalLean.InformationTheory.Channel
 
 /-!
 # Mutual information of a finite joint distribution
@@ -19,6 +19,13 @@ definition is added without a use.
 * `mutualInfo_eq_shannonEntropy_add_shannonEntropy_sub_shannonEntropy` —
   `I(P) = H(marginal₁) + H(marginal₂) - H(P)` for every nonnegative `P`, normalised or not.
 * `shannonEntropy_le_shannonEntropy_add_shannonEntropy` — subadditivity, `H(X, Y) ≤ H(X) + H(Y)`.
+* `mutualInfo_markov_le` — data processing (order LEAN-17): along a Markov chain `X → Y → Z`,
+  `I(X; Z) ≤ I(X; Y)`; `Channel`'s `relEntropy_vecMul_le` with the channel `(x, y) ↦ (x, z)`. Each
+  hypothesis is needed (order LEAN-17's checks, line C7; each case keeps the other two): a
+  negative entry of `P` (`P = [[1/2, -1/2], [1, 1/2]]`, `K = [[0, 1], [0, 1]]`: `-0.608 > -0.811`),
+  a negative entry of `K` (`P = [[3/4, 3/4], [0, 1/4]]`, `K = [[-1, 2], [1, 0]]`:
+  `-0.262 > -0.824`), and rows of `K` not summing to `1` (`P = [[1/2, 1/2], [0, 1/2]]`,
+  `K = [[0, 0], [0, 1]]`: `0 > -0.347`).
 
 No support hypothesis appears: for `P ≥ 0`, `P (a, b)` is at most each of its marginals, so the
 product of the marginals vanishes only where `P` does, and the junk cell of `relEntropy` never
@@ -30,13 +37,18 @@ the prior art `github.com/FujiHaruka/information-theory` states it for random va
 KL divergence of the joint law from the product of the marginals — the same definition, in measure
 form.
 
-`mutualInfo` has no user outside this module. Its one consequence stated without it,
-subadditivity, is a fact about joint distributions and lives here; a channel-form corollary was
-drafted and dropped on review because every joint law already has that form, so it would have added
-a name and no result.
+`mutualInfo`'s users outside this module: `InformationTheory/SignalGrowth` (orders LEAN-11 and
+LEAN-16). Corrected 2026-10-09 (order LEAN-17, review r7): this paragraph said until then that
+`mutualInfo` had no user outside this module, which SignalGrowth's import had already made false.
+Subadditivity, the one consequence stated without `mutualInfo`, is a fact about joint distributions
+and lives here; a channel-form corollary was drafted and dropped on review because every joint law
+already has that form, so it would have added a name and no result. `mutualInfo_markov_le` makes
+this module the second to use `InformationTheory/Channel` (after `Simplex/SecondOrder`) and the
+first besides `Channel` itself to use its `relEntropy_vecMul_le`.
 -/
 
 open Finset Real
+open scoped Matrix
 
 namespace ClassicalLean.Simplex
 
@@ -154,5 +166,56 @@ theorem shannonEntropy_le_shannonEntropy_add_shannonEntropy {P : α × β → �
   have h := mutualInfo_nonneg hP0 hP1
   rw [mutualInfo_eq_shannonEntropy_add_shannonEntropy_sub_shannonEntropy hP0] at h
   linarith
+
+/-- **Data processing for mutual information.** If `Z` is made from `Y` alone, by a channel `K`
+(nonnegative, rows summing to `1`), so that `X → Y → Z` is a Markov chain with joint law
+`P (x, y) K y z`, then `I(X; Z) ≤ I(X; Y)`, for every nonnegative `P`. It is
+`Channel`'s `relEntropy_vecMul_le` for the channel `(x, y) ↦ (x, z)` with weight `K y z`, which
+sends `P` to the law of `(X, Z)`, and the product of `P`'s marginals to the product of the marginals
+of the law of `(X, Z)`. -/
+theorem mutualInfo_markov_le {γ : Type*} [Fintype γ] {P : α × β → ℝ} (hP : ∀ ab, 0 ≤ P ab)
+    {K : Matrix β γ ℝ} (hK0 : ∀ b c, 0 ≤ K b c) (hK1 : ∀ b, ∑ c, K b c = 1) :
+    mutualInfo (fun ac : α × γ ↦ ∑ b, P (ac.1, b) * K b ac.2) ≤ mutualInfo P := by
+  classical
+  -- the channel `(a, b) ↦ (a, c)` with weight `K b c`
+  let W : Matrix (α × β) (α × γ) ℝ := fun ab ac ↦ if ab.1 = ac.1 then K ab.2 ac.2 else 0
+  have hW0 : ∀ ab ac, 0 ≤ W ab ac := fun ab ac ↦ by
+    simp only [W]; split_ifs
+    · exact hK0 _ _
+    · exact le_rfl
+  have hW1 : ∀ ab, ∑ ac, W ab ac = 1 := fun ab ↦ by
+    simp only [W, Fintype.sum_prod_type]
+    rw [Finset.sum_comm]
+    simp [hK1]
+  have hvec : ∀ f : α × β → ℝ, ∀ ac : α × γ, (f ᵥ* W) ac = ∑ b, f (ac.1, b) * K b ac.2 := by
+    intro f ac
+    simp only [Matrix.vecMul, dotProduct, W, Fintype.sum_prod_type, mul_ite, mul_zero]
+    rw [Finset.sum_comm, Finset.sum_congr rfl fun b _ ↦ Finset.sum_ite_eq' _ _ _]
+    simp
+  set Q : α × β → ℝ := fun ab ↦ (∑ b, P (ab.1, b)) * ∑ a, P (a, ab.2) with hQ
+  have hQ0 : ∀ ab, 0 ≤ Q ab := fun ab ↦
+    mul_nonneg (sum_nonneg fun b _ ↦ hP _) (sum_nonneg fun a _ ↦ hP _)
+  have hsupp : ∀ ab, Q ab = 0 → P ab = 0 := by
+    rintro ⟨a, b⟩ h
+    rcases mul_eq_zero.mp h with h | h
+    · exact (sum_eq_zero_iff_of_nonneg fun b _ ↦ hP _).mp h b (mem_univ b)
+    · exact (sum_eq_zero_iff_of_nonneg fun a _ ↦ hP _).mp h a (mem_univ a)
+  have hdpi := relEntropy_vecMul_le hP hQ0 hsupp hW0 hW1
+  -- the joint law of `(X, Z)` is `P ᵥ* W`, and the product of its marginals is `Q ᵥ* W`
+  have hX : ∀ a, ∑ c, ∑ b, P (a, b) * K b c = ∑ b, P (a, b) := fun a ↦ by
+    rw [Finset.sum_comm]; simp_rw [← Finset.mul_sum, hK1, mul_one]
+  have hZ : ∀ c, ∑ a, ∑ b, P (a, b) * K b c = ∑ b, (∑ a, P (a, b)) * K b c := fun c ↦ by
+    rw [Finset.sum_comm]; simp_rw [Finset.sum_mul]
+  calc mutualInfo (fun ac : α × γ ↦ ∑ b, P (ac.1, b) * K b ac.2)
+      = relEntropy (P ᵥ* W) (Q ᵥ* W) := by
+        unfold mutualInfo
+        congr 1
+        · exact funext fun ac ↦ (hvec P ac).symm
+        · funext ac
+          rw [hvec Q ac, hX, hZ, Finset.mul_sum]
+          refine Finset.sum_congr rfl fun b _ ↦ ?_
+          simp only [hQ]; ring
+    _ ≤ relEntropy P Q := hdpi
+    _ = mutualInfo P := rfl
 
 end ClassicalLean.Simplex
