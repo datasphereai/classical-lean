@@ -25,7 +25,8 @@ To solve `A x = b`, Jacobi's method starts from any guess and repeats one step: 
   one solution of `A x = b` because `A` is invertible (Mathlib's `det_ne_zero_of_sum_row_lt_diag`,
   the Levy–Desplanques theorem, proved in Mathlib's Gershgorin file).
 
-The method is named after Jacobi (1845). That a strictly diagonally dominant matrix is invertible
+Citation: Jacobi 1845, "Ueber eine neue Auflösungsart der bei der Methode der kleinsten Quadrate
+vorkommenden linearen Gleichungen". That a strictly diagonally dominant matrix is invertible
 and Jacobi's method converges from every start is a textbook result (for example Sauer, Numerical
 Analysis, section 2.5). The rate `ρ ^ k` is the standard bound `‖x_k − x‖∞ ≤ ‖T‖∞ ^ k ‖x₀ − x‖∞`
 for the iteration matrix `T = D⁻¹ (L + U)`, whose largest absolute row sum is the largest row

@@ -25,8 +25,9 @@ absolute differences, `∑ j, |μ j − ν j|`.
   one stationary distribution.
 
 This is Doeblin's condition in its simplest form, every entry at least `δ`, which gives
-`P ≥ n δ · (uniform)`. The condition is named after Doeblin (1938); the nearest statement found is
-Levin, Peres and Wilmer, Markov Chains and Mixing Times (2nd ed.), Theorem 4.9, a geometric bound
+`P ≥ n δ · (uniform)`. Citation: Doeblin 1938, "Exposé de la théorie des chaînes simples
+constantes de Markov à un nombre fini d'états". The nearest statement found is Levin, Peres and
+Wilmer, Markov Chains and Mixing Times (2nd ed.), Theorem 4.9, a geometric bound
 by the same idea, not this constant. The two-state chain of `TwoStateChain` allows zero entries,
 which this module does not.
 
