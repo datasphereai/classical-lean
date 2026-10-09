@@ -22,6 +22,12 @@ on a simplex, so that each theorem carries exactly the hypotheses its proof uses
 * `mul_log_le_relEntropy` — the log-sum inequality.
 * `relEntropy_uniform`, `shannonEntropy_le_log_card`, `shannonEntropy_eq_log_card_iff` — entropy
   is at most `log (card ι)`, with equality exactly at the uniform vector.
+* `two_mul_sq_sub_le_relEntropy` — Pinsker's inequality for two outcomes: for `0 < p < 1` and
+  `0 ≤ q ≤ 1`, `relEntropy ![q, 1 - q] ![p, 1 - p] ≥ 2 (q - p)²` (order LEAN-17). Each bound on
+  `p` and `q` is needed: at `p = 0`, `q = 1/2` Lean's `log 0 = 0` gives `-0.347 < 0.5`, and the
+  same at `p = 1`; at `p = 1/2`, `q = -1` or `q = 2` Lean's `log |x|` gives `2.079 < 4.5`.
+  `relEntropy_fin_two` writes the two-outcome relative entropy out; the other two helpers are
+  private.
 * `relEntropy_softmax` — `relEntropy p (softmax x) = crossEntropy x p - shannonEntropy p` whenever
   `∑ p = 1`. On the open simplex this is `crossEntropy_sub_entropy` (`Simplex/CrossEntropy.lean`);
   zero and negative coordinates are what is new.
@@ -274,5 +280,87 @@ theorem relEntropy_softmax (x : ι → ℝ) {p : ι → ℝ} (hp : ∑ i, p i = 
   rw [relEntropy, crossEntropy, shannonEntropy, Finset.sum_congr rfl fun i _ => hterm i,
     Finset.sum_add_distrib, Finset.sum_sub_distrib, ← Finset.sum_mul, hp, one_mul]
   ring
+
+/-- The two-outcome relative entropy, written out. -/
+theorem relEntropy_fin_two (q p : ℝ) :
+    relEntropy ![q, 1 - q] ![p, 1 - p] = q * log (q / p) + (1 - q) * log ((1 - q) / (1 - p)) := by
+  simp [relEntropy, Fin.sum_univ_two]
+
+/-- `a log (a / b) = a log a - a log b` for `b ≠ 0`, `a = 0` included. -/
+private theorem mul_log_div_eq {a b : ℝ} (hb : b ≠ 0) :
+    a * log (a / b) = a * log a - a * log b := by
+  rcases eq_or_ne a 0 with rfl | ha
+  · simp
+  · rw [log_div ha hb, mul_sub]
+
+/-- One side of two-outcome Pinsker, `p ≤ q`: the function
+`t ↦ q log (q / t) + (1 - q) log ((1 - q) / (1 - t)) - 2 (q - t)²` falls on `[p, q]` to `0` at
+`t = q`, because its derivative `(t - q) (1 - 4 t (1 - t)) / (t (1 - t))` is at most `0` there. -/
+private theorem two_mul_sq_sub_le_of_le {p q : ℝ} (hp0 : 0 < p) (hp1 : p < 1) (hpq : p ≤ q)
+    (hq1 : q ≤ 1) :
+    2 * (q - p) ^ 2 ≤ q * log (q / p) + (1 - q) * log ((1 - q) / (1 - p)) := by
+  set C := q * log q + (1 - q) * log (1 - q)
+  let G : ℝ → ℝ := fun t ↦ C - q * log t - (1 - q) * log (1 - t) - 2 * (q - t) ^ 2
+  have hGp : G p = q * log (q / p) + (1 - q) * log ((1 - q) / (1 - p)) - 2 * (q - p) ^ 2 := by
+    simp only [G, C, mul_log_div_eq hp0.ne', mul_log_div_eq (sub_pos.mpr hp1).ne']
+    ring
+  have hGq : G q = 0 := by simp only [G, C]; ring
+  -- `(1 - q) log (1 - t)` is `0` when `q = 1`, and continuous on `t < 1` otherwise
+  have hcont : ContinuousOn G (Set.Icc p q) := by
+    have h1 : ContinuousOn (fun t : ℝ ↦ q * log t) (Set.Icc p q) :=
+      continuousOn_const.mul (continuousOn_log.mono fun t ht ↦ (hp0.trans_le ht.1).ne')
+    have h2 : ContinuousOn (fun t : ℝ ↦ (1 - q) * log (1 - t)) (Set.Icc p q) := by
+      rcases eq_or_lt_of_le hq1 with rfl | hq
+      · simp only [sub_self, zero_mul]; exact continuousOn_const
+      · refine continuousOn_const.mul (ContinuousOn.log (by fun_prop) fun t ht ↦ ?_)
+        linarith [ht.2]
+    exact ((continuousOn_const.sub h1).sub h2).sub (by fun_prop)
+  have hderiv : ∀ t ∈ Set.Ioo p q,
+      HasDerivAt G (-(q / t) + (1 - q) / (1 - t) + 4 * (q - t)) t := by
+    intro t ht
+    have ht0 : 0 < t := hp0.trans ht.1
+    have ht1 : 0 < 1 - t := by linarith [ht.2]
+    have hl1 := (hasDerivAt_log ht0.ne').const_mul q
+    have hl2 := ((hasDerivAt_id t).const_sub 1).log ht1.ne'
+    have hl3 := ((hasDerivAt_id t).const_sub q).pow 2
+    have := (((hasDerivAt_const t C).sub hl1).sub (hl2.const_mul (1 - q))).sub (hl3.const_mul 2)
+    have hG : G = ((((fun _ ↦ C) - fun y ↦ q * log y) - fun y ↦ (1 - q) * log (1 - id y)) -
+        fun y ↦ 2 * ((fun x ↦ q - id x) ^ 2) y) := by
+      funext y; simp only [G, Pi.sub_apply, Pi.pow_apply, id]
+    rw [hG]
+    convert this using 1
+    simp only [id, Nat.cast_ofNat]
+    field_simp
+    ring
+  have hanti : AntitoneOn G (Set.Icc p q) := by
+    refine antitoneOn_of_deriv_nonpos (convex_Icc p q) hcont ?_ ?_
+    · rw [interior_Icc]; exact fun t ht ↦ (hderiv t ht).differentiableAt.differentiableWithinAt
+    · rw [interior_Icc]
+      intro t ht
+      have ht0 : 0 < t := hp0.trans ht.1
+      have ht1 : 0 < 1 - t := by linarith [ht.2]
+      rw [(hderiv t ht).deriv]
+      have key : -(q / t) + (1 - q) / (1 - t) + 4 * (q - t) =
+          (t - q) * (1 - 4 * (t * (1 - t))) / (t * (1 - t)) := by
+        field_simp; ring
+      rw [key]
+      apply div_nonpos_of_nonpos_of_nonneg _ (mul_pos ht0 ht1).le
+      apply mul_nonpos_of_nonpos_of_nonneg (by linarith [ht.2])
+      nlinarith [sq_nonneg (2 * t - 1)]
+  have := hanti ⟨le_rfl, hpq⟩ ⟨hpq, le_rfl⟩ hpq
+  rw [hGp, hGq] at this
+  linarith
+
+/-- **Pinsker's inequality for two outcomes.** For `0 < p < 1` and `0 ≤ q ≤ 1`, the relative entropy
+of `(q, 1 - q)` to `(p, 1 - p)` is at least `2 (q - p)²`. -/
+theorem two_mul_sq_sub_le_relEntropy {p q : ℝ} (hp0 : 0 < p) (hp1 : p < 1) (hq0 : 0 ≤ q)
+    (hq1 : q ≤ 1) : 2 * (q - p) ^ 2 ≤ relEntropy ![q, 1 - q] ![p, 1 - p] := by
+  rw [relEntropy_fin_two]
+  rcases le_total p q with hpq | hqp
+  · exact two_mul_sq_sub_le_of_le hp0 hp1 hpq hq1
+  · have h := two_mul_sq_sub_le_of_le (p := 1 - p) (q := 1 - q) (by linarith) (by linarith)
+      (by linarith) (by linarith)
+    simp only [sub_sub_cancel] at h
+    nlinarith [h]
 
 end ClassicalLean.Simplex
