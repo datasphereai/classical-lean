@@ -5,6 +5,7 @@ Authors: Dustin Watkins, Claude (Anthropic)
 -/
 
 import ClassicalLean.Probability.NoEdgeWealth
+import ClassicalLean.Probability.DependentSampleMean
 import Mathlib.Probability.StrongLaw
 import Mathlib.Probability.Moments.SubGaussian
 
@@ -12,10 +13,11 @@ import Mathlib.Probability.Moments.SubGaussian
 # With a real edge, a fixed stake reaches any level
 
 Returns `X 0, X 1, …` are independent, have the same distribution, and are bounded,
-`-c ≤ X n ≤ C` with `0 < c`. The versions without a ceiling, `exists_growth_pos_of_floor`,
-`tendsto_wealth_atTop_of_floor` and `exists_stake_measureReal_reach_eq_one_of_floor`, need only the
-floor `-c ≤ X n`; `tendsto_log_wealth_div_of_floor` replaces the ceiling by integrability of
-`log (1 + l · X 0)`. A constant stake `l` turns them into the wealth
+`-c ≤ X n ≤ C` with `0 < c`; the counts for dependent returns below do not assume the first two.
+The versions without a ceiling, `exists_growth_pos_of_floor`, `tendsto_wealth_atTop_of_floor` and
+`exists_stake_measureReal_reach_eq_one_of_floor`, need only the floor `-c ≤ X n`;
+`tendsto_log_wealth_div_of_floor` replaces the ceiling by integrability of `log (1 + l · X 0)`.
+A constant stake `l` turns them into the wealth
 `wealth (fun _ _ ↦ l) X n = ∏ i < n, (1 + l · X (i + 1))` of `NoEdgeWealth`. Its long-run growth
 rate per return is `growth μ (X 0) l = ∫ log (1 + l · X 0)`.
 
@@ -32,6 +34,11 @@ rate per return is `growth μ (X 0) l = ∫ log (1 + l · X 0)`.
 * `exists_growth_pos_of_floor`, `tendsto_log_wealth_div_of_floor`, `tendsto_wealth_atTop_of_floor`
   and `exists_stake_measureReal_reach_eq_one_of_floor`: the first four without the ceiling `C`;
   they generalise them.
+* `measureReal_wealth_lt_le_of_condExp` and `measureReal_wealth_lt_le_of_condExp_of_le`: the count
+  of returns with no independence. Returns and stakes are adapted to a filtration (stakes may be
+  chosen from the past), and each return's log factor has conditional growth at least `g` given
+  the past; the second gives a growth large enough for `N` returns to confirm it at level `δ`,
+  and `exp_neg_le_of_le_growth` is its arithmetic.
 
 This is the other half of `NoEdgeWealth`: there, with no edge, the wealth reaches `1/α` with chance
 at most `α`; here, with an edge, a suitable fixed stake reaches it for sure, eventually. The stake
@@ -39,17 +46,21 @@ is chosen knowing the true mean. `measureReal_wealth_lt_le` counts the returns: 
 at least `1`, the bound on the chance of still being below it after `N` returns falls exponentially
 in `N` once `N · growth` passes the log of the target.
 
-Each hypothesis is needed. Returns all equal to the first (`X n = X 0`), `-1/2` or `1` with chance
-`1/2` each, are not independent; the wealth never grows once the first return is `-1/2`, so the
-chance of ever reaching `2` is at most `1/2`. A return of `0` every time has mean `0` and the
-wealth stays `1`. Returns `X n = 2^-n` on one point have different distributions; `X 0 = 1` has
-positive mean, but the wealth stays below `e < 3`. With `c = 0`, Lean's `1/0 = 0` leaves no stake
-in `(0, 1/c)`.
+Each hypothesis of the first four is needed, except as noted below. Returns all equal to the first
+(`X n = X 0`), `-1/2` or `1` with chance `1/2` each, are not independent; the wealth never grows
+once the first return is `-1/2`, so the chance of ever reaching `2` is at most `1/2`. A return of
+`0` every time has mean `0` and the wealth stays `1`. Returns `X n = 2^-n` on one point have
+different distributions; `X 0 = 1` has positive mean, but the wealth stays below `e < 3`. With
+`c = 0`, Lean's `1/0 = 0` leaves no stake in `(0, 1/c)`.
 A stake of `1/c` itself, or a negative stake, can make the wealth `0`, while Lean's convention
 `log 0 = 0` still reports a positive growth; and without the ceiling `C`, or the integrability
 `tendsto_log_wealth_div_of_floor` asks instead, the growth can be infinite while Lean's integral of
 a non-integrable function is `0`. Among the four long-run results this matters for the rate
 (`tendsto_log_wealth_div`) only.
+`tendsto_log_wealth_div_of_floor` does not use its measurability hypothesis. For the counts, the
+floor, the ceiling and the stake bounds are needed, and for the new counts so are adapted returns
+and adapted stakes; `0 ≤ C`, `StandardBorelSpace` and the measurability in
+`measureReal_wealth_lt_le` are not shown needed.
 -/
 
 open MeasureTheory ProbabilityTheory Filter Finset Topology Function
@@ -466,5 +477,246 @@ theorem exists_stake_measureReal_reach_eq_one_of_floor [IsProbabilityMeasure μ]
   rw [measureReal_congr (ae_eq_univ.mpr (ae_iff.mp hae)), probReal_univ]
 
 end floor
+
+/-! ### How many returns are enough, when returns depend on each other -/
+
+section dependent
+
+variable [StandardBorelSpace Ω] [IsProbabilityMeasure μ] {𝒢 : Filtration ℕ m0}
+
+omit [StandardBorelSpace Ω] in
+/-- Increments `D i` known at time `i + 1`, with values in `[lo, hi]`, and, given the past at time
+`i`, the conditional mean of `exp (s D i)` at most `exp ((hi - lo)² s² / 8)`: then
+`exp (s ∑ i < N, D i)` is integrable with mean at most `exp (N (hi - lo)² s² / 8)`. -/
+lemma integral_exp_mul_sum_le {D : ℕ → Ω → ℝ} {lo hi s : ℝ} (hs : 0 ≤ s)
+    (hDm : ∀ i, Measurable[𝒢 (i + 1)] (D i)) (hD : ∀ i ω, D i ω ∈ Set.Icc lo hi)
+    (hcond : ∀ i, μ[fun ω ↦ Real.exp (s * D i ω) | 𝒢 i] ≤ᵐ[μ]
+      fun _ ↦ Real.exp ((hi - lo) ^ 2 * s ^ 2 / 8)) (N : ℕ) :
+    Integrable (fun ω ↦ Real.exp (s * ∑ i ∈ range N, D i ω)) μ ∧
+    ∫ ω, Real.exp (s * ∑ i ∈ range N, D i ω) ∂μ ≤ Real.exp (N * (hi - lo) ^ 2 * s ^ 2 / 8) := by
+  set K := |lo| + |hi|
+  have hDabs : ∀ i ω, |D i ω| ≤ K := fun i ω ↦ by
+    rw [abs_le]; constructor <;> linarith [(hD i ω).1, (hD i ω).2, le_abs_self lo, neg_abs_le lo,
+      le_abs_self hi, neg_abs_le hi, abs_nonneg lo, abs_nonneg hi]
+  -- measurability of the partial sums for the filtration
+  have hWm : ∀ N, Measurable[𝒢 N] (fun ω ↦ ∑ i ∈ range N, D i ω) := fun N ↦ by
+    refine Finset.measurable_sum _ fun i hi ↦ ?_
+    exact (hDm i).mono (𝒢.mono (Nat.succ_le_of_lt (mem_range.mp hi))) le_rfl
+  have hint : ∀ N, Integrable (fun ω ↦ Real.exp (s * ∑ i ∈ range N, D i ω)) μ := fun N ↦ by
+    refine Integrable.of_bound (C := Real.exp (s * (N * K)))
+      ((Real.measurable_exp.comp (measurable_const.mul ((hWm N).mono (𝒢.le N) le_rfl)))
+        |>.aestronglyMeasurable) (Filter.Eventually.of_forall fun ω ↦ ?_)
+    rw [Real.norm_eq_abs, abs_of_pos (Real.exp_pos _)]
+    refine Real.exp_le_exp.mpr (mul_le_mul_of_nonneg_left ?_ hs)
+    calc ∑ i ∈ range N, D i ω ≤ ∑ _i ∈ range N, K :=
+          sum_le_sum fun i _ ↦ (le_abs_self _).trans (hDabs i ω)
+      _ = N * K := by rw [sum_const, card_range, nsmul_eq_mul]
+  have hDint : ∀ i, Integrable (fun ω ↦ Real.exp (s * D i ω)) μ := fun i ↦ by
+    refine Integrable.of_bound (C := Real.exp (s * K))
+      ((Real.measurable_exp.comp (measurable_const.mul ((hDm i).mono (𝒢.le (i + 1)) le_rfl)))
+        |>.aestronglyMeasurable) (Filter.Eventually.of_forall fun ω ↦ ?_)
+    rw [Real.norm_eq_abs, abs_of_pos (Real.exp_pos _)]
+    exact Real.exp_le_exp.mpr (mul_le_mul_of_nonneg_left ((le_abs_self _).trans (hDabs i ω)) hs)
+  refine ⟨hint N, ?_⟩
+  induction N with
+  | zero => simp
+  | succ N ih =>
+    set F : Ω → ℝ := fun ω ↦ Real.exp (s * ∑ i ∈ range N, D i ω) with hF
+    set G : Ω → ℝ := fun ω ↦ Real.exp (s * D N ω) with hG
+    have hFG : (fun ω ↦ Real.exp (s * ∑ i ∈ range (N + 1), D i ω)) = F * G := by
+      funext ω; simp only [hF, hG, Pi.mul_apply, sum_range_succ, mul_add, Real.exp_add]
+    have hFm : StronglyMeasurable[𝒢 N] F :=
+      (Real.measurable_exp.comp (measurable_const.mul (hWm N))).stronglyMeasurable
+    have hpull := condExp_mul_of_stronglyMeasurable_left (m := 𝒢 N) hFm
+      (hFG ▸ hint (N + 1)) (hDint N)
+    set c := Real.exp ((hi - lo) ^ 2 * s ^ 2 / 8) with hc
+    rw [hFG, ← integral_condExp (𝒢.le N)]
+    calc ∫ ω, (μ[F * G | 𝒢 N]) ω ∂μ = ∫ ω, F ω * (μ[G | 𝒢 N]) ω ∂μ :=
+          integral_congr_ae hpull
+      _ ≤ ∫ ω, F ω * c ∂μ := by
+          refine integral_mono_ae ?_ ((hint N).mul_const c) ?_
+          · exact integrable_condExp.congr hpull
+          · filter_upwards [hcond N] with ω hω
+            exact mul_le_mul_of_nonneg_left hω (Real.exp_pos _).le
+      _ = (∫ ω, F ω ∂μ) * c := integral_mul_const c F
+      _ ≤ Real.exp (N * (hi - lo) ^ 2 * s ^ 2 / 8) * c :=
+          mul_le_mul_of_nonneg_right ih (Real.exp_pos _).le
+      _ = Real.exp (((N + 1 : ℕ) : ℝ) * (hi - lo) ^ 2 * s ^ 2 / 8) := by
+          rw [hc, ← Real.exp_add]; push_cast; ring_nf
+
+/-- **How many returns are enough, when returns depend on each other.** Returns `X` and stakes `S`
+known by the time they are used (both adapted to `𝒢`), with `-c ≤ X n ≤ C`, `0 ≤ C`,
+`0 ≤ S n ≤ l` and `l < 1/c`, and the log factor `log (1 + S n · X (n + 1))` of each return having
+conditional mean at least `g` given `𝒢 n`. For `L ≤ N g`, the chance that the wealth after `N`
+returns is below `exp L` is at most `exp (-2 (N g - L)² / (N B²))`,
+`B = log (1 + l C) - log (1 - l c)`: `measureReal_wealth_lt_le`'s bound with `g` in place of the
+growth, with no independence and no identical distribution. A stake chosen from the past is
+allowed, but `g` must bound the conditional growth at the stake actually chosen, at every step.
+When `N B² = 0`, Lean's `x / 0 = 0` makes the bound `1`. -/
+theorem measureReal_wealth_lt_le_of_condExp {S X : ℕ → Ω → ℝ} {c C l g : ℝ}
+    (hX : StronglyAdapted 𝒢 X) (hS : StronglyAdapted 𝒢 S)
+    (hlo : ∀ n ω, -c ≤ X n ω) (hhi : ∀ n ω, X n ω ≤ C) (hC : 0 ≤ C)
+    (hS0 : ∀ n ω, 0 ≤ S n ω) (hSl : ∀ n ω, S n ω ≤ l) (hl1 : l < 1 / c)
+    (hg : ∀ n, ∀ᵐ ω ∂μ, g ≤ μ[fun ω ↦ Real.log (1 + S n ω * X (n + 1) ω) | 𝒢 n] ω)
+    {N : ℕ} {L : ℝ} (hL : L ≤ N * g) :
+    μ.real {ω | wealth S X N ω < Real.exp L} ≤
+      Real.exp (-2 * (N * g - L) ^ 2 /
+        (N * (Real.log (1 + l * C) - Real.log (1 - l * c)) ^ 2)) := by
+  obtain ⟨ω₀⟩ := nonempty_of_isProbabilityMeasure μ
+  have hl0 : 0 ≤ l := (hS0 0 ω₀).trans (hSl 0 ω₀)
+  have hc : 0 < c := by
+    by_contra h
+    have : 1 / c ≤ 0 := one_div_nonpos.mpr (not_lt.mp h)
+    linarith
+  have hpos := one_sub_mul_pos hc hl1
+  set a := Real.log (1 - l * c)
+  set b := Real.log (1 + l * C)
+  set Z : ℕ → Ω → ℝ := fun n ω ↦ Real.log (1 + S n ω * X (n + 1) ω)
+  -- each log factor lies in `[a, b]`
+  have hlow : ∀ n ω, 1 - l * c ≤ 1 + S n ω * X (n + 1) ω := fun n ω ↦ by
+    nlinarith [mul_nonneg (sub_nonneg.mpr (hSl n ω)) hc.le,
+      mul_nonneg (hS0 n ω) (by linarith [hlo (n + 1) ω] : 0 ≤ X (n + 1) ω + c)]
+  have hup : ∀ n ω, 1 + S n ω * X (n + 1) ω ≤ 1 + l * C := fun n ω ↦ by
+    nlinarith [mul_nonneg (sub_nonneg.mpr (hSl n ω)) hC,
+      mul_nonneg (hS0 n ω) (by linarith [hhi (n + 1) ω] : 0 ≤ C - X (n + 1) ω)]
+  have hZab : ∀ n ω, Z n ω ∈ Set.Icc a b := fun n ω ↦
+    ⟨Real.log_le_log hpos (hlow n ω), Real.log_le_log (hpos.trans_le (hlow n ω)) (hup n ω)⟩
+  -- each log factor is known one step later
+  have hZm : ∀ n, Measurable[𝒢 (n + 1)] (Z n) := fun n ↦ by
+    have h1 : Measurable[𝒢 (n + 1)] (S n) :=
+      (hS n).measurable.mono (𝒢.mono n.le_succ) le_rfl
+    have h2 : Measurable[𝒢 (n + 1)] (X (n + 1)) := (hX (n + 1)).measurable
+    exact (measurable_const.add (h1.mul h2)).log
+  set D : ℕ → Ω → ℝ := fun n ω ↦ g - Z n ω with hD
+  have hDab : ∀ n ω, D n ω ∈ Set.Icc (g - b) (g - a) := fun n ω ↦
+    ⟨by simp only [hD]; linarith [(hZab n ω).2], by simp only [hD]; linarith [(hZab n ω).1]⟩
+  have hDm : ∀ n, Measurable[𝒢 (n + 1)] (D n) := fun n ↦ measurable_const.sub (hZm n)
+  have hwidth : (g - a) - (g - b) = b - a := by ring
+  -- the moment bound, for every `s ≥ 0`
+  have hmom : ∀ s, 0 ≤ s → Integrable (fun ω ↦ Real.exp (s * ∑ i ∈ range N, D i ω)) μ ∧
+      ∫ ω, Real.exp (s * ∑ i ∈ range N, D i ω) ∂μ ≤
+        Real.exp (N * (b - a) ^ 2 * s ^ 2 / 8) := fun s hs ↦ by
+    have h := integral_exp_mul_sum_le (μ := μ) hs hDm hDab (fun i ↦ by
+      rw [hwidth]
+      exact DependentSampleMean.condExp_exp_mul_sub_le (𝒢.le i) ((hZm i).mono (𝒢.le (i + 1)) le_rfl)
+        (Filter.Eventually.of_forall (hZab i)) (hg i) hs) N
+    rwa [hwidth] at h
+  -- the event lies inside `{ε ≤ ∑ D i}`
+  set ε := N * g - L with hε
+  have hε0 : 0 ≤ ε := by rw [hε]; linarith
+  have hsubset : {ω | wealth S X N ω < Real.exp L} ⊆ {ω | ε ≤ ∑ i ∈ range N, D i ω} :=
+      fun ω hω ↦ by
+    have hfac : ∀ i ∈ range N, 0 < 1 + S i ω * X (i + 1) ω := fun i _ ↦
+      hpos.trans_le (hlow i ω)
+    have hW : 0 < wealth S X N ω := prod_pos hfac
+    have hlog : Real.log (wealth S X N ω) < L := by
+      rw [← Real.log_exp L]; exact Real.log_lt_log hW hω
+    have hsum : Real.log (wealth S X N ω) = ∑ i ∈ range N, Z i ω := by
+      rw [wealth, Real.log_prod fun i hi ↦ (hfac i hi).ne']
+    have hDsum : ∑ i ∈ range N, D i ω = N * g - ∑ i ∈ range N, Z i ω := by
+      simp [hD, sum_sub_distrib]
+    change ε ≤ ∑ i ∈ range N, D i ω
+    rw [hDsum, hε]; linarith
+  -- Chernoff's bound at `s = 4 ε / (N B²)`
+  set s := 4 * ε / (N * (b - a) ^ 2) with hs
+  have hs0 : 0 ≤ s := by rw [hs]; positivity
+  obtain ⟨hint, hle⟩ := hmom s hs0
+  refine (measureReal_mono hsubset).trans ?_
+  refine (measure_ge_le_exp_mul_mgf ε hs0 hint).trans ?_
+  calc Real.exp (-s * ε) * mgf (fun ω ↦ ∑ i ∈ range N, D i ω) μ s
+      ≤ Real.exp (-s * ε) * Real.exp (N * (b - a) ^ 2 * s ^ 2 / 8) :=
+        mul_le_mul_of_nonneg_left hle (Real.exp_pos _).le
+    _ = Real.exp (-2 * ε ^ 2 / (N * (b - a) ^ 2)) := by
+        rw [← Real.exp_add]
+        congr 1
+        by_cases h0 : (N : ℝ) * (b - a) ^ 2 = 0
+        · simp [hs, h0]
+        · rw [hs]; field_simp; ring
+
+/-- **The arithmetic of a sufficient edge.** For `N > 0`, `B ≠ 0` and `δ > 0`, a growth of at least
+`L/N + |B| √(log (1/δ) / (2N))` makes `exp (-2 (N g - L)² / (N B²))` at most `δ`. -/
+theorem exp_neg_le_of_le_growth {N : ℕ} (hN : 0 < N) {B L g δ : ℝ} (hB : B ≠ 0) (hδ : 0 < δ)
+    (hg : L / N + |B| * Real.sqrt (Real.log (1 / δ) / (2 * N)) ≤ g) :
+    Real.exp (-2 * (N * g - L) ^ 2 / (N * B ^ 2)) ≤ δ := by
+  have hNpos : (0 : ℝ) < N := Nat.cast_pos.mpr hN
+  have hden : 0 < (N : ℝ) * B ^ 2 := by positivity
+  set q := Real.log (1 / δ) with hq
+  have hlogδ : Real.log δ = -q := by rw [hq, one_div, Real.log_inv, neg_neg]
+  rw [← Real.exp_log hδ, hlogδ]
+  refine Real.exp_le_exp.mpr ?_
+  rw [neg_mul, neg_div, neg_le_neg_iff, le_div_iff₀ hden]
+  rcases le_or_gt q 0 with hq0 | hq0
+  · nlinarith [sq_nonneg ((N : ℝ) * g - L), hden.le]
+  · set r := Real.sqrt (q / (2 * N))
+    have hr0 : 0 ≤ r := Real.sqrt_nonneg _
+    have hr2 : r ^ 2 = q / (2 * N) := Real.sq_sqrt (by positivity)
+    have hlin : N * (|B| * r) ≤ N * g - L := by
+      have := mul_le_mul_of_nonneg_left hg hNpos.le
+      rw [mul_add, mul_div_cancel₀ L hNpos.ne'] at this
+      linarith
+    have hnn : 0 ≤ N * (|B| * r) := by positivity
+    have hsq : (N * (|B| * r)) ^ 2 ≤ (N * g - L) ^ 2 := pow_le_pow_left₀ hnn hlin 2
+    have hval : (N * (|B| * r)) ^ 2 = N * B ^ 2 * q / 2 := by
+      rw [mul_pow, mul_pow, sq_abs, hr2]; field_simp
+    nlinarith [hsq, hval]
+
+/-- **A sufficient edge for `N` returns.** Under the hypotheses of
+`measureReal_wealth_lt_le_of_condExp` other than `L ≤ N g`, which follows here, with `N > 0`
+returns and `δ > 0`, a conditional growth of at least `L/N + B √(log (1/δ) / (2N))` per return,
+`B = log (1 + l C) - log (1 - l c)`, leaves the wealth below `exp L` with chance at most `δ`. It
+reads the count the other way round: for a given number of returns it gives a growth large enough
+for them to confirm it at level `δ`. -/
+theorem measureReal_wealth_lt_le_of_condExp_of_le {S X : ℕ → Ω → ℝ} {c C l g : ℝ}
+    (hX : StronglyAdapted 𝒢 X) (hS : StronglyAdapted 𝒢 S)
+    (hlo : ∀ n ω, -c ≤ X n ω) (hhi : ∀ n ω, X n ω ≤ C) (hC : 0 ≤ C)
+    (hS0 : ∀ n ω, 0 ≤ S n ω) (hSl : ∀ n ω, S n ω ≤ l) (hl1 : l < 1 / c)
+    (hg : ∀ n, ∀ᵐ ω ∂μ, g ≤ μ[fun ω ↦ Real.log (1 + S n ω * X (n + 1) ω) | 𝒢 n] ω)
+    {N : ℕ} (hN : 0 < N) {L δ : ℝ} (hδ : 0 < δ)
+    (hgmin : L / N + (Real.log (1 + l * C) - Real.log (1 - l * c)) *
+      Real.sqrt (Real.log (1 / δ) / (2 * N)) ≤ g) :
+    μ.real {ω | wealth S X N ω < Real.exp L} ≤ δ := by
+  obtain ⟨ω₀⟩ := nonempty_of_isProbabilityMeasure μ
+  have hl0 : 0 ≤ l := (hS0 0 ω₀).trans (hSl 0 ω₀)
+  have hc : 0 < c := by
+    by_contra h
+    have : 1 / c ≤ 0 := one_div_nonpos.mpr (not_lt.mp h)
+    linarith
+  have hpos := one_sub_mul_pos hc hl1
+  have hNpos : (0 : ℝ) < N := Nat.cast_pos.mpr hN
+  set B := Real.log (1 + l * C) - Real.log (1 - l * c)
+  have hab : 1 - l * c ≤ 1 + l * C := by nlinarith [mul_nonneg hl0 hc.le, mul_nonneg hl0 hC]
+  have hB0 : 0 ≤ B := sub_nonneg.mpr (Real.log_le_log hpos hab)
+  have hsq0 : 0 ≤ Real.sqrt (Real.log (1 / δ) / (2 * N)) := Real.sqrt_nonneg _
+  rcases hB0.eq_or_lt with hBz | hBpos
+  · -- `B = 0` forces `l = 0`: every stake is `0`, the wealth is `1`, and `g ≤ 0`
+    have heq : 1 + l * C = 1 - l * c := Real.log_injOn_pos
+      (Set.mem_Ioi.mpr (hpos.trans_le hab)) (Set.mem_Ioi.mpr hpos) (by linarith)
+    have hl : l = 0 := by
+      have h0 : l * (C + c) = 0 := by linarith
+      rcases mul_eq_zero.mp h0 with h | h
+      · exact h
+      · linarith
+    have hS : ∀ n ω, S n ω = 0 := fun n ω ↦ le_antisymm (hl ▸ hSl n ω) (hS0 n ω)
+    have hW : ∀ ω, wealth S X N ω = 1 := fun ω ↦ by simp [wealth, hS]
+    have hg0 : g ≤ 0 := by
+      have h := hg 0
+      simp only [hS, zero_mul, add_zero, Real.log_one] at h
+      obtain ⟨ω, hω⟩ := h.exists
+      rwa [condExp_const (𝒢.le 0)] at hω
+    have hL : L ≤ 0 := by
+      rw [← hBz, zero_mul, add_zero, div_le_iff₀ hNpos] at hgmin
+      nlinarith
+    have hempty : {ω | wealth S X N ω < Real.exp L} = ∅ := by
+      ext ω
+      simp only [Set.mem_ofPred_eq, Set.mem_empty_iff_false, iff_false, not_lt, hW]
+      exact Real.exp_le_one_iff.mpr hL
+    rw [hempty, measureReal_empty]; exact hδ.le
+  · have hL : L ≤ N * g := by
+      have : L / N ≤ g := by nlinarith [mul_nonneg hBpos.le hsq0]
+      rwa [div_le_iff₀ hNpos, mul_comm] at this
+    refine (measureReal_wealth_lt_le_of_condExp hX hS hlo hhi hC hS0 hSl hl1 hg hL).trans ?_
+    exact exp_neg_le_of_le_growth hN hBpos.ne' hδ (by rwa [abs_of_pos hBpos])
+
+end dependent
 
 end ClassicalLean.Probability.EdgeGrowth
