@@ -105,6 +105,7 @@ import ClassicalLean.Analysis.NewtonMethod
 import ClassicalLean.Probability.FiniteChain
 import ClassicalLean.InformationTheory.Fano
 import ClassicalLean.Algebra.HadamardInequality
+import ClassicalLean.Probability.BinomialVariance
 
 /-!
 # ClassicalLean
