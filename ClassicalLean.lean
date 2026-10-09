@@ -101,6 +101,7 @@ import ClassicalLean.Analysis.LinearODE
 import ClassicalLean.Statistics.Sufficiency
 import ClassicalLean.Analysis.EulerMethod
 import ClassicalLean.Analysis.JacobiIteration
+import ClassicalLean.Analysis.NewtonMethod
 
 /-!
 # ClassicalLean
