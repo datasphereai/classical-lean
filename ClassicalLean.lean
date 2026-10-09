@@ -95,6 +95,7 @@ import ClassicalLean.Statistics.RaoBlackwell
 import ClassicalLean.Statistics.Cochran
 import ClassicalLean.Probability.YuleWalker
 import ClassicalLean.Probability.MovingAverage
+import ClassicalLean.Probability.TailBounds
 
 /-!
 # ClassicalLean
