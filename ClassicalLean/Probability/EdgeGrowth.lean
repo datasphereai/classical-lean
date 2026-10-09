@@ -6,6 +6,7 @@ Authors: Dustin Watkins, Claude (Anthropic)
 
 import ClassicalLean.Probability.NoEdgeWealth
 import ClassicalLean.Probability.DependentSampleMean
+import ClassicalLean.Analysis.GeneralGrowth
 import Mathlib.Probability.StrongLaw
 import Mathlib.Probability.Moments.SubGaussian
 
@@ -39,6 +40,16 @@ rate per return is `growth μ (X 0) l = ∫ log (1 + l · X 0)`.
   chosen from the past), and each return's log factor has conditional growth at least `g` given
   the past; the second gives a growth large enough for `N` returns to confirm it at level `δ`,
   and `exp_neg_le_of_le_growth` is its arithmetic.
+* `condExp_log_one_add_mul_ge`: given the past, a return in `[-c, C]` with conditional mean at least
+  `m₁` and conditional mean square at most `m₂`, and a stake `x ≥ 0` with `x c ≤ R < 1`, has
+  conditional log growth at least `x m₁ - x² m₂ / (2 (1 - R))`.
+* `measureReal_sum_lt_le_of_condSq` and `measureReal_wealth_lt_le_of_moments`: a count from a
+  conditional mean and a conditional mean square (Bernstein type). For `0 ≤ t ≤ 1/b`, the chance
+  that the sum of `N` increments is below `L` is at most `exp (-t (N g - L) + N t² v)`, with `v`
+  bounding the conditional mean square of `g - Z n` and `b` its size; the second applies it to a
+  fixed stake. The count is set by the spread `v`, not only by the range `b`.
+  `integral_exp_mul_sum_le_pow` (any per-step constant) and `condExp_const_add_mul_add_mul` are
+  their helpers.
 
 This is the other half of `NoEdgeWealth`: there, with no edge, the wealth reaches `1/α` with chance
 at most `α`; here, with an edge, a suitable fixed stake reaches it for sure, eventually. The stake
@@ -60,7 +71,12 @@ a non-integrable function is `0`. Among the four long-run results this matters f
 `tendsto_log_wealth_div_of_floor` does not use its measurability hypothesis. For the counts, the
 floor, the ceiling and the stake bounds are needed, and for the new counts so are adapted returns
 and adapted stakes; `0 ≤ C`, `StandardBorelSpace` and the measurability in
-`measureReal_wealth_lt_le` are not shown needed.
+`measureReal_wealth_lt_le` are not shown needed. For the counts from a mean and a mean square,
+which do not assume `0 < c`: `condExp_log_one_add_mul_ge` needs `0 ≤ x`, `x c ≤ R`, the mean and the
+mean square; `measureReal_sum_lt_le_of_condSq` needs the conditional mean, `v` and `t b ≤ 1`; and
+`measureReal_wealth_lt_le_of_moments` needs the mean `m₁`. Each is shown by a case in order
+LEAN-16's checks (lines C3 and C4) or its file of dropped hypotheses; their other hypotheses are not
+shown needed.
 -/
 
 open MeasureTheory ProbabilityTheory Filter Finset Topology Function
@@ -485,38 +501,40 @@ section dependent
 variable [StandardBorelSpace Ω] [IsProbabilityMeasure μ] {𝒢 : Filtration ℕ m0}
 
 omit [StandardBorelSpace Ω] in
-/-- Increments `D i` known at time `i + 1`, with values in `[lo, hi]`, and, given the past at time
-`i`, the conditional mean of `exp (s D i)` at most `exp ((hi - lo)² s² / 8)`: then
-`exp (s ∑ i < N, D i)` is integrable with mean at most `exp (N (hi - lo)² s² / 8)`. -/
-lemma integral_exp_mul_sum_le {D : ℕ → Ω → ℝ} {lo hi s : ℝ} (hs : 0 ≤ s)
-    (hDm : ∀ i, Measurable[𝒢 (i + 1)] (D i)) (hD : ∀ i ω, D i ω ∈ Set.Icc lo hi)
-    (hcond : ∀ i, μ[fun ω ↦ Real.exp (s * D i ω) | 𝒢 i] ≤ᵐ[μ]
-      fun _ ↦ Real.exp ((hi - lo) ^ 2 * s ^ 2 / 8)) (N : ℕ) :
+/-- Increments `D i` known at time `i + 1`, with `|D i| ≤ K₀`, and, given the past at time `i`, the
+conditional mean of `exp (s D i)` at most `K`: then, for `s ≥ 0`, `exp (s ∑ i < N, D i)` is
+integrable with mean at most `K ^ N`. `integral_exp_mul_sum_le` is the case
+`K = exp ((hi - lo)² s² / 8)`. -/
+lemma integral_exp_mul_sum_le_pow {D : ℕ → Ω → ℝ} {K₀ K s : ℝ} (hs : 0 ≤ s)
+    (hDm : ∀ i, Measurable[𝒢 (i + 1)] (D i)) (hD : ∀ i ω, |D i ω| ≤ K₀)
+    (hcond : ∀ i, μ[fun ω ↦ Real.exp (s * D i ω) | 𝒢 i] ≤ᵐ[μ] fun _ ↦ K) (N : ℕ) :
     Integrable (fun ω ↦ Real.exp (s * ∑ i ∈ range N, D i ω)) μ ∧
-    ∫ ω, Real.exp (s * ∑ i ∈ range N, D i ω) ∂μ ≤ Real.exp (N * (hi - lo) ^ 2 * s ^ 2 / 8) := by
-  set K := |lo| + |hi|
-  have hDabs : ∀ i ω, |D i ω| ≤ K := fun i ω ↦ by
-    rw [abs_le]; constructor <;> linarith [(hD i ω).1, (hD i ω).2, le_abs_self lo, neg_abs_le lo,
-      le_abs_self hi, neg_abs_le hi, abs_nonneg lo, abs_nonneg hi]
+    ∫ ω, Real.exp (s * ∑ i ∈ range N, D i ω) ∂μ ≤ K ^ N := by
   -- measurability of the partial sums for the filtration
   have hWm : ∀ N, Measurable[𝒢 N] (fun ω ↦ ∑ i ∈ range N, D i ω) := fun N ↦ by
     refine Finset.measurable_sum _ fun i hi ↦ ?_
     exact (hDm i).mono (𝒢.mono (Nat.succ_le_of_lt (mem_range.mp hi))) le_rfl
   have hint : ∀ N, Integrable (fun ω ↦ Real.exp (s * ∑ i ∈ range N, D i ω)) μ := fun N ↦ by
-    refine Integrable.of_bound (C := Real.exp (s * (N * K)))
+    refine Integrable.of_bound (C := Real.exp (s * (N * K₀)))
       ((Real.measurable_exp.comp (measurable_const.mul ((hWm N).mono (𝒢.le N) le_rfl)))
         |>.aestronglyMeasurable) (Filter.Eventually.of_forall fun ω ↦ ?_)
     rw [Real.norm_eq_abs, abs_of_pos (Real.exp_pos _)]
     refine Real.exp_le_exp.mpr (mul_le_mul_of_nonneg_left ?_ hs)
-    calc ∑ i ∈ range N, D i ω ≤ ∑ _i ∈ range N, K :=
-          sum_le_sum fun i _ ↦ (le_abs_self _).trans (hDabs i ω)
-      _ = N * K := by rw [sum_const, card_range, nsmul_eq_mul]
+    calc ∑ i ∈ range N, D i ω ≤ ∑ _i ∈ range N, K₀ :=
+          sum_le_sum fun i _ ↦ (le_abs_self _).trans (hD i ω)
+      _ = N * K₀ := by rw [sum_const, card_range, nsmul_eq_mul]
   have hDint : ∀ i, Integrable (fun ω ↦ Real.exp (s * D i ω)) μ := fun i ↦ by
-    refine Integrable.of_bound (C := Real.exp (s * K))
+    refine Integrable.of_bound (C := Real.exp (s * K₀))
       ((Real.measurable_exp.comp (measurable_const.mul ((hDm i).mono (𝒢.le (i + 1)) le_rfl)))
         |>.aestronglyMeasurable) (Filter.Eventually.of_forall fun ω ↦ ?_)
     rw [Real.norm_eq_abs, abs_of_pos (Real.exp_pos _)]
-    exact Real.exp_le_exp.mpr (mul_le_mul_of_nonneg_left ((le_abs_self _).trans (hDabs i ω)) hs)
+    exact Real.exp_le_exp.mpr (mul_le_mul_of_nonneg_left ((le_abs_self _).trans (hD i ω)) hs)
+  -- `K ≥ 0`, since it bounds the conditional mean of a positive function
+  have hK : 0 ≤ K := by
+    have h0 : 0 ≤ᵐ[μ] μ[fun ω ↦ Real.exp (s * D 0 ω) | 𝒢 0] :=
+      condExp_nonneg (Filter.Eventually.of_forall fun ω ↦ (Real.exp_pos _).le)
+    obtain ⟨ω, h1, h2⟩ := (h0.and (hcond 0)).exists
+    exact h1.trans h2
   refine ⟨hint N, ?_⟩
   induction N with
   | zero => simp
@@ -529,20 +547,37 @@ lemma integral_exp_mul_sum_le {D : ℕ → Ω → ℝ} {lo hi s : ℝ} (hs : 0 �
       (Real.measurable_exp.comp (measurable_const.mul (hWm N))).stronglyMeasurable
     have hpull := condExp_mul_of_stronglyMeasurable_left (m := 𝒢 N) hFm
       (hFG ▸ hint (N + 1)) (hDint N)
-    set c := Real.exp ((hi - lo) ^ 2 * s ^ 2 / 8) with hc
     rw [hFG, ← integral_condExp (𝒢.le N)]
     calc ∫ ω, (μ[F * G | 𝒢 N]) ω ∂μ = ∫ ω, F ω * (μ[G | 𝒢 N]) ω ∂μ :=
           integral_congr_ae hpull
-      _ ≤ ∫ ω, F ω * c ∂μ := by
-          refine integral_mono_ae ?_ ((hint N).mul_const c) ?_
+      _ ≤ ∫ ω, F ω * K ∂μ := by
+          refine integral_mono_ae ?_ ((hint N).mul_const K) ?_
           · exact integrable_condExp.congr hpull
           · filter_upwards [hcond N] with ω hω
             exact mul_le_mul_of_nonneg_left hω (Real.exp_pos _).le
-      _ = (∫ ω, F ω ∂μ) * c := integral_mul_const c F
-      _ ≤ Real.exp (N * (hi - lo) ^ 2 * s ^ 2 / 8) * c :=
-          mul_le_mul_of_nonneg_right ih (Real.exp_pos _).le
-      _ = Real.exp (((N + 1 : ℕ) : ℝ) * (hi - lo) ^ 2 * s ^ 2 / 8) := by
-          rw [hc, ← Real.exp_add]; push_cast; ring_nf
+      _ = (∫ ω, F ω ∂μ) * K := integral_mul_const K F
+      _ ≤ K ^ N * K := mul_le_mul_of_nonneg_right ih hK
+      _ = K ^ (N + 1) := (pow_succ K N).symm
+
+omit [StandardBorelSpace Ω] in
+/-- Increments `D i` known at time `i + 1`, with values in `[lo, hi]`, and, given the past at time
+`i`, the conditional mean of `exp (s D i)` at most `exp ((hi - lo)² s² / 8)`: then
+`exp (s ∑ i < N, D i)` is integrable with mean at most `exp (N (hi - lo)² s² / 8)`. -/
+lemma integral_exp_mul_sum_le {D : ℕ → Ω → ℝ} {lo hi s : ℝ} (hs : 0 ≤ s)
+    (hDm : ∀ i, Measurable[𝒢 (i + 1)] (D i)) (hD : ∀ i ω, D i ω ∈ Set.Icc lo hi)
+    (hcond : ∀ i, μ[fun ω ↦ Real.exp (s * D i ω) | 𝒢 i] ≤ᵐ[μ]
+      fun _ ↦ Real.exp ((hi - lo) ^ 2 * s ^ 2 / 8)) (N : ℕ) :
+    Integrable (fun ω ↦ Real.exp (s * ∑ i ∈ range N, D i ω)) μ ∧
+    ∫ ω, Real.exp (s * ∑ i ∈ range N, D i ω) ∂μ ≤ Real.exp (N * (hi - lo) ^ 2 * s ^ 2 / 8) := by
+  set K₀ := |lo| + |hi|
+  have hDabs : ∀ i ω, |D i ω| ≤ K₀ := fun i ω ↦ by
+    rw [abs_le]; constructor <;> linarith [(hD i ω).1, (hD i ω).2, le_abs_self lo, neg_abs_le lo,
+      le_abs_self hi, neg_abs_le hi, abs_nonneg lo, abs_nonneg hi]
+  obtain ⟨hint, hle⟩ := integral_exp_mul_sum_le_pow hs hDm hDabs hcond N
+  refine ⟨hint, hle.trans_eq ?_⟩
+  rw [← Real.exp_nat_mul]
+  congr 1
+  ring
 
 /-- **How many returns are enough, when returns depend on each other.** Returns `X` and stakes `S`
 known by the time they are used (both adapted to `𝒢`), with `-c ≤ X n ≤ C`, `0 ≤ C`,
@@ -718,5 +753,289 @@ theorem measureReal_wealth_lt_le_of_condExp_of_le {S X : ℕ → Ω → ℝ} {c 
     exact exp_neg_le_of_le_growth hN hBpos.ne' hδ (by rwa [abs_of_pos hBpos])
 
 end dependent
+
+/-! ### Growth and the count from a mean and a mean square -/
+
+section moments
+
+/-- The conditional mean of `a + b f + c h` is `a + b μ[f | m] + c μ[h | m]`, almost everywhere. -/
+lemma condExp_const_add_mul_add_mul {m : MeasurableSpace Ω} [IsFiniteMeasure μ] (hm : m ≤ m0)
+    {f h : Ω → ℝ} (hf : Integrable f μ) (hh : Integrable h μ) (a b c : ℝ) :
+    μ[fun ω ↦ a + b * f ω + c * h ω | m] =ᵐ[μ] fun ω ↦ a + b * μ[f | m] ω + c * μ[h | m] ω := by
+  have e : (fun ω ↦ a + b * f ω + c * h ω) = (fun _ ↦ a) + b • f + c • h := by
+    funext ω; simp [smul_eq_mul]
+  rw [e]
+  filter_upwards [condExp_add ((integrable_const a).add (hf.smul b)) (hh.smul c) m,
+    condExp_add (integrable_const a) (hf.smul b) m, condExp_smul b f m, condExp_smul c h m]
+    with ω h1 h2 h3 h4
+  rw [h1, Pi.add_apply, h2, Pi.add_apply, h3, h4, condExp_const hm]
+  simp [smul_eq_mul]
+
+/-- **Conditional growth from a conditional mean and mean square.** Given `m`, a return `X` in
+`[-c, C]` whose conditional mean is at least `m₁` and whose conditional mean square is at most
+`m₂`, and a stake `x ≥ 0` with `x c ≤ R < 1`: the conditional mean of `log (1 + x X)` is at least
+`x m₁ - x² m₂ / (2 (1 - R))`, almost everywhere. -/
+theorem condExp_log_one_add_mul_ge {m : MeasurableSpace Ω} [IsFiniteMeasure μ] (hm : m ≤ m0)
+    {X : Ω → ℝ} {c C x R m₁ m₂ : ℝ}
+    (hX : Measurable[m0] X) (hlo : ∀ ω, -c ≤ X ω) (hhi : ∀ ω, X ω ≤ C) (hx : 0 ≤ x)
+    (hR0 : 0 ≤ R) (hR1 : R < 1) (hxc : x * c ≤ R)
+    (h1 : ∀ᵐ ω ∂μ, m₁ ≤ μ[X | m] ω) (h2 : ∀ᵐ ω ∂μ, μ[fun ω ↦ X ω ^ 2 | m] ω ≤ m₂) :
+    ∀ᵐ ω ∂μ, x * m₁ - x ^ 2 * m₂ / (2 * (1 - R)) ≤
+      μ[fun ω ↦ Real.log (1 + x * X ω) | m] ω := by
+  have h1R : 0 < 1 - R := by linarith
+  set k := x ^ 2 / (2 * (1 - R)) with hk
+  have hk0 : 0 ≤ k := by positivity
+  have hu : ∀ ω, -R ≤ x * X ω := fun ω ↦ by
+    have := mul_le_mul_of_nonneg_left (hlo ω) hx
+    linarith
+  -- the pointwise lower bound, from `log_one_add_ge`
+  have hpt : ∀ ω, 0 + x * X ω + (-k) * X ω ^ 2 ≤ Real.log (1 + x * X ω) := fun ω ↦ by
+    have := ClassicalLean.Analysis.GeneralGrowth.log_one_add_ge hR0 hR1 (hu ω)
+    have e : (x * X ω) ^ 2 / (2 * (1 - R)) = k * X ω ^ 2 := by rw [hk]; ring
+    linarith
+  have hXabs : ∀ ω, |X ω| ≤ |c| + |C| := fun ω ↦ by
+    rw [abs_le]; constructor <;> linarith [hlo ω, hhi ω, le_abs_self c, neg_abs_le C,
+      le_abs_self C, abs_nonneg c]
+  have hXint : Integrable X μ := integrable_of_bounds hX hlo hhi
+  have hX2int : Integrable (fun ω ↦ X ω ^ 2) μ := by
+    refine Integrable.of_bound (hX.pow_const 2).aestronglyMeasurable ((|c| + |C|) ^ 2)
+      (Eventually.of_forall fun ω ↦ ?_)
+    rw [Real.norm_eq_abs, abs_pow]
+    exact pow_le_pow_left₀ (abs_nonneg _) (hXabs ω) 2
+  have hlogint : Integrable (fun ω ↦ Real.log (1 + x * X ω)) μ := by
+    refine Integrable.of_bound
+      ((measurable_const.add (measurable_const.mul hX)).log).aestronglyMeasurable
+      (|Real.log (1 - R)| + |x * C|) (Eventually.of_forall fun ω ↦ ?_)
+    have hpos : 0 < 1 + x * X ω := by linarith [hu ω]
+    rw [Real.norm_eq_abs, abs_le]
+    constructor
+    · have := Real.log_le_log h1R (by linarith [hu ω] : 1 - R ≤ 1 + x * X ω)
+      linarith [neg_abs_le (Real.log (1 - R)), abs_nonneg (x * C)]
+    · have := Real.log_le_sub_one_of_pos hpos
+      have : x * X ω ≤ x * C := mul_le_mul_of_nonneg_left (hhi ω) hx
+      linarith [le_abs_self (x * C), abs_nonneg (Real.log (1 - R))]
+  have hlin := condExp_const_add_mul_add_mul hm hXint hX2int 0 x (-k)
+  have hfint : Integrable (fun ω ↦ 0 + x * X ω + (-k) * X ω ^ 2) μ :=
+    ((integrable_const 0).add (hXint.const_mul x)).add (hX2int.const_mul (-k))
+  have hmono := condExp_mono (m := m) (f := fun ω ↦ 0 + x * X ω + (-k) * X ω ^ 2) hfint hlogint
+    (Eventually.of_forall hpt)
+  filter_upwards [hlin, hmono, h1, h2] with ω hl hmo h1ω h2ω
+  rw [hl] at hmo
+  have e : x * m₁ - x ^ 2 * m₂ / (2 * (1 - R)) = x * m₁ - k * m₂ := by rw [hk]; ring
+  rw [e]
+  linarith [mul_le_mul_of_nonneg_left h1ω hx, mul_le_mul_of_nonneg_left h2ω hk0]
+
+variable [IsProbabilityMeasure μ] {𝒢 : Filtration ℕ m0}
+
+/-- **The count from a mean and a mean square (Bernstein type).** Increments `Z n` known at time
+`n + 1`, with `|g - Z n| ≤ b`, conditional mean at least `g` and conditional mean of `(g - Z n)²` at
+most `v` given `𝒢 n`: for `0 ≤ t ≤ 1/b`, the chance that `∑ i < N, Z i < L` is at most
+`exp (-t (N g - L) + N t² v)`. When `L ≤ N g`, `0 < v`, `0 < N` and the best `t`,
+`(N g - L) / (2 N v)`, is at most `1/b`, this is `exp (-(N g - L)² / (4 N v))`: the count is set by
+the spread `v`, not by the range. -/
+theorem measureReal_sum_lt_le_of_condSq {Z : ℕ → Ω → ℝ} {g b v t : ℝ}
+    (hZm : ∀ n, Measurable[𝒢 (n + 1)] (Z n)) (hb : ∀ n ω, |g - Z n ω| ≤ b)
+    (hg : ∀ n, ∀ᵐ ω ∂μ, g ≤ μ[Z n | 𝒢 n] ω)
+    (hv : ∀ n, ∀ᵐ ω ∂μ, μ[fun ω ↦ (g - Z n ω) ^ 2 | 𝒢 n] ω ≤ v)
+    (ht0 : 0 ≤ t) (htb : t * b ≤ 1) (N : ℕ) (L : ℝ) :
+    μ.real {ω | ∑ i ∈ range N, Z i ω < L} ≤ Real.exp (-t * (N * g - L) + N * t ^ 2 * v) := by
+  have hZm0 : ∀ n, Measurable (Z n) := fun n ↦ (hZm n).mono (𝒢.le (n + 1)) le_rfl
+  have hZint : ∀ n, Integrable (Z n) μ := fun n ↦
+    Integrable.of_bound (hZm0 n).aestronglyMeasurable (|g| + b)
+      (Eventually.of_forall fun ω ↦ by
+        rw [Real.norm_eq_abs]
+        have := hb n ω
+        rw [abs_le] at this ⊢
+        constructor <;> linarith [le_abs_self g, neg_abs_le g])
+  have hsqint : ∀ n, Integrable (fun ω ↦ (g - Z n ω) ^ 2) μ := fun n ↦
+    Integrable.of_bound ((measurable_const.sub (hZm0 n)).pow_const 2).aestronglyMeasurable (b ^ 2)
+      (Eventually.of_forall fun ω ↦ by
+        rw [Real.norm_eq_abs, abs_pow]
+        exact pow_le_pow_left₀ (abs_nonneg _) (hb n ω) 2)
+  have hexpint : ∀ n, Integrable (fun ω ↦ Real.exp (t * (g - Z n ω))) μ := fun n ↦
+    Integrable.of_bound
+      ((Real.measurable_exp.comp (measurable_const.mul (measurable_const.sub (hZm0 n))))
+        |>.aestronglyMeasurable) (Real.exp (t * b))
+      (Eventually.of_forall fun ω ↦ by
+        rw [Real.norm_eq_abs, abs_of_pos (Real.exp_pos _)]
+        exact Real.exp_le_exp.mpr
+          (mul_le_mul_of_nonneg_left ((le_abs_self _).trans (hb n ω)) ht0))
+  -- one step: the conditional mean of `exp (t (g - Z n))` is at most `exp (t² v)`
+  have hstep : ∀ n, μ[fun ω ↦ Real.exp (t * (g - Z n ω)) | 𝒢 n] ≤ᵐ[μ]
+      fun _ ↦ Real.exp (t ^ 2 * v) := fun n ↦ by
+    have hpt : ∀ ω, Real.exp (t * (g - Z n ω)) ≤
+        (1 + t * g) + (-t) * Z n ω + t ^ 2 * (g - Z n ω) ^ 2 := fun ω ↦ by
+      have hu : |t * (g - Z n ω)| ≤ 1 := by
+        rw [abs_mul, abs_of_nonneg ht0]
+        exact (mul_le_mul_of_nonneg_left (hb n ω) ht0).trans htb
+      have h1 := Real.abs_exp_sub_one_sub_id_le hu
+      have h2 := le_abs_self (Real.exp (t * (g - Z n ω)) - 1 - t * (g - Z n ω))
+      have e : (t * (g - Z n ω)) ^ 2 = t ^ 2 * (g - Z n ω) ^ 2 := by ring
+      linarith
+    have hrint : Integrable (fun ω ↦ (1 + t * g) + (-t) * Z n ω + t ^ 2 * (g - Z n ω) ^ 2) μ :=
+      ((integrable_const _).add ((hZint n).const_mul (-t))).add ((hsqint n).const_mul (t ^ 2))
+    have hmono := condExp_mono (m := 𝒢 n) (hexpint n) hrint (Eventually.of_forall hpt)
+    have hlin := condExp_const_add_mul_add_mul (𝒢.le n) (hZint n) (hsqint n) (1 + t * g) (-t)
+      (t ^ 2)
+    filter_upwards [hmono, hlin, hg n, hv n] with ω hmo hl hgω hvω
+    rw [hl] at hmo
+    have h3 := Real.add_one_le_exp (t ^ 2 * v)
+    nlinarith [mul_le_mul_of_nonneg_left hgω ht0, mul_le_mul_of_nonneg_left hvω (sq_nonneg t)]
+  obtain ⟨hint, hle⟩ := integral_exp_mul_sum_le_pow (μ := μ) (𝒢 := 𝒢)
+    (D := fun n ω ↦ g - Z n ω) ht0 (fun n ↦ measurable_const.sub (hZm n)) hb hstep N
+  -- the event lies inside `{N g - L ≤ ∑ (g - Z i)}`
+  have hsubset : {ω | ∑ i ∈ range N, Z i ω < L} ⊆
+      {ω | N * g - L ≤ ∑ i ∈ range N, (g - Z i ω)} := fun ω hω ↦ by
+    have hsum : ∑ i ∈ range N, (g - Z i ω) = N * g - ∑ i ∈ range N, Z i ω := by
+      rw [sum_sub_distrib, sum_const, card_range, nsmul_eq_mul]
+    change N * g - L ≤ ∑ i ∈ range N, (g - Z i ω)
+    have : ∑ i ∈ range N, Z i ω < L := hω
+    rw [hsum]; linarith
+  refine (measureReal_mono hsubset).trans ?_
+  refine (measure_ge_le_exp_mul_mgf (N * g - L) ht0 hint).trans ?_
+  calc Real.exp (-t * (N * g - L)) * mgf (fun ω ↦ ∑ i ∈ range N, (g - Z i ω)) μ t
+      ≤ Real.exp (-t * (N * g - L)) * Real.exp (t ^ 2 * v) ^ N :=
+        mul_le_mul_of_nonneg_left hle (Real.exp_pos _).le
+    _ = Real.exp (-t * (N * g - L) + N * t ^ 2 * v) := by
+        rw [← Real.exp_nat_mul, ← Real.exp_add]
+        congr 1
+        ring
+
+/-- **The wealth of a fixed stake, from the mean and mean square of the returns.** Returns `X`
+adapted to `𝒢`, in `[-c, C]`, the conditional mean of `X (n + 1)` given `𝒢 n` at least `m₁` and its
+conditional mean square at most `m₂`; a fixed stake `x ≥ 0` with `x c ≤ R < 1`. With
+`g = x m₁ - x² m₂ / (2 (1 - R)) ≥ 0`, `v = x² m₂ / (1 - R)²` and `b` at least `x C` and
+`g + R / (1 - R)`: for `0 ≤ t ≤ 1/b`, the chance that the wealth after `N` returns is below `exp L`
+is at most `exp (-t (N g - L) + N t² v)`. (A remark, not proved here: a fixed stake chosen in
+advance is a stake chosen from the past, the kind of stake `NoEdgeWealth`'s results allow.) -/
+theorem measureReal_wealth_lt_le_of_moments {X : ℕ → Ω → ℝ} {c C x R m₁ m₂ b t : ℝ}
+    (hX : StronglyAdapted 𝒢 X) (hlo : ∀ n ω, -c ≤ X n ω) (hhi : ∀ n ω, X n ω ≤ C)
+    (hx : 0 ≤ x) (hR0 : 0 ≤ R) (hR1 : R < 1) (hxc : x * c ≤ R)
+    (h1 : ∀ n, ∀ᵐ ω ∂μ, m₁ ≤ μ[X (n + 1) | 𝒢 n] ω)
+    (h2 : ∀ n, ∀ᵐ ω ∂μ, μ[fun ω ↦ X (n + 1) ω ^ 2 | 𝒢 n] ω ≤ m₂)
+    (hg0 : 0 ≤ x * m₁ - x ^ 2 * m₂ / (2 * (1 - R)))
+    (hbC : x * C ≤ b) (hbR : x * m₁ - x ^ 2 * m₂ / (2 * (1 - R)) + R / (1 - R) ≤ b)
+    (ht0 : 0 ≤ t) (htb : t * b ≤ 1) (N : ℕ) (L : ℝ) :
+    μ.real {ω | wealth (fun _ _ ↦ x) X N ω < Real.exp L} ≤
+      Real.exp (-t * (N * (x * m₁ - x ^ 2 * m₂ / (2 * (1 - R))) - L) +
+        N * t ^ 2 * (x ^ 2 * m₂ / (1 - R) ^ 2)) := by
+  have h1R : 0 < 1 - R := by linarith
+  set G := x * m₁ - x ^ 2 * m₂ / (2 * (1 - R)) with hG
+  set V := x ^ 2 * m₂ / (1 - R) ^ 2 with hV
+  have hu : ∀ n ω, -R ≤ x * X n ω := fun n ω ↦ by
+    have := mul_le_mul_of_nonneg_left (hlo n ω) hx
+    linarith
+  have hpos : ∀ n ω, 0 < 1 + x * X n ω := fun n ω ↦ by linarith [hu n ω]
+  have hXm : ∀ n, Measurable[𝒢 n] (X n) := fun n ↦ (hX n).measurable
+  have hXm0 : ∀ n, Measurable (X n) := fun n ↦ (hXm n).mono (𝒢.le n) le_rfl
+  have hZm : ∀ n, Measurable[𝒢 (n + 1)] (fun ω ↦ Real.log (1 + x * X (n + 1) ω)) := fun n ↦
+    (measurable_const.add (measurable_const.mul (hXm (n + 1)))).log
+  -- each log factor lies in `[-R / (1 - R), x C]`
+  have hZlo : ∀ n ω, -(R / (1 - R)) ≤ Real.log (1 + x * X n ω) := fun n ω ↦ by
+    have h := Real.one_sub_inv_le_log_of_pos h1R
+    have hmono := Real.log_le_log h1R (by linarith [hu n ω] : 1 - R ≤ 1 + x * X n ω)
+    have e : 1 - (1 - R)⁻¹ = -(R / (1 - R)) := by field_simp; ring
+    linarith
+  have hZhi : ∀ n ω, Real.log (1 + x * X n ω) ≤ x * C := fun n ω ↦ by
+    have := Real.log_le_sub_one_of_pos (hpos n ω)
+    have := mul_le_mul_of_nonneg_left (hhi n ω) hx
+    linarith
+  have hb : ∀ n ω, |G - Real.log (1 + x * X (n + 1) ω)| ≤ b := fun n ω ↦ by
+    rw [abs_le]
+    constructor <;> linarith [hZlo (n + 1) ω, hZhi (n + 1) ω]
+  have hg : ∀ n, ∀ᵐ ω ∂μ, G ≤ μ[fun ω ↦ Real.log (1 + x * X (n + 1) ω) | 𝒢 n] ω := fun n ↦
+    condExp_log_one_add_mul_ge (𝒢.le n) (hXm0 (n + 1)) (hlo (n + 1)) (hhi (n + 1)) hx hR0 hR1
+      hxc (h1 n) (h2 n)
+  have hv : ∀ n, ∀ᵐ ω ∂μ,
+      μ[fun ω ↦ (G - Real.log (1 + x * X (n + 1) ω)) ^ 2 | 𝒢 n] ω ≤ V := fun n ↦ by
+    have hYabs : ∀ ω, |X (n + 1) ω| ≤ |c| + |C| := fun ω ↦ by
+      rw [abs_le]; constructor <;> linarith [hlo (n + 1) ω, hhi (n + 1) ω, le_abs_self c,
+        neg_abs_le C, le_abs_self C, abs_nonneg c]
+    have hY2int : Integrable (fun ω ↦ X (n + 1) ω ^ 2) μ := by
+      refine Integrable.of_bound ((hXm0 (n + 1)).pow_const 2).aestronglyMeasurable
+        ((|c| + |C|) ^ 2) (Eventually.of_forall fun ω ↦ ?_)
+      rw [Real.norm_eq_abs, abs_pow]
+      exact pow_le_pow_left₀ (abs_nonneg _) (hYabs ω) 2
+    have hZabs : ∀ ω, |Real.log (1 + x * X (n + 1) ω)| ≤ R / (1 - R) + |x * C| := fun ω ↦ by
+      have : 0 ≤ R / (1 - R) := div_nonneg hR0 h1R.le
+      rw [abs_le]; constructor <;> linarith [hZlo (n + 1) ω, hZhi (n + 1) ω, le_abs_self (x * C),
+        abs_nonneg (x * C)]
+    have hZmeas : Measurable (fun ω ↦ Real.log (1 + x * X (n + 1) ω)) :=
+      (measurable_const.add (measurable_const.mul (hXm0 (n + 1)))).log
+    have hZint : Integrable (fun ω ↦ Real.log (1 + x * X (n + 1) ω)) μ :=
+      Integrable.of_bound hZmeas.aestronglyMeasurable (R / (1 - R) + |x * C|)
+        (Eventually.of_forall fun ω ↦ by rw [Real.norm_eq_abs]; exact hZabs ω)
+    have hZ2int : Integrable (fun ω ↦ Real.log (1 + x * X (n + 1) ω) ^ 2) μ :=
+      Integrable.of_bound (hZmeas.pow_const 2).aestronglyMeasurable ((R / (1 - R) + |x * C|) ^ 2)
+        (Eventually.of_forall fun ω ↦ by
+          rw [Real.norm_eq_abs, abs_pow]
+          exact pow_le_pow_left₀ (abs_nonneg _) (hZabs ω) 2)
+    -- `log (1 + u)² ≤ u² / (1 - R)²` for `u = x Y ≥ -R`
+    set k := x ^ 2 / (1 - R) ^ 2 with hk
+    have hk0 : 0 ≤ k := by positivity
+    have hsq : ∀ ω, Real.log (1 + x * X (n + 1) ω) ^ 2 ≤
+        0 + k * X (n + 1) ω ^ 2 + 0 * X (n + 1) ω ^ 2 := fun ω ↦ by
+      set u := x * X (n + 1) ω with hu'
+      have hu1 : -1 < u := by linarith [hu (n + 1) ω]
+      obtain ⟨hl, hr⟩ := div_one_add_le_log_le hu1
+      have hbound : |Real.log (1 + u)| ≤ |u| / (1 - R) := by
+        rw [abs_le]
+        rcases le_total 0 u with h0 | h0
+        · have hlog0 : 0 ≤ Real.log (1 + u) := Real.log_nonneg (by linarith)
+          have : u ≤ u / (1 - R) := by
+            rw [le_div_iff₀ h1R]; nlinarith
+          rw [abs_of_nonneg h0]
+          constructor
+          · have : 0 ≤ u / (1 - R) := div_nonneg h0 h1R.le
+            linarith
+          · linarith
+        · have h1u : 1 - R ≤ 1 + u := by linarith [hu (n + 1) ω]
+          have : u / (1 - R) ≤ u / (1 + u) := by
+            rw [div_le_div_iff₀ h1R (by linarith)]
+            linarith [mul_le_mul_of_nonpos_left h1u h0]
+          rw [abs_of_nonpos h0, neg_div]
+          constructor
+          · linarith
+          · have : 0 ≤ -u / (1 - R) := div_nonneg (by linarith) h1R.le
+            rw [neg_div] at this
+            linarith
+      have h2 : Real.log (1 + u) ^ 2 ≤ (|u| / (1 - R)) ^ 2 := by
+        rw [← sq_abs]
+        exact pow_le_pow_left₀ (abs_nonneg _) hbound 2
+      have e : (|u| / (1 - R)) ^ 2 = 0 + k * X (n + 1) ω ^ 2 + 0 * X (n + 1) ω ^ 2 := by
+        rw [div_pow, sq_abs, hu', hk]; ring
+      linarith
+    have hmono := condExp_mono (m := 𝒢 n)
+      (g := fun ω ↦ 0 + k * X (n + 1) ω ^ 2 + 0 * X (n + 1) ω ^ 2) hZ2int
+      (((integrable_const 0).add (hY2int.const_mul k)).add (hY2int.const_mul 0))
+      (Eventually.of_forall hsq)
+    have hlinY := condExp_const_add_mul_add_mul (𝒢.le n) hY2int hY2int 0 k 0
+    have e : (fun ω ↦ (G - Real.log (1 + x * X (n + 1) ω)) ^ 2) =
+        fun ω ↦ G ^ 2 + (-2 * G) * Real.log (1 + x * X (n + 1) ω) +
+          1 * Real.log (1 + x * X (n + 1) ω) ^ 2 := by
+      funext ω; ring
+    have hlinZ := condExp_const_add_mul_add_mul (𝒢.le n) hZint hZ2int (G ^ 2) (-2 * G) 1
+    rw [e]
+    filter_upwards [hmono, hlinY, hlinZ, hg n, h2 n] with ω hmo hlY hlZ hgω h2ω
+    rw [hlY] at hmo
+    rw [hlZ]
+    have hGZ := mul_nonneg hg0 (sub_nonneg.mpr hgω)
+    have hkm := mul_le_mul_of_nonneg_left h2ω hk0
+    have eV : V = k * m₂ := by rw [hV, hk]; ring
+    rw [eV]
+    nlinarith
+  have key := measureReal_sum_lt_le_of_condSq (μ := μ) (𝒢 := 𝒢)
+    (Z := fun n ω ↦ Real.log (1 + x * X (n + 1) ω)) hZm hb hg hv ht0 htb N L
+  refine (measureReal_mono fun ω hω ↦ ?_).trans key
+  have hω' : wealth (fun _ _ ↦ x) X N ω < Real.exp L := hω
+  have hfac : ∀ i ∈ range N, 0 < 1 + x * X (i + 1) ω := fun i _ ↦ hpos (i + 1) ω
+  have hW : wealth (fun _ _ ↦ x) X N ω = ∏ i ∈ range N, (1 + x * X (i + 1) ω) := rfl
+  rw [hW] at hω'
+  have hlog : Real.log (∏ i ∈ range N, (1 + x * X (i + 1) ω)) < L := by
+    rw [← Real.log_exp L]; exact Real.log_lt_log (prod_pos hfac) hω'
+  rw [Real.log_prod fun i hi ↦ (hfac i hi).ne'] at hlog
+  exact hlog
+
+end moments
 
 end ClassicalLean.Probability.EdgeGrowth
