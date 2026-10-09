@@ -543,6 +543,23 @@ updated here.
   2026-10-09, output identical to the lane copy). Proving the recurrence in Lean is not in that
   order.
 
+### 1.17 A bridge to online learning (order LEAN-16, round 44)
+
+`Analysis/UniversalMixture` (new) proves that running several stake rules side by side, each on an
+equal share, is itself one rule (`mixStake`, `sum_prod_div_card_eq_prod_mixStake`,
+`mixStake_mem_Icc`), whose stake by its definition uses only the past, and that on every sequence
+with positive factors its log product is at least each rule's less `log (card s)`
+(`log_prod_sub_log_card_le`; one-sided). For the `K + 1` fixed stakes `0, l/K, …, l` this gives
+`le_log_mixture`: at least the log product of the best fixed stake in `[0, l]` chosen in hindsight,
+less `log (K + 1) + N (l / K) D / (1 - l c)`, with no probability model. This is Cover's universal
+portfolio (1991) for one stream of values and cash, in a discrete form, and the library's first
+result of the online-learning kind (a regret bound). It imports only Mathlib and no module uses it
+yet, so it is an island by §1.15's measure until a consumer lands. Measured: the statements are
+order LEAN-16's `LEAN-16-statements.lean` (item 6), and its check script's output lines
+`C6 P9 exact: OK | 2000 cases: identity, stake range, log(card) gap` and
+`C6 P9 mixture bound: OK | 2000 random sequences` (rerun 2026-10-09 UTC, output identical to the lane
+copy).
+
 ## 2. Categories to add
 
 Tiered by how much work they do inside the system that already exists, not by how interesting

@@ -84,6 +84,7 @@ import ClassicalLean.Analysis.RoundingError
 import ClassicalLean.Probability.EdgeGrowth
 import ClassicalLean.Probability.ScoreLookahead
 import ClassicalLean.Probability.EffectiveSampleSize
+import ClassicalLean.Analysis.UniversalMixture
 
 /-!
 # ClassicalLean
