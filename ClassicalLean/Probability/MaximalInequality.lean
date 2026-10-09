@@ -11,8 +11,8 @@ import Mathlib.Probability.BorelCantelli
 import Mathlib.Probability.CondVar
 
 /-!
-# Ville's inequality over finitely many steps, the chance of falling to half, and Kolmogorov's
-# maximal inequality
+# Ville's inequality over finitely many steps, the chance of falling to half, Kolmogorov's
+# maximal inequality, and Doob's `L²` inequality
 
 * `measureReal_exists_le_of_supermartingale` (Ville's inequality, finite horizon): for a
   nonnegative supermartingale `Z` and `c > 0`, the chance that `Z n ≥ c` for some `n ≤ N` is at
@@ -26,6 +26,36 @@ import Mathlib.Probability.CondVar
 * `measureReal_exists_abs_ge_le` (Kolmogorov's maximal inequality, order LEAN-19): for a
   square-integrable martingale `S` and `ε > 0`, the chance that `|S k| ≥ ε` for some `k ≤ n` is at
   most `E[S n ²] / ε²`. It comes from Mathlib's `maximal_ineq` applied to `S ²`.
+* `integral_sup_sq_le` (Doob's `L²` inequality, order LEAN-22, item 43): for a martingale `M`
+  (for a filtration whose measure is σ-finite at each time, as for any finite measure),
+  `E[max_{k ≤ n} M k ²] ≤ 4 E[M n ²]`; `integrable_sup_sq`: when `M n` is square-integrable, the
+  maximum square is integrable, so the left side is a real mean, not Lean's junk `0`.
+
+## Doob's `L²` inequality
+
+The proof takes means of an inequality that holds path by path
+(`runningMaxAbs_sq_add_four_mul_sum_le`): for real numbers `x 0, …, x T`, with
+`y t = max_{s ≤ t} |x s|` (`runningMaxAbs`) and `σ t = 1` if `x t ≥ 0`, `σ t = −1` otherwise,
+
+    y T ² + 4 ∑_{t < T} y t σ t (x (t + 1) − x t) ≤ 4 x T ².
+
+For a martingale, each term `y t σ t (M (t + 1) − M t)` is a bet placed with what is known at time
+`t`, so its mean is `0`; what is left is the inequality. This proof (a running quantity that
+never decreases, then `(2 |x T| − y T)² ≥ 0`) was written without reading the works cited below;
+nothing is claimed about whether the inequality is new. The plan's row named Mathlib's
+`maximal_ineq` and the layer-cake formula, which are not used. Citations, not read: Doob 1953,
+"Stochastic Processes"; Acciaio, Beiglböck, Penkner, Schachermayer and Temme 2013, "A trajectorial
+interpretation of Doob's martingale inequalities".
+
+Measured in order LEAN-22's checks (check C43, exact arithmetic): the path-by-path inequality on
+20,000 random rational paths and on all 625 paths with values in `{-2, …, 2}` and 3 steps; the
+inequality itself on 16,384 martingales of 3 steps whose step sizes depend on the past. Needed,
+worked out by hand: the martingale (`M 0 = 1`, `M 1 = 0` for sure, `n = 1`: the mean of the
+maximum square is `1`, the bound `0`). No square-integrability is assumed: for a martingale, if
+`M n` is square-integrable so is every earlier `M k` (a conditional mean of it, Mathlib's
+`MemLp.condExp`); and if `M n` is not, the maximum square is not integrable either, and Lean's
+integrals on both sides are `0`. No finite measure is assumed: a filtration σ-finite at each
+time is enough (review r43 of order LEAN-22 found the first draft's finite measure unused).
 
 ## Hypotheses of Kolmogorov's inequality
 
@@ -312,5 +342,185 @@ theorem measureReal_exists_abs_ge_le {S : ℕ → Ω → ℝ} (hS : Martingale S
   exact h1.trans hint
 
 end Kolmogorov
+
+section DoobL2
+
+/-- The running maximum of `|x 0|, …, |x t|`. -/
+noncomputable def runningMaxAbs (x : ℕ → ℝ) : ℕ → ℝ
+  | 0 => |x 0|
+  | t + 1 => max (runningMaxAbs x t) |x (t + 1)|
+
+/-- The running maximum is at least `0`. -/
+theorem runningMaxAbs_nonneg (x : ℕ → ℝ) (t : ℕ) : 0 ≤ runningMaxAbs x t := by
+  cases t with
+  | zero => exact abs_nonneg _
+  | succ t => exact (abs_nonneg _).trans (le_max_right _ _)
+
+/-- The running maximum is at most the sum of the `|x k|`. -/
+private theorem runningMaxAbs_le_sum (x : ℕ → ℝ) (t : ℕ) :
+    runningMaxAbs x t ≤ ∑ k ∈ range (t + 1), |x k| := by
+  induction t with
+  | zero => simp [runningMaxAbs]
+  | succ t ih =>
+    rw [sum_range_succ]
+    have := sum_nonneg fun k (_ : k ∈ range (t + 1)) ↦ abs_nonneg (x k)
+    exact max_le (by linarith [abs_nonneg (x (t + 1))]) (by linarith)
+
+/-- Each `|x k|` with `k ≤ t` is at most the running maximum at `t`. -/
+theorem abs_le_runningMaxAbs (x : ℕ → ℝ) {k t : ℕ} (hkt : k ≤ t) : |x k| ≤ runningMaxAbs x t := by
+  induction t with
+  | zero => rw [Nat.le_zero.mp hkt]; rfl
+  | succ t ih =>
+    rcases Nat.lt_or_eq_of_le hkt with h | h
+    · exact (ih (Nat.lt_succ_iff.mp h)).trans (le_max_left _ _)
+    · rw [h]; exact le_max_right _ _
+
+/-- With `σ = 1` at `u ≥ 0` and `σ = −1` below: `σ (v − u) ≤ |v| − |u|`. -/
+private theorem sign_mul_le (u v : ℝ) :
+    (if 0 ≤ u then 1 else -1) * (v - u) ≤ |v| - |u| := by
+  split_ifs with h
+  · rw [abs_of_nonneg h]; linarith [le_abs_self v]
+  · rw [abs_of_neg (not_le.mp h)]; linarith [neg_abs_le v]
+
+/-- **Doob's `L²` inequality, path by path.** For any real numbers `x 0, …, x T`, with
+`y t = max_{s ≤ t} |x s|` and `σ t = 1` if `x t ≥ 0`, `σ t = −1` otherwise,
+`y T ² + 4 ∑_{t < T} y t σ t (x (t + 1) − x t) ≤ 4 x T ²`. -/
+theorem runningMaxAbs_sq_add_four_mul_sum_le (x : ℕ → ℝ) (T : ℕ) :
+    runningMaxAbs x T ^ 2 + 4 * ∑ t ∈ range T,
+      runningMaxAbs x t * (if 0 ≤ x t then 1 else -1) * (x (t + 1) - x t) ≤ 4 * x T ^ 2 := by
+  set y := runningMaxAbs x
+  -- the invariant `I T = y T |x T| − y T ² / 2 − |x 0|² / 2 − ∑_{t<T} y t (|x (t+1)| − |x t|) ≥ 0`
+  have hI : ∀ T, 0 ≤ y T * |x T| - y T ^ 2 / 2 - |x 0| ^ 2 / 2 -
+      ∑ t ∈ range T, y t * (|x (t + 1)| - |x t|) := by
+    intro T
+    induction T with
+    | zero => simp [y, runningMaxAbs]; ring_nf; rfl
+    | succ T ih =>
+      rw [sum_range_succ]
+      have hy : y (T + 1) = max (y T) |x (T + 1)| := rfl
+      rcases le_total |x (T + 1)| (y T) with h | h
+      · rw [hy, max_eq_left h]; linarith
+      · rw [hy, max_eq_right h]; nlinarith
+  have hsum : ∑ t ∈ range T, y t * (if 0 ≤ x t then 1 else -1) * (x (t + 1) - x t) ≤
+      ∑ t ∈ range T, y t * (|x (t + 1)| - |x t|) :=
+    sum_le_sum fun t _ ↦ by
+      rw [mul_assoc]
+      exact mul_le_mul_of_nonneg_left (sign_mul_le _ _) (runningMaxAbs_nonneg x t)
+  have h0 := sq_nonneg (2 * |x T| - y T)
+  have hx := sq_abs (x T)
+  nlinarith [hI T, sq_nonneg (x 0)]
+
+omit [IsFiniteMeasure μ] [SigmaFiniteFiltration μ 𝒢] in
+/-- For a martingale with `M n` square-integrable, `max_{k ≤ n} M k ²` is integrable (it is at most
+`∑_{k ≤ n} M k ²`, and each earlier `M k` is a conditional mean of `M n`). -/
+theorem integrable_sup_sq {M : ℕ → Ω → ℝ} (hM : Martingale M 𝒢 μ) {n : ℕ}
+    (hL2 : MemLp (M n) 2 μ) :
+    Integrable (fun ω ↦ (range (n + 1)).sup' nonempty_range_add_one (fun k ↦ M k ω ^ 2)) μ := by
+  have hL2k : ∀ k ≤ n, MemLp (M k) 2 μ := fun k hk ↦
+    (hL2.condExp (m := 𝒢 k) (by norm_num)).ae_eq (hM.condExp_ae_eq hk)
+  refine (integrable_finsetSum (range (n + 1)) fun k hk ↦
+    (hL2k k (Nat.lt_succ_iff.mp (mem_range.mp hk))).integrable_sq).mono'
+    (Finset.measurable_range_sup'' fun k _ ↦
+      (((hM.1 k).mono (𝒢.le k)).measurable.pow_const 2)).aestronglyMeasurable
+    (ae_of_all _ fun ω ↦ ?_)
+  have hnn : 0 ≤ (range (n + 1)).sup' nonempty_range_add_one (fun k ↦ M k ω ^ 2) :=
+    (sq_nonneg (M 0 ω)).trans (le_sup' (fun k ↦ M k ω ^ 2) (mem_range.mpr (Nat.succ_pos n)))
+  rw [Real.norm_eq_abs, abs_of_nonneg hnn]
+  exact sup'_le _ _ fun k hk ↦ single_le_sum (fun j _ ↦ sq_nonneg (M j ω)) hk
+
+omit [IsFiniteMeasure μ] in
+/-- **Doob's `L²` inequality.** For a martingale `M` for a filtration that is σ-finite at each
+time, `E[max_{k ≤ n} M k ²] ≤ 4 E[M n ²]`. No square-integrability is assumed (see the module
+docstring). -/
+theorem integral_sup_sq_le {M : ℕ → Ω → ℝ} (hM : Martingale M 𝒢 μ) (n : ℕ) :
+    ∫ ω, (range (n + 1)).sup' nonempty_range_add_one (fun k ↦ M k ω ^ 2) ∂μ ≤
+      4 * ∫ ω, M n ω ^ 2 ∂μ := by
+  set Y : ℕ → Ω → ℝ := fun t ω ↦ runningMaxAbs (fun k ↦ M k ω) t
+  have hsupY : ∀ ω, (range (n + 1)).sup' nonempty_range_add_one (fun k ↦ M k ω ^ 2) ≤
+      Y n ω ^ 2 := fun ω ↦ by
+    refine sup'_le _ _ fun k hk ↦ ?_
+    rw [← sq_abs]
+    exact pow_le_pow_left₀ (abs_nonneg _)
+      (abs_le_runningMaxAbs (fun k ↦ M k ω) (Nat.lt_succ_iff.mp (mem_range.mp hk))) 2
+  have hsup0 : 0 ≤ᵐ[μ] fun ω ↦
+      (range (n + 1)).sup' nonempty_range_add_one (fun k ↦ M k ω ^ 2) :=
+    ae_of_all _ fun ω ↦ (sq_nonneg (M 0 ω)).trans
+      (le_sup' (fun k ↦ M k ω ^ 2) (mem_range.mpr (Nat.succ_pos n)))
+  have hmeas : ∀ k, StronglyMeasurable[𝒢 k] (M k) := fun k ↦ hM.1 k
+  have hmeasm : ∀ k, StronglyMeasurable (M k) := fun k ↦ (hmeas k).mono (𝒢.le k)
+  by_cases hL2 : MemLp (M n) 2 μ
+  swap
+  · -- not square-integrable: both sides are `0`
+    have hnot : ¬ Integrable (fun ω ↦ M n ω ^ 2) μ := fun h ↦
+      hL2 ((memLp_two_iff_integrable_sq (hmeasm n).aestronglyMeasurable).mpr h)
+    have hnotL : ¬ Integrable (fun ω ↦
+        (range (n + 1)).sup' nonempty_range_add_one (fun k ↦ M k ω ^ 2)) μ := fun h ↦
+      hnot (h.mono' ((hmeasm n).aestronglyMeasurable.pow 2) (ae_of_all _ fun ω ↦ by
+        rw [Real.norm_eq_abs, abs_of_nonneg (sq_nonneg _)]
+        exact le_sup' (fun k ↦ M k ω ^ 2) (mem_range.mpr (Nat.lt_succ_self n))))
+    rw [integral_undef hnotL, integral_undef hnot, mul_zero]
+  -- every `M k` with `k ≤ n` is square-integrable
+  have hL2k : ∀ k ≤ n, MemLp (M k) 2 μ := fun k hk ↦
+    (hL2.condExp (m := 𝒢 k) (by norm_num)).ae_eq (hM.condExp_ae_eq hk)
+  -- `Y t` is known at time `t`, and square-integrable for `t ≤ n`
+  have hYm : ∀ t, Measurable[𝒢 t] (Y t) := by
+    intro t
+    induction t with
+    | zero => exact continuous_abs.measurable.comp (hmeas 0).measurable
+    | succ t ih =>
+      exact (ih.mono (𝒢.mono (Nat.le_succ t)) le_rfl).max
+        (continuous_abs.measurable.comp (hmeas (t + 1)).measurable)
+  have hYL2 : ∀ t ≤ n, MemLp (Y t) 2 μ := fun t ht ↦ by
+    refine (memLp_finsetSum (range (t + 1)) fun k hk ↦ (hL2k k ?_).norm).of_le
+      ((hYm t).mono (𝒢.le t) le_rfl).aestronglyMeasurable (ae_of_all _ fun ω ↦ ?_)
+    · exact (Nat.lt_succ_iff.mp (mem_range.mp hk)).trans ht
+    · rw [Real.norm_eq_abs, abs_of_nonneg (runningMaxAbs_nonneg _ _), Real.norm_eq_abs,
+        abs_of_nonneg (sum_nonneg fun k _ ↦ norm_nonneg _)]
+      exact runningMaxAbs_le_sum _ _
+  -- the bets `H t = Y t · (sign of M t)`
+  set H : ℕ → Ω → ℝ := fun t ω ↦ Y t ω * (if 0 ≤ M t ω then 1 else -1)
+  have hHm : ∀ t, StronglyMeasurable[𝒢 t] (H t) := fun t ↦
+    ((hYm t).mul (Measurable.ite (measurableSet_le measurable_const (hmeas t).measurable)
+      measurable_const measurable_const)).stronglyMeasurable
+  have hHL2 : ∀ t ≤ n, MemLp (H t) 2 μ := fun t ht ↦
+    (hYL2 t ht).of_le ((hHm t).mono (𝒢.le t)).aestronglyMeasurable (ae_of_all _ fun ω ↦ by
+      simp only [H, norm_mul]
+      split_ifs <;> simp)
+  -- each bet has mean gain `0`
+  have hfair : ∀ t < n, ∫ ω, H t ω * (M (t + 1) ω - M t ω) ∂μ = 0 := fun t ht ↦ by
+    have hi1 : Integrable (H t * M (t + 1)) μ := (hHL2 t ht.le).integrable_mul (hL2k (t + 1) ht)
+    have hi0 : Integrable (H t * M t) μ := (hHL2 t ht.le).integrable_mul (hL2k t ht.le)
+    have hce := condExp_mul_of_stronglyMeasurable_left (m := 𝒢 t) (hHm t) hi1
+      (hM.integrable (t + 1))
+    have h1 : ∫ ω, H t ω * M (t + 1) ω ∂μ = ∫ ω, H t ω * M t ω ∂μ := by
+      have e1 : ∫ ω, H t ω * M (t + 1) ω ∂μ = ∫ ω, (μ[H t * M (t + 1) | 𝒢 t]) ω ∂μ :=
+        (integral_condExp (𝒢.le t)).symm
+      rw [e1]
+      refine integral_congr_ae ?_
+      filter_upwards [hce, hM.condExp_ae_eq (Nat.le_succ t)] with ω h1 h2
+      rw [h1, Pi.mul_apply, h2]
+    have e2 := integral_sub hi1 hi0
+    simp only [Pi.mul_apply] at e2
+    simp only [mul_sub]
+    rw [e2, h1, sub_self]
+  -- integrate the path-by-path inequality
+  have hpath : ∀ ω, Y n ω ^ 2 + 4 * ∑ t ∈ range n, H t ω * (M (t + 1) ω - M t ω) ≤
+      4 * M n ω ^ 2 := fun ω ↦ by
+    simpa [H, Y, mul_assoc] using
+      runningMaxAbs_sq_add_four_mul_sum_le (fun k ↦ M k ω) n
+  have hiY : Integrable (fun ω ↦ Y n ω ^ 2) μ := (hYL2 n le_rfl).integrable_sq
+  have hiS : ∀ t ∈ range n, Integrable (fun ω ↦ H t ω * (M (t + 1) ω - M t ω)) μ := fun t ht ↦
+    (hHL2 t (mem_range.mp ht).le).integrable_mul
+      ((hL2k (t + 1) (mem_range.mp ht)).sub (hL2k t (mem_range.mp ht).le))
+  have hint := integral_mono
+    (f := fun ω ↦ Y n ω ^ 2 + 4 * ∑ t ∈ range n, H t ω * (M (t + 1) ω - M t ω))
+    (g := fun ω ↦ 4 * M n ω ^ 2) (μ := μ)
+    ((hiY.add ((integrable_finsetSum _ hiS).const_mul 4))) (hL2.integrable_sq.const_mul 4) hpath
+  rw [integral_add hiY ((integrable_finsetSum _ hiS).const_mul 4), integral_const_mul,
+    integral_finsetSum _ hiS, sum_eq_zero fun t ht ↦ hfair t (mem_range.mp ht), mul_zero,
+    add_zero, integral_const_mul] at hint
+  exact (integral_mono_of_nonneg hsup0 hiY (ae_of_all _ hsupY)).trans hint
+
+end DoobL2
 
 end ClassicalLean.Probability.MaximalInequality
