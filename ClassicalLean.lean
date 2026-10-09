@@ -113,6 +113,7 @@ import ClassicalLean.Analysis.Simpson
 import ClassicalLean.Analysis.EulerMaclaurin
 import ClassicalLean.Algebra.MinMax
 import ClassicalLean.Analysis.LinearProgram
+import ClassicalLean.Statistics.NeymanPearson
 
 /-!
 # ClassicalLean
