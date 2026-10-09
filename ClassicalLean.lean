@@ -111,6 +111,7 @@ import ClassicalLean.Probability.Extinction
 import ClassicalLean.Probability.GamblersRuin
 import ClassicalLean.Analysis.Simpson
 import ClassicalLean.Analysis.EulerMaclaurin
+import ClassicalLean.Algebra.MinMax
 
 /-!
 # ClassicalLean
