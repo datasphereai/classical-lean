@@ -54,11 +54,14 @@ Mathlib at v4.34.0 proves the data-processing inequality for Markov kernels betw
 it was absent at `8f07524533`, this library's pin before order 0923. That is the measure form,
 valued in `ℝ≥0∞`, and Mathlib's `klDiv μ ν` carries the mass term `ν.real univ - μ.real univ`. A
 finite channel is a Markov kernel on a finite type, so the bridge — for `p, q ≥ 0` with
-`q i = 0 → p i = 0`, `(klDiv μ_p μ_q).toReal = relEntropy p q + ∑ i, q i - ∑ i, p i` — would make
+`q i = 0 → p i = 0`, `(klDiv μ_p μ_q).toReal = relEntropy p q + ∑ i, q i - ∑ i, p i` — makes
 `relEntropy_vecMul_le` a corollary of it, since a channel preserves both totals
 (`sum_vecMul_eq_sum`). Without the mass term the bridge is false off equal totals (`p = (1)`,
 `q = (2)`: `relEntropy = -log 2`, `toReal = 1 - log 2`); without support `klDiv = ∞`, whose
-`toReal` is `0`. The bridge is recorded in `HANDOFF.md` §3 as next.
+`toReal` is `0`. The bridge is proved, in `ClassicalLean.Probability.RelativeEntropyGrowth` (order
+LEAN-21, item 39 of the library plan): `toReal_klDiv_vecMeasure`, and the inequality again from
+Mathlib's as `relEntropy_vecMul_le_of_klDiv`. The direct proof here stays, since that module
+imports this one.
 -/
 
 open Finset Real

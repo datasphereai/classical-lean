@@ -328,13 +328,15 @@ you can do well, not by this list's order:
 **Next in information theory, from order 0923 (2026-09-23).** `InformationTheory/` exists now
 (`ROADMAP.md` §2.8). No statement was left unproved in round 18. What comes next, in order:
 
-- **The bridge to Mathlib's `klDiv`**:
+- **The bridge to Mathlib's `klDiv`** — done (dated 2026-10-09, order LEAN-21, item 39 of the
+  library plan; this entry corrected in order LEAN-22):
   `(InformationTheory.klDiv μ_p μ_q).toReal = relEntropy p q + ∑ i, q i - ∑ i, p i` for `p, q ≥ 0`
-  with `q i = 0 → p i = 0`, where `μ_p` is the finite measure with weights `p`. Mathlib's `klDiv`
+  with `q i = 0 → p i = 0`, where `μ_p` is the finite measure with weights `p`
+  (`ClassicalLean.Probability.RelativeEntropyGrowth.toReal_klDiv_vecMeasure`). Mathlib's `klDiv`
   carries the mass term `ν.real univ - μ.real univ`, so the version without it is false off equal
-  totals (`p = (1)`, `q = (2)`), and without support `klDiv = ∞`. With the bridge,
-  `relEntropy_vecMul_le` becomes a corollary of Mathlib's `klDiv_comp_right_le` (v4.34.0), since a
-  channel preserves both totals, and the finite and measure theories stop being parallel.
+  totals (`p = (1)`, `q = (2)`), and without support `klDiv = ∞`. With the bridge, the library's
+  data-processing inequality follows again from Mathlib's `klDiv_comp_right_le`
+  (`relEntropy_vecMul_le_of_klDiv`), since a channel preserves both totals.
 - **Conditional entropy and the chain rule** `H(X, Y) = H(X) + H(Y | X)`.
 - **Data processing for mutual information** along a Markov chain `X → Y → Z` — which would also
   give `mutualInfo` its first user outside its own module.
@@ -346,7 +348,10 @@ information-theory`; `ROADMAP.md` §2.8 has claude-ai's measurements). The finit
 would still be new here, so this is a ranking decision on the prior-art ground Dustin asked
 claude-ai to apply, not a finding that they add nothing; his veto is open. The three finite
 modules stay as they are; `mutualInfo` keeps no consumer (round 19 says why); the `klDiv`
-bridge stays listed as the first step if the finite layer is ever offered to Mathlib.
+bridge stays listed as the first step if the finite layer is ever offered to Mathlib. (Dated
+2026-10-09, order LEAN-22: the bridge is now proved, order LEAN-21; the chain rule, Pinsker and
+Fano were proved in orders LEAN-18 and LEAN-21, under MATH-PLAN-library's decision 1, which
+recommended lifting the decline above.)
 
 **Next after the toolchain move (order 0923, round 17), smaller items first:**
 
