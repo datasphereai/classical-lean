@@ -21,6 +21,11 @@ least-squares coefficients on `X₂` equal those from regressing the `X₁`-resi
 * `transpose_residualMaker`, `residualMaker_mul_self`: `M₁` is symmetric and idempotent (no
   hypothesis).
 * `residualMaker_mul_eq_zero`: `M₁ X₁ = 0` when `X₁ᵀ X₁` is invertible.
+* `trace_residualMaker`, `rank_residualMaker`: when `X₁ᵀ X₁` is invertible, `M₁` has trace and rank
+  `n − p`, for `n` rows and `p` columns of `X₁` (order LEAN-17). Both need the invertibility: at
+  `X₁ = [[0]]`, `M₁ = 1` has trace and rank `1`, not `0` (order LEAN-17's checks, line C1). The
+  rank's `n − p` is a subtraction in `ℕ`; it does not truncate, because the hypothesis forces
+  `p ≤ n`.
 * `isUnit_det_transpose_mul_self_left`, `isUnit_det_transpose_mul_self_residualMaker`: if `Xᵀ X` is
   invertible, so are `X₁ᵀ X₁` and `(M₁ X₂)ᵀ (M₁ X₂)`.
 * `toRows₂_leastSquares_fromCols`: the matrix form — the `X₂`-rows of `leastSquares [X₁ X₂]` are
@@ -38,6 +43,9 @@ From the normal equations the library has (`leastSquares_mul_self`,
 `(M₁ X₂)ᵀ (M₁ X₂) β₂ = (M₁ X₂)ᵀ (M₁ y)`, whose Gram matrix is a unit by the Schur complement
 (`det_fromBlocks₁₁`); cancelling it gives the theorem. `M₁` symmetric is `transpose_nonsing_inv`;
 idempotent is by cases on `IsUnit (X₁ᵀ X₁).det`.
+The trace is `n − trace (leastSquares X₁ * X₁) = n − p`, by `trace_mul_comm` and
+`leastSquares_mul_self`; the rank equals the trace because `M₁` is idempotent (Mathlib's
+`LinearMap.IsProj.trace`, through `LinearMap.isProj_range_iff_isIdempotentElem`).
 
 ## A remark, not proved here (order G-10 §0 row 9)
 
@@ -52,6 +60,10 @@ is left for a later order.
 residual-maker or annihilator matrix in Mathlib. The block-matrix and Schur-complement lemmas used
 are present (`ColumnRowPartitioned`, `SchurComplement`, `NonsingularInverse`). Prior art: none; the
 route is derived here from the normal equations the library already has.
+Searched again for order LEAN-17 (its plan, section 5): `degrees of freedom`, `residual.*variance`,
+`unbiased.*variance` 0 hits; `IsIdempotentElem.*(rank|trace)` gives rank-one idempotents and
+`IsIdempotentElem.trace_eq_zero_iff` only, so Mathlib has no "rank equals trace" for an idempotent
+matrix.
 -/
 
 namespace ClassicalLean.Statistics
@@ -95,6 +107,30 @@ theorem residualMaker_mul_eq_zero {X₁ : Matrix ι κ₁ ℝ} (h : IsUnit (X₁
   unfold residualMaker
   have hls : leastSquares X₁ * X₁ = 1 := leastSquares_mul_self h
   rw [Matrix.sub_mul, Matrix.one_mul, Matrix.mul_assoc, hls, Matrix.mul_one, sub_self]
+
+/-- **The trace of the residual maker** is `n − p`: `n` observations less `p` parameters, when
+`X₁ᵀ X₁` is invertible. -/
+theorem trace_residualMaker {X₁ : Matrix ι κ₁ ℝ} (h : IsUnit (X₁ᵀ * X₁).det) :
+    (residualMaker X₁).trace = Fintype.card ι - Fintype.card κ₁ := by
+  rw [residualMaker, trace_sub, trace_one, trace_mul_comm, leastSquares_mul_self h, trace_one]
+
+/-- **The rank of the residual maker** is `n − p` when `X₁ᵀ X₁` is invertible: `M₁` is idempotent,
+so its rank is its trace (Mathlib's `LinearMap.IsProj.trace`). -/
+theorem rank_residualMaker {X₁ : Matrix ι κ₁ ℝ} (h : IsUnit (X₁ᵀ * X₁).det) :
+    (residualMaker X₁).rank = Fintype.card ι - Fintype.card κ₁ := by
+  set M := residualMaker X₁
+  have hid : IsIdempotentElem M.mulVecLin := by
+    rw [IsIdempotentElem, Module.End.mul_eq_comp, ← Matrix.mulVecLin_mul, residualMaker_mul_self]
+  have htr : ((M.rank : ℕ) : ℝ) = Fintype.card ι - Fintype.card κ₁ := by
+    rw [← trace_residualMaker h, Matrix.rank,
+      ← ((LinearMap.isProj_range_iff_isIdempotentElem _).mpr hid).trace]
+    exact Matrix.trace_toLin'_eq M
+  have hle : Fintype.card κ₁ ≤ Fintype.card ι := by
+    have : (0 : ℝ) ≤ Fintype.card ι - Fintype.card κ₁ := htr ▸ Nat.cast_nonneg _
+    exact_mod_cast sub_nonneg.mp this
+  have : ((M.rank : ℕ) : ℝ) = ((Fintype.card ι - Fintype.card κ₁ : ℕ) : ℝ) := by
+    rw [htr, Nat.cast_sub hle]
+  exact_mod_cast this
 
 omit [DecidableEq ι] in
 /-- If `[X₁ X₂]` has invertible Gram matrix, so has `X₁`. -/
