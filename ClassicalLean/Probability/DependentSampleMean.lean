@@ -29,7 +29,8 @@ outcome's conditional win probability given the past equal to the same `p`.
 The Azuma–Hoeffding inequality for conditionally sub-Gaussian increments
 (`ProbabilityTheory.measure_sum_ge_le_of_hasCondSubgaussianMGF`), and negation of sub-Gaussian
 variables. This module adds the two-sided form, the conditional Hoeffding lemma
-(via the conditional expectation kernel), and the plain win-rate statement.
+(via the conditional expectation kernel), a one-sided conditional Hoeffding bound for a conditional
+mean at least `g` (`condExp_exp_mul_sub_le`), and the plain win-rate statement.
 -/
 
 open MeasureTheory ProbabilityTheory Real Finset
@@ -117,6 +118,57 @@ theorem hasCondSubgaussianMGF_of_mem_Icc_of_condExp_eq_zero (hm : m ≤ m0) {X :
         with ω' h using h
     filter_upwards [hA, hB] with ω' hA' hB' t
     exact (hasSubgaussianMGF_of_mem_Icc_of_integral_eq_zero hX.aemeasurable hA' hB').mgf_le t
+
+/-- **One-sided conditional Hoeffding lemma.** A variable with values almost surely in `[a, b]`
+whose conditional expectation given `m` is almost surely at least `g`: for every `s ≥ 0`, the
+conditional expectation of `exp (s (g - X))` given `m` is almost surely at most
+`exp ((b - a)² s² / 8)`. Only the lower side of the conditional mean is assumed, so the two-sided
+`HasCondSubgaussianMGF` is not available; the proof reads both conditional expectations through the
+conditional expectation kernel and applies Hoeffding's lemma under almost every conditional
+distribution. For a trader: given the past, the shortfall of a bounded outcome below `g` has the
+same exponential-moment bound as for an independent outcome with mean at least `g`; this is the
+step that lets the independent-case count carry over to dependent returns. -/
+theorem condExp_exp_mul_sub_le (hm : m ≤ m0) {X : Ω → ℝ} {a b g s : ℝ} (hX : Measurable X)
+    (hb : ∀ᵐ ω ∂μ, X ω ∈ Set.Icc a b) (hg : ∀ᵐ ω ∂μ, g ≤ μ[X | m] ω) (hs : 0 ≤ s) :
+    μ[fun ω ↦ Real.exp (s * (g - X ω)) | m] ≤ᵐ[μ]
+      fun _ ↦ Real.exp ((b - a) ^ 2 * s ^ 2 / 8) := by
+  have hXint : Integrable X μ := Integrable.of_mem_Icc a b hX.aemeasurable hb
+  have hcomp : condExpKernel μ m ∘ₘ μ.trim hm = μ := condExpKernel_comp_trim hm
+  have hEint : Integrable (fun ω ↦ Real.exp (s * (g - X ω))) μ := by
+    have h := (integrable_exp_mul_of_mem_Icc (t := -s) hX.aemeasurable hb).const_mul
+      (Real.exp (s * g))
+    refine h.congr (Filter.Eventually.of_forall fun ω ↦ ?_)
+    dsimp only
+    rw [← Real.exp_add]; ring_nf
+  -- the bounds hold for almost every conditional distribution, read under `μ`
+  have hA : ∀ᵐ ω' ∂μ, ∀ᵐ ω ∂(condExpKernel μ m ω'), X ω ∈ Set.Icc a b := by
+    refine ae_of_ae_trim hm ?_
+    apply Measure.ae_ae_of_ae_comp; rw [hcomp]; exact hb
+  filter_upwards [hA, hg, condExp_ae_eq_integral_condExpKernel hm hXint,
+    condExp_ae_eq_integral_condExpKernel hm hEint] with ω hAω hgω hBω hCω
+  rw [hCω]
+  set κ := condExpKernel μ m ω
+  set p := ∫ y, X y ∂κ
+  have hgp : g ≤ p := hgω.trans_eq hBω
+  have hsub := (hasSubgaussianMGF_of_mem_Icc hX.aemeasurable hAω).mgf_le (-s)
+  have hsplit : (fun y ↦ Real.exp (s * (g - X y))) =
+      fun y ↦ Real.exp (s * (g - p)) * Real.exp (-s * (X y - p)) := by
+    funext y; rw [← Real.exp_add]; ring_nf
+  have hmgf : ∫ y, Real.exp (s * (g - X y)) ∂κ =
+      Real.exp (s * (g - p)) * mgf (fun y ↦ X y - p) κ (-s) := by
+    rw [hsplit, integral_const_mul]; rfl
+  have h1 : Real.exp (s * (g - p)) ≤ 1 :=
+    Real.exp_le_one_iff.mpr (mul_nonpos_of_nonneg_of_nonpos hs (by linarith))
+  have hc : (((‖b - a‖₊ / 2) ^ 2 : NNReal) : ℝ) * (-s) ^ 2 / 2 = (b - a) ^ 2 * s ^ 2 / 8 := by
+    push_cast
+    rw [Real.norm_eq_abs]
+    rw [div_pow, sq_abs]; ring
+  rw [hmgf]
+  calc Real.exp (s * (g - p)) * mgf (fun y ↦ X y - p) κ (-s)
+      ≤ 1 * mgf (fun y ↦ X y - p) κ (-s) :=
+        mul_le_mul_of_nonneg_right h1 mgf_nonneg
+    _ ≤ Real.exp ((b - a) ^ 2 * s ^ 2 / 8) := by
+        rw [one_mul, ← hc]; exact hsub
 
 end ConditionalHoeffding
 
