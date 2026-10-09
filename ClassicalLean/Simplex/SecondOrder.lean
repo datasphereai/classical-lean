@@ -31,7 +31,19 @@ has `softmax` and the first derivative of `logSumExp`. This file proves how they
   `(i, k)` entry of `categoricalCov (softmax x)`, the covariance matrix `diagonal p - p pᵀ` of a
   one-hot draw from `p` (`hasDerivAt_softmax_categoricalCov`). Since `hasDerivAt_logSumExp`
   says the first derivative of `logSumExp` is `softmax`, this is the reading of the covariance
-  as the second derivative of `logSumExp`; the composite is not stated as one theorem here.
+  as the second derivative of `logSumExp`.
+* **The Hessian of `logSumExp` is the covariance of `softmax`** (order LEAN-18; dated 2026-10-09;
+  until then the two bullets around this one said the composite was not stated as one theorem).
+  In the Fréchet sense, for every finite `ι` and with no hypothesis: the derivative of
+  `logSumExp` at `x` is `v ↦ ∑ k, softmax x k * v k` (`hasFDerivAt_logSumExp`), the derivative of
+  the map `softmax` at `x` is `categoricalCov (softmax x)` acting on vectors
+  (`hasFDerivAt_softmax`), and so the derivative at `x` of `y ↦ (fderiv logSumExp y) v` is
+  `w ↦ v ⬝ᵥ (categoricalCov (softmax x) *ᵥ w)` (`hasFDerivAt_fderiv_logSumExp_apply`): the second
+  derivative of `logSumExp` at `x` in the directions `v` and `w` is the covariance form at
+  `softmax x`, stated one direction `v` at a time (the second derivative as one bilinear map is
+  not stated here). Checked by finite differences at 200 random points before the proofs (order
+  LEAN-18, check C11). Mathlib at v4.34.0 has no
+  `softmax` or `logSumExp` (`softmax|logSumExp|log_sum_exp|logsumexp` 0 hits).
 * **The covariance inverts the metric.** `categoricalCov p` is positive semidefinite
   (`categoricalCov_posSemidef`), kills the constant vector when `∑ p = 1`
   (`categoricalCov_mulVec_one`), and on tangent vectors inverts the Fisher–Rao metric:
@@ -41,7 +53,7 @@ has `softmax` and the first derivative of `logSumExp`. This file proves how they
   `fisherRaoChart lam kap * categoricalCov ![lam, kap] = 1`
   (`fisherRaoChart_mul_categoricalCov`), where `categoricalCov ![lam, kap]` is the matrix
   `!![lam - lam ^ 2, -(lam * kap); -(lam * kap), kap - kap ^ 2]` (`categoricalCov_fin_two`).
-  Read with `hasDerivAt_logSumExp` (the composite is not stated here), the covariance at
+  By `hasFDerivAt_fderiv_logSumExp_apply`, the covariance at
   `softmax x` is the second derivative of `logSumExp`, the convex conjugate of the negative
   entropy by the Gibbs variational principle of `Simplex/LogSumExp`.
 
@@ -243,6 +255,94 @@ theorem hasDerivAt_softmax_categoricalCov (x : ι → ℝ) (i k : ι) :
   split_ifs with h
   · subst h; ring
   · ring
+
+omit [DecidableEq ι] in
+/-- **The derivative of `logSumExp` is `softmax`**, in the Fréchet sense: at `x`, moving all the
+logits at once by `v` changes `logSumExp` at the rate `∑ k, softmax x k * v k`. No hypothesis: for
+empty `ι` both sides are `0`. `hasDerivAt_logSumExp` (`Simplex/CrossEntropy`) is the partial
+derivative along one logit. -/
+theorem hasFDerivAt_logSumExp (x : ι → ℝ) :
+    HasFDerivAt logSumExp (∑ k, softmax x k • ContinuousLinearMap.proj k : (ι → ℝ) →L[ℝ] ℝ) x := by
+  rcases isEmpty_or_nonempty ι with hι | hι
+  · have hc : (logSumExp : (ι → ℝ) → ℝ) = fun _ ↦ Real.log 0 := by
+      funext y; simp [logSumExp]
+    rw [hc, Finset.univ_eq_empty, Finset.sum_empty]
+    exact hasFDerivAt_const _ _
+  · have hsum : HasFDerivAt (fun y : ι → ℝ ↦ ∑ k, Real.exp (y k))
+        (∑ k, Real.exp (x k) • ContinuousLinearMap.proj k : (ι → ℝ) →L[ℝ] ℝ) x := by
+      have := HasFDerivAt.sum (u := Finset.univ) (A := fun k (y : ι → ℝ) ↦ Real.exp (y k))
+        (fun k _ ↦ (hasFDerivAt_apply k x).exp)
+      convert this using 1
+      funext y; simp
+    have hpos : 0 < ∑ k, Real.exp (x k) :=
+      Finset.sum_pos (fun k _ ↦ Real.exp_pos _) Finset.univ_nonempty
+    change HasFDerivAt (fun y : ι → ℝ ↦ Real.log (∑ k, Real.exp (y k))) _ x
+    convert hsum.log hpos.ne' using 1
+    rw [Finset.smul_sum]
+    refine Finset.sum_congr rfl fun k _ ↦ ?_
+    rw [smul_smul, softmax, div_eq_inv_mul]
+
+/-- **The derivative of `softmax` is the covariance matrix.** As a map of all its logits at
+once, `softmax` has at `x` the Fréchet derivative `v ↦ categoricalCov (softmax x) *ᵥ v`. Each
+coordinate is `exp (y i - logSumExp y)` (`log_softmax`), differentiated with
+`hasFDerivAt_logSumExp`. -/
+theorem hasFDerivAt_softmax (x : ι → ℝ) :
+    HasFDerivAt softmax
+      (LinearMap.toContinuousLinearMap (categoricalCov (softmax x)).mulVecLin) x := by
+  have hι : ∀ i : ι, Nonempty ι := fun i ↦ ⟨i⟩
+  -- each coordinate is `exp (y i - logSumExp y)`
+  have hcoord : ∀ i : ι, HasFDerivAt (fun y ↦ softmax y i)
+      (softmax x i • (ContinuousLinearMap.proj i -
+        ∑ k, softmax x k • ContinuousLinearMap.proj k : (ι → ℝ) →L[ℝ] ℝ)) x := by
+    intro i
+    have := hι i
+    have heq : (fun y : ι → ℝ ↦ softmax y i) = fun y ↦ Real.exp (y i - logSumExp y) := by
+      funext y
+      rw [← log_softmax, Real.exp_log (softmax_pos y i)]
+    have h : HasFDerivAt (fun y : ι → ℝ ↦ Real.exp (y i - logSumExp y))
+        (Real.exp (x i - logSumExp x) • (ContinuousLinearMap.proj i -
+          ∑ k, softmax x k • ContinuousLinearMap.proj k : (ι → ℝ) →L[ℝ] ℝ)) x :=
+      ((hasFDerivAt_apply i x).sub (hasFDerivAt_logSumExp x)).exp
+    have hs : Real.exp (x i - logSumExp x) = softmax x i := by
+      rw [← log_softmax, Real.exp_log (softmax_pos x i)]
+    rw [hs] at h
+    rw [heq]
+    exact h
+  have hpi := hasFDerivAt_pi.mpr hcoord
+  convert hpi using 1
+  refine ContinuousLinearMap.ext fun v ↦ funext fun i ↦ ?_
+  simp only [LinearMap.coe_toContinuousLinearMap', Matrix.mulVecLin_apply,
+    ContinuousLinearMap.pi_apply, smul_apply, sub_apply, FunLike.coe_sum, Finset.sum_apply,
+    ContinuousLinearMap.proj_apply, smul_eq_mul]
+  simp only [Matrix.mulVec, dotProduct, categoricalCov_apply, sub_mul, Finset.sum_sub_distrib,
+    ite_mul, zero_mul, Finset.sum_ite_eq, Finset.mem_univ, ↓reduceIte, mul_sub, Finset.mul_sum]
+  congr 1
+  refine Finset.sum_congr rfl fun k _ ↦ ?_
+  ring
+
+/-- **The Hessian of `logSumExp` is the covariance of `softmax`.** For each direction `v`, the
+derivative at `x` of `y ↦ (fderiv logSumExp y) v` is `w ↦ v ⬝ᵥ (categoricalCov (softmax x) *ᵥ w)`,
+written as `∑ k, (v ᵥ* categoricalCov (softmax x)) k * w k`: the second derivative of `logSumExp`
+in the directions `v` and `w` is the covariance form of a one-hot draw from `softmax x`. -/
+theorem hasFDerivAt_fderiv_logSumExp_apply (x v : ι → ℝ) :
+    HasFDerivAt (fun y ↦ fderiv ℝ logSumExp y v)
+      (∑ k, (v ᵥ* categoricalCov (softmax x)) k • ContinuousLinearMap.proj k :
+        (ι → ℝ) →L[ℝ] ℝ) x := by
+  let ℓ : (ι → ℝ) →L[ℝ] ℝ := ∑ k, v k • ContinuousLinearMap.proj k
+  have hfun : (fun y ↦ fderiv ℝ logSumExp y v) = ℓ ∘ softmax := by
+    funext y
+    rw [(hasFDerivAt_logSumExp y).fderiv]
+    simp only [ℓ, Function.comp_apply, FunLike.coe_sum, Finset.sum_apply, smul_apply,
+      ContinuousLinearMap.proj_apply, smul_eq_mul, mul_comm]
+  rw [hfun]
+  convert ℓ.hasFDerivAt.comp x (hasFDerivAt_softmax x) using 1
+  apply ContinuousLinearMap.ext; intro w
+  simp only [ℓ, ContinuousLinearMap.coe_comp, Function.comp_apply, FunLike.coe_sum,
+    Finset.sum_apply, smul_apply, ContinuousLinearMap.proj_apply, smul_eq_mul,
+    LinearMap.coe_toContinuousLinearMap', Matrix.mulVecLin_apply]
+  have := Matrix.dotProduct_mulVec v (categoricalCov (softmax x)) w
+  simp only [dotProduct] at this
+  rw [← this]
 
 /-- **The covariance is positive semidefinite.** Its quadratic form is
 `∑ p x² - (∑ p x)²`, a variance when `∑ p = 1`, and nonnegative whenever `0 ≤ p` and `∑ p ≤ 1`
