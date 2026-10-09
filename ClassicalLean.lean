@@ -114,6 +114,7 @@ import ClassicalLean.Analysis.EulerMaclaurin
 import ClassicalLean.Algebra.MinMax
 import ClassicalLean.Analysis.LinearProgram
 import ClassicalLean.Statistics.NeymanPearson
+import ClassicalLean.InformationTheory.MethodOfTypes
 
 /-!
 # ClassicalLean
