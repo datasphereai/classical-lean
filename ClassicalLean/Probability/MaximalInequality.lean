@@ -8,9 +8,11 @@ import Mathlib.Probability.Martingale.OptionalStopping
 import Mathlib.Probability.Process.HittingTime
 import Mathlib.Analysis.SpecialFunctions.Pow.Real
 import Mathlib.Probability.BorelCantelli
+import Mathlib.Probability.CondVar
 
 /-!
-# Ville's inequality over finitely many steps, and the chance of falling to half
+# Ville's inequality over finitely many steps, the chance of falling to half, and Kolmogorov's
+# maximal inequality
 
 * `measureReal_exists_le_of_supermartingale` (Ville's inequality, finite horizon): for a
   nonnegative supermartingale `Z` and `c > 0`, the chance that `Z n ≥ c` for some `n ≤ N` is at
@@ -20,6 +22,30 @@ import Mathlib.Probability.BorelCantelli
   at most `2 ^ (-θ)`. For a fraction `x` of `W` staked on a bet that pays `b` times the stake with
   probability `p`, independently each time, `(w₀ / W n) ^ θ` is a supermartingale exactly when
   `p (1 + b x) ^ (-θ) + (1 - p) (1 - x) ^ (-θ) ≤ 1`.
+* `submartingale_sq`: the square of a square-integrable martingale is a submartingale.
+* `measureReal_exists_abs_ge_le` (Kolmogorov's maximal inequality, order LEAN-19): for a
+  square-integrable martingale `S` and `ε > 0`, the chance that `|S k| ≥ ε` for some `k ≤ n` is at
+  most `E[S n ²] / ε²`. It comes from Mathlib's `maximal_ineq` applied to `S ²`.
+
+## Hypotheses of Kolmogorov's inequality
+
+Measured in order LEAN-19's checks (check C23, exact enumeration of every path): the inequality
+holds on 300 martingales of up to 6 steps with two-valued steps of mean `0`, some scaled by a
+factor that depends on the past. Each of the three hypotheses below fails when dropped alone (the
+cases are worked out by hand, not computed by the checks; the first and the third were also proved
+false in Lean in review r23's scratch folder):
+
+* the martingale: `S 0 = 1`, `S 1 = 0` for sure, `n = 1`, `ε = 1`: the chance is `1`, the bound
+  `0`; the same path makes `S ²` fall, so `submartingale_sq` fails too.
+* square-integrability: on `[0, 1]` with length, `S k = x^(-1/2)` for every `k` (a martingale for
+  the filtration that is the whole σ-algebra at every step) has `S ²` not integrable, so Lean's
+  `E[S n ²]` is `0` while the chance at `ε = 1` is `1`; and `S ²` is then not a submartingale.
+* `0 < ε`: with `S = 0` on a probability space, at `ε = 0` the chance is `1` and Lean's bound
+  `0 / 0` is `0`; at `ε = -1` the chance is `1` and the bound `0`.
+
+Not needed in full: only `S n` must be square-integrable, since each earlier `S k` is a
+conditional mean of it (review r23 proved this form in a scratch file); the statement keeps the
+order's "square-integrable martingale". The finite measure is assumed because `maximal_ineq` is.
 
 ## What Mathlib provides
 
@@ -28,7 +54,13 @@ hitting times as stopping times (`MeasureTheory.Adapted.isStoppingTime_hittingBt
 `MeasureTheory.stoppedValue_hittingBtwn_mem`), integrability of stopped values, and Markov's
 inequality (`MeasureTheory.mul_meas_ge_le_integral_of_nonneg`). Doob's maximal inequality is
 there for submartingales (`MeasureTheory.maximal_ineq`); the supermartingale form proved here
-(Ville's inequality) is not.
+(Ville's inequality) is not. Searched in order LEAN-19 (`grep -rniE` over Mathlib v4.34.0):
+`kolmogorov.?s? (maximal|inequality)` 0, and no statement that the square of a martingale is a
+submartingale; Mathlib has the conditional variance (`Probability/CondVar.lean`), used here.
+It also has the conditional Jensen inequality
+(`MeasureTheory/Function/ConditionalExpectation/CondJensen.lean`, `ConvexOn.map_condExp_le_univ`,
+`Integrable.norm_condExp_rpow_le`), which this order's search missed and which gives another
+proof of `submartingale_sq` (review r23).
 -/
 
 open MeasureTheory Filter Finset
@@ -224,5 +256,61 @@ theorem measureReal_exists_le_half_of_iIndepFun {F : ℕ → Ω → ℝ} (hF : �
     _ = (2 : ℝ) ^ (-θ) := by rw [Real.rpow_neg two_pos.le, one_div]
 
 end Independent
+
+section Kolmogorov
+
+open ProbabilityTheory
+open scoped NNReal
+
+omit [SigmaFiniteFiltration μ 𝒢] in
+/-- **The square of a martingale is a submartingale.** If `S` is a martingale and each `S n` is
+square-integrable, then `S n ²` is a submartingale. Given the past, the mean of `S j ²` exceeds
+the square of the mean of `S j`, which is `S i ²`, by the conditional variance (Mathlib's
+`condVar_ae_eq_condExp_sq_sub_sq_condExp`), which is at least `0`. -/
+theorem submartingale_sq {S : ℕ → Ω → ℝ} (hS : Martingale S 𝒢 μ) (hS2 : ∀ n, MemLp (S n) 2 μ) :
+    Submartingale (fun n ω ↦ S n ω ^ 2) 𝒢 μ := by
+  refine ⟨fun n ↦ (hS.1 n).pow 2, fun i j hij ↦ ?_, fun n ↦ (hS2 n).integrable_sq⟩
+  have hv := condVar_ae_eq_condExp_sq_sub_sq_condExp (𝒢.le i) (hS2 j)
+  have hnn : 0 ≤ᵐ[μ] Var[S j; μ | 𝒢 i] := by
+    unfold condVar
+    exact condExp_nonneg (ae_of_all _ fun ω ↦ sq_nonneg ((S j - μ[S j | 𝒢 i]) ω))
+  have hm := hS.condExp_ae_eq hij
+  change (fun ω ↦ S i ω ^ 2) ≤ᵐ[μ] μ[S j ^ 2 | 𝒢 i]
+  filter_upwards [hv, hnn, hm] with ω hv hnn hm
+  simp only [Pi.sub_apply, Pi.pow_apply, Pi.zero_apply] at hv hnn hm ⊢
+  rw [hv, hm] at hnn
+  linarith
+
+omit [SigmaFiniteFiltration μ 𝒢] in
+/-- **Kolmogorov's maximal inequality.** For a martingale `S` with each `S n` square-integrable
+and `ε > 0`, the chance that `|S k| ≥ ε` for some `k ≤ n` is at most `E[S n ²] / ε²`. It is
+Doob's maximal inequality (Mathlib's `maximal_ineq`), used and not proved again, applied to the
+nonnegative submartingale `S ²` (`submartingale_sq`) at the level `ε²`. For sums of independent
+steps of mean `0` this gives the classical statement, once their partial sums are shown to be a
+martingale, which is not done here. -/
+theorem measureReal_exists_abs_ge_le {S : ℕ → Ω → ℝ} (hS : Martingale S 𝒢 μ)
+    (hS2 : ∀ n, MemLp (S n) 2 μ) {ε : ℝ} (hε : 0 < ε) (n : ℕ) :
+    μ.real {ω | ∃ k ≤ n, ε ≤ |S k ω|} ≤ (∫ ω, S n ω ^ 2 ∂μ) / ε ^ 2 := by
+  set e : ℝ≥0 := ⟨ε ^ 2, by positivity⟩
+  have he : (e : ℝ) = ε ^ 2 := rfl
+  have hmax := maximal_ineq (submartingale_sq hS hS2) (fun n ω ↦ sq_nonneg (S n ω)) (ε := e) n
+  have hset : {ω | ((e : ℝ)) ≤ (range (n + 1)).sup' nonempty_range_add_one
+      (fun k ↦ S k ω ^ 2)} = {ω | ∃ k ≤ n, ε ≤ |S k ω|} := by
+    ext ω
+    simp only [Set.mem_ofPred_eq, he, le_sup'_iff, mem_range, Nat.lt_succ_iff]
+    refine exists_congr fun k ↦ and_congr_right fun _ ↦ ?_
+    rw [sq_le_sq, abs_of_pos hε]
+  rw [hset] at hmax
+  set A := {ω | ∃ k ≤ n, ε ≤ |S k ω|}
+  have hint : ∫ ω in A, S n ω ^ 2 ∂μ ≤ ∫ ω, S n ω ^ 2 ∂μ :=
+    setIntegral_le_integral (hS2 n).integrable_sq (ae_of_all _ fun ω ↦ sq_nonneg _)
+  have h1 : (↑e * μ A).toReal ≤ ∫ ω in A, S n ω ^ 2 ∂μ := by
+    have := ENNReal.toReal_mono ENNReal.ofReal_ne_top hmax
+    rwa [ENNReal.toReal_ofReal (integral_nonneg fun ω ↦ sq_nonneg (S n ω))] at this
+  rw [ENNReal.toReal_mul, ENNReal.coe_toReal, he] at h1
+  rw [le_div_iff₀ (by positivity), mul_comm]
+  exact h1.trans hint
+
+end Kolmogorov
 
 end ClassicalLean.Probability.MaximalInequality
