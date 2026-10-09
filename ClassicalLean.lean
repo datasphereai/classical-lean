@@ -99,6 +99,7 @@ import ClassicalLean.Probability.TailBounds
 import ClassicalLean.Analysis.ConditionNumber
 import ClassicalLean.Analysis.LinearODE
 import ClassicalLean.Statistics.Sufficiency
+import ClassicalLean.Analysis.EulerMethod
 
 /-!
 # ClassicalLean
