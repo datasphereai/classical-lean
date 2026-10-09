@@ -104,6 +104,7 @@ import ClassicalLean.Analysis.JacobiIteration
 import ClassicalLean.Analysis.NewtonMethod
 import ClassicalLean.Probability.FiniteChain
 import ClassicalLean.InformationTheory.Fano
+import ClassicalLean.Algebra.HadamardInequality
 
 /-!
 # ClassicalLean
