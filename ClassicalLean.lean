@@ -109,6 +109,7 @@ import ClassicalLean.Probability.BinomialVariance
 import ClassicalLean.Probability.KalmanVariance
 import ClassicalLean.Probability.Extinction
 import ClassicalLean.Probability.GamblersRuin
+import ClassicalLean.Analysis.Simpson
 
 /-!
 # ClassicalLean
