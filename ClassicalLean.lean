@@ -93,6 +93,7 @@ import ClassicalLean.Analysis.GradientDescent
 import ClassicalLean.Analysis.ExponentialWeights
 import ClassicalLean.Statistics.RaoBlackwell
 import ClassicalLean.Statistics.Cochran
+import ClassicalLean.Probability.YuleWalker
 
 /-!
 # ClassicalLean
