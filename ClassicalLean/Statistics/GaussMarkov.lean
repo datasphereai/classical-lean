@@ -5,6 +5,7 @@ Authors: Dustin Watkins, Claude (Anthropic)
 -/
 
 import Mathlib.Analysis.Matrix.Order
+import Mathlib.Data.Matrix.ColumnRowPartitioned
 import Mathlib.LinearAlgebra.Matrix.Notation
 
 /-!
@@ -46,6 +47,35 @@ reading above is the standard one, not a theorem of this file.
   mean (`leastSquares_ones_two`), and the first observation alone is unbiased with twice the
   variance, so the inequality can be strict (`exists_mul_eq_one_dotProduct_inv_mulVec_lt`). That
   theorem is also the witness that the hypothesis class `C * X = 1` is inhabited.
+* One more observation (recursive least squares, order LEAN-22): `leastSquares_append_row` and
+  `inv_transpose_mul_appendRow`, below.
+
+## One more observation: recursive least squares
+
+Order LEAN-22 (item 40 of the plan) adds what happens when one more observation arrives: a row
+`x` of the design with response `y'`. The new design is `appendRow X x` (the rows of `X`, then
+`x`), and with `P = (Xᵀ X)⁻¹` and the old estimate `β = leastSquares X *ᵥ y`:
+
+* `transpose_mul_appendRow`: the new `Xᵀ X` is `Xᵀ X + x xᵀ`;
+* `inv_transpose_mul_appendRow`: its inverse is `P − P x xᵀ P / (1 + xᵀ P x)`. This is Mathlib's
+  Woodbury identity (`Matrix.add_mul_mul_inv_eq_sub`) with a `1 × 1` middle matrix, read for one
+  new row;
+* `leastSquares_append_row`: the new estimate is `β + P x (y' − xᵀ β) / (1 + xᵀ P x)`: the old
+  estimate, moved along `P x` in proportion to how far the new response is from its prediction
+  `xᵀ β`. No new matrix has to be inverted;
+* `one_add_dotProduct_inv_mulVec_pos`: the divisor `1 + xᵀ P x` is positive, for every `X`, and
+  `isUnit_det_transpose_mul_appendRow`: an invertible `Xᵀ X` stays invertible.
+
+The estimate update is proved from the normal equations: the new `Xᵀ X` times the proposed
+estimate is the new `Xᵀ y`. Measured in order LEAN-22's checks (check C40, exact arithmetic): both
+updates equal a direct computation on 300 random integer designs with `Xᵀ X` invertible. `Xᵀ X`
+invertible is needed (for the estimate also in Lean: `not_forall_leastSquares_append_row`):
+with one observation and one parameter, `X = (0)`, `x = 1`, `y = 0`, `y' = 1`, the new estimate is
+`1`, while the formula, with Mathlib's junk inverse `0`, gives `0`; the same case breaks the
+inverse update, and with `x = 0` the new matrix stays singular. The positivity of `1 + xᵀ P x`
+needs no hypothesis, because `P` is positive semidefinite even when it is the junk `0` (Mathlib's
+`Matrix.PosSemidef.inv`). Mathlib's matrix determinant lemma
+(`Matrix.det_add_replicateCol_mul_replicateRow`) gives the invertibility.
 
 ## Junk values, enumerated first
 
@@ -292,5 +322,131 @@ example : (!![1, 0] : Matrix (Fin 1) (Fin 2) ℝ) * (!![1; 1] : Matrix (Fin 2) (
   ext i j
   fin_cases i; fin_cases j
   simp [Matrix.mul_apply, Fin.sum_univ_two]
+
+/-! ### One more observation (order LEAN-22, item 40) -/
+
+/-- The design `X` with one more row `x` below its rows. -/
+def appendRow (X : Matrix ι κ ℝ) (x : κ → ℝ) : Matrix (ι ⊕ Unit) κ ℝ :=
+  fromRows X (replicateRow Unit x)
+
+omit [Fintype κ] [DecidableEq κ] in
+/-- One more row `x` adds `x xᵀ` to `Xᵀ X`. -/
+theorem transpose_mul_appendRow (X : Matrix ι κ ℝ) (x : κ → ℝ) :
+    (appendRow X x)ᵀ * appendRow X x = Xᵀ * X + vecMulVec x x := by
+  rw [appendRow, transpose_fromRows, fromCols_mul_fromRows, transpose_replicateRow,
+    vecMulVec_eq Unit]
+
+omit [Fintype κ] [DecidableEq κ] in
+/-- One more observation `(x, y')` adds `y' x` to `Xᵀ y`. -/
+theorem transpose_mulVec_appendRow (X : Matrix ι κ ℝ) (x : κ → ℝ) (y : ι → ℝ) (y' : ℝ) :
+    (appendRow X x)ᵀ *ᵥ Sum.elim y (fun _ ↦ y') = Xᵀ *ᵥ y + y' • x := by
+  rw [appendRow, transpose_fromRows, fromCols_mulVec_sumElim, transpose_replicateRow]
+  ext k
+  simp [mulVec, dotProduct, mul_comm]
+
+/-- `1 + xᵀ (Xᵀ X)⁻¹ x > 0` for every `X` and `x`: `(Xᵀ X)⁻¹` is positive semidefinite, also when
+it is Mathlib's junk value `0`. -/
+theorem one_add_dotProduct_inv_mulVec_pos (X : Matrix ι κ ℝ) (x : κ → ℝ) :
+    0 < 1 + x ⬝ᵥ ((Xᵀ * X)⁻¹ *ᵥ x) := by
+  have h : (Xᵀ * X).PosSemidef := by
+    simpa [conjTranspose_eq_transpose_of_trivial] using posSemidef_conjTranspose_mul_self X
+  have := h.inv.dotProduct_mulVec_nonneg x
+  simp only [star_trivial] at this
+  linarith
+
+omit [DecidableEq κ] in
+/-- The `1 × 1` matrix `xᵀ P x`. -/
+private theorem replicateRow_mul_mul_replicateCol (P : Matrix κ κ ℝ) (x : κ → ℝ) :
+    replicateRow Unit x * P * replicateCol Unit x = of fun _ _ ↦ x ⬝ᵥ (P *ᵥ x) := by
+  rw [Matrix.mul_assoc, ← replicateCol_mulVec, replicateRow_mul_replicateCol]
+
+/-- If `Xᵀ X` is invertible, so is `Xᵀ X` after one more row: by the matrix determinant lemma
+its determinant is `det (Xᵀ X) * (1 + xᵀ (Xᵀ X)⁻¹ x)`. -/
+theorem isUnit_det_transpose_mul_appendRow {X : Matrix ι κ ℝ} (hX : IsUnit (Xᵀ * X).det)
+    (x : κ → ℝ) : IsUnit ((appendRow X x)ᵀ * appendRow X x).det := by
+  rw [transpose_mul_appendRow, vecMulVec_eq Unit, det_add_replicateCol_mul_replicateRow hX,
+    det_unique (1 + _), replicateRow_mul_mul_replicateCol]
+  exact hX.mul (isUnit_iff_ne_zero.mpr (one_add_dotProduct_inv_mulVec_pos X x).ne')
+
+/-- **The inverse after one more row** (Sherman–Morrison form): with `P = (Xᵀ X)⁻¹`,
+`(X'ᵀ X')⁻¹ = P − P x xᵀ P / (1 + xᵀ P x)`. It is Mathlib's Woodbury identity
+`Matrix.add_mul_mul_inv_eq_sub` with a `1 × 1` middle matrix. -/
+theorem inv_transpose_mul_appendRow {X : Matrix ι κ ℝ} (hX : IsUnit (Xᵀ * X).det) (x : κ → ℝ) :
+    ((appendRow X x)ᵀ * appendRow X x)⁻¹ = (Xᵀ * X)⁻¹ -
+      (1 + x ⬝ᵥ ((Xᵀ * X)⁻¹ *ᵥ x))⁻¹ • vecMulVec ((Xᵀ * X)⁻¹ *ᵥ x) (x ᵥ* (Xᵀ * X)⁻¹) := by
+  set A := Xᵀ * X
+  have hd := (one_add_dotProduct_inv_mulVec_pos X x).ne'
+  have hAC : IsUnit ((1 : Matrix Unit Unit ℝ)⁻¹ +
+      replicateRow Unit x * A⁻¹ * replicateCol Unit x) := by
+    rw [inv_one, replicateRow_mul_mul_replicateCol, isUnit_iff_isUnit_det, det_unique]
+    exact isUnit_iff_ne_zero.mpr hd
+  have hW := add_mul_mul_inv_eq_sub A (replicateCol Unit x) 1 (replicateRow Unit x)
+    ((isUnit_iff_isUnit_det A).mpr hX) isUnit_one hAC
+  rw [Matrix.mul_one, ← vecMulVec_eq Unit] at hW
+  rw [transpose_mul_appendRow, hW, inv_one, replicateRow_mul_mul_replicateCol,
+    inv_subsingleton (1 + of _)]
+  have hdiag : (diagonal fun i : Unit ↦
+      Ring.inverse ((1 + of fun _ _ ↦ x ⬝ᵥ (A⁻¹ *ᵥ x) : Matrix Unit Unit ℝ) i i)) =
+      (1 + x ⬝ᵥ (A⁻¹ *ᵥ x))⁻¹ • (1 : Matrix Unit Unit ℝ) := by
+    rw [smul_one_eq_diagonal]
+    congr 1
+    funext i
+    simp [Ring.inverse_eq_inv']
+  rw [hdiag]
+  simp only [Matrix.mul_smul, Matrix.smul_mul, Matrix.mul_one]
+  rw [Matrix.mul_assoc A⁻¹, ← vecMulVec_eq Unit, mul_vecMulVec, vecMulVec_mul]
+
+/-- **Recursive least squares.** When `Xᵀ X` is invertible, one more observation `(x, y')`
+changes the least-squares estimate `β = leastSquares X *ᵥ y` to
+`β + P x (y' − xᵀ β) / (1 + xᵀ P x)`, with `P = (Xᵀ X)⁻¹`. -/
+theorem leastSquares_append_row {X : Matrix ι κ ℝ} (hX : IsUnit (Xᵀ * X).det) (x : κ → ℝ)
+    (y : ι → ℝ) (y' : ℝ) :
+    leastSquares (appendRow X x) *ᵥ Sum.elim y (fun _ ↦ y') =
+      leastSquares X *ᵥ y + ((y' - x ⬝ᵥ (leastSquares X *ᵥ y)) /
+        (1 + x ⬝ᵥ ((Xᵀ * X)⁻¹ *ᵥ x))) • ((Xᵀ * X)⁻¹ *ᵥ x) := by
+  set A := Xᵀ * X with hA
+  set β := leastSquares X *ᵥ y
+  set c := (y' - x ⬝ᵥ β) / (1 + x ⬝ᵥ (A⁻¹ *ᵥ x))
+  have hc : c * (1 + x ⬝ᵥ (A⁻¹ *ᵥ x)) = y' - x ⬝ᵥ β :=
+    div_mul_cancel₀ _ (one_add_dotProduct_inv_mulVec_pos X x).ne'
+  have hAβ : A *ᵥ β = Xᵀ *ᵥ y := by
+    simp only [β, leastSquares, ← hA, mulVec_mulVec, ← Matrix.mul_assoc, mul_nonsing_inv _ hX,
+      Matrix.one_mul]
+  have hAP : A *ᵥ (A⁻¹ *ᵥ x) = x := by
+    rw [mulVec_mulVec, mul_nonsing_inv _ hX, one_mulVec]
+  have key : ((appendRow X x)ᵀ * appendRow X x) *ᵥ (β + c • (A⁻¹ *ᵥ x)) =
+      (appendRow X x)ᵀ *ᵥ Sum.elim y (fun _ ↦ y') := by
+    rw [transpose_mul_appendRow, transpose_mulVec_appendRow, add_mulVec, mulVec_add, mulVec_add,
+      mulVec_smul, mulVec_smul, vecMulVec_mulVec, vecMulVec_mulVec, hAβ, hAP]
+    simp only [op_smul_eq_smul]
+    linear_combination (norm := module) hc • x
+  rw [leastSquares, ← mulVec_mulVec, ← key, mulVec_mulVec,
+    nonsing_inv_mul _ (isUnit_det_transpose_mul_appendRow hX x), one_mulVec]
+
+/-- The hypothesis of `leastSquares_append_row` is needed: with one observation and one parameter,
+`X = (0)`, `x = 1`, `y = 0` and `y' = 1`, the new estimate is `1`, while the formula, with
+Mathlib's junk inverse `0`, gives `0` (review r40 of order LEAN-22). -/
+theorem not_forall_leastSquares_append_row :
+    ¬ ∀ (X : Matrix (Fin 1) (Fin 1) ℝ) (x : Fin 1 → ℝ) (y : Fin 1 → ℝ) (y' : ℝ),
+      leastSquares (appendRow X x) *ᵥ Sum.elim y (fun _ ↦ y') =
+        leastSquares X *ᵥ y + ((y' - x ⬝ᵥ (leastSquares X *ᵥ y)) /
+          (1 + x ⬝ᵥ ((Xᵀ * X)⁻¹ *ᵥ x))) • ((Xᵀ * X)⁻¹ *ᵥ x) := by
+  intro h
+  have h1 := congrFun (h 0 (fun _ ↦ 1) 0 1) 0
+  have hz : leastSquares (0 : Matrix (Fin 1) (Fin 1) ℝ) = 0 := by
+    apply leastSquares_eq_zero_of_not_isUnit_det; simp
+  have hA : (appendRow (0 : Matrix (Fin 1) (Fin 1) ℝ) (fun _ ↦ 1))ᵀ *
+      appendRow (0 : Matrix (Fin 1) (Fin 1) ℝ) (fun _ ↦ 1) = 1 := by
+    rw [transpose_mul_appendRow]; ext i j; fin_cases i; fin_cases j; simp [vecMulVec]
+  rw [hz] at h1
+  simp only [leastSquares, hA, inv_one, Matrix.one_mul] at h1
+  simp only [mulVec, dotProduct, appendRow, fromRows, replicateRow, Fin.isValue, transpose_apply,
+    of_apply, Fintype.sum_sum_type, Finset.univ_unique, Fin.default_eq_zero, Sum.elim_inl,
+    Pi.zero_apply, mul_zero, Finset.sum_const_zero, PUnit.default_eq_unit, Sum.elim_inr, mul_one,
+    Finset.sum_singleton, zero_add, mulVec_zero, Matrix.zero_apply, sub_zero, transpose_zero,
+    inv_subsingleton, isUnit_iff_ne_zero, ne_eq, not_true_eq_false, not_false_eq_true,
+    Ring.inverse_non_unit, diagonal_zero, add_zero, one_ne_zero, div_self, zero_mulVec, smul_zero,
+    Pi.add_apply] at h1
+  exact one_ne_zero (show (1 : ℝ) = 0 from h1)
 
 end ClassicalLean.Statistics
