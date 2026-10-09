@@ -106,6 +106,7 @@ import ClassicalLean.Probability.FiniteChain
 import ClassicalLean.InformationTheory.Fano
 import ClassicalLean.Algebra.HadamardInequality
 import ClassicalLean.Probability.BinomialVariance
+import ClassicalLean.Probability.KalmanVariance
 
 /-!
 # ClassicalLean
