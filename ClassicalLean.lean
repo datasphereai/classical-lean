@@ -100,6 +100,7 @@ import ClassicalLean.Analysis.ConditionNumber
 import ClassicalLean.Analysis.LinearODE
 import ClassicalLean.Statistics.Sufficiency
 import ClassicalLean.Analysis.EulerMethod
+import ClassicalLean.Analysis.JacobiIteration
 
 /-!
 # ClassicalLean
