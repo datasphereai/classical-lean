@@ -98,6 +98,7 @@ import ClassicalLean.Probability.MovingAverage
 import ClassicalLean.Probability.TailBounds
 import ClassicalLean.Analysis.ConditionNumber
 import ClassicalLean.Analysis.LinearODE
+import ClassicalLean.Statistics.Sufficiency
 
 /-!
 # ClassicalLean
