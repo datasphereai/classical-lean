@@ -48,3 +48,15 @@ Do batch 4 of /opt/datasphere/lane/inbox/threads/staging/MATH-PLAN-library.md as
 8. Write the report at /opt/datasphere/lane/inbox/threads/staging/LEAN-20-report.md through ds_write_staging, comparing post_sha256 with your own hash. End it with the push line for me, not run. Then stop.
 
 I am still learning to read code and have adopted the habit of reading markdowns when I am uncertain, but I read your replies meticulously. Put everything I need in the reply, in plain language. When you need a decision from me, ask in one line with your recommended answer first.
+
+## Addendum, 2026-10-09 (during the work): item 61
+
+Dustin, in chat during the session, verbatim:
+
+The plan gained item 61 during this session: read row 61 of /opt/datasphere/lane/inbox/threads/staging/MATH-PLAN-library.md and add it to batch 4, after items 53 and 54. It proves the coin-flip head count is complete, so Lehmann–Scheffé has a real worked case; Basu in batch 8 will reuse it. The plan's hash is now a3006a18bb59a1228f69b5426beb12bb9ec9f9e79ba61c2bcf91563a14665216 (was 62001c8f…, the one your prompt gave); nothing else in batch 4 changed. Check Mathlib for an existing result first, as for every item. If the batch runs long, move items 30 and 31 to batch 5, not 61.
+
+Checked before this addendum was written: the plan's sha256 is a3006a18bb59a1228f69b5426beb12bb9ec9f9e79ba61c2bcf91563a14665216; rows 24 to 54 are byte-for-byte those copied above. Mathlib v4.34.0 has no completeness of a statistic, no binomial completeness and no least-variance estimator (session evidence `search61.out`); `Polynomial.eq_zero_of_infinite_isRoot` and `Nat.choose_pos` are present. Row 61, verbatim:
+
+| # | area | the result | Lean names | module | rests on | cost |
+|---|---|---|---|---|---|---|
+| 61 | 2 | Completeness worked example, so Lehmann–Scheffé holds in a case that is not trivial: for `n` independent coin flips with chance `θ` ranging over `(0, 1)`, the number of heads is complete (if `∑ k ≤ n, g k · C(n, k) · θ^k · (1 − θ)^(n − k) = 0` for every such `θ`, then `g k = 0` for every `k ≤ n`), so the sample mean is the one unbiased estimator of `θ` with least variance under every `θ`. Proof route: divide by `(1 − θ)^n` and put `r = θ / (1 − θ)`, which takes infinitely many values; the polynomial `∑ g k · C(n, k) · r^k` then has infinitely many roots, so it is zero, and since `C(n, k) > 0` each `g k` is zero. Basu's theorem (item 58) reuses it. | `isComplete_sum_bernoulli`, `sampleMean_isMinVariance` | ClassicalLean.Statistics.Sufficiency | items 53 and 54; Mathlib `Polynomial.eq_zero_of_infinite_isRoot`, `Nat.choose_pos`; re-check Mathlib for an existing binomial completeness result before building | S–M |

@@ -29,3 +29,9 @@ Mathlib re-checked before the records were written (`~/lean/lean20-checks/search
 the thirteen items is in Mathlib v4.34.0, so none is dropped. Item 30 is reduced to applying
 Mathlib's `hasDerivAt_exp_smul_const` and `ODE_solution_unique_univ`; items 50 to 54 use order
 LEAN-19's `integral_sq_condExp_sub_le` and `variance_condExp_le` and do not prove them again.
+
+Added during the work (Dustin, in chat): item 61, the completeness of the coin-flip head count and
+the sample mean as the least-variance unbiased estimator, in `ClassicalLean/Statistics/Sufficiency.lean`
+with items 50 to 54. The plan's sha256 is now
+a3006a18bb59a1228f69b5426beb12bb9ec9f9e79ba61c2bcf91563a14665216; rows 24 to 54 did not change.
+Mathlib re-checked for item 61 (`~/lean/lean20-checks/search61.out`): not present.
