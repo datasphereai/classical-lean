@@ -67,6 +67,7 @@ import ClassicalLean.Simplex.Temperature
 import ClassicalLean.Statistics.CramerRao
 import ClassicalLean.Statistics.FrischWaughLovell
 import ClassicalLean.Statistics.GaussMarkov
+import ClassicalLean.Statistics.ResidualVariance
 import ClassicalLean.Probability.RelativeEntropyGrowth
 import ClassicalLean.Analysis.MinimumQuadraticForm
 import ClassicalLean.Probability.FirstOrderRecursion
