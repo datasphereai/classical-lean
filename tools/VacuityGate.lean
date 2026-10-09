@@ -114,6 +114,12 @@ def scan : CommandElabM (Array Name) := do
 
 end VacuityGate
 
+-- Each theorem's test runs in its own `liftTermElabM`, which starts a fresh heartbeat count, so
+-- this is a per-theorem budget. Raised from the default 200000 in order LEAN-15 (round 43):
+-- testing `EffectiveSampleSize.variance_average_eq` (hypothesis `Var[X i; μ] = 1` against a
+-- conclusion that is also an equation of reals) takes 209673, measured by a probe that times the
+-- same test per theorem; the next largest are 102784 and 102765. The test itself is unchanged.
+set_option maxHeartbeats 400000 in
 run_cmd do
   let bad ← VacuityGate.scan
   if bad.isEmpty then
