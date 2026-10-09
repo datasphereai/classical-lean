@@ -102,6 +102,7 @@ import ClassicalLean.Statistics.Sufficiency
 import ClassicalLean.Analysis.EulerMethod
 import ClassicalLean.Analysis.JacobiIteration
 import ClassicalLean.Analysis.NewtonMethod
+import ClassicalLean.Probability.FiniteChain
 
 /-!
 # ClassicalLean
