@@ -89,6 +89,7 @@ import ClassicalLean.Analysis.UniversalMixture
 import ClassicalLean.Analysis.HermiteHadamard
 import ClassicalLean.Statistics.GeneralizedLeastSquares
 import ClassicalLean.InformationTheory.SourceCoding
+import ClassicalLean.Analysis.GradientDescent
 
 /-!
 # ClassicalLean
