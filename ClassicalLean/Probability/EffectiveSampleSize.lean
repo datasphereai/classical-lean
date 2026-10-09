@@ -5,6 +5,7 @@ Authors: Dustin Watkins, Claude (Anthropic)
 -/
 
 import Mathlib.Probability.Moments.Variance
+import ClassicalLean.Combinatorics.RecurrenceGeneratingFunction
 
 /-!
 # What an average of correlated quantities is worth
@@ -22,6 +23,21 @@ correlations that fall off geometrically), the double sum of `ρ ^ |i - j|` has 
 variance at most `σ² (1 + ρ) / ((1 - ρ) n)` (`variance_average_le_of_cov_eq`): the `n` quantities
 are worth at least `n (1 - ρ) / (1 + ρ)` independent ones. Here `|i - j|` is written
 `max i j - min i j`.
+
+The measure is only assumed finite (`IsFiniteMeasure`); every statement here holds for it with
+Mathlib's `variance` and `covariance`. Read as variances, they are about a probability measure, the
+case of use.
+
+**The combinatorics bridge.** `S n = ∑ i, j < n, ρ ^ |i - j|` satisfies the order-3 recurrence
+`S (n + 3) = (2 + ρ) S (n + 2) - (1 + 2 ρ) S (n + 1) + ρ S n` for every `ρ`, `ρ = 1` included
+(`isSolution_sumSumPow`, with the recurrence `sumSumPowRec ρ`), and its generating function is
+rational: `recDenom (sumSumPowRec ρ) · ∑ S n Xⁿ = X + ρ X²` (`recDenom_mul_mk_sumSumPow`, through
+`Combinatorics/RecurrenceGeneratingFunction`). The steps are `sum_sum_pow_succ` (a new row and a
+new column) and `sum_pow_sub_succ`. The generating-function proof sets
+`backward.isDefEq.respectTransparency false`, as that module explains; without it the coefficients
+at indices 1 and 2 are not closed (measured 2026-10-09). `recDenom (sumSumPowRec ρ)` is
+`(1 - X)² (1 - ρ X)`; that identity was checked in Lean by review r6 of order LEAN-16 and is not
+stated here.
 
 ## What Mathlib provides
 
@@ -44,7 +60,7 @@ open MeasureTheory ProbabilityTheory Finset
 
 namespace ClassicalLean.Probability.EffectiveSampleSize
 
-variable {Ω : Type*} {m0 : MeasurableSpace Ω} {μ : Measure Ω} [IsProbabilityMeasure μ]
+variable {Ω : Type*} {m0 : MeasurableSpace Ω} {μ : Measure Ω} [IsFiniteMeasure μ]
 
 /-- **The variance of a plain average** is the average of all the covariances:
 `Var ((X 1 + ⋯ + X k) / k) = (∑ i, ∑ j, cov (X i, X j)) / k²`. -/
@@ -60,7 +76,7 @@ noncomputable def meanCrossCov {ι : Type*} [Fintype ι] [DecidableEq ι] (X : �
   (∑ i, ∑ j ∈ univ.erase i, cov[X i, X j; μ]) /
     ((Fintype.card ι : ℝ) * ((Fintype.card ι : ℝ) - 1))
 
-omit [IsProbabilityMeasure μ] in
+omit [IsFiniteMeasure μ] in
 /-- The sum of the cross-covariances is `k (k - 1)` times their mean, also when `k ≤ 1`. -/
 lemma sum_cross_eq {ι : Type*} [Fintype ι] [DecidableEq ι] (X : ι → Ω → ℝ) :
     ∑ i, ∑ j ∈ univ.erase i, cov[X i, X j; μ] =
@@ -132,6 +148,32 @@ lemma sum_range_pow_sub {ρ : ℝ} (h1 : ρ ≠ 1) (n : ℕ) :
     field_simp
     ring
 
+/-- A new row and a new column: the double sum of `ρ ^ |i - j|` over `i, j < n + 1` is the sum over
+`i, j < n`, plus twice `∑ i < n, ρ ^ (n - i)`, plus `1`. -/
+lemma sum_sum_pow_succ (ρ : ℝ) (n : ℕ) :
+    ∑ i ∈ range (n + 1), ∑ j ∈ range (n + 1), ρ ^ (max i j - min i j) =
+      ∑ i ∈ range n, ∑ j ∈ range n, ρ ^ (max i j - min i j) +
+        2 * ∑ i ∈ range n, ρ ^ (n - i) + 1 := by
+  have hcol : ∑ i ∈ range n, ρ ^ (max i n - min i n) = ∑ i ∈ range n, ρ ^ (n - i) :=
+    sum_congr rfl fun i hi ↦ by
+      rw [max_eq_right (mem_range.mp hi).le, min_eq_left (mem_range.mp hi).le]
+  have hrow : ∑ j ∈ range n, ρ ^ (max n j - min n j) = ∑ j ∈ range n, ρ ^ (n - j) :=
+    sum_congr rfl fun j hj ↦ by
+      rw [max_eq_left (mem_range.mp hj).le, min_eq_right (mem_range.mp hj).le]
+  rw [sum_range_succ, sum_range_succ (fun j ↦ ρ ^ (max n j - min n j)), max_self, min_self,
+    Nat.sub_self, pow_zero, hrow]
+  simp_rw [sum_range_succ (fun j ↦ ρ ^ (max _ j - min _ j))]
+  rw [sum_add_distrib, hcol]
+  ring
+
+/-- `∑ i < n + 1, ρ ^ (n + 1 - i) = ρ ∑ i < n, ρ ^ (n - i) + ρ`. -/
+lemma sum_pow_sub_succ (ρ : ℝ) (n : ℕ) :
+    ∑ i ∈ range (n + 1), ρ ^ (n + 1 - i) = ρ * ∑ i ∈ range n, ρ ^ (n - i) + ρ := by
+  rw [sum_range_succ, Nat.add_sub_cancel_left, pow_one, mul_sum]
+  congr 1
+  refine sum_congr rfl fun i hi ↦ ?_
+  rw [Nat.sub_add_comm (mem_range.mp hi).le, pow_succ, mul_comm]
+
 /-- **The double sum of `ρ ^ |i - j|`** over `i, j < n`, in closed form, for `ρ ≠ 1`. -/
 theorem sum_sum_pow_eq {ρ : ℝ} (h1 : ρ ≠ 1) (n : ℕ) :
     ∑ i ∈ range n, ∑ j ∈ range n, ρ ^ (max i j - min i j) =
@@ -140,21 +182,7 @@ theorem sum_sum_pow_eq {ρ : ℝ} (h1 : ρ ≠ 1) (n : ℕ) :
   induction n with
   | zero => simp
   | succ n ih =>
-    have hcol : ∑ i ∈ range n, ρ ^ (max i n - min i n) = ∑ i ∈ range n, ρ ^ (n - i) :=
-      sum_congr rfl fun i hi ↦ by
-        rw [max_eq_right (mem_range.mp hi).le, min_eq_left (mem_range.mp hi).le]
-    have hrow : ∑ j ∈ range n, ρ ^ (max n j - min n j) = ∑ j ∈ range n, ρ ^ (n - j) :=
-      sum_congr rfl fun j hj ↦ by
-        rw [max_eq_left (mem_range.mp hj).le, min_eq_right (mem_range.mp hj).le]
-    have hstep : ∑ i ∈ range (n + 1), ∑ j ∈ range (n + 1), ρ ^ (max i j - min i j) =
-        ∑ i ∈ range n, ∑ j ∈ range n, ρ ^ (max i j - min i j) +
-          2 * ∑ i ∈ range n, ρ ^ (n - i) + 1 := by
-      rw [sum_range_succ, sum_range_succ (fun j ↦ ρ ^ (max n j - min n j)), max_self, min_self,
-        Nat.sub_self, pow_zero, hrow]
-      simp_rw [sum_range_succ (fun j ↦ ρ ^ (max _ j - min _ j))]
-      rw [sum_add_distrib, hcol]
-      ring
-    rw [hstep, ih, sum_range_pow_sub h1]
+    rw [sum_sum_pow_succ, ih, sum_range_pow_sub h1]
     push_cast
     field_simp
     ring
@@ -197,5 +225,52 @@ theorem variance_average_le_of_cov_eq {n : ℕ} {X : Fin n → Ω → ℝ} (hX :
           gcongr
       _ = σ ^ 2 * (1 + ρ) / ((1 - ρ) * n) := by
           field_simp
+
+/-! ### The combinatorics bridge: a recurrence and a rational generating function -/
+
+/-- The order-3 recurrence of `S n = ∑ i, j < n, ρ ^ |i - j|`. -/
+noncomputable def sumSumPowRec (ρ : ℝ) : LinearRecurrence ℝ := ⟨3, ![ρ, -(1 + 2 * ρ), 2 + ρ]⟩
+
+/-- The double sum `S n = ∑ i, j < n, ρ ^ |i - j|` satisfies the recurrence `sumSumPowRec ρ`:
+`S (n + 3) = ρ S n - (1 + 2 ρ) S (n + 1) + (2 + ρ) S (n + 2)`, for every `ρ`. -/
+theorem isSolution_sumSumPow (ρ : ℝ) :
+    (sumSumPowRec ρ).IsSolution fun n ↦ ∑ i ∈ range n, ∑ j ∈ range n, ρ ^ (max i j - min i j) := by
+  intro n
+  set S : ℕ → ℝ := fun n ↦ ∑ i ∈ range n, ∑ j ∈ range n, ρ ^ (max i j - min i j)
+  set T : ℕ → ℝ := fun n ↦ ∑ i ∈ range n, ρ ^ (n - i)
+  have hS : ∀ n, S (n + 1) = S n + 2 * T n + 1 := fun n ↦ sum_sum_pow_succ ρ n
+  have hT : ∀ n, T (n + 1) = ρ * T n + ρ := fun n ↦ sum_pow_sub_succ ρ n
+  have h1 := hS n
+  have h2 := hS (n + 1)
+  have h3 := hS (n + 2)
+  have t1 := hT n
+  have t2 := hT (n + 1)
+  change S (n + 3) = ∑ i : Fin 3, ![ρ, -(1 + 2 * ρ), 2 + ρ] i * S (n + i)
+  simp only [Fin.sum_univ_three, Fin.val_zero, Fin.val_one, Fin.val_two, add_zero,
+    Matrix.cons_val_zero, Matrix.cons_val_one, Matrix.cons_val_two, Matrix.head_cons,
+    Matrix.tail_cons]
+  linear_combination h3 + 2 * t2 - (1 + ρ) * h2 - 2 * t1 + ρ * h1
+
+set_option backward.isDefEq.respectTransparency false in
+/-- Its generating function: `(1 - X)² (1 - ρ X) ∑ S n Xⁿ = X + ρ X²`, the first factor being
+`recDenom (sumSumPowRec ρ)`. -/
+theorem recDenom_mul_mk_sumSumPow (ρ : ℝ) :
+    ClassicalLean.recDenom (sumSumPowRec ρ) *
+        PowerSeries.mk (fun n ↦ ∑ i ∈ range n, ∑ j ∈ range n, ρ ^ (max i j - min i j)) =
+      PowerSeries.X + PowerSeries.C ρ * PowerSeries.X ^ 2 := by
+  ext n
+  rcases lt_or_ge n 3 with hn | hn
+  · interval_cases n <;>
+      simp [ClassicalLean.recDenom, sumSumPowRec, Fin.sum_univ_three, sub_mul, add_mul, mul_assoc,
+        PowerSeries.coeff_X_pow_mul', PowerSeries.coeff_X, PowerSeries.coeff_X_pow,
+        sum_range_succ]
+    ring
+  · obtain ⟨k, rfl⟩ : ∃ k, n = k + 3 := ⟨n - 3, by omega⟩
+    have h := (ClassicalLean.isSolution_iff_coeff_recDenom_mul_mk (sumSumPowRec ρ) _).mp
+      (isSolution_sumSumPow ρ) k
+    have ho : (sumSumPowRec ρ).order = 3 := rfl
+    rw [ho] at h
+    rw [h]
+    simp [PowerSeries.coeff_X, PowerSeries.coeff_X_pow]
 
 end ClassicalLean.Probability.EffectiveSampleSize
