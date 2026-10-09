@@ -6,6 +6,7 @@ Authors: Dustin Watkins, Claude (Anthropic)
 
 import Mathlib.Probability.Moments.Variance
 import ClassicalLean.Combinatorics.RecurrenceGeneratingFunction
+import ClassicalLean.Probability.LinearPrediction
 
 /-!
 # What an average of correlated quantities is worth
@@ -24,9 +25,29 @@ variance at most `σ² (1 + ρ) / ((1 - ρ) n)` (`variance_average_le_of_cov_eq`
 are worth at least `n (1 - ρ) / (1 + ρ)` independent ones. Here `|i - j|` is written
 `max i j - min i j`.
 
-The measure is only assumed finite (`IsFiniteMeasure`); every statement here holds for it with
-Mathlib's `variance` and `covariance`. Read as variances, they are about a probability measure, the
-case of use.
+The measure is only assumed finite (`IsFiniteMeasure`); every statement here except the three of
+order LEAN-17 below holds for it with Mathlib's `variance` and `covariance`. Read as variances, they
+are about a probability measure, the case of use.
+
+**The average of a steady first-order recursion** (order LEAN-17). For
+`x (t + 1) = a x t + Z (t + 1)` (`Probability/LinearPrediction`), with the start and the noises
+jointly independent, noise variance `s²`, `a² ≠ 1` and the steady start `Var x 0 = s² / (1 - a²)`,
+the covariances are `s² / (1 - a²) · a ^ |i - j|` (`covariance_eq_of_steady`, from
+`LinearPrediction.covariance_add`), so the average of `n` values has the exact variance
+`variance_average_eq_of_steady` and, for `0 ≤ a < 1`, at most `s² / ((1 - a)² n)`
+(`variance_average_le_of_steady`, from `variance_average_le_of_cov_eq`). The bound is the one the
+long-run variance `s² / (1 - a)²` gives; the limit itself is not proved here. These three ask for a
+probability measure, as `LinearPrediction` does.
+
+* Needed, by order LEAN-17's checks (line C6): `0 ≤ a` (`a = -1/2`, `s = 1`, `n = 2`: `1/3`
+  against `2/9`), `a < 1` (`a = 1`, `n = 2`: `1/4` against Lean's `x / 0 = 0`), the steady start
+  (`a = 1/2`, `s = 1`, `Var x 0 = 100`, `n = 1`: `100` against `4`) and independent noise
+  (`a = 0`, `s = 1`, one noise shared by all steps, `n = 2`: `1` against `1/2`); for the exact
+  form, `a² ≠ 1` (`a = 1`, `n = 2`: `1/4` against `0`).
+* Not shown needed by a case: the measurability and the finite second moments of the noises
+  (`hZ`, `hZ2`) and the noise variance `s²` (`hvar`). The probability measure is not needed
+  either (review r6 of order LEAN-17: Mathlib's `iIndepFun.isProbabilityMeasure` derives it from
+  the independence); it is kept as `LinearPrediction` states it.
 
 **The combinatorics bridge.** `S n = ∑ i, j < n, ρ ^ |i - j|` satisfies the order-3 recurrence
 `S (n + 3) = (2 + ρ) S (n + 2) - (1 + 2 ρ) S (n + 1) + ρ S n` for every `ρ`, `ρ = 1` included
@@ -272,5 +293,83 @@ theorem recDenom_mul_mk_sumSumPow (ρ : ℝ) :
     rw [ho] at h
     rw [h]
     simp [PowerSeries.coeff_X, PowerSeries.coeff_X_pow]
+
+/-! ### The average of a steady first-order recursion (order LEAN-17) -/
+
+omit [IsFiniteMeasure μ] in
+/-- In a steady first-order recursion (noise variance `s²`, `a² ≠ 1`, steady start), the
+covariances are `s² / (1 - a²) · a ^ |i - j|`. -/
+theorem covariance_eq_of_steady [IsProbabilityMeasure μ] {Z x : ℕ → Ω → ℝ} {a s : ℝ}
+    (hZ : ∀ i, Measurable (Z i)) (hZ2 : ∀ i, MemLp (Z i) 2 μ) (hind : iIndepFun Z μ)
+    (hx0 : x 0 = Z 0) (hx : ∀ t ω, x (t + 1) ω = a * x t ω + Z (t + 1) ω) (ha : a ^ 2 ≠ 1)
+    (hvar : ∀ t, variance (Z (t + 1)) μ = s ^ 2) (hstart : variance (x 0) μ = s ^ 2 / (1 - a ^ 2))
+    (i j : ℕ) : cov[x i, x j; μ] = s ^ 2 / (1 - a ^ 2) * a ^ (max i j - min i j) := by
+  have hv := LinearPrediction.variance_eq_steady hZ hZ2 hind hx0 hx ha hvar hstart
+  rcases le_total i j with h | h
+  · obtain ⟨k, rfl⟩ := Nat.exists_eq_add_of_le h
+    rw [LinearPrediction.covariance_add hZ hZ2 hind hx0 hx, hv, max_eq_right h, min_eq_left h,
+      Nat.add_sub_cancel_left, mul_comm]
+  · obtain ⟨k, rfl⟩ := Nat.exists_eq_add_of_le h
+    rw [covariance_comm, LinearPrediction.covariance_add hZ hZ2 hind hx0 hx, hv, max_eq_left h,
+      min_eq_right h, Nat.add_sub_cancel_left, mul_comm]
+
+omit [IsFiniteMeasure μ] in
+/-- **The variance of the average of a steady first-order recursion, exactly.** For
+`x (t + 1) = a x t + Z (t + 1)` with the start and the noises jointly independent, noise variance
+`s²`, `a² ≠ 1` and the steady start `Var x 0 = s² / (1 - a²)`, the average of `x 0, …, x (n - 1)`
+has variance `s² / (1 - a²) · ∑ i, j < n, a ^ |i - j| / n²`. -/
+theorem variance_average_eq_of_steady [IsProbabilityMeasure μ] {Z x : ℕ → Ω → ℝ} {a s : ℝ}
+    (hZ : ∀ i, Measurable (Z i))
+    (hZ2 : ∀ i, MemLp (Z i) 2 μ) (hind : iIndepFun Z μ) (hx0 : x 0 = Z 0)
+    (hx : ∀ t ω, x (t + 1) ω = a * x t ω + Z (t + 1) ω) (ha : a ^ 2 ≠ 1)
+    (hvar : ∀ t, variance (Z (t + 1)) μ = s ^ 2) (hstart : variance (x 0) μ = s ^ 2 / (1 - a ^ 2))
+    (n : ℕ) :
+    Var[fun ω ↦ (∑ t ∈ range n, x t ω) / n; μ] =
+      s ^ 2 / (1 - a ^ 2) * (∑ i ∈ range n, ∑ j ∈ range n, a ^ (max i j - min i j)) / n ^ 2 := by
+  have hL2 : ∀ t, MemLp (x t) 2 μ := FirstOrderRecursion.memLp_two (e := fun t ↦ Z (t + 1)) hx
+    (hx0 ▸ hZ2 0) (fun t ↦ hZ2 (t + 1))
+  have h := variance_average (μ := μ) (X := fun i : Fin n ↦ x i) fun i ↦ hL2 i
+  rw [Fintype.card_fin] at h
+  have hf : (fun ω ↦ (∑ t ∈ range n, x t ω) / n) = fun ω ↦ (∑ i : Fin n, x i ω) / n := by
+    funext ω; rw [Fin.sum_univ_eq_sum_range (fun t ↦ x t ω) n]
+  rw [hf, h]
+  simp_rw [covariance_eq_of_steady hZ hZ2 hind hx0 hx ha hvar hstart, ← mul_sum]
+  congr 2
+  rw [Fin.sum_univ_eq_sum_range (fun i ↦ ∑ j : Fin n, a ^ (max i (j : ℕ) - min i (j : ℕ))) n]
+  exact sum_congr rfl fun i _ ↦ Fin.sum_univ_eq_sum_range (fun j ↦ a ^ (max i j - min i j)) n
+
+omit [IsFiniteMeasure μ] in
+/-- **The variance of the average of a steady first-order recursion, bounded.** Under the same
+hypotheses with `0 ≤ a < 1`, the average of `n` values has variance at most `s² / ((1 - a)² n)`:
+the `n` values are worth at least `n (1 - a)² / (1 - a²) = n (1 - a) / (1 + a)` independent
+ones. -/
+theorem variance_average_le_of_steady [IsProbabilityMeasure μ] {Z x : ℕ → Ω → ℝ} {a s : ℝ}
+    (hZ : ∀ i, Measurable (Z i))
+    (hZ2 : ∀ i, MemLp (Z i) 2 μ) (hind : iIndepFun Z μ) (hx0 : x 0 = Z 0)
+    (hx : ∀ t ω, x (t + 1) ω = a * x t ω + Z (t + 1) ω) (ha0 : 0 ≤ a) (ha1 : a < 1)
+    (hvar : ∀ t, variance (Z (t + 1)) μ = s ^ 2) (hstart : variance (x 0) μ = s ^ 2 / (1 - a ^ 2))
+    (n : ℕ) :
+    Var[fun ω ↦ (∑ t ∈ range n, x t ω) / n; μ] ≤ s ^ 2 / ((1 - a) ^ 2 * n) := by
+  have ha : a ^ 2 ≠ 1 := by nlinarith
+  have hpos : 0 < 1 - a ^ 2 := by nlinarith
+  have hL2 : ∀ t, MemLp (x t) 2 μ := FirstOrderRecursion.memLp_two (e := fun t ↦ Z (t + 1)) hx
+    (hx0 ▸ hZ2 0) (fun t ↦ hZ2 (t + 1))
+  set σ := Real.sqrt (s ^ 2 / (1 - a ^ 2))
+  have hσ : σ ^ 2 = s ^ 2 / (1 - a ^ 2) := Real.sq_sqrt (div_nonneg (sq_nonneg s) hpos.le)
+  have h := variance_average_le_of_cov_eq (μ := μ) (X := fun i : Fin n ↦ x i)
+    (fun i ↦ hL2 i) (σ := σ) ha0 ha1 fun i j ↦ by
+      rw [hσ]; exact covariance_eq_of_steady hZ hZ2 hind hx0 hx ha hvar hstart i j
+  have hf : (fun ω ↦ (∑ t ∈ range n, x t ω) / n) = fun ω ↦ (∑ i : Fin n, x i ω) / n := by
+    funext ω; rw [Fin.sum_univ_eq_sum_range (fun t ↦ x t ω) n]
+  rw [hf]
+  refine h.trans (le_of_eq ?_)
+  rw [hσ]
+  have h1 : (1 : ℝ) - a ≠ 0 := by linarith
+  have h2 : (1 : ℝ) + a ≠ 0 := by linarith
+  rcases Nat.eq_zero_or_pos n with rfl | hn
+  · simp
+  · have : (n : ℝ) ≠ 0 := by exact_mod_cast hn.ne'
+    field_simp
+    ring
 
 end ClassicalLean.Probability.EffectiveSampleSize
