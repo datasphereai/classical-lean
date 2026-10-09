@@ -5,6 +5,7 @@ Authors: Dustin Watkins, Claude (Anthropic)
 -/
 
 import Mathlib.MeasureTheory.Integral.Bochner.Set
+import Mathlib.Probability.Independence.Integration
 
 /-!
 # Many tests at once from e-values, under any dependence
@@ -32,10 +33,22 @@ is needed for the exact count, because `m / (q · 0) = 0` in Lean: without it, `
 
 `eNumRejQ` computes `eNumRej` over `ℚ`; `cast_eNumRejQ` says the two agree.
 
+Pooling e-values. `integral_average_le_one`: the average of e-values is an e-value, whatever their
+dependence. `integral_prod_le_one_of_iIndepFun`: the product of mutually independent nonnegative
+e-values is an e-value, and `integrable_prod_of_iIndepFun` makes the product integrable. E-values
+computed from overlapping data need not be independent; without a proof of independence, only the
+average applies.
+Independence is needed for the product: a variable taking `0` or `2` with chance `1/2` each, used
+twice, has product mean `2`; nonnegativity is needed too: the constants `-2` and `-2` have product
+`4`. E-values taken one after another (adapted, nonnegative, bounded above, each with conditional
+mean at most `1` given the past) already multiply into `NoEdgeWealth.supermartingale_wealth`:
+write each as `1 + 1 · (E - 1)`, with `c = 1`.
+
 ## What Mathlib provides
 
 `Nat.findGreatest` and its lemmas, `integral_mono_of_nonneg`, `integral_finsetSum`,
-`integrable_finsetSum`. Mathlib has no multiple-testing procedure.
+`integrable_finsetSum`, `iIndepFun.integral_fun_prod_eq_prod_integral`, `IndepFun.integrable_mul`
+and `iIndepFun.indepFun_finsetProd_of_notMem`. Mathlib has no multiple-testing procedure.
 -/
 
 open Finset MeasureTheory
@@ -203,5 +216,58 @@ theorem cast_eNumRejQ (q : ℚ) (e : ι → ℚ) :
   · exact (hP _).mpr (Nat.findGreatest_spec
       (P := fun k ↦ k ≤ countGE (fun i ↦ (e i : ℝ)) (Fintype.card ι / ((q : ℝ) * k)))
       (Nat.zero_le _) (Nat.zero_le _))
+
+/-! ### Pooling e-values -/
+
+section pooling
+
+open ProbabilityTheory
+
+variable {Ω : Type*} {m0 : MeasurableSpace Ω} {μ : Measure Ω}
+
+/-- The average of e-values is an e-value, whatever their dependence: integrable, each with mean at
+most `1`, so their average has mean at most `1`. -/
+theorem integral_average_le_one {ι : Type*} [Fintype ι] {E : ι → Ω → ℝ}
+    (hint : ∀ i, Integrable (E i) μ) (hle : ∀ i, ∫ ω, E i ω ∂μ ≤ 1) :
+    ∫ ω, (∑ i, E i ω) / Fintype.card ι ∂μ ≤ 1 := by
+  rw [integral_div, integral_finsetSum _ fun i _ ↦ hint i]
+  rcases Nat.eq_zero_or_pos (Fintype.card ι) with hk | hk
+  · simp [hk]
+  · have hkpos : (0 : ℝ) < Fintype.card ι := Nat.cast_pos.mpr hk
+    rw [div_le_one hkpos]
+    calc ∑ i, ∫ ω, E i ω ∂μ ≤ ∑ _i : ι, (1 : ℝ) := sum_le_sum fun i _ ↦ hle i
+      _ = Fintype.card ι := by simp
+
+/-- The product of independent integrable functions is integrable. -/
+theorem integrable_prod_of_iIndepFun {ι : Type*} [Fintype ι] {E : ι → Ω → ℝ}
+    (hind : iIndepFun E μ) (hm : ∀ i, Measurable (E i)) (hint : ∀ i, Integrable (E i) μ) :
+    Integrable (fun ω ↦ ∏ i, E i ω) μ := by
+  have := hind.isProbabilityMeasure
+  classical
+  have key : ∀ s : Finset ι, Integrable (fun ω ↦ ∏ i ∈ s, E i ω) μ := by
+    intro s
+    induction s using Finset.induction_on with
+    | empty => simp
+    | insert a s ha ih =>
+      have hindep := hind.indepFun_finsetProd_of_notMem hm ha
+      have ih' : Integrable (∏ j ∈ s, E j) μ :=
+        ih.congr (Filter.Eventually.of_forall fun ω ↦ (Finset.prod_apply ω s E).symm)
+      have h := hindep.integrable_mul ih' (hint a)
+      refine h.congr (Filter.Eventually.of_forall fun ω ↦ ?_)
+      simp [Finset.prod_insert ha, Finset.prod_apply, mul_comm]
+  exact key univ
+
+/-- The product of independent nonnegative e-values is an e-value: its integral is at most `1`.
+With each `E i` integrable, the product is integrable (`integrable_prod_of_iIndepFun`) and this is
+its mean; integrability is not assumed here, and Lean's integral of a non-integrable function is
+`0`. -/
+theorem integral_prod_le_one_of_iIndepFun {ι : Type*} [Fintype ι] {E : ι → Ω → ℝ}
+    (hind : iIndepFun E μ) (hm : ∀ i, Measurable (E i)) (h0 : ∀ i ω, 0 ≤ E i ω)
+    (hle : ∀ i, ∫ ω, E i ω ∂μ ≤ 1) :
+    ∫ ω, ∏ i, E i ω ∂μ ≤ 1 := by
+  rw [hind.integral_fun_prod_eq_prod_integral fun i ↦ (hm i).aestronglyMeasurable]
+  exact prod_le_one₀ (fun i _ ↦ integral_nonneg (h0 i)) fun i _ ↦ hle i
+
+end pooling
 
 end ClassicalLean.Probability.EValueStepUp
