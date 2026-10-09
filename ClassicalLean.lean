@@ -83,6 +83,7 @@ import ClassicalLean.InformationTheory.SignalGrowth
 import ClassicalLean.Analysis.RoundingError
 import ClassicalLean.Probability.EdgeGrowth
 import ClassicalLean.Probability.ScoreLookahead
+import ClassicalLean.Probability.EffectiveSampleSize
 
 /-!
 # ClassicalLean

@@ -514,6 +514,35 @@ is `usedBy=1`); the new `Statistics/FrischWaughLovell` (round 30) uses `Statisti
 tree: 52 modules, 1782 constants, 85 edges; `pairs.py` 97 pairs (90 after J2); `DupCheck` 5 `TWIN`,
 0 `SWAP`.
 
+### 1.16 What correlated quantities are worth (order LEAN-15, round 43)
+
+`Probability/EffectiveSampleSize` (new) proves the variance of a plain average as the average of all
+covariances, Kish's design effect for unit variances, and the bound for lag correlations
+`ρ ^ |i - j|`. It imports only Mathlib and no module uses it yet, so it is an island by §1.15's
+measure until a consumer lands (measured 2026-10-09 UTC: `grep -rln EffectiveSampleSize
+--include=*.lean ClassicalLean ClassicalLean.lean` lists only the module and the root file). The
+declaration graph of §1.15 was not re-run, so its last count, two islands (2026-09-25), is not
+updated here.
+
+- **The program's design effect.** LEAN-8's program uses `n / (1 + (m - 1) ρ)` without proof
+  (measured 2026-10-09 UTC: `~/trading/paper/paper/many.py`, docstring line 12, "Kish design effect
+  n / (1 + (m - 1) rho+)"). `variance_average_eq` proves the identity behind it: with unit
+  variances the average of `k` quantities has variance `(1 + (k - 1) r) / k`, `r` the mean
+  cross-covariance. The program adds two assumptions the theorem does not make: equal variances,
+  and that trades which do not overlap are uncorrelated, which makes `r = (m - 1) ρ / (n - 1)`;
+  and it uses one pooled correlation, floored at 0, for the mean correlation of overlapping pairs.
+- **A bridge to combinatorics, derived by hand and checked exactly, not proved.** The double sum
+  `S(n) = ∑ i < n, ∑ j < n, ρ ^ |i - j|` of `sum_sum_pow_eq` satisfies
+  `S(n + 3) = (2 + ρ) S(n + 2) - (1 + 2ρ) S(n + 1) + ρ S(n)` for every `ρ`, `ρ = 1` included, so
+  `Combinatorics/RecurrenceGeneratingFunction`'s `isSolution_iff_coeff_recDenom_mul_mk` and
+  `exists_poly_mk_eq` would give it the generating function `(x + ρ x²) / ((1 - x)² (1 - ρ x))`:
+  a `LinearRecurrence ℝ` of order 3 with `coeffs = ![ρ, -(1 + 2ρ), 2 + ρ]` (`coeffs i` multiplies
+  `u (n + i)`), `recDenom` `(1 - X)² (1 - ρ X)`, numerator `X + ρ X²` from `S 0, S 1, S 2`. Measured:
+  order LEAN-15's check script, output line `C4 P6b recurrence: OK | order-3 recurrence, initial
+  values and the generating function's coefficients all exact` (eight values of `ρ`, rerun
+  2026-10-09, output identical to the lane copy). Proving the recurrence in Lean is not in that
+  order.
+
 ## 2. Categories to add
 
 Tiered by how much work they do inside the system that already exists, not by how interesting
