@@ -92,6 +92,7 @@ import ClassicalLean.InformationTheory.SourceCoding
 import ClassicalLean.Analysis.GradientDescent
 import ClassicalLean.Analysis.ExponentialWeights
 import ClassicalLean.Statistics.RaoBlackwell
+import ClassicalLean.Statistics.Cochran
 
 /-!
 # ClassicalLean
