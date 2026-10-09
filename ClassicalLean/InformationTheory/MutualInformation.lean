@@ -26,6 +26,17 @@ definition is added without a use.
   a negative entry of `K` (`P = [[3/4, 3/4], [0, 1/4]]`, `K = [[-1, 2], [1, 0]]`:
   `-0.262 > -0.824`), and rows of `K` not summing to `1` (`P = [[1/2, 1/2], [0, 1/2]]`,
   `K = [[0, 0], [0, 1]]`: `0 > -0.347`).
+* `condEntropy P` — the conditional entropy `H(Y | X)` of the second coordinate given the first,
+  `-∑ P (a, b) log (P (a, b) / ∑ b', P (a, b'))` (order LEAN-18).
+  It is `-relEntropy P` against the row totals, by definition.
+  `condEntropy_eq_sum_mul_shannonEntropy` writes it as the sum over rows of the row total times
+  the entropy of that row scaled to sum to `1` (an average of the rows' entropies when `P` is a
+  probability vector), for every `P`, with no hypothesis.
+* `shannonEntropy_eq_add_condEntropy` — the chain rule, `H(X, Y) = H(X) + H(Y | X)`, for every
+  nonnegative `P`, normalised or not. Nonnegativity cannot simply be dropped: `P = [[2, -1, -1]]`
+  has row total `0`, and gives `H(P) = -1.386` against `H(X) + H(Y | X) = 0` (order LEAN-18,
+  check C9). A row of total `0` that is not all zeros is what breaks it; the identity also holds
+  for signed `P` without such a row, which is not stated here.
 
 No support hypothesis appears: for `P ≥ 0`, `P (a, b)` is at most each of its marginals, so the
 product of the marginals vanishes only where `P` does, and the junk cell of `relEntropy` never
@@ -217,5 +228,48 @@ theorem mutualInfo_markov_le {γ : Type*} [Fintype γ] {P : α × β → ℝ} (h
           simp only [hQ]; ring
     _ ≤ relEntropy P Q := hdpi
     _ = mutualInfo P := rfl
+
+/-- The **conditional entropy** `H(Y | X)` of a joint weight vector `P` on `α × β`: the second
+coordinate given the first, `-∑ P (a, b) log (P (a, b) / ∑ b', P (a, b'))`. Each term divides by
+the total of its row, which is the chance of `X = a` when `P` sums to `1`. By definition it is
+`-relEntropy P` against the vector `(a, b) ↦ ∑ b', P (a, b')`. -/
+noncomputable def condEntropy (P : α × β → ℝ) : ℝ :=
+  -∑ ab, P ab * Real.log (P ab / ∑ b, P (ab.1, b))
+
+/-- **Conditional entropy row by row.** `H(Y | X)` is the sum over rows of the row total times the
+entropy of that row scaled to sum to `1`; when `P` is a probability vector this is the average of
+the rows' entropies, weighted by the chance of each row. No hypothesis: a row with total `0`
+contributes `0` on both sides. -/
+theorem condEntropy_eq_sum_mul_shannonEntropy (P : α × β → ℝ) :
+    condEntropy P = ∑ a, (∑ b, P (a, b)) * shannonEntropy (fun b ↦ P (a, b) / ∑ b', P (a, b')) := by
+  rw [condEntropy, Fintype.sum_prod_type, ← Finset.sum_neg_distrib]
+  refine Finset.sum_congr rfl fun a _ ↦ ?_
+  rw [shannonEntropy, mul_neg, Finset.mul_sum]
+  congr 1
+  refine Finset.sum_congr rfl fun b _ ↦ ?_
+  rcases eq_or_ne (∑ b', P (a, b')) 0 with h | h
+  · simp [h]
+  · rw [← mul_assoc, mul_div_cancel₀ _ h]
+
+/-- **The chain rule for entropy**: `H(X, Y) = H(X) + H(Y | X)` for every nonnegative `P`,
+normalised or not. Term by term, `log P (a, b)` is the log of the row total plus the log of the
+share of the row; where `P (a, b) > 0` the row total is positive too. -/
+theorem shannonEntropy_eq_add_condEntropy {P : α × β → ℝ} (hP : ∀ ab, 0 ≤ P ab) :
+    shannonEntropy P = shannonEntropy (fun a ↦ ∑ b, P (a, b)) + condEntropy P := by
+  have hterm : ∀ a b, P (a, b) * Real.log (P (a, b)) = P (a, b) * Real.log (∑ b', P (a, b'))
+      + P (a, b) * Real.log (P (a, b) / ∑ b', P (a, b')) := by
+    intro a b
+    rcases (hP (a, b)).eq_or_lt with h0 | hpos
+    · rw [← h0]; simp
+    · have hm : 0 < ∑ b', P (a, b') :=
+        hpos.trans_le (Finset.single_le_sum (fun b' _ ↦ hP (a, b')) (Finset.mem_univ b))
+      rw [Real.log_div hpos.ne' hm.ne']
+      ring
+  have e1 : ∑ a, (∑ b, P (a, b)) * Real.log (∑ b, P (a, b))
+      = ∑ a, ∑ b, P (a, b) * Real.log (∑ b', P (a, b')) :=
+    Finset.sum_congr rfl fun a _ ↦ Finset.sum_mul _ _ _
+  rw [shannonEntropy, shannonEntropy, condEntropy, Fintype.sum_prod_type, Fintype.sum_prod_type, e1]
+  simp_rw [hterm, Finset.sum_add_distrib]
+  ring
 
 end ClassicalLean.Simplex
