@@ -116,6 +116,7 @@ import ClassicalLean.Analysis.LinearProgram
 import ClassicalLean.Statistics.NeymanPearson
 import ClassicalLean.InformationTheory.MethodOfTypes
 import ClassicalLean.Probability.GlivenkoCantelli
+import ClassicalLean.Statistics.JamesStein
 
 /-!
 # ClassicalLean
