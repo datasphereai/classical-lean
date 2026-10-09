@@ -18,6 +18,9 @@ matrix of covariances `cov[X i, X j]`, and `mix X w = ∑ i, w i · X i` is the 
 * `variance_mix`: the variance of a mix is `w ⬝ᵥ S *ᵥ w`.
 * `covMatrix_apply_eq_covarianceBilin`: the entries are Mathlib's `covarianceBilin` of the joint
   law on the coordinate vectors.
+* `integral_dotProduct_mulVec`: the mean of a quadratic form, `E[Xᵀ A X] = trace (A S) + mᵀ A m`
+  with `m` the mean (order LEAN-17), on a probability space. A finite measure is not enough: for
+  `μ` twice a point mass, `X = 1` and `A = [[1]]`, the left side is `2` and the right side `6`.
 * `posSemidef_covMatrix`: `S` is positive semidefinite (Mathlib's form of this is
   `isPosSemidef_covarianceBilin`).
 * `posDef_covMatrix_iff`: `S` is positive definite exactly when no nonzero mix is almost surely
@@ -104,6 +107,27 @@ theorem posDef_covMatrix_iff [IsProbabilityMeasure μ] (hX : ∀ i, MemLp (X i) 
     rcases (variance_nonneg (mix X w) μ).lt_or_eq with hlt | heq
     · exact hlt
     · exact absurd ⟨_, ae_eq_integral_of_variance_eq_zero (memLp_mix hX w) heq.symm⟩ (h w hw)
+
+/-- **The mean of a quadratic form.** For a random vector `X` on a probability space, with finite
+second moments, mean `m` and covariance matrix `S`, `E[Xᵀ A X] = trace (A S) + mᵀ A m`, for every
+matrix `A`. -/
+theorem integral_dotProduct_mulVec [IsProbabilityMeasure μ]
+    (hX : ∀ i, MemLp (X i) 2 μ) (A : Matrix ι ι ℝ) :
+    ∫ ω, (fun i ↦ X i ω) ⬝ᵥ (A *ᵥ fun i ↦ X i ω) ∂μ =
+      (A * covMatrix X μ).trace + (fun i ↦ μ[X i]) ⬝ᵥ (A *ᵥ fun i ↦ μ[X i]) := by
+  have hint : ∀ i j, Integrable (fun ω ↦ X i ω * (A i j * X j ω)) μ := fun i j ↦ by
+    have := ((hX j).const_mul (A i j)).integrable_mul (hX i)
+    exact this.congr (ae_of_all _ fun ω ↦ by simp only [Pi.mul_apply]; ring)
+  simp only [dotProduct, mulVec, Finset.mul_sum]
+  rw [integral_finsetSum _ fun i _ ↦ integrable_finsetSum _ fun j _ ↦ hint i j]
+  simp_rw [integral_finsetSum _ fun j _ ↦ hint _ j]
+  simp only [Matrix.trace, Matrix.diag, Matrix.mul_apply, covMatrix, ← Finset.sum_add_distrib]
+  refine Finset.sum_congr rfl fun i _ ↦ Finset.sum_congr rfl fun j _ ↦ ?_
+  have h := covariance_eq_sub (hX j) (hX i)
+  have e : (fun ω ↦ X i ω * (A i j * X j ω)) = fun ω ↦ A i j * (X j * X i) ω := by
+    ext ω; simp only [Pi.mul_apply]; ring
+  rw [e, integral_const_mul, h]
+  ring
 
 section Directions
 
