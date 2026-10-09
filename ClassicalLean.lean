@@ -90,6 +90,7 @@ import ClassicalLean.Analysis.HermiteHadamard
 import ClassicalLean.Statistics.GeneralizedLeastSquares
 import ClassicalLean.InformationTheory.SourceCoding
 import ClassicalLean.Analysis.GradientDescent
+import ClassicalLean.Analysis.ExponentialWeights
 
 /-!
 # ClassicalLean
