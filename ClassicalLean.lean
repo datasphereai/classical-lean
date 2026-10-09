@@ -87,6 +87,7 @@ import ClassicalLean.Probability.ScoreLookahead
 import ClassicalLean.Probability.EffectiveSampleSize
 import ClassicalLean.Analysis.UniversalMixture
 import ClassicalLean.Analysis.HermiteHadamard
+import ClassicalLean.Statistics.GeneralizedLeastSquares
 import ClassicalLean.InformationTheory.SourceCoding
 
 /-!
