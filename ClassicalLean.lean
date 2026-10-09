@@ -97,6 +97,7 @@ import ClassicalLean.Probability.YuleWalker
 import ClassicalLean.Probability.MovingAverage
 import ClassicalLean.Probability.TailBounds
 import ClassicalLean.Analysis.ConditionNumber
+import ClassicalLean.Analysis.LinearODE
 
 /-!
 # ClassicalLean
