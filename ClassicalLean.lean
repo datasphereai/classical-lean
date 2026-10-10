@@ -116,6 +116,7 @@ import ClassicalLean.Analysis.LinearProgram
 import ClassicalLean.Analysis.FiniteGame
 import ClassicalLean.Combinatorics.Tremaux
 import ClassicalLean.Combinatorics.ArbitrageCycle
+import ClassicalLean.Probability.InspectionParadox
 import ClassicalLean.Statistics.NeymanPearson
 import ClassicalLean.InformationTheory.MethodOfTypes
 import ClassicalLean.Probability.GlivenkoCantelli
