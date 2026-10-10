@@ -118,6 +118,7 @@ import ClassicalLean.Combinatorics.Tremaux
 import ClassicalLean.Combinatorics.ArbitrageCycle
 import ClassicalLean.Probability.InspectionParadox
 import ClassicalLean.Statistics.AdaptiveCoverage
+import ClassicalLean.Probability.LongestRun
 import ClassicalLean.Statistics.NeymanPearson
 import ClassicalLean.InformationTheory.MethodOfTypes
 import ClassicalLean.Probability.GlivenkoCantelli
