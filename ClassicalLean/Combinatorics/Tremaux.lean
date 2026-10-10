@@ -291,11 +291,11 @@ theorem transGen_of_cycle {par : V → Option V} {a c : V} (h : Anc par a c) :
 
 omit [DecidableEq V] in
 /-- A set closed under taking parents contains the ancestors of its members. -/
-theorem anc_mem {par : V → Option V} {S : Set V} (hS : ∀ a p, par a = some p → a ∈ S → p ∈ S)
+theorem anc_mem {par : V → Option V} {S : Set V} (hS : {p | ∃ a ∈ S, par a = some p} ⊆ S)
     {a b : V} (h : Anc par a b) (ha : a ∈ S) : b ∈ S := by
   induction h with
   | refl => exact ha
-  | tail _ hbc ih => exact hS _ _ hbc ih
+  | tail _ hbc ih => exact hS ⟨_, ih, hbc⟩
 
 /-- Giving a parent to a vertex outside a parent-closed set does not change ancestry inside it. -/
 theorem anc_update {par : V → Option V} {S : Set V} (hS : ∀ a p, par a = some p → a ∈ S → p ∈ S)
@@ -602,7 +602,8 @@ theorem inv_rule1 {s : V} {E : Explorer G s} (hE : Inv E) {w : V} (hvw : G.Adj E
     rcases (hancw x).mp hx with rfl | hx
     · exact ⟨v, hpw, hm1 v x (Or.inl ⟨rfl, rfl⟩)⟩
     · obtain ⟨u, hu, hm⟩ := hE.path x hx hxs
-      have hxS : x ∈ W.support := anc_mem (S := {x | x ∈ W.support}) hS hx hv
+      have hxS : x ∈ W.support := anc_mem (S := {x | x ∈ W.support})
+        (fun p ⟨a, ha, hap⟩ ↦ hS a p hap ha) hx hv
       have hxw : x ≠ w := fun e ↦ hw (e ▸ hxS)
       refine ⟨u, by rw [hpar x hxw]; exact hu, ?_⟩
       by_cases hq : SameEdge v w u x

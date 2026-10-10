@@ -39,7 +39,8 @@ settle sooner)
 * `bellmanFord_stable_iff`: round `n` changes nothing after round `n − 1` exactly when (a) holds;
   `exists_bellmanFord_lt_iff`: a further improving round exists exactly when some cycle gains.
 * `prices_of_bellmanFord`: then `p = exp (d (n − 1))` are prices as in (b).
-* `noGainCycle_of_short`: so checking cycles of length at most `n` suffices for (a).
+* `noGainCycle_of_short`: so checking cycles of length at most `n` (`NoShortGainCycle`)
+  suffices for (a).
 
 Use: a consistency check on prices from several sources. Quotes that admit no prices are stale,
 wrong, or a real gap, and Bellman–Ford finds out in `n` rounds.
@@ -100,6 +101,11 @@ def cycleProd (r : ι → ι → ℝ) (c : List ι) : ℝ := walkProd r (c ++ c.
 
 /-- (a) No round trip gains: every cycle's product of rates is at most `1`. -/
 def NoGainCycle (r : ι → ι → ℝ) : Prop := ∀ c : List ι, c ≠ [] → cycleProd r c ≤ 1
+
+/-- No round trip of at most `n` steps gains: every cycle of length at most `n` has product at
+most `1`. -/
+def NoShortGainCycle (r : ι → ι → ℝ) (n : ℕ) : Prop :=
+  ∀ c : List ι, c ≠ [] → c.length ≤ n → cycleProd r c ≤ 1
 
 /-- (b) Positive prices at which no single conversion gains: `r i j · p j ≤ p i`. -/
 def HasPrices (r : ι → ι → ℝ) : Prop := ∃ p : ι → ℝ, (∀ i, 0 < p i) ∧ ∀ i j, r i j * p j ≤ p i
@@ -393,8 +399,7 @@ theorem exists_bellmanFord_lt_iff [Nonempty ι] {r : ι → ι → ℝ} (hr : �
 
 /-- **Checking cycles of length at most `n` suffices (item 65).** -/
 theorem noGainCycle_of_short {r : ι → ι → ℝ} (hr : ∀ i j, 0 < r i j)
-    (h : ∀ c : List ι, c ≠ [] → c.length ≤ Fintype.card ι → cycleProd r c ≤ 1) :
-    NoGainCycle r := by
+    (h : NoShortGainCycle r (Fintype.card ι)) : NoGainCycle r := by
   rcases isEmpty_or_nonempty ι with hι | hι
   · rintro (_ | ⟨a, _⟩) hc
     · exact absurd rfl hc
