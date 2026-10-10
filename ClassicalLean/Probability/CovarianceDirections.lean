@@ -8,6 +8,8 @@ import Mathlib.Probability.Moments.CovarianceBilin
 import Mathlib.Analysis.InnerProductSpace.Rayleigh
 import Mathlib.Analysis.CStarAlgebra.Matrix
 import Mathlib.LinearAlgebra.Matrix.PosDef
+import Mathlib.Probability.Independence.Integration
+import Mathlib.Analysis.Matrix.Spectrum
 
 /-!
 # The covariance matrix of several quantities, and the directions of largest and least variance
@@ -26,6 +28,8 @@ matrix of covariances `cov[X i, X j]`, and `mix X w = ∑ i, w i · X i` is the 
 * `posDef_covMatrix_iff`: `S` is positive definite exactly when no nonzero mix is almost surely
   constant. This is the condition under which `MinimumQuadraticForm` gives the least-variance
   weights.
+* `integral_trace_sq_sampleCov` (order LEAN-26): pure noise spreads the eigenvalues of a sample
+  covariance matrix; see the last section.
 * `exists_isMaxOn_variance_mix`, `exists_isMinOn_variance_mix`: over weights of Euclidean length
   `1`, the largest variance of a mix is reached at an eigenvector of `S`, equals the largest
   eigenvalue of `S`, and equals Mathlib's supremum of the Rayleigh quotient (likewise the least
@@ -35,6 +39,53 @@ The weights live in `EuclideanSpace ℝ ι`. On plain `ι → ℝ`, Mathlib's no
 then `w = (1, 1, -1)` has norm `1` and, for one covariance matrix, variance `6.5` against a
 largest eigenvalue `2.26`. Length `1` is needed: `w = 10 v`, for a unit eigenvector `v`, has `100`
 times the variance.
+
+## Noise spreads the eigenvalues (order LEAN-26, item 70 of the plan)
+
+A table of `p` rows (markets, say) and `n` columns (days) holds pure noise: every entry has mean
+`0` and variance `1`, all independent. The true covariance matrix is the identity, every
+eigenvalue `1`. The sample covariance `S = X Xᵀ / n` (`sampleCov`; no sample mean is subtracted,
+which is right here because the true mean `0` is known) has the right mean,
+`E[S] = I` (`integral_sampleCov`), but its eigenvalues spread out: their mean square has
+expectation `E[tr (S²)] / p = 1 + (μ₄ + p − 2) / n` (`integral_trace_sq_sampleCov`, and
+`integral_sum_sq_eigenvalues_sampleCov` with `tr (S²) = ∑ λᵢ²` from
+`trace_mul_self_eq_sum_sq_eigenvalues`), where `μ₄` is the entries' fourth moment. Since
+`μ₄ ≥ 1` whenever the second moment is `1` (`one_le_integral_pow_four`), the excess over `1` is
+at least `(p − 1) / n` for every law of the entries that meets the hypotheses
+(`one_add_le_integral_trace_sq_sampleCov`). With Gaussian entries (`μ₄ = 3`), `50` rows
+and `250` columns the mean square is `1 + 51/250 = 1.204`: about 20% too large from noise alone.
+This is the finite-sample core of the Marchenko–Pastur law (its second moment); the law itself is
+not proved here.
+
+**The Lean statements.** The table is `X : ι → κ → Ω → ℝ` on a measure space, with
+`p = Fintype.card ι ≥ 1` and `n = Fintype.card κ ≥ 1` (`Nonempty`). "Independent entries" is
+`iIndepFun (fun q : ι × κ ↦ X q.1 q.2) μ`: the `p n` entries are mutually independent (which also
+makes `μ` a probability measure). "Mean `0`, variance `1`, fourth moment `μ₄`" is
+`μ[X i k] = 0`, `μ[X i k ^ 2] = 1` and `μ[X i k ^ 4] = μ₄` for every entry; the entries need not
+share a law, only these three numbers. Integrability: every entry is in `L⁴`
+(`MemLp (X i k) 4 μ`; `L²` for `integral_sampleCov`), so every product of four entries is
+integrable (`integrable_mul_mul_mul`) and no integral in the proof takes Lean's value `0` for a
+non-integrable function.
+
+Each hypothesis is needed (order LEAN-26's checks, lines V1 to V9 and V4b; V1 to V4b enumerate
+every outcome exactly, V5 to V7 are Lean's junk values worked by hand):
+
+* the formula itself, exact by enumeration, for `±1` entries (`μ₄ = 1`) and for entries `2` with
+  chance `1/5` and `−1/2` with chance `4/5` (mean `0`, variance `1`, `μ₄ = 13/4`), at
+  `(p, n) = (1, 1), (2, 1), (2, 2), (3, 2), (2, 3)`; `E[S] = I` for the second law at `p = n = 2`.
+* independence: every entry the same `±1` variable, `p = n = 2`: `E[tr S²] / p = 2` against
+  `1 + 1/2`.
+* mean `0`: every entry the constant `1` (second and fourth moments `1`), `p = n = 2`: `2` against
+  `3/2`.
+* variance `1`: entries `±2` (mean `0`, second moment `4`, `μ₄ = 16`), `p = 2`, `n = 1`: `32`
+  against `1 + 16 = 17`.
+* the fourth-moment equation fixes the `μ₄` in the formula; without it the right side holds a free
+  number.
+* `L⁴`: with no fourth moment, Lean's integrals of `X⁴` and of `tr S²` are both `0`; at `p = 2`,
+  `n = 1` the left side is `0 / 2 = 0` and the right side `1 + (0 + 2 − 2) / 1 = 1`.
+* `n ≥ 1`: with no columns `S = 0` (Lean's `x / 0`), left `0`, right `1 + (μ₄ + p − 2) / 0 = 1`.
+* `p ≥ 1`: with no rows the fourth-moment hypothesis says nothing, so `μ₄ = 5` is allowed; at
+  `n = 1` the left side is `0 / 0 = 0` and the right side `1 + 3 = 4`.
 -/
 
 open MeasureTheory ProbabilityTheory Matrix Finset Module.End
@@ -232,5 +283,215 @@ theorem exists_isMinOn_variance_mix [Nonempty ι] [IsFiniteMeasure μ]
     exact hmin (by simpa using hvn)
 
 end Directions
+
+section SampleCovariance
+
+variable {κ : Type*} [Fintype κ]
+
+/-- The sample covariance of a `p × n` table: `S i j = (1/n) ∑ k, X i k X j k`. -/
+noncomputable def sampleCov (X : ι → κ → Ω → ℝ) (ω : Ω) : Matrix ι ι ℝ :=
+  fun i j ↦ (∑ k, X i k ω * X j k ω) / Fintype.card κ
+
+/-- `|a b c d| ≤ a⁴ + b⁴ + c⁴ + d⁴`, which makes a product of four `L⁴` functions integrable. -/
+lemma abs_mul_mul_mul_le (a b c d : ℝ) : |a * b * (c * d)| ≤ a ^ 4 + b ^ 4 + c ^ 4 + d ^ 4 := by
+  rw [abs_le]
+  constructor <;> nlinarith [sq_nonneg (a * b + c * d), sq_nonneg (a * b - c * d),
+    sq_nonneg (a ^ 2 - b ^ 2), sq_nonneg (c ^ 2 - d ^ 2), sq_nonneg (a ^ 2 + b ^ 2),
+    sq_nonneg (c ^ 2 + d ^ 2)]
+
+/-- An `L⁴` function has an integrable fourth power. -/
+lemma integrable_pow_four {f : Ω → ℝ} (hf : MemLp f 4 μ) : Integrable (fun ω ↦ f ω ^ 4) μ := by
+  have := hf.integrable_norm_pow (p := 4) (by norm_num)
+  refine this.congr (ae_of_all _ fun ω ↦ ?_)
+  simp only [Real.norm_eq_abs]
+  exact Even.pow_abs (by decide) _
+
+/-- A product of four `L⁴` functions is integrable. -/
+lemma integrable_mul_mul_mul {a b c d : Ω → ℝ} (ha : MemLp a 4 μ) (hb : MemLp b 4 μ)
+    (hc : MemLp c 4 μ) (hd : MemLp d 4 μ) :
+    Integrable (fun ω ↦ a ω * b ω * (c ω * d ω)) μ := by
+  refine Integrable.mono' ((((integrable_pow_four ha).add (integrable_pow_four hb)).add
+    (integrable_pow_four hc)).add (integrable_pow_four hd))
+    ((ha.aestronglyMeasurable.mul hb.aestronglyMeasurable).mul
+      (hc.aestronglyMeasurable.mul hd.aestronglyMeasurable)) (ae_of_all _ fun ω ↦ ?_)
+  simpa [Real.norm_eq_abs] using abs_mul_mul_mul_le (a ω) (b ω) (c ω) (d ω)
+
+omit [Fintype ι] [Fintype κ] in
+/-- **The mean of a product of four entries** `X i k X j k X j l X i l`: `μ₄` if `i = j` and
+`k = l`, `1` if exactly one of the two holds, `0` if neither (four distinct independent entries,
+one with mean `0`). -/
+theorem integral_entries_four [DecidableEq ι] [DecidableEq κ] {X : ι → κ → Ω → ℝ} {μ₄ : ℝ}
+    (hind : iIndepFun (fun q : ι × κ ↦ X q.1 q.2) μ)
+    (hX : ∀ i k, MemLp (X i k) 4 μ) (h0 : ∀ i k, μ[X i k] = 0)
+    (h2 : ∀ i k, μ[fun ω ↦ X i k ω ^ 2] = 1) (h4 : ∀ i k, μ[fun ω ↦ X i k ω ^ 4] = μ₄)
+    (i j : ι) (k l : κ) :
+    ∫ ω, X i k ω * X j k ω * (X j l ω * X i l ω) ∂μ =
+      (if k = l then 1 else 0) + (if i = j then 1 else 0) +
+        (μ₄ - 2) * ((if i = j then 1 else 0) * (if k = l then 1 else 0)) := by
+  have hm : ∀ q : ι × κ, AEMeasurable ((fun q : ι × κ ↦ X q.1 q.2) q) μ :=
+    fun q ↦ (hX q.1 q.2).aestronglyMeasurable.aemeasurable
+  have hsq : ∀ a b : ι × κ, a ≠ b →
+      ∫ ω, X a.1 a.2 ω ^ 2 * X b.1 b.2 ω ^ 2 ∂μ = 1 := by
+    intro a b hab
+    have := (hind.indepFun hab).integral_fun_comp_mul_comp (hm a) (hm b)
+      (f := fun x ↦ x ^ 2) (g := fun x ↦ x ^ 2) (continuous_pow 2).aestronglyMeasurable
+      (continuous_pow 2).aestronglyMeasurable
+    rw [this, h2, h2, one_mul]
+  by_cases hij : i = j <;> by_cases hkl : k = l
+  · subst hij hkl
+    rw [show (fun ω ↦ X i k ω * X i k ω * (X i k ω * X i k ω)) = fun ω ↦ X i k ω ^ 4 from
+      funext fun ω ↦ by ring, h4]
+    simp; ring
+  · subst hij
+    have := hsq (i, k) (i, l) (by simp [hkl])
+    simp only at this
+    rw [show (fun ω ↦ X i k ω * X i k ω * (X i l ω * X i l ω)) =
+      fun ω ↦ X i k ω ^ 2 * X i l ω ^ 2 from funext fun ω ↦ by ring, this]
+    simp [hkl]
+  · subst hkl
+    have := hsq (i, k) (j, k) (by simp [hij])
+    simp only at this
+    rw [show (fun ω ↦ X i k ω * X j k ω * (X j k ω * X i k ω)) =
+      fun ω ↦ X i k ω ^ 2 * X j k ω ^ 2 from funext fun ω ↦ by ring, this]
+    simp [hij]
+  · set Y : ι × κ → Ω → ℝ := fun q ↦ X q.1 q.2
+    set s : Finset (ι × κ) := {(j, k), (j, l), (i, l)}
+    have hnot : (i, k) ∉ s := by simp [s, hij, hkl]
+    have hI := hind.indepFun_finsetProd_of_notMem₀ hm hnot
+    have hprod : ∀ ω, (∏ q ∈ s, Y q) ω = X j k ω * (X j l ω * X i l ω) := fun ω ↦ by
+      have h1 : (j, k) ∉ ({(j, l), (i, l)} : Finset (ι × κ)) := by simp [hkl]
+      have h2' : (j, l) ∉ ({(i, l)} : Finset (ι × κ)) := by simp [Ne.symm hij]
+      simp only [s, Finset.prod_apply, prod_insert h1, prod_insert h2', prod_singleton, Y]
+    have hmeas : AEStronglyMeasurable (∏ q ∈ s, Y q) μ :=
+      Finset.aestronglyMeasurable_prod _ fun q _ ↦ (hX q.1 q.2).aestronglyMeasurable
+    have := hI.integral_fun_mul_eq_mul_integral hmeas (hX i k).aestronglyMeasurable
+    simp only [hprod, Y] at this
+    rw [show (fun ω ↦ X i k ω * X j k ω * (X j l ω * X i l ω)) =
+      fun ω ↦ X j k ω * (X j l ω * X i l ω) * X i k ω from funext fun ω ↦ by ring, this, h0]
+    simp [hij, hkl]
+
+omit [Fintype ι] in
+/-- **The sample covariance has the right mean**: `E[S] = I` for independent entries with mean `0`
+and variance `1`. -/
+theorem integral_sampleCov [DecidableEq ι] [Nonempty κ] {X : ι → κ → Ω → ℝ}
+    (hind : iIndepFun (fun q : ι × κ ↦ X q.1 q.2) μ)
+    (hX : ∀ i k, MemLp (X i k) 2 μ) (h0 : ∀ i k, μ[X i k] = 0)
+    (h2 : ∀ i k, μ[fun ω ↦ X i k ω ^ 2] = 1) (i j : ι) :
+    ∫ ω, sampleCov X ω i j ∂μ = (1 : Matrix ι ι ℝ) i j := by
+  have hn : (Fintype.card κ : ℝ) ≠ 0 := by exact_mod_cast Fintype.card_ne_zero
+  have hint : ∀ k, Integrable (fun ω ↦ X i k ω * X j k ω) μ := fun k ↦ by
+    have := (hX j k).integrable_mul (hX i k)
+    exact this.congr (ae_of_all _ fun ω ↦ by simp only [Pi.mul_apply]; ring)
+  have hk : ∀ k, ∫ ω, X i k ω * X j k ω ∂μ = if i = j then 1 else 0 := fun k ↦ by
+    by_cases hij : i = j
+    · subst hij
+      rw [show (fun ω ↦ X i k ω * X i k ω) = fun ω ↦ X i k ω ^ 2 from funext fun ω ↦ by ring, h2]
+      simp
+    · have hne : ((i, k) : ι × κ) ≠ (j, k) := by simp [hij]
+      have := (hind.indepFun hne).integral_fun_mul_eq_mul_integral (hX i k).aestronglyMeasurable
+        (hX j k).aestronglyMeasurable
+      simp only at this
+      rw [this, h0]; simp [hij]
+  simp only [sampleCov]
+  rw [integral_div, integral_finsetSum _ fun k _ ↦ hint k]
+  simp only [hk, sum_const, card_univ, nsmul_eq_mul, Matrix.one_apply]
+  split_ifs <;> field_simp
+
+/-- **Noise spreads the eigenvalues.** For a `p × n` table of independent entries with mean `0`,
+variance `1` and fourth moment `μ₄`, `E[tr (S²)] / p = 1 + (μ₄ + p − 2) / n`. -/
+theorem integral_trace_sq_sampleCov [Nonempty ι] [Nonempty κ] {X : ι → κ → Ω → ℝ} {μ₄ : ℝ}
+    (hind : iIndepFun (fun q : ι × κ ↦ X q.1 q.2) μ)
+    (hX : ∀ i k, MemLp (X i k) 4 μ) (h0 : ∀ i k, μ[X i k] = 0)
+    (h2 : ∀ i k, μ[fun ω ↦ X i k ω ^ 2] = 1) (h4 : ∀ i k, μ[fun ω ↦ X i k ω ^ 4] = μ₄) :
+    (∫ ω, (sampleCov X ω * sampleCov X ω).trace ∂μ) / Fintype.card ι =
+      1 + (μ₄ + Fintype.card ι - 2) / Fintype.card κ := by
+  classical
+  have hn : (Fintype.card κ : ℝ) ≠ 0 := by exact_mod_cast Fintype.card_ne_zero
+  have hp : (Fintype.card ι : ℝ) ≠ 0 := by exact_mod_cast Fintype.card_ne_zero
+  have htr : ∀ ω, (sampleCov X ω * sampleCov X ω).trace =
+      ∑ i, ∑ j, ∑ k, ∑ l, X i k ω * X j k ω * (X j l ω * X i l ω) /
+        (Fintype.card κ : ℝ) ^ 2 := fun ω ↦ by
+    simp only [Matrix.trace, Matrix.diag, Matrix.mul_apply, sampleCov]
+    refine sum_congr rfl fun i _ ↦ sum_congr rfl fun j _ ↦ ?_
+    rw [div_mul_div_comm, sum_mul_sum, ← sq, sum_div]
+    simp only [sum_div]
+  have hI : ∀ i j k l, Integrable (fun ω ↦ X i k ω * X j k ω * (X j l ω * X i l ω) /
+      (Fintype.card κ : ℝ) ^ 2) μ :=
+    fun i j k l ↦ (integrable_mul_mul_mul (hX i k) (hX j k) (hX j l) (hX i l)).div_const _
+  simp only [htr]
+  rw [integral_finsetSum _ fun i _ ↦ integrable_finsetSum _ fun j _ ↦
+    integrable_finsetSum _ fun k _ ↦ integrable_finsetSum _ fun l _ ↦ hI i j k l]
+  simp_rw [integral_finsetSum _ fun j _ ↦ integrable_finsetSum _ fun k _ ↦
+    integrable_finsetSum _ fun l _ ↦ hI _ j k l]
+  simp_rw [integral_finsetSum _ fun k _ ↦ integrable_finsetSum _ fun l _ ↦ hI _ _ k l]
+  simp_rw [integral_finsetSum _ fun l _ ↦ hI _ _ _ l]
+  simp_rw [integral_div, integral_entries_four hind hX h0 h2 h4, ← sum_div]
+  simp only [sum_add_distrib, ← mul_sum, sum_ite_eq, mem_univ, ite_true, mul_ite,
+    mul_one, mul_zero, sum_const, card_univ, nsmul_eq_mul]
+  field_simp
+  ring
+
+/-- For a real symmetric matrix, `tr (A²)` is the sum of the squared eigenvalues. -/
+theorem trace_mul_self_eq_sum_sq_eigenvalues [DecidableEq ι] {A : Matrix ι ι ℝ}
+    (hA : A.IsHermitian) : (A * A).trace = ∑ i, hA.eigenvalues i ^ 2 := by
+  conv_lhs => rw [hA.spectral_theorem, ← map_mul, Unitary.conjStarAlgAut_apply, trace_mul_cycle,
+    Unitary.coe_star_mul_self, one_mul, diagonal_mul_diagonal, trace_diagonal]
+  simp [sq]
+
+omit [Fintype ι] in
+/-- The sample covariance is symmetric. -/
+lemma isHermitian_sampleCov (X : ι → κ → Ω → ℝ) (ω : Ω) : (sampleCov X ω).IsHermitian := by
+  ext i j
+  simp only [conjTranspose_apply, star_trivial, sampleCov]
+  congr 1
+  exact sum_congr rfl fun k _ ↦ mul_comm _ _
+
+/-- **The same, in eigenvalues**: the expected mean square of the eigenvalues of `S` is
+`1 + (μ₄ + p − 2) / n`, where the true covariance has every eigenvalue `1`. -/
+theorem integral_sum_sq_eigenvalues_sampleCov [DecidableEq ι] [Nonempty ι] [Nonempty κ]
+    {X : ι → κ → Ω → ℝ} {μ₄ : ℝ} (hind : iIndepFun (fun q : ι × κ ↦ X q.1 q.2) μ)
+    (hX : ∀ i k, MemLp (X i k) 4 μ) (h0 : ∀ i k, μ[X i k] = 0)
+    (h2 : ∀ i k, μ[fun ω ↦ X i k ω ^ 2] = 1) (h4 : ∀ i k, μ[fun ω ↦ X i k ω ^ 4] = μ₄) :
+    (∫ ω, ∑ i, (isHermitian_sampleCov X ω).eigenvalues i ^ 2 ∂μ) / Fintype.card ι =
+      1 + (μ₄ + Fintype.card ι - 2) / Fintype.card κ := by
+  simp_rw [← trace_mul_self_eq_sum_sq_eigenvalues]
+  exact integral_trace_sq_sampleCov hind hX h0 h2 h4
+
+/-- **The fourth moment is at least `1`** when the second moment is `1` (from `E[(f² − 1)²] ≥ 0`),
+so the excess `(μ₄ + p − 2) / n` is at least `(p − 1) / n`. -/
+theorem one_le_integral_pow_four [IsProbabilityMeasure μ] {f : Ω → ℝ} (hf : MemLp f 4 μ)
+    (h2 : μ[fun ω ↦ f ω ^ 2] = 1) : 1 ≤ μ[fun ω ↦ f ω ^ 4] := by
+  have h4 := integrable_pow_four hf
+  have hsq : Integrable (fun ω ↦ f ω ^ 2) μ :=
+    (hf.mono_exponent (by norm_num)).integrable_sq
+  have hnn : 0 ≤ ∫ ω, (f ω ^ 2 - 1) ^ 2 ∂μ := integral_nonneg fun ω ↦ sq_nonneg _
+  have e : (fun ω ↦ (f ω ^ 2 - 1) ^ 2) = fun ω ↦ f ω ^ 4 - 2 * f ω ^ 2 + 1 :=
+    funext fun ω ↦ by ring
+  rw [e, integral_add (f := fun ω ↦ f ω ^ 4 - 2 * f ω ^ 2) (h4.sub (hsq.const_mul 2))
+    (integrable_const _), integral_sub (f := fun ω ↦ f ω ^ 4) (g := fun ω ↦ 2 * f ω ^ 2) h4
+    (hsq.const_mul 2), integral_const_mul, integral_const] at hnn
+  simp only [probReal_univ, smul_eq_mul, one_mul] at hnn
+  rw [h2] at hnn
+  linarith
+
+/-- **The spread is at least `(p − 1) / n`** for any law of the entries that meets the hypotheses:
+`E[tr (S²)] / p ≥ 1 + (p − 1) / n`. -/
+theorem one_add_le_integral_trace_sq_sampleCov [Nonempty ι] [Nonempty κ] {X : ι → κ → Ω → ℝ}
+    {μ₄ : ℝ} (hind : iIndepFun (fun q : ι × κ ↦ X q.1 q.2) μ)
+    (hX : ∀ i k, MemLp (X i k) 4 μ) (h0 : ∀ i k, μ[X i k] = 0)
+    (h2 : ∀ i k, μ[fun ω ↦ X i k ω ^ 2] = 1) (h4 : ∀ i k, μ[fun ω ↦ X i k ω ^ 4] = μ₄) :
+    1 + ((Fintype.card ι : ℝ) - 1) / Fintype.card κ ≤
+      (∫ ω, (sampleCov X ω * sampleCov X ω).trace ∂μ) / Fintype.card ι := by
+  have := hind.isProbabilityMeasure
+  obtain ⟨i⟩ := ‹Nonempty ι›; obtain ⟨k⟩ := ‹Nonempty κ›
+  have hμ := one_le_integral_pow_four (hX i k) (h2 i k)
+  rw [h4] at hμ
+  rw [integral_trace_sq_sampleCov hind hX h0 h2 h4]
+  have hn : (0 : ℝ) < Fintype.card κ := by exact_mod_cast Fintype.card_pos
+  have := div_le_div_of_nonneg_right
+    (show (Fintype.card ι : ℝ) - 1 ≤ μ₄ + Fintype.card ι - 2 by linarith) hn.le
+  linarith
+
+end SampleCovariance
 
 end ClassicalLean.Probability.CovarianceDirections
