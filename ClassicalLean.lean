@@ -113,6 +113,7 @@ import ClassicalLean.Analysis.Simpson
 import ClassicalLean.Analysis.EulerMaclaurin
 import ClassicalLean.Algebra.MinMax
 import ClassicalLean.Analysis.LinearProgram
+import ClassicalLean.Analysis.FiniteGame
 import ClassicalLean.Statistics.NeymanPearson
 import ClassicalLean.InformationTheory.MethodOfTypes
 import ClassicalLean.Probability.GlivenkoCantelli
