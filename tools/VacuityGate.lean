@@ -71,7 +71,8 @@ def isTrivialExists (concl : Expr) : Bool :=
 
 /-! ### Case 3: the conclusion follows from one hypothesis -/
 
-/-- At most this many unfoldings of a head that is not a `∀`, per hypothesis opened. -/
+/-- At most this many unfoldings of a head that is not a `∀`, per level (the count starts again
+    after each binder opened; `maxBinders` bounds the levels). -/
 def maxUnfolds : Nat := 4
 
 /-- At most this many `∀`s and `→`s opened, per hypothesis. -/
@@ -79,8 +80,9 @@ def maxBinders : Nat := 32
 
 /-- Open the `∀`s and `→`s of `t` one at a time as metavariables and call `k ms t'` at every
     level (`ms`: the metavariables so far; `t'`: what is left), starting with nothing opened.
-    When `t'` is not a `∀`, its head is unfolded with `whnf` (at most `maxUnfolds` times) to look
-    for one: this is how `S ⊆ T`, `Monotone f` and a named definition such as
+    When `t'` is not a `∀`, its head is unfolded with `whnf` to look
+    for one (at most `maxUnfolds` times before each binder): this is how `S ⊆ T`, `Monotone f`
+    and a named definition such as
     `NoShortGainCycle r n` are opened. With `dataOnly`, it stops at the first binder whose type is
     a proposition. Returns `true` as soon as `k` does; a level where `k` fails leaves no
     assignment behind. -/
@@ -97,7 +99,7 @@ where
     | .forallE _ d b _ =>
       if dataOnly && (← isProp d) then return false
       let m ← mkFreshExprMVar d
-      go (b.instantiate1 m) (ms.push m) unfolds
+      go (b.instantiate1 m) (ms.push m) 0
     | t =>
       if unfolds ≥ maxUnfolds then return false
       let t' ← whnf t
@@ -107,7 +109,7 @@ where
     `locals`, then run `k`; try another proof of `g` when `k` fails. A proof is one of:
     an instance found by instance search; one hypothesis, instantiated at its variables but not
     at its premises (no chains of hypotheses); `True.intro`; `⟨_, _⟩` for `∧` and `∃` with each
-    part proved the same way; `rfl` when the two sides are definitionally equal; `decide` for a
+    part proved the same way; `Or.inl` or `Or.inr` for `∨`; `rfl` when the two sides are definitionally equal; `decide` for a
     closed proposition (no free variables) that evaluates to `true`. -/
 partial def solve (locals : Array Expr) (g : Expr) (k : MetaM Bool) : MetaM Bool := do
   let gid := g.mvarId!
@@ -139,6 +141,14 @@ partial def solve (locals : Array Expr) (g : Expr) (k : MetaM Bool) : MetaM Bool
     let gb ← mkFreshExprMVar b
     gid.assign (mkApp4 (mkConst ``And.intro) a b ga gb)
     if ← solve locals ga (solve locals gb k) then return true
+  | (``Or, #[a, b]) =>
+    let ga ← mkFreshExprMVar a
+    gid.assign (mkApp3 (mkConst ``Or.inl) a b ga)
+    if ← solve locals ga k then return true
+    s.restore
+    let gb ← mkFreshExprMVar b
+    gid.assign (mkApp3 (mkConst ``Or.inr) a b gb)
+    if ← solve locals gb k then return true
   | (``Exists, #[α, f]) =>
     let w ← mkFreshExprMVar α
     let gb ← mkFreshExprMVar (f.beta #[w])
@@ -239,8 +249,15 @@ def followsFromHyp (xs : Array Expr) (concl : Expr) : MetaM Bool := do
     being uninformative is not a syntactic property; a conclusion that needs two hypotheses
     chained (`h (hq hr)`), because that is how real lemmas such as `Monotone.comp` are proved; a
     premise that is true for every value but not by `rfl` or `decide` (`0 + n = n`); a
-    contradictory hypothesis. These have to be caught in review. Tests of each:
-    `tools/VacuityGateTests.lean`. -/
+    contradictory hypothesis; a hypothesis that is a conjunction or an `↔` (`(h : ∀ a, P a ∧ Q a)
+    : P a` is a projection, not an application); a hypothesis inside an `@[irreducible]`
+    definition (`whnf` does not open it; the library has none at VACUITY-1); more than
+    `maxUnfolds` unfoldings before one binder. A closed premise that `decide` cannot finish
+    (`Nat.Prime 1000003`) makes the theorem UNCHECKED, which fails the gate: safe, but a false
+    alarm for a real theorem of that shape. The scan skips declarations with macro scopes
+    (hygienic macro output) and `_proof_` lemmas with no source position, so a theorem added by
+    meta code (`addDecl`) under such a name is not tested; names alone cannot close that hole.
+    These have to be caught in review. Tests of the first ones: `tools/VacuityGateTests.lean`. -/
 def isVacuousType (type : Expr) : MetaM Bool :=
   forallTelescopeReducing type fun xs concl => do
     if concl.isConstOf ``True then return true

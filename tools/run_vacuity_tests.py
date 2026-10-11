@@ -65,22 +65,29 @@ run_cmd do
   let mut names : Array Lean.Name := #[]
   for (n, ci) in env.constants.toList do
     if let .thmInfo _ := ci then
-      if (`VacuityGateTests).isPrefixOf n && !n.hasMacroScopes then names := names.push n
+      if (`VacuityGateTests).isPrefixOf (Lean.privateToUserName n) && !n.hasMacroScopes then
+        names := names.push n
+  -- names the gate flagged or listed: an entry that matches none of them is stale, as in the gate
+  let mut hit : Array Lean.Name := #[]
   for n in names.qsort (·.toString < ·.toString) do
     let ty := (← Lean.getConstInfo n).type
     if ← VacuityGate.isTacticHelper n then
-      Lean.logInfo s!"SKIP {{n}}"
+      Lean.logInfo s!"SKIP {{Lean.privateToUserName n}}"
       continue
     try
       match ← Lean.Elab.Command.liftTermElabM (VacuityGate.judge list n ty) with
-      | .pass => Lean.logInfo s!"PASS {{n}}"
-      | .flag h _ => Lean.logInfo s!"FLAG {{n}} {{h}}"
-      | .listed e => Lean.logInfo s!"{{if e.pending then "PENDING" else "LISTED"}} {{n}}"
-      | .unchecked m => Lean.logInfo s!"ERROR {{n}}: {{m}}"
+      | .pass => Lean.logInfo s!"PASS {{Lean.privateToUserName n}}"
+      | .flag h _ =>
+        hit := hit.push (Lean.privateToUserName n)
+        Lean.logInfo s!"FLAG {{Lean.privateToUserName n}} {{h}}"
+      | .listed e =>
+        hit := hit.push (Lean.privateToUserName n)
+        Lean.logInfo s!"{{if e.pending then "PENDING" else "LISTED"}} {{Lean.privateToUserName n}}"
+      | .unchecked m => Lean.logInfo s!"ERROR {{Lean.privateToUserName n}}: {{m}}"  -- not reached: `judge` never returns it
     catch e =>
-      Lean.logInfo m!"ERROR {{n}}: {{e.toMessageData}}"
+      Lean.logInfo m!"ERROR {{Lean.privateToUserName n}}: {{e.toMessageData}}"
   for e in list do
-    unless names.contains e.name do Lean.logInfo s!"STALE {{e.name}}"
+    unless hit.contains e.name do Lean.logInfo s!"STALE {{e.name}}"
 """
 
 

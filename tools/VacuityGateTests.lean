@@ -57,6 +57,19 @@ theorem vac_forall_premise_backtrack {par : V → Option V}
 theorem vac_and_premise (h : ∀ a, Q a ∧ R a → P a) (a : V) (hq : Q a) (hr : R a) : P a :=
   h a ⟨hq, hr⟩
 
+/-- The premise is a disjunction, one side a hypothesis (review r1, finding 1). -/
+theorem vac_or_premise (h : ∀ a, Q a ∨ R a → P a) (a : V) (hr : R a) : P a := h a (Or.inr hr)
+
+/-- Five levels, each behind its own named definition (review r1, finding 3): the unfold count
+starts again after each binder. -/
+def W5 (P : V → Prop) : Prop := ∀ a, P a
+def W4 (P : V → Prop) : Prop := ∀ _ : ℕ, W5 P
+def W3 (P : V → Prop) : Prop := ∀ _ : ℕ, W4 P
+def W2 (P : V → Prop) : Prop := ∀ _ : ℕ, W3 P
+def W1 (P : V → Prop) : Prop := ∀ _ : ℕ, W2 P
+
+theorem vac_nested_named (h : W1 P) (a : V) : P a := h 0 0 0 0 a
+
 /-- The premise is an equation that holds by `rfl`. -/
 theorem vac_eq_premise (F : ℕ → ℕ → Prop) (h : ∀ x y, x = y → F x y) (a : ℕ) : F a a :=
   h a a rfl
@@ -172,6 +185,12 @@ premise is not discharged and the theorem passes. Being true for every `n` is no
 gate decides. -/
 theorem lim_semantic (F : ℕ → Prop) (h : ∀ n, 0 + n = n → F n) (n : ℕ) : F n :=
   h n (Nat.zero_add n)
+
+/-- A projection of a conjunction is not an application of the hypothesis (review r1, finding 4). -/
+theorem lim_and_hyp (h : ∀ a, P a ∧ Q a) (a : V) : P a := (h a).1
+
+/-- A private test theorem is tested too (review r1, finding 8). -/
+private theorem vac_private (h : ∀ a, P a) (a : V) : P a := h a
 
 /-- A contradictory hypothesis proves anything. The gate does not look for contradictions. -/
 theorem lim_false (p : Prop) (h : False) : p := h.elim
