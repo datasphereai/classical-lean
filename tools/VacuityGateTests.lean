@@ -1,0 +1,179 @@
+import ClassicalLean
+
+/-!
+# Tests for the vacuity gate
+
+Small theorems that `tools/VacuityGate.lean` must judge correctly. This file is not part of the
+library (no `lean_lib` builds it and nothing imports it); `tools/run_vacuity_tests.py` joins the
+gate's test (`isVacuousType`) to these theorems and reports, for each one, whether the gate flags
+it.
+
+The first word of each name says what the gate must do:
+
+* `vac_`: the statement proves nothing; the gate must **flag** it.
+* `real_`: a real theorem; the gate must **pass** it.
+* `lim_`: a known limit of the gate, stated rather than hidden. The statement is empty or close
+  to it, but the gate **passes** it on purpose; the docstring says why.
+
+The two `real_..._old` theorems copy the statements of `Tremaux.anc_mem` and
+`noGainCycle_of_short` as they were at `2489db4`, before order LEAN-25 reworded them to get past
+the gate's case 3.
+-/
+
+namespace VacuityGateTests
+
+open ClassicalLean.Combinatorics
+
+variable {V : Type} {P Q R : V → Prop} {S T : Set V}
+
+/-! ## Statements that prove nothing: the gate must flag them -/
+
+/-- Case 1: the conclusion is `True`. -/
+theorem vac_true : True := trivial
+
+/-- Case 2: the conclusion is a hypothesis. -/
+theorem vac_self (p : Prop) (h : p) : p := h
+
+/-- Case 4: `∃ y, y = e`, true of every `e`. -/
+theorem vac_exists_eq (f : ℕ → ℕ) (n : ℕ) : ∃ y, y = f n := ⟨_, rfl⟩
+
+/-- The conclusion is an instance of a `∀` hypothesis. -/
+theorem vac_forall (h : ∀ a, P a) (a : V) : P a := h a
+
+/-- The shape the gate's docstring records from the retired corpus. -/
+theorem vac_historical (f : ℕ → ℕ → ℕ → ℕ) (g : ℕ → ℕ → ℕ)
+    (h : ∀ X S s, f X S s ≥ g S s) (X S s : ℕ) : f X S s ≥ g S s := h X S s
+
+/-- A `∀` hypothesis with a premise, and the premise is another hypothesis. -/
+theorem vac_forall_premise (h : ∀ a, Q a → P a) (a : V) (hq : Q a) : P a := h a hq
+
+/-- Two premises; the first one tried for `?a ∈ S` (`hx`) is the wrong one, so the gate must
+back up and try `ha`. -/
+theorem vac_forall_premise_backtrack {par : V → Option V}
+    (hS : ∀ a p, a ∈ S → par a = some p → p ∈ S) {x a b : V} (hx : x ∈ S) (ha : a ∈ S)
+    (hp : par a = some b) : b ∈ S := hS a b ha hp
+
+/-- The premise is a conjunction of two hypotheses. -/
+theorem vac_and_premise (h : ∀ a, Q a ∧ R a → P a) (a : V) (hq : Q a) (hr : R a) : P a :=
+  h a ⟨hq, hr⟩
+
+/-- The premise is an equation that holds by `rfl`. -/
+theorem vac_eq_premise (F : ℕ → ℕ → Prop) (h : ∀ x y, x = y → F x y) (a : ℕ) : F a a :=
+  h a a rfl
+
+/-- The premise is a closed fact that `decide` proves. -/
+theorem vac_decide_premise (F : ℕ → Prop) (h : ∀ n, 0 < n → F n) : F 1 := h 1 Nat.one_pos
+
+/-- A variable of the hypothesis that the conclusion does not fix; any `ℕ` will do. -/
+theorem vac_unused_variable (p : Prop) (h : ∀ _ : ℕ, p) : p := h 0
+
+/-- The conclusion is a subset statement; unfolded, it is the hypothesis. -/
+theorem vac_concl_subset (h : ∀ x, x ∈ S → x ∈ T) : S ⊆ T := h
+
+/-- The hypothesis wrapped in `⊆`. The gate before VACUITY-1 cannot see inside it. -/
+theorem vac_subset (h : S ⊆ T) (x : V) (hx : x ∈ S) : x ∈ T := h hx
+
+/-- A named wrapper around a `∀` statement, used only by the tests below. -/
+def Wrap (P : V → Prop) : Prop := ∀ a, P a
+
+/-- A named wrapper around a `∀` statement with a premise. -/
+def WrapImp (Q P : V → Prop) : Prop := ∀ a, Q a → P a
+
+/-- The hypothesis wrapped in a named definition. -/
+theorem vac_named (h : Wrap P) (a : V) : P a := h a
+
+/-- The hypothesis wrapped in a named definition, and its premise is another hypothesis. -/
+theorem vac_named_premise (h : WrapImp Q P) (a : V) (hq : Q a) : P a := h a hq
+
+/-- `anc_mem`'s new hypothesis (the `⊆` form), with the conclusion one step from `a`: the premise
+`b ∈ {p | ∃ a ∈ S, par a = some p}` is built from two hypotheses. -/
+theorem vac_parent_subset {par : V → Option V}
+    (hS : {p | ∃ a ∈ S, par a = some p} ⊆ S) {a b : V} (ha : a ∈ S) (hp : par a = some b) :
+    b ∈ S := hS ⟨a, ha, hp⟩
+
+/-- `NoShortGainCycle` (a named definition), applied to a cycle that is short enough. -/
+theorem vac_short_gain {ι : Type} (r : ι → ι → ℝ) (n : ℕ) (h : NoShortGainCycle r n)
+    (c : List ι) (hc : c ≠ []) (hl : c.length ≤ n) : cycleProd r c ≤ 1 := h c hc hl
+
+/-- A Mathlib predicate (`Monotone`), applied. -/
+theorem vac_monotone (f : ℕ → ℕ) (hf : Monotone f) (a b : ℕ) (hab : a ≤ b) : f a ≤ f b :=
+  hf hab
+
+/-! ## Real theorems: the gate must pass them -/
+
+/-- `Tremaux.anc_mem` as stated at `2489db4`. The premise `par ?a = some b` cannot be met by any
+hypothesis: it needs an induction along the ancestors. -/
+theorem real_anc_mem_old {par : V → Option V} {S : Set V}
+    (hS : ∀ a p, par a = some p → a ∈ S → p ∈ S)
+    {a b : V} (h : Tremaux.Anc par a b) (ha : a ∈ S) : b ∈ S :=
+  Tremaux.anc_mem (fun p ⟨a, ha, hap⟩ ↦ hS a p hap ha) h ha
+
+/-- `Tremaux.anc_mem` as stated now (after `a1a3a67`). -/
+theorem real_anc_mem_new {par : V → Option V} {S : Set V}
+    (hS : {p | ∃ a ∈ S, par a = some p} ⊆ S) {a b : V} (h : Tremaux.Anc par a b)
+    (ha : a ∈ S) : b ∈ S :=
+  Tremaux.anc_mem hS h ha
+
+/-- `noGainCycle_of_short` as stated at `2489db4`. The premise `c.length ≤ Fintype.card ι`
+cannot be met: going from short cycles to all cycles is the whole of Bellman–Ford. -/
+theorem real_noGainCycle_of_short_old {ι : Type} [Fintype ι] {r : ι → ι → ℝ}
+    (hr : ∀ i j, 0 < r i j)
+    (h : ∀ c : List ι, c ≠ [] → c.length ≤ Fintype.card ι → cycleProd r c ≤ 1) :
+    NoGainCycle r :=
+  noGainCycle_of_short hr h
+
+/-- `noGainCycle_of_short` as stated now (after `a1a3a67`). -/
+theorem real_noGainCycle_of_short_new {ι : Type} [Fintype ι] {r : ι → ι → ℝ}
+    (hr : ∀ i j, 0 < r i j) (h : NoShortGainCycle r (Fintype.card ι)) : NoGainCycle r :=
+  noGainCycle_of_short hr h
+
+/-- The premise `0 < n` is not a hypothesis; the case `n = 0` needs `h0`. -/
+theorem real_premise_missing (F : ℕ → Prop) (h : ∀ n, 0 < n → F n) (h0 : F 0) (n : ℕ) : F n := by
+  cases n with
+  | zero => exact h0
+  | succ k => exact h _ k.succ_pos
+
+/-- The same, with the hypothesis in a named definition. -/
+def WrapPos (F : ℕ → Prop) : Prop := ∀ n, 0 < n → F n
+
+theorem real_named_premise_missing (F : ℕ → Prop) (h : WrapPos F) (h0 : F 0) (n : ℕ) : F n := by
+  cases n with
+  | zero => exact h0
+  | succ k => exact h _ k.succ_pos
+
+/-- The same, with the hypothesis in `⊆`: `{n | 0 < n} ⊆ {n | F n}`. -/
+theorem real_subset_premise_missing (F : ℕ → Prop) (h : {n | 0 < n} ⊆ {n | F n}) (h0 : F 0)
+    (n : ℕ) : F n := by
+  cases n with
+  | zero => exact h0
+  | succ k => exact h k.succ_pos
+
+/-- Induction: the step's conclusion `F (n + 1)` does not match `F n`. -/
+theorem real_induction (F : ℕ → Prop) (h0 : F 0) (h : ∀ n, F n → F (n + 1)) (n : ℕ) : F n := by
+  induction n with
+  | zero => exact h0
+  | succ k ih => exact h k ih
+
+/-- A strict inequality does not give `≤` by applying it: `f a < f b` is not `f a ≤ f b`, and
+`a ≤ b` may be `a = b`. -/
+theorem real_strictMono_monotone (f : ℕ → ℕ) (hf : StrictMono f) : Monotone f :=
+  hf.monotone
+
+/-! ## Known limits: the gate passes these on purpose -/
+
+/-- Two hypotheses chained: `h` needs `Q a`, which only `hq` applied to `hr` gives. The gate
+discharges a premise with one hypothesis (instantiated at its variables), not with a chain; a
+chain is how `Set.Subset.trans` and `Monotone.comp` are proved, and those are not empty. -/
+theorem lim_chain (h : ∀ a, Q a → P a) (hq : ∀ a, R a → Q a) (a : V) (hr : R a) : P a :=
+  h a (hq a hr)
+
+/-- `0 + n = n` holds for every `n` but not by `rfl` (addition recurses on the right), so the
+premise is not discharged and the theorem passes. Being true for every `n` is not something the
+gate decides. -/
+theorem lim_semantic (F : ℕ → Prop) (h : ∀ n, 0 + n = n → F n) (n : ℕ) : F n :=
+  h n (Nat.zero_add n)
+
+/-- A contradictory hypothesis proves anything. The gate does not look for contradictions. -/
+theorem lim_false (p : Prop) (h : False) : p := h.elim
+
+end VacuityGateTests
