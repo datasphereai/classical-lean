@@ -1,7 +1,8 @@
 #!/usr/bin/env python3
 """Run the vacuity gate's test on the theorems in tools/VacuityGateTests.lean.
 
-Usage (from the repository root):  python3 -I tools/run_vacuity_tests.py [--gate FILE] [--report-only]
+Usage (from the repository root):
+  python3 -I tools/run_vacuity_tests.py [--gate FILE] [--tests FILE] [--list FILE] [--report-only]
 
 The gate file (default tools/VacuityGate.lean) cannot be imported, and the test file is not in the
 library, so this script joins them: it copies the test file, then the gate's code (from its
@@ -12,7 +13,8 @@ for every theorem in the namespace `VacuityGateTests`, into a scratch file, and 
 The first word of each test's name is its expectation: `vac_` must be flagged; `real_` and `lim_`
 must pass. Exit 0 when every test meets its expectation (or with --report-only, when every test
 got a verdict), 1 otherwise. `--gate FILE` tests another version of the gate, e.g. one written out
-by `git show <commit>:tools/VacuityGate.lean`.
+by `git show <commit>:tools/VacuityGate.lean`; `--tests` and `--list` replace the test file and
+its reviewed list (theorems in another file must also sit in the namespace `VacuityGateTests`).
 """
 import os
 import re
@@ -84,22 +86,27 @@ run_cmd do
 
 def main(argv):
     gate = os.path.join(ROOT, "tools", "VacuityGate.lean")
+    tests, lst = TESTS, LIST
     report_only = False
     args = list(argv)
     while args:
         a = args.pop(0)
         if a == "--gate":
             gate = args.pop(0)
+        elif a == "--tests":
+            tests = os.path.abspath(args.pop(0))
+        elif a == "--list":
+            lst = os.path.abspath(args.pop(0))
         elif a == "--report-only":
             report_only = True
         else:
             print("unknown argument", a)
             return 2
     gtext = open(gate, encoding="utf-8").read()
-    body = open(TESTS, encoding="utf-8").read()
+    body = open(tests, encoding="utf-8").read()
     report = REPORT if "def judge" in gtext else REPORT_OLD
     src = (body + "\n\n" + gate_section(gtext) + "\n"
-           + report.format(hb=heartbeats(gtext), lst=LIST))
+           + report.format(hb=heartbeats(gtext), lst=lst))
     with tempfile.TemporaryDirectory() as d:
         path = os.path.join(d, "VacuityGateTestRun.lean")
         with open(path, "w", encoding="utf-8") as f:
