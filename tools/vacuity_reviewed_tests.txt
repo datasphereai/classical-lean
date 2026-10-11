@@ -4,3 +4,8 @@ VacuityGateTests.pending_vacuous de85d3d6813d1b12cbd77213f33d4247553d8320e1ff457
 # the hash of the statement before the change (listed_helper's); the theorem now has an extra hypothesis
 VacuityGateTests.vac_listed_changed c98db048b6e879b030f2528a903170f2d363722ccdc69bb5230aeef375532361 HELPER a monotone map applied, before its statement changed
 VacuityGateTests.stale_removed 0000000000000000000000000000000000000000000000000000000000000000 HELPER a theorem that was removed
+# real theorems flagged only by the old case 3 (premises ignored), kept by ruling
+VacuityGateTests.real_anc_mem_old a03c8f5cba6b3d7ca484ae94d449158948c5c4ccc3da89889c5b9b6f55301c52 HELPER old case 3 only: the premise par ?a = some b needs an induction along the ancestors (LEAN-25)
+VacuityGateTests.real_noGainCycle_of_short_old 3c360d436ed48a6c89c783ae17b61507c772c8211f0a2acb132b352bcb4f34ed HELPER old case 3 only: the premise c.length ≤ card ι is Bellman-Ford, not a hypothesis (LEAN-25)
+VacuityGateTests.real_premise_missing 6efd504f0380cf4a82a62bfd16bfe995c7ad34084de0e7aa744129a9f2a2513d HELPER old case 3 only: the premise 0 < n is not a hypothesis; n = 0 needs h0
+VacuityGateTests.real_comp_increasing 3c4f95baf75b73be3a0112132ef05bd60b830bd399d3158cdf88aaaf6cc5abc4 HELPER old case 3 only: a composition of increasing maps is increasing, a chain hf (hg hab)

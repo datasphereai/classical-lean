@@ -14,6 +14,8 @@ The first word of each name says what the gate must do:
 * `real_`: a real theorem; the gate must **pass** it.
 * `lim_`: a known limit of the gate, stated rather than hidden. The statement is empty or close
   to it, but the gate **passes** it on purpose; the docstring says why.
+* A `real_` test whose name is on `tools/vacuity_reviewed_tests.txt` must come out `LISTED`: the
+  gate flags it (the old case 3, which ignores premises) and the entry lets it pass.
 
 The two `real_..._old` theorems copy the statements of `Tremaux.anc_mem` and
 `noGainCycle_of_short` as they were at `2489db4`, before order LEAN-25 reworded them to get past
@@ -115,7 +117,8 @@ theorem vac_monotone (f : ℕ → ℕ) (hf : Monotone f) (a b : ℕ) (hab : a �
 /-! ## Real theorems: the gate must pass them -/
 
 /-- `Tremaux.anc_mem` as stated at `2489db4`. The premise `par ?a = some b` cannot be met by any
-hypothesis: it needs an induction along the ancestors. -/
+hypothesis: it needs an induction along the ancestors. The fixed test passes it; the old case 3
+flags it, so it is on the test list. -/
 theorem real_anc_mem_old {par : V → Option V} {S : Set V}
     (hS : ∀ a p, par a = some p → a ∈ S → p ∈ S)
     {a b : V} (h : Tremaux.Anc par a b) (ha : a ∈ S) : b ∈ S :=
@@ -128,7 +131,8 @@ theorem real_anc_mem_new {par : V → Option V} {S : Set V}
   Tremaux.anc_mem hS h ha
 
 /-- `noGainCycle_of_short` as stated at `2489db4`. The premise `c.length ≤ Fintype.card ι`
-cannot be met: going from short cycles to all cycles is the whole of Bellman–Ford. -/
+cannot be met: going from short cycles to all cycles is the whole of Bellman–Ford. On the test
+list, like `real_anc_mem_old`. -/
 theorem real_noGainCycle_of_short_old {ι : Type} [Fintype ι] {r : ι → ι → ℝ}
     (hr : ∀ i j, 0 < r i j)
     (h : ∀ c : List ι, c ≠ [] → c.length ≤ Fintype.card ι → cycleProd r c ≤ 1) :
@@ -140,7 +144,8 @@ theorem real_noGainCycle_of_short_new {ι : Type} [Fintype ι] {r : ι → ι �
     (hr : ∀ i j, 0 < r i j) (h : NoShortGainCycle r (Fintype.card ι)) : NoGainCycle r :=
   noGainCycle_of_short hr h
 
-/-- The premise `0 < n` is not a hypothesis; the case `n = 0` needs `h0`. -/
+/-- The premise `0 < n` is not a hypothesis; the case `n = 0` needs `h0`. On the test list, like
+`real_anc_mem_old`. -/
 theorem real_premise_missing (F : ℕ → Prop) (h : ∀ n, 0 < n → F n) (h0 : F 0) (n : ℕ) : F n := by
   cases n with
   | zero => exact h0
@@ -172,18 +177,25 @@ theorem real_induction (F : ℕ → Prop) (h0 : F 0) (h : ∀ n, F n → F (n + 
 theorem real_strictMono_monotone (f : ℕ → ℕ) (hf : StrictMono f) : Monotone f :=
   hf.monotone
 
+/-- A real chain: a composition of increasing maps is increasing. The fixed test passes it (the
+premise `g a ≤ g b` needs `hg` applied to `hab`, a chain); the old case 3 flags it (the
+conclusion of `hf` matches). It passes only through its entry on the test list. -/
+theorem real_comp_increasing (f g : ℕ → ℕ) (hf : ∀ a b, a ≤ b → f a ≤ f b)
+    (hg : ∀ a b, a ≤ b → g a ≤ g b) : ∀ a b, a ≤ b → f (g a) ≤ f (g b) :=
+  fun a b hab ↦ hf _ _ (hg a b hab)
+
 /-! ## Known limits: the gate passes these on purpose -/
 
-/-- Two hypotheses chained: `h` needs `Q a`, which only `hq` applied to `hr` gives. The gate
-discharges a premise with one hypothesis (instantiated at its variables), not with a chain; a
-chain is how `Set.Subset.trans` and `Monotone.comp` are proved, and those are not empty. -/
-theorem lim_chain (h : ∀ a, Q a → P a) (hq : ∀ a, R a → Q a) (a : V) (hr : R a) : P a :=
+/-- Two hypotheses chained: `h` needs `Q a`, which only `hq` applied to `hr` gives. The fixed test
+meets a premise with one hypothesis, not a chain, so it passes this; the old case 3 (premises
+ignored) flags it. Was `lim_chain` before the ruling that keeps the old case 3. -/
+theorem vac_chain (h : ∀ a, Q a → P a) (hq : ∀ a, R a → Q a) (a : V) (hr : R a) : P a :=
   h a (hq a hr)
 
 /-- `0 + n = n` holds for every `n` but not by `rfl` (addition recurses on the right), so the
-premise is not discharged and the theorem passes. Being true for every `n` is not something the
-gate decides. -/
-theorem lim_semantic (F : ℕ → Prop) (h : ∀ n, 0 + n = n → F n) (n : ℕ) : F n :=
+fixed test does not meet the premise; the old case 3 (premises ignored) flags it. Was
+`lim_semantic` before the ruling that keeps the old case 3. -/
+theorem vac_semantic (F : ℕ → Prop) (h : ∀ n, 0 + n = n → F n) (n : ℕ) : F n :=
   h n (Nat.zero_add n)
 
 /-- A projection of a conjunction is not an application of the hypothesis (review r1, finding 4). -/

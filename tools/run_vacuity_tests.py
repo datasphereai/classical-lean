@@ -75,14 +75,14 @@ run_cmd do
       Lean.logInfo s!"SKIP {{Lean.privateToUserName n}}"
       continue
     try
-      match ← Lean.Elab.Command.liftTermElabM (VacuityGate.judge list n ty) with
+      match ← VacuityGate.judge list n ty with
       | .pass => Lean.logInfo s!"PASS {{Lean.privateToUserName n}}"
-      | .flag h _ =>
+      | .flag h _ w =>
         hit := hit.push (Lean.privateToUserName n)
-        Lean.logInfo s!"FLAG {{Lean.privateToUserName n}} {{h}}"
-      | .listed e =>
+        Lean.logInfo s!"FLAG {{Lean.privateToUserName n}} {{h}} [{{w}}]"
+      | .listed e w =>
         hit := hit.push (Lean.privateToUserName n)
-        Lean.logInfo s!"{{if e.pending then "PENDING" else "LISTED"}} {{Lean.privateToUserName n}}"
+        Lean.logInfo s!"{{if e.pending then "PENDING" else "LISTED"}} {{Lean.privateToUserName n}} [{{w}}]"
       | .unchecked m => Lean.logInfo s!"ERROR {{Lean.privateToUserName n}}: {{m}}"  -- not reached: `judge` never returns it
     catch e =>
       Lean.logInfo m!"ERROR {{Lean.privateToUserName n}}: {{e.toMessageData}}"
@@ -122,19 +122,28 @@ def main(argv):
                            capture_output=True, text=True)
     out = p.stdout + p.stderr
     verdicts, hashes = {}, {}
-    for m in re.finditer(r"\b(FLAG|PASS|LISTED|PENDING|STALE|SKIP|ERROR) (VacuityGateTests\.\S+?):?(?=\s|$)( [0-9a-f]{64})?", out):
+    for m in re.finditer(r"\b(FLAG|PASS|LISTED|PENDING|STALE|SKIP|ERROR) (VacuityGateTests\.\S+?):?(?=\s|$)( [0-9a-f]{64})?( \[[^\]]*\])?", out):
         verdicts[m.group(2)] = m.group(1)
-        hashes[m.group(2)] = (m.group(3) or "").strip()
+        hashes[m.group(2)] = ((m.group(4) or "") + " " + (m.group(3) or "")).strip()
     if p.returncode != 0 or not verdicts:
         print(out)
         print(f"lean rc {p.returncode}, {len(verdicts)} verdicts")
         return 1
+    # a real_ test whose name is on the test list must come out LISTED (flagged, then passed
+    # through its entry); run with `--list /dev/null` to see the flag itself
+    listed = set()
+    if os.path.exists(lst):
+        for l in open(lst, encoding="utf-8"):
+            if l.strip() and not l.startswith("#"):
+                listed.add(l.split()[0])
     bad = 0
     for n, v in sorted(verdicts.items()):
         # the test's own name: the component after `VacuityGateTests`
         short = n.split(".", 1)[1]
         want = {"vac": "FLAG", "listed": "LISTED", "pending": "PENDING",
                 "stale": "STALE"}.get(short.split("_")[0], "PASS")
+        if want == "PASS" and short.startswith("real_") and n in listed:
+            want = "LISTED"
         # a generated `_proof_` helper of a theorem that must pass may be skipped
         if want == "PASS" and v == "SKIP" and "._proof_" in short:
             want = "SKIP"

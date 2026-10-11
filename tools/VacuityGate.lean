@@ -25,7 +25,10 @@ Detected (see `isVacuousType`):
 2. conclusion is one of the theorem's own hypotheses, or follows from one hypothesis by
    applying it, with that hypothesis's own premises met by the theorem's other hypotheses
    (`P → P`, `(∀ a, P a) → P a`, `(S ⊆ T) → x ∈ S → x ∈ T`);
-3. conclusion is `∃ y, y = e` with `e` independent of `y`.
+3. conclusion is `∃ y, y = e` with `e` independent of `y`;
+4. (the old case 3, kept by ruling) the conclusion of a `∀` hypothesis unifies with the
+   conclusion, whatever that hypothesis's premises (`oldCase3`). The gate flags a theorem when
+   either test fires and says which.
 
 A theorem flagged here can still pass when it is on the reviewed list
 `tools/vacuity_reviewed.txt` under its name **and the hash of its statement** (see `Entry`); a
@@ -264,6 +267,23 @@ def isVacuousType (type : Expr) : MetaM Bool :=
     if isTrivialExists concl then return true
     followsFromHyp xs concl
 
+/-- The old case 3, kept beside the fixed test by ruling during order VACUITY-1, so the gate
+    catches everything it caught before. The conclusion of a hypothesis whose leading `∀`s are
+    opened as metavariables (no unfolding) unifies with the theorem's conclusion; the
+    hypothesis's premises are **not** looked at. So it also flags real theorems whose premise no
+    hypothesis gives (old `Tremaux.anc_mem`) and chains (`h (hq hr)`); those can stay only through
+    the reviewed list. Unchanged from `416a90d`. -/
+def oldCase3 (type : Expr) : MetaM Bool :=
+  forallTelescopeReducing type fun xs concl => do
+    for x in xs do
+      let t ← inferType x
+      if (← isProp t) then
+        let (_, _, body) ← forallMetaTelescope t
+        if body != t then
+          if (← isProp body) then
+            if (← isDefEq body concl) then return true
+    return false
+
 /-! ### The reviewed list -/
 
 namespace SHA256
@@ -355,17 +375,31 @@ def loadList (path : System.FilePath) : IO (Array Entry) := do
 inductive Verdict
   | pass
   /-- flagged and not on the list (or on it under another statement) -/
-  | flag (hash : String) (listedUnder : Option String)
-  | listed (e : Entry)
+  | flag (hash : String) (listedUnder : Option String) (why : String)
+  | listed (e : Entry) (why : String)
   /-- the test did not finish within the heartbeat budget -/
   | unchecked (msg : String)
 
-def judge (list : Array Entry) (n : Name) (type : Expr) : MetaM Verdict := do
-  unless ← isVacuousType type do return .pass
+/-- Flagged when the old case 3 **or** the fixed test (cases 1 to 4, `isVacuousType`) flags it;
+    `why` says which fired: `old case 3`, `fixed test`, or both. Each test runs in its own
+    `liftTermElabM` (its own heartbeat count). At this level `try` also catches running out of
+    heartbeats: if the fixed test runs out, the theorem is still flagged when the old case 3
+    fired, and is UNCHECKED otherwise. -/
+def judge (list : Array Entry) (n : Name) (type : Expr) : CommandElabM Verdict := do
+  let old ← liftTermElabM (oldCase3 type)
+  let mut why : Array String := if old then #["old case 3"] else #[]
+  try
+    if ← liftTermElabM (isVacuousType type) then why := why.push "fixed test"
+  catch e =>
+    let m := (← e.toMessageData.toString).splitOn "\n" |>.head!
+    unless old do return .unchecked m
+    why := why.push s!"fixed test UNCHECKED: {m}"
+  if why.isEmpty then return .pass
+  let w := " + ".intercalate why.toList
   let h := statementHash type
   match list.find? (·.name == privateToUserName n) with
-  | some e => return if e.hash == h then .listed e else .flag h (some e.hash)
-  | none => return .flag h none
+  | some e => return if e.hash == h then .listed e w else .flag h (some e.hash) w
+  | none => return .flag h none w
 
 /-- A `_proof_N` lemma that a tactic (mostly `omega`) or the elaborator abstracted out of a
     proof, such as `¬2 * (k + 2) = 2 * k + 4 → False`. Its statement is often trivial on purpose,
@@ -399,7 +433,7 @@ def scan (list : Array Entry) : CommandElabM (Array (Name × Verdict)) := do
       if targets.any (fun ns => ns.isPrefixOf (privateToUserName n)) then
         -- At the command level `try` also catches running out of heartbeats, so a theorem whose
         -- test does not finish is reported as UNCHECKED, never passed.
-        let v ← try liftTermElabM (judge list n ti.type)
+        let v ← try judge list n ti.type
           catch e => pure (.unchecked ((← e.toMessageData.toString).splitOn "\n" |>.head!))
         match v with
         | .pass => pure ()
@@ -417,7 +451,7 @@ end VacuityGate
 -- whose test opens hypotheses and conclusions through definitions: `StepUpProcedure.
 -- indepFun_numRej_update` and `LinearPrediction.indepFun_of_le` (`iIndepFun` against `IndepFun`)
 -- take 1279270 and 1279258, measured the same way; the next largest is 209667. A theorem that
--- still runs out is reported as UNCHECKED and fails the gate.
+-- still runs out is reported as UNCHECKED and fails the gate (unless the old case 3 flagged it).
 set_option maxHeartbeats 2000000 in
 run_cmd do
   let list ← VacuityGate.loadList VacuityGate.reviewedPath
@@ -427,10 +461,12 @@ run_cmd do
   let mut pending : Array String := #[]
   for (n, v) in found do
     match v with
-    | .flag h none => bad := bad.push s!"{n} {h}"
-    | .flag h (some old) => bad := bad.push s!"{n} {h} (listed under {old}: the statement changed)"
+    | .flag h none w => bad := bad.push s!"{n} {h} [{w}]"
+    | .flag h (some old) w =>
+      bad := bad.push s!"{n} {h} [{w}] (listed under {old}: the statement changed)"
     | .unchecked m => bad := bad.push s!"{n} UNCHECKED: {m}"
-    | .listed e => if e.pending then pending := pending.push s!"{n}: {e.reason}" else helpers := helpers + 1
+    | .listed e w =>
+      if e.pending then pending := pending.push s!"{n} [{w}]: {e.reason}" else helpers := helpers + 1
     | .pass => pure ()
   -- An entry no flagged theorem matches by name is stale: the theorem was renamed, removed or
   -- no longer flagged. The list must say exactly what the gate flags.
