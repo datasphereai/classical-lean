@@ -1,0 +1,6 @@
+# Reviewed list for tools/VacuityGateTests.lean only (format: see tools/vacuity_reviewed.txt).
+VacuityGateTests.listed_helper c98db048b6e879b030f2528a903170f2d363722ccdc69bb5230aeef375532361 HELPER a monotone map applied to a ≤ b, kept as a test of the list
+VacuityGateTests.pending_vacuous de85d3d6813d1b12cbd77213f33d4247553d8320e1ff457f1608dff61bdb57cf VACUOUS-PENDING an instance of its hypothesis, kept as a test of the list
+# the hash of the statement before the change (listed_helper's); the theorem now has an extra hypothesis
+VacuityGateTests.vac_listed_changed c98db048b6e879b030f2528a903170f2d363722ccdc69bb5230aeef375532361 HELPER a monotone map applied, before its statement changed
+VacuityGateTests.stale_removed 0000000000000000000000000000000000000000000000000000000000000000 HELPER a theorem that was removed

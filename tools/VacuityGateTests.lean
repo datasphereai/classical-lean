@@ -176,4 +176,35 @@ theorem lim_semantic (F : ℕ → Prop) (h : ∀ n, 0 + n = n → F n) (n : ℕ)
 /-- A contradictory hypothesis proves anything. The gate does not look for contradictions. -/
 theorem lim_false (p : Prop) (h : False) : p := h.elim
 
+/-! ## Tactic helpers: skipped, unless written by hand -/
+
+/-- A hand-written theorem whose name looks like a tactic helper. It has a source position, so
+the gate tests it, and flags it. -/
+theorem vac_named_like_helper._proof_1 (p : Prop) (h : p) : p := h
+
+/-- A real theorem whose proof uses `omega` inside a term, which leaves `_proof_` helpers with no
+source position; the gate skips those (`SKIP`) and passes the theorem. -/
+theorem real_omega_user (n : ℕ) (h : 2 ≤ n) : ∃ m, n = m + 2 := ⟨n - 2, by omega⟩
+
+/-! ## The reviewed list (`tools/vacuity_reviewed_tests.txt` stands in for
+`tools/vacuity_reviewed.txt` here) -/
+
+/-- On the test list as a `HELPER`, under the hash of this statement: `LISTED`. -/
+theorem listed_helper (f : ℕ → ℕ) (hf : Monotone f) (a b : ℕ) (hab : a ≤ b) : f a ≤ f b :=
+  hf hab
+
+/-- On the test list as `VACUOUS-PENDING`: passes, and printed. -/
+theorem pending_vacuous (h : ∀ a, P a) (a : V) : P a := h a
+
+/-- A listed statement that was changed afterwards. Its entry carries the hash of the statement
+before the change (the same as `listed_helper`'s, the hash covering the statement only); the
+change added the hypothesis `c`. It is flagged again. -/
+theorem vac_listed_changed (f : ℕ → ℕ) (hf : Monotone f) (a b : ℕ) (hab : a ≤ b) (_c : ℕ) :
+    f a ≤ f b :=
+  hf hab
+
+-- The test list also has an entry for `VacuityGateTests.stale_removed`, a theorem that does not
+-- exist (renamed or deleted): the runner reports it as `STALE`, and the gate fails on such an
+-- entry.
+
 end VacuityGateTests

@@ -22,6 +22,7 @@ import tempfile
 
 ROOT = os.getcwd()
 TESTS = os.path.join(ROOT, "tools", "VacuityGateTests.lean")
+LIST = os.path.join(ROOT, "tools", "vacuity_reviewed_tests.txt")
 
 
 def gate_section(text):
@@ -36,7 +37,7 @@ def heartbeats(text):
     return m.group(1) if m else "200000"
 
 
-REPORT = """
+REPORT_OLD = """
 set_option maxHeartbeats {hb} in
 run_cmd do
   let env ← Lean.getEnv
@@ -51,6 +52,33 @@ run_cmd do
       Lean.logInfo s!"{{if v then "FLAG" else "PASS"}} {{n}}"
     catch e =>
       Lean.logInfo m!"ERROR {{n}}: {{e.toMessageData}}"
+"""
+
+# For a gate with a reviewed list (VACUITY-1 on): the verdict after the list, read from LIST.
+REPORT = """
+set_option maxHeartbeats {hb} in
+run_cmd do
+  let list ← VacuityGate.loadList "{lst}"
+  let env ← Lean.getEnv
+  let mut names : Array Lean.Name := #[]
+  for (n, ci) in env.constants.toList do
+    if let .thmInfo _ := ci then
+      if (`VacuityGateTests).isPrefixOf n && !n.hasMacroScopes then names := names.push n
+  for n in names.qsort (·.toString < ·.toString) do
+    let ty := (← Lean.getConstInfo n).type
+    if ← VacuityGate.isTacticHelper n then
+      Lean.logInfo s!"SKIP {{n}}"
+      continue
+    try
+      match ← Lean.Elab.Command.liftTermElabM (VacuityGate.judge list n ty) with
+      | .pass => Lean.logInfo s!"PASS {{n}}"
+      | .flag h _ => Lean.logInfo s!"FLAG {{n}} {{h}}"
+      | .listed e => Lean.logInfo s!"{{if e.pending then "PENDING" else "LISTED"}} {{n}}"
+      | .unchecked m => Lean.logInfo s!"ERROR {{n}}: {{m}}"
+    catch e =>
+      Lean.logInfo m!"ERROR {{n}}: {{e.toMessageData}}"
+  for e in list do
+    unless names.contains e.name do Lean.logInfo s!"STALE {{e.name}}"
 """
 
 
@@ -69,7 +97,9 @@ def main(argv):
             return 2
     gtext = open(gate, encoding="utf-8").read()
     body = open(TESTS, encoding="utf-8").read()
-    src = body + "\n\n" + gate_section(gtext) + "\n" + REPORT.format(hb=heartbeats(gtext))
+    report = REPORT if "def judge" in gtext else REPORT_OLD
+    src = (body + "\n\n" + gate_section(gtext) + "\n"
+           + report.format(hb=heartbeats(gtext), lst=LIST))
     with tempfile.TemporaryDirectory() as d:
         path = os.path.join(d, "VacuityGateTestRun.lean")
         with open(path, "w", encoding="utf-8") as f:
@@ -77,20 +107,26 @@ def main(argv):
         p = subprocess.run(["lake", "env", "lean", path], cwd=ROOT,
                            capture_output=True, text=True)
     out = p.stdout + p.stderr
-    verdicts = {}
-    for m in re.finditer(r"\b(FLAG|PASS|ERROR) (VacuityGateTests\.\S+?):?(?=\s|$)", out):
+    verdicts, hashes = {}, {}
+    for m in re.finditer(r"\b(FLAG|PASS|LISTED|PENDING|STALE|SKIP|ERROR) (VacuityGateTests\.\S+?):?(?=\s|$)( [0-9a-f]{64})?", out):
         verdicts[m.group(2)] = m.group(1)
+        hashes[m.group(2)] = (m.group(3) or "").strip()
     if p.returncode != 0 or not verdicts:
         print(out)
         print(f"lean rc {p.returncode}, {len(verdicts)} verdicts")
         return 1
     bad = 0
     for n, v in sorted(verdicts.items()):
-        short = n.split(".")[-1]
-        want = "FLAG" if short.startswith("vac_") else "PASS"
+        # the test's own name: the component after `VacuityGateTests`
+        short = n.split(".", 1)[1]
+        want = {"vac": "FLAG", "listed": "LISTED", "pending": "PENDING",
+                "stale": "STALE"}.get(short.split("_")[0], "PASS")
+        # a generated `_proof_` helper of a theorem that must pass may be skipped
+        if want == "PASS" and v == "SKIP" and "._proof_" in short:
+            want = "SKIP"
         ok = v == want
         bad += (not ok) if not report_only else (v == "ERROR")
-        print(f"{v:5} {short:36} expected {want:5} {'ok' if ok else 'MISMATCH'}")
+        print(f"{v:7} {short:36} expected {want:7} {'ok' if ok else 'MISMATCH'} {hashes[n]}")
     print(f"{len(verdicts)} tests, {sum(v == 'FLAG' for v in verdicts.values())} flagged, "
           f"{bad} {'errors' if report_only else 'mismatches'}")
     return 1 if bad else 0

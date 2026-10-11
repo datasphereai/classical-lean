@@ -1,0 +1,12 @@
+# Reviewed list for tools/VacuityGate.lean (order VACUITY-1).
+#
+# One line per theorem the gate flags but that may stay:
+#   <full name> <sha256 of its statement> <kind> <reason>
+# kind HELPER: a deliberate helper that applies a hypothesis (say, a monotone map to a ≤ b).
+# kind VACUOUS-PENDING: proves nothing beyond its hypothesis; listed only so the library passes
+#   until a later order deals with it; the gate prints every such entry on every run.
+# The hash is the one the gate prints when it flags the theorem (`VacuityGate.statementHash`).
+# Any change to the statement changes the hash, and the theorem is flagged again. An entry that
+# matches no flagged theorem is stale and fails the gate.
+#
+# Empty at VACUITY-1: the fixed gate flags no written theorem of the library.
