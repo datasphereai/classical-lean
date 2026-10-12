@@ -9,4 +9,6 @@
 # Any change to the statement changes the hash, and the theorem is flagged again. An entry that
 # matches no flagged theorem is stale and fails the gate.
 #
-# Empty at VACUITY-1: the fixed gate flags no written theorem of the library.
+# Empty at VACUITY-1: the fixed gate flagged no written theorem of the library.
+# VACUITY-2: library theorems the stronger gate flags, each looked at by hand before its entry.
+ClassicalLean.Simplex.orderedSimplex_subset_closedSimplex 003f33139b11343eb3300d48cf4983540ba6d1539f80cc74c92f161e73a2ed64 HELPER flagged once ∧ is opened (item 72): membership in orderedSimplex is defined as closedSimplex membership ∧ Antitone, so the proof is hx.1; a definitional helper stated to be cited by name (Simplex/Symmetry.lean uses it)
