@@ -91,6 +91,7 @@ run_cmd do
         hit := hit.push u
         Lean.logInfo s!"{{if e.pending then "PENDING" else "LISTED"}} {{u}} [{{w}}]"
       | .unchecked m => Lean.logInfo s!"ERROR {{u}}: {{m}}"  -- not reached: `judge` never returns it
+      {kernel_case}
     catch e =>
       Lean.logInfo m!"ERROR {{u}}: {{e.toMessageData}}"
   for e in list do
@@ -127,9 +128,12 @@ def main(argv):
         helper_test = "VacuityGate.isTacticHelper used n"
     else:
         used_line, helper_test = "", "VacuityGate.isTacticHelper n"
+    # a gate whose flags are checked by the kernel (VACUITY-2 on) has a verdict for a rejection
+    kernel_case = ('| .kernelRejected w m => Lean.logInfo s!"KERNEL-REJECTED {u} [{w}]: {m}"'
+                   if "kernelRejected" in gtext else "")
     src = (body + "\n\n" + gate_section(gtext) + "\n"
            + report.format(hb=heartbeats(gtext), lst=lst, macro_skip=macro_skip,
-                           used_line=used_line, helper_test=helper_test))
+                           used_line=used_line, helper_test=helper_test, kernel_case=kernel_case))
     with tempfile.TemporaryDirectory() as d:
         path = os.path.join(d, "VacuityGateTestRun.lean")
         with open(path, "w", encoding="utf-8") as f:
@@ -138,7 +142,7 @@ def main(argv):
                            capture_output=True, text=True)
     out = p.stdout + p.stderr
     verdicts, hashes = {}, {}
-    for m in re.finditer(r"\b(FLAG|PASS|LISTED|PENDING|STALE|SKIP|ERROR) (VacuityGateTests\.\S+?):?(?=\s|$)( [0-9a-f]{64})?( \[[^\]]*\])?", out):
+    for m in re.finditer(r"\b(FLAG|PASS|LISTED|PENDING|STALE|SKIP|ERROR|KERNEL-REJECTED) (VacuityGateTests\.\S+?):?(?=\s|$)( [0-9a-f]{64})?( \[[^\]]*\])?", out):
         verdicts[m.group(2)] = m.group(1)
         hashes[m.group(2)] = ((m.group(4) or "") + " " + (m.group(3) or "")).strip()
     if p.returncode != 0 or not verdicts:

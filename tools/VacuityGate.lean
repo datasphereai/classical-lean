@@ -206,8 +206,10 @@ def fill (locals : Array Expr) (m : MVarId) : MetaM Bool := do
 /-- Finish a candidate proof `pf` of `concl`: every metavariable left must be data (a premise
     left open means the candidate fails), filled by `fill`; then the proof term is checked by
     `Meta.check` and its type compared with the conclusion. Only a proof that passes both counts,
-    so a flag from case 3 always stands for an actual proof term made of hypotheses. -/
-def finish (locals : Array Expr) (pf concl : Expr) : MetaM Bool := do
+    so a flag from case 3 always stands for an actual proof term made of hypotheses; the proof is
+    put in `found`, and `judge` sends it to the kernel as well (order VACUITY-2). -/
+def finish (locals : Array Expr) (pf concl : Expr) (found : IO.Ref (Option Expr)) :
+    MetaM Bool := do
   for m in ← getMVars (← instantiateMVars pf) do
     if ← m.isAssigned then continue
     if ← isProp (← m.getType) then return false
@@ -216,9 +218,12 @@ def finish (locals : Array Expr) (pf concl : Expr) : MetaM Bool := do
   if pf.hasMVar then return false
   -- at all transparency, as `openLevels` unfolds: `h a` for `h : IWrap P` with `IWrap`
   -- irreducible is a function application only once `IWrap` is unfolded (test `vac_irreducible`)
-  try withTransparency .all do
-    check pf
-    isDefEq (← inferType pf) concl
+  try
+    let ok ← withTransparency .all do
+      check pf
+      isDefEq (← inferType pf) concl
+    if ok then found.set (some pf)
+    return ok
   catch _ => return false
 
 /-- Prove each goal in `gs` in turn by `solve`, backing up when a later one fails. -/
@@ -232,7 +237,8 @@ def solveAll (locals : Array Expr) : List Expr → MetaM Bool → MetaM Bool
     level whose rest is definitionally equal to `concl`, every premise opened so far must be
     proved from `xs` by `solve` and the result checked by `finish`. With nothing opened this is
     case 2, the conclusion being a hypothesis. -/
-def followsFromHyp (xs : Array Expr) (concl : Expr) : MetaM Bool := do
+def followsFromHyp (xs : Array Expr) (concl : Expr) : MetaM (Option Expr) := do
+  let proof ← IO.mkRef none
   for x in xs do
     let t ← inferType x
     if ← isProp t then
@@ -240,9 +246,9 @@ def followsFromHyp (xs : Array Expr) (concl : Expr) : MetaM Bool := do
         unless ← isDefEq body concl do return false
         let prems ← ms.filterM fun m => do
           return !(← m.mvarId!.isAssigned) && (← isProp (← inferType m))
-        solveAll xs prems.toList (finish xs pf concl)
-      if found then return true
-  return false
+        solveAll xs prems.toList (finish xs pf concl proof)
+      if found then return ← proof.get
+  return none
 
 /-- A statement is *vacuous* if any of the following hold.
 
@@ -270,12 +276,37 @@ def followsFromHyp (xs : Array Expr) (concl : Expr) : MetaM Bool := do
     alarm for a real theorem of that shape. The scan skips a `_proof_` lemma with no source
     position that some declaration uses (`isTacticHelper`), so a theorem added by meta code
     (`addDecl`) under such a name and used by another declaration is not tested. These have to
-    be caught in review. Tests of the first ones: `tools/VacuityGateTests.lean`. -/
-def isVacuousType (type : Expr) : MetaM Bool :=
+    be caught in review. Tests of the first ones: `tools/VacuityGateTests.lean`.
+
+    `vacuousProof` returns the statement with its hypotheses abstracted and a closed proof of it
+    (`True.intro`, `⟨e, rfl⟩`, or the proof `followsFromHyp` built), which `judge` sends to the
+    kernel. -/
+def vacuousProof (type : Expr) : MetaM (Option (Expr × Expr)) :=
   forallTelescopeReducing type fun xs concl => do
-    if concl.isConstOf ``True then return true
-    if isTrivialExists concl then return true
-    followsFromHyp xs concl
+    let close (pf : Expr) : MetaM (Option (Expr × Expr)) := do
+      return some (← mkForallFVars xs concl, ← mkLambdaFVars xs pf)
+    if concl.isConstOf ``True then return ← close (mkConst ``True.intro)
+    if isTrivialExists concl then
+      if let .app (.app (.const ``Exists us) α) f@(.lam _ _ (.app (.app _ lhs) rhs) _) := concl then
+        let e := if lhs == .bvar 0 then rhs else lhs
+        return ← close (mkApp4 (mkConst ``Exists.intro us) α f e (mkApp2 (mkConst ``Eq.refl us) α e))
+    match ← followsFromHyp xs concl with
+    | some pf => close pf
+    | none => return none
+
+/-- The fixed test as a yes or no (the test runner's template for older gates calls it). -/
+def isVacuousType (type : Expr) : MetaM Bool := return (← vacuousProof type).isSome
+
+/-- The kernel's check of a flag's proof (order VACUITY-2): the proof `pf` of the statement `ty`
+    is added as a theorem to a copy of the environment, which is then dropped, so nothing is
+    added. Returns the kernel's message when it rejects the proof. `Meta.check` (in `finish`) is
+    the elaborator's checker; the kernel is the part of Lean every proof finally answers to. -/
+def kernelRejects (lps : List Name) (ty pf : Expr) : CoreM (Option String) := do
+  let decl := Declaration.thmDecl
+    { name := `_vacuityGate_kernelCheck, levelParams := lps, type := ty, value := pf }
+  match (← getEnv).toKernelEnv.addDecl (← getOptions) decl with
+  | .ok _ => return none
+  | .error e => return some ((← (e.toMessageData (← getOptions)).toString).splitOn "\n" |>.head!)
 
 /-- The old case 3, kept beside the fixed test by ruling during order VACUITY-1, so the gate
     catches everything it caught before. The conclusion of a hypothesis whose leading `∀`s are
@@ -389,22 +420,31 @@ inductive Verdict
   | listed (e : Entry) (why : String)
   /-- the test did not finish within the heartbeat budget -/
   | unchecked (msg : String)
+  /-- the kernel rejected the proof behind a flag: `Meta.check` accepted a bad term; fails the
+      gate (order VACUITY-2) -/
+  | kernelRejected (why : String) (msg : String)
 
-/-- Flagged when the old case 3 **or** the fixed test (cases 1 to 4, `isVacuousType`) flags it;
-    `why` says which fired: `old case 3`, `fixed test`, or both. Each test runs in its own
-    `liftTermElabM` (its own heartbeat count). At this level `try` also catches running out of
-    heartbeats: if the fixed test runs out, the theorem is still flagged when the old case 3
-    fired, and is UNCHECKED otherwise. -/
+/-- Flagged when the old case 3 **or** the fixed test (cases 1 to 4, `vacuousProof`) flags it;
+    `why` says which fired: `old case 3 only`, `fixed test`, or both. A flag of the fixed test
+    stands only once the kernel accepts its proof (`kernelRejects`); a rejection is its own
+    verdict. The old case 3 builds no proof, so its flags carry the label `old case 3 only` where
+    no other test fired. Each test runs in its own `liftTermElabM` (its own heartbeat count). At
+    this level `try` also catches running out of heartbeats: if the fixed test runs out, the
+    theorem is still flagged when the old case 3 fired, and is UNCHECKED otherwise. -/
 def judge (list : Array Entry) (n : Name) (type : Expr) : CommandElabM Verdict := do
+  let lps := (← getConstInfo n).levelParams
   let old ← liftTermElabM (oldCase3 type)
   let mut why : Array String := if old then #["old case 3"] else #[]
   try
-    if ← liftTermElabM (isVacuousType type) then why := why.push "fixed test"
+    if let some (ty, pf) ← liftTermElabM (vacuousProof type) then
+      if let some m ← liftCoreM (kernelRejects lps ty pf) then return .kernelRejected "fixed test" m
+      why := why.push "fixed test"
   catch e =>
     let m := (← e.toMessageData.toString).splitOn "\n" |>.head!
     unless old do return .unchecked m
     why := why.push s!"fixed test UNCHECKED: {m}"
   if why.isEmpty then return .pass
+  if why == #["old case 3"] then why := #["old case 3 only"]
   let w := " + ".intercalate why.toList
   let h := statementHash type
   match list.find? (·.name == privateToUserName n) with
@@ -499,6 +539,7 @@ run_cmd do
     | .flag h (some old) w =>
       bad := bad.push s!"{n} {h} [{w}] (listed under {old}: the statement changed)"
     | .unchecked m => bad := bad.push s!"{n} UNCHECKED: {m}"
+    | .kernelRejected w m => bad := bad.push s!"{n} KERNEL-REJECTED [{w}]: {m}"
     | .listed e w =>
       if e.pending then pending := pending.push s!"{n} [{w}]: {e.reason}" else helpers := helpers + 1
     | .pass => pure ()
