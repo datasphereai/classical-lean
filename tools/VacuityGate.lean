@@ -74,44 +74,53 @@ def isTrivialExists (concl : Expr) : Bool :=
 
 /-! ### Case 3: the conclusion follows from one hypothesis -/
 
-/-- At most this many unfoldings of a head that is not a `∀`, per level (the count starts again
-    after each binder opened; `maxBinders` bounds the levels). -/
-def maxUnfolds : Nat := 4
+/-- At most this many levels opened, per hypothesis: `∀`s and `→`s, halves of an `∧`,
+    directions of an `↔`, and heads unfolded. -/
+def maxLevels : Nat := 64
 
-/-- At most this many `∀`s and `→`s opened, per hypothesis. -/
-def maxBinders : Nat := 32
-
-/-- Open the `∀`s and `→`s of `t` one at a time as metavariables and call `k ms t'` at every
-    level (`ms`: the metavariables so far; `t'`: what is left), starting with nothing opened.
-    When `t'` is not a `∀`, its head is unfolded with `whnf` to look
-    for one (at most `maxUnfolds` times before each binder): this is how `S ⊆ T`, `Monotone f`
-    and a named definition such as
-    `NoShortGainCycle r n` are opened. With `dataOnly`, it stops at the first binder whose type is
-    a proposition. Returns `true` as soon as `k` does; a level where `k` fails leaves no
+/-- Open the hypothesis `pf : t` one level at a time and call `k ms pf' t'` at every level (`ms`:
+    the metavariables so far; `pf'`: the proof built so far, of `t'`; `t'`: what is left),
+    starting with nothing opened. A level is one of: a `∀` or `→`, opened as a metavariable
+    (`pf' = pf m`); either half of an `∧` (`pf.1`, `pf.2`, order VACUITY-2); either direction of
+    an `↔` (`pf.mp`, `pf.mpr`, order VACUITY-2). When `t'` is none of these, its head is unfolded
+    with `whnf`: this is how `S ⊆ T`, `Monotone f` and a named definition such as
+    `NoShortGainCycle r n` are opened. One `whnf` call unfolds every nested definition down to
+    the next binder or connective (six nested ones: test `vac_deep_unfold`), so no count of
+    unfoldings is kept. With `dataOnly`, it stops at the first binder whose type is a
+    proposition. Returns `true` as soon as `k` does; a level where `k` fails leaves no
     assignment behind. -/
-partial def openLevels (t : Expr) (dataOnly : Bool) (k : Array Expr → Expr → MetaM Bool) :
-    MetaM Bool :=
-  go t #[] 0
+partial def openLevels (pf t : Expr) (dataOnly : Bool)
+    (k : Array Expr → Expr → Expr → MetaM Bool) : MetaM Bool :=
+  go pf t #[] 0
 where
-  go (t : Expr) (ms : Array Expr) (unfolds : Nat) : MetaM Bool := do
+  go (pf t : Expr) (ms : Array Expr) (depth : Nat) : MetaM Bool := do
     let s ← saveState
-    if ← k ms t then return true
+    if ← k ms pf t then return true
     s.restore
-    if ms.size ≥ maxBinders then return false
+    if depth ≥ maxLevels then return false
     match ← instantiateMVars t with
     | .forallE _ d b _ =>
       if dataOnly && (← isProp d) then return false
       let m ← mkFreshExprMVar d
-      go (b.instantiate1 m) (ms.push m) 0
+      go (mkApp pf m) (b.instantiate1 m) (ms.push m) (depth + 1)
     | t =>
-      if unfolds ≥ maxUnfolds then return false
       let t' ← whnf t
-      if t'.isForall then go t' ms (unfolds + 1) else return false
+      match t'.getAppFnArgs with
+      | (``And, #[a, b]) =>
+        if ← go (mkApp3 (mkConst ``And.left) a b pf) a ms (depth + 1) then return true
+        s.restore
+        go (mkApp3 (mkConst ``And.right) a b pf) b ms (depth + 1)
+      | (``Iff, #[a, b]) =>
+        if ← go (mkApp3 (mkConst ``Iff.mp) a b pf) (← mkArrow a b) ms (depth + 1) then
+          return true
+        s.restore
+        go (mkApp3 (mkConst ``Iff.mpr) a b pf) (← mkArrow b a) ms (depth + 1)
+      | _ => if t'.isForall then go pf t' ms (depth + 1) else return false
 
 /-- Prove the goal `g` (a metavariable whose type is a proposition) from the hypotheses
     `locals`, then run `k`; try another proof of `g` when `k` fails. A proof is one of:
     an instance found by instance search; one hypothesis, instantiated at its variables but not
-    at its premises (no chains of hypotheses); `True.intro`; `⟨_, _⟩` for `∧` and `∃` with each
+    at its premises (no chains of hypotheses), or a half of it when it is an `∧`; `True.intro`; `⟨_, _⟩` for `∧` and `∃` with each
     part proved the same way; `Or.inl` or `Or.inr` for `∨`; `rfl` when the two sides are definitionally equal; `decide` for a
     closed proposition (no free variables) that evaluates to `true`. -/
 partial def solve (locals : Array Expr) (g : Expr) (k : MetaM Bool) : MetaM Bool := do
@@ -128,9 +137,9 @@ partial def solve (locals : Array Expr) (g : Expr) (k : MetaM Bool) : MetaM Bool
   for l in locals do
     let lt ← inferType l
     if ← isProp lt then
-      let found ← openLevels lt true fun ms ty => do
+      let found ← openLevels l lt true fun _ pf ty => do
         if ← isDefEq ty p then
-          gid.assign (mkAppN l ms)
+          gid.assign pf
           k
         else return false
       if found then return true
@@ -215,7 +224,8 @@ def solveAll (locals : Array Expr) : List Expr → MetaM Bool → MetaM Bool
   | g :: gs, k => solve locals g (solveAll locals gs k)
 
 /-- Cases 2 and 3: does `concl` follow from one hypothesis `x` among `xs`, by applying it?
-    `x` is opened level by level (`openLevels`, which unfolds `⊆` and named definitions); at a
+    `x` is opened level by level (`openLevels`, which unfolds `⊆` and named definitions and opens
+    `∧` and `↔`); at a
     level whose rest is definitionally equal to `concl`, every premise opened so far must be
     proved from `xs` by `solve` and the result checked by `finish`. With nothing opened this is
     case 2, the conclusion being a hypothesis. -/
@@ -223,11 +233,11 @@ def followsFromHyp (xs : Array Expr) (concl : Expr) : MetaM Bool := do
   for x in xs do
     let t ← inferType x
     if ← isProp t then
-      let found ← openLevels t false fun ms body => do
+      let found ← openLevels x t false fun ms pf body => do
         unless ← isDefEq body concl do return false
         let prems ← ms.filterM fun m => do
           return !(← m.mvarId!.isAssigned) && (← isProp (← inferType m))
-        solveAll xs prems.toList (finish xs (mkAppN x ms) concl)
+        solveAll xs prems.toList (finish xs pf concl)
       if found then return true
   return false
 
@@ -252,10 +262,8 @@ def followsFromHyp (xs : Array Expr) (concl : Expr) : MetaM Bool := do
     being uninformative is not a syntactic property; a conclusion that needs two hypotheses
     chained (`h (hq hr)`), because that is how real lemmas such as `Monotone.comp` are proved; a
     premise that is true for every value but not by `rfl` or `decide` (`0 + n = n`); a
-    contradictory hypothesis; a hypothesis that is a conjunction or an `↔` (`(h : ∀ a, P a ∧ Q a)
-    : P a` is a projection, not an application); a hypothesis inside an `@[irreducible]`
-    definition (`whnf` does not open it; the library has none at VACUITY-1); more than
-    `maxUnfolds` unfoldings before one binder. A closed premise that `decide` cannot finish
+    contradictory hypothesis; a hypothesis inside an `@[irreducible]` definition (`whnf` does not
+    open it; the library has none at VACUITY-1). A closed premise that `decide` cannot finish
     (`Nat.Prime 1000003`) makes the theorem UNCHECKED, which fails the gate: safe, but a false
     alarm for a real theorem of that shape. The scan skips declarations with macro scopes
     (hygienic macro output) and `_proof_` lemmas with no source position, so a theorem added by
