@@ -277,6 +277,19 @@ as a `HELPER`, so it must come out `LISTED` once rule 5 exists. -/
 theorem real_exfalso_helper {p : Prop} (n : ℕ) (h : n + 1 ≤ 0) : p :=
   absurd h (Nat.not_succ_le_zero n)
 
+/-- A conclusion `≠`: unfolded, it reads `n + 1 = 0 → False`, but `n + 1 = 0` is part of the
+claim, not a hypothesis; rule 5 must not refute it (the first library run of rule 5 flagged
+`Simplex.single_one_ne_zero` and three more of this shape). -/
+theorem real_ne_zero_concl (n : ℕ) : n + 1 ≠ 0 := Nat.succ_ne_zero n
+
+/-- A conclusion that unfolds to a `∀` with an impossible premise (`x ∈ []`), like
+`PredicateStack.admits_nil`. -/
+theorem real_not_mem_nil (x : ℕ) : x ∉ ([] : List ℕ) := List.not_mem_nil
+
+/-- A theorem whose conclusion is `False` states that its hypotheses contradict: an
+impossibility result, not a vacuous one. Rule 5 does not run on it. -/
+theorem real_false_concl (n : ℕ) (h : n + 1 ≤ 0) : False := Nat.not_succ_le_zero n h
+
 -- A theorem added by meta code (`addDecl`) under a `_proof_` name, with no source position and
 -- used by nothing (item 75): the statement is `p → p`.
 open Lean in

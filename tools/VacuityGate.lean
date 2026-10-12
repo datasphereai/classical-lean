@@ -352,14 +352,20 @@ def rule5Tactics : Lean.Elab.Term.TermElabM (Array (TSyntax `tactic)) := do
   return #[← `(tactic| contradiction), ← `(tactic| linarith), ← `(tactic| omega),
     ← `(tactic| norm_num at *), ← `(tactic| decide)]
 
-/-- Rule 5: do the theorem's hypotheses contradict each other? It runs only when there is a
-    hypothesis that is a proposition, and tries each of `rule5Tactics` on the goal `False` with
-    the hypotheses in context. A proof found (complete, no `sorry`) is closed over the hypotheses,
+/-- Rule 5: do the theorem's hypotheses contradict each other? The hypotheses are the binders
+    written in the statement, opened **without unfolding** (`forallTelescope`): unfolding would
+    also open the conclusion, and `v ≠ 0` would become a hypothesis `v = 0` that rule 5 refutes
+    (the first library run flagged four real theorems so, among them
+    `Simplex.single_one_ne_zero`; tests `real_ne_zero_concl`, `real_not_mem_nil`). Rule 5 runs
+    only when a hypothesis is a proposition and the conclusion is not `False`: a theorem whose
+    conclusion is `False` states that its hypotheses contradict (test `real_false_concl`). It
+    tries each of `rule5Tactics` on the goal `False` with the hypotheses in context. A proof found (complete, no `sorry`) is closed over the hypotheses,
     `∀ xs, False`, and sent to the kernel (`kernelCheck`) before the tactic's state is dropped.
     Returns `none` when no tactic closed the goal, and the kernel's answer when one did. Running
     out of heartbeats is not caught here: it ends the search, and `judge` reports it. -/
 def rule5 (lps : List Name) (type : Expr) : Lean.Elab.Term.TermElabM (Option KernelCheck) :=
-  forallTelescopeReducing type fun xs _ => do
+  forallTelescope type fun xs concl => do
+    if concl.isConstOf ``False then return none
     unless ← xs.anyM (fun x => do isProp (← inferType x)) do return none
     for tac in ← rule5Tactics do
       let s ← Lean.Elab.Term.saveState
