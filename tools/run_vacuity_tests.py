@@ -10,7 +10,9 @@ library, so this script joins them: it copies the test file, then the gate's cod
 for every theorem in the namespace `VacuityGateTests`, into a scratch file, and runs
 `lake env lean` on it. The per-theorem heartbeat budget is read from the gate file.
 
-The first word of each test's name is its expectation: `vac_` must be flagged; `real_` and `lim_`
+Names are printed with the private prefix dropped and macro scopes erased (a theorem written by a
+hygienic macro), and the expectation is read from that name. The first word of each test's name is
+its expectation: `vac_` must be flagged; `real_` and `lim_`
 must pass. Exit 0 when every test meets its expectation (or with --report-only, when every test
 got a verdict), 1 otherwise. `--gate FILE` tests another version of the gate, e.g. one written out
 by `git show <commit>:tools/VacuityGate.lean`; `--tests` and `--list` replace the test file and
@@ -65,27 +67,31 @@ run_cmd do
   let mut names : Array Lean.Name := #[]
   for (n, ci) in env.constants.toList do
     if let .thmInfo _ := ci then
-      if (`VacuityGateTests).isPrefixOf (Lean.privateToUserName n) && !n.hasMacroScopes then
+      if (`VacuityGateTests).isPrefixOf (Lean.privateToUserName n) then
         names := names.push n
   -- names the gate flagged or listed: an entry that matches none of them is stale, as in the gate
   let mut hit : Array Lean.Name := #[]
   for n in names.qsort (·.toString < ·.toString) do
     let ty := (← Lean.getConstInfo n).type
+    let u := (Lean.privateToUserName n).eraseMacroScopes
+    if {macro_skip} && n.hasMacroScopes then
+      Lean.logInfo s!"SKIP {{u}}"
+      continue
     if ← VacuityGate.isTacticHelper n then
-      Lean.logInfo s!"SKIP {{Lean.privateToUserName n}}"
+      Lean.logInfo s!"SKIP {{u}}"
       continue
     try
       match ← VacuityGate.judge list n ty with
-      | .pass => Lean.logInfo s!"PASS {{Lean.privateToUserName n}}"
+      | .pass => Lean.logInfo s!"PASS {{u}}"
       | .flag h _ w =>
-        hit := hit.push (Lean.privateToUserName n)
-        Lean.logInfo s!"FLAG {{Lean.privateToUserName n}} {{h}} [{{w}}]"
+        hit := hit.push u
+        Lean.logInfo s!"FLAG {{u}} {{h}} [{{w}}]"
       | .listed e w =>
-        hit := hit.push (Lean.privateToUserName n)
-        Lean.logInfo s!"{{if e.pending then "PENDING" else "LISTED"}} {{Lean.privateToUserName n}} [{{w}}]"
-      | .unchecked m => Lean.logInfo s!"ERROR {{Lean.privateToUserName n}}: {{m}}"  -- not reached: `judge` never returns it
+        hit := hit.push u
+        Lean.logInfo s!"{{if e.pending then "PENDING" else "LISTED"}} {{u}} [{{w}}]"
+      | .unchecked m => Lean.logInfo s!"ERROR {{u}}: {{m}}"  -- not reached: `judge` never returns it
     catch e =>
-      Lean.logInfo m!"ERROR {{Lean.privateToUserName n}}: {{e.toMessageData}}"
+      Lean.logInfo m!"ERROR {{u}}: {{e.toMessageData}}"
   for e in list do
     unless hit.contains e.name do Lean.logInfo s!"STALE {{e.name}}"
 """
@@ -112,8 +118,10 @@ def main(argv):
     gtext = open(gate, encoding="utf-8").read()
     body = open(tests, encoding="utf-8").read()
     report = REPORT if "def judge" in gtext else REPORT_OLD
+    # a gate whose scan skips names with macro scopes: the runner skips them too, and says SKIP
+    macro_skip = "true" if "if n.hasMacroScopes then continue" in gtext else "false"
     src = (body + "\n\n" + gate_section(gtext) + "\n"
-           + report.format(hb=heartbeats(gtext), lst=lst))
+           + report.format(hb=heartbeats(gtext), lst=lst, macro_skip=macro_skip))
     with tempfile.TemporaryDirectory() as d:
         path = os.path.join(d, "VacuityGateTestRun.lean")
         with open(path, "w", encoding="utf-8") as f:

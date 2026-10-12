@@ -13,7 +13,8 @@ The first word of each name says what the gate must do:
 * `vac_`: the statement proves nothing; the gate must **flag** it.
 * `real_`: a real theorem; the gate must **pass** it.
 * `lim_`: a known limit of the gate, stated rather than hidden. The statement is empty or close
-  to it, but the gate **passes** it on purpose; the docstring says why.
+  to it, but the gate **passes** it on purpose; the docstring says why. (None is left at
+  VACUITY-2: `lim_and_hyp` and `lim_false` became `vac_and_hyp_left` and `vac_false_elim`.)
 * A `real_` test whose name is on `tools/vacuity_reviewed_tests.txt` must come out `LISTED`: the
   gate flags it (the old case 3, which ignores premises) and the entry lets it pass.
 
@@ -198,14 +199,16 @@ fixed test does not meet the premise; the old case 3 (premises ignored) flags it
 theorem vac_semantic (F : ℕ → Prop) (h : ∀ n, 0 + n = n → F n) (n : ℕ) : F n :=
   h n (Nat.zero_add n)
 
-/-- A projection of a conjunction is not an application of the hypothesis (review r1, finding 4). -/
-theorem lim_and_hyp (h : ∀ a, P a ∧ Q a) (a : V) : P a := (h a).1
+/-- A projection of a conjunction (review r1, finding 4). Was `lim_and_hyp` until order
+VACUITY-2 (item 72), which opens `∧` hypotheses into their two halves. -/
+theorem vac_and_hyp_left (h : ∀ a, P a ∧ Q a) (a : V) : P a := (h a).1
 
 /-- A private test theorem is tested too (review r1, finding 8). -/
 private theorem vac_private (h : ∀ a, P a) (a : V) : P a := h a
 
-/-- A contradictory hypothesis proves anything. The gate does not look for contradictions. -/
-theorem lim_false (p : Prop) (h : False) : p := h.elim
+/-- A contradictory hypothesis proves anything. Was `lim_false` until order VACUITY-2 (item 77),
+whose rule 5 looks for a proof of `False` from the hypotheses. -/
+theorem vac_false_elim (p : Prop) (h : False) : p := h.elim
 
 /-! ## Tactic helpers: skipped, unless written by hand -/
 
@@ -233,6 +236,59 @@ change added the hypothesis `c`. It is flagged again. -/
 theorem vac_listed_changed (f : ℕ → ℕ) (hf : Monotone f) (a b : ℕ) (hab : a ≤ b) (_c : ℕ) :
     f a ≤ f b :=
   hf hab
+
+/-! ## Order VACUITY-2 (items 72 to 77) -/
+
+/-- A conjunction hypothesis, review r1's probe, copied: the left half. The same statement as
+`vac_and_hyp_left`, kept under the probe's name. -/
+theorem vac_and_hyp (h : ∀ a, P a ∧ Q a) (a : V) : P a := (h a).1
+
+/-- A conjunction hypothesis: the right half, with a premise met by another hypothesis. -/
+theorem vac_and_hyp_right (h : ∀ a, Q a → P a ∧ R a) (a : V) (hq : Q a) : R a := (h a hq).2
+
+/-- An `↔` hypothesis used forward, review r1's probe, copied. -/
+theorem vac_iff_hyp (h : ∀ a, Q a ↔ P a) (a : V) (hq : Q a) : P a := (h a).mp hq
+
+/-- An `↔` hypothesis used backward. -/
+theorem vac_iff_hyp_mpr (h : ∀ a, Q a ↔ P a) (a : V) (hp : P a) : Q a := (h a).mpr hp
+
+/-- Hypothesis in an irreducible named definition, review r1's probe, copied (item 73). -/
+@[irreducible] def IWrap (P : V → Prop) : Prop := ∀ a, P a
+
+theorem vac_irreducible (h : IWrap P) (a : V) : P a := by
+  unfold IWrap at h; exact h a
+
+/-- Six nested definitions before one binder: one `whnf` call opens them all, so the
+"more than 4 unfoldings" limit never fires (item 74). Kept as a guard. -/
+def E1 (P : V → Prop) : Prop := ∀ a, P a
+def E2 (P : V → Prop) : Prop := E1 P
+def E3 (P : V → Prop) : Prop := E2 P
+def E4 (P : V → Prop) : Prop := E3 P
+def E5 (P : V → Prop) : Prop := E4 P
+def E6 (P : V → Prop) : Prop := E5 P
+
+theorem vac_deep_unfold (h : E6 P) (a : V) : P a := h a
+
+/-- Contradictory hypotheses: no natural number is below `0` (rule 5, item 77; `omega`). -/
+theorem vac_false_hyp (F : ℕ → Prop) (n : ℕ) (h : n < 0) : F n := absurd h (Nat.not_lt_zero n)
+
+/-- A deliberate "from a contradiction, anything" helper (rule 5 finds it). It is on the test list
+as a `HELPER`, so it must come out `LISTED` once rule 5 exists. -/
+theorem real_exfalso_helper {p : Prop} (n : ℕ) (h : n + 1 ≤ 0) : p :=
+  absurd h (Nat.not_succ_le_zero n)
+
+-- A theorem added by meta code (`addDecl`) under a `_proof_` name, with no source position and
+-- used by nothing (item 75): the statement is `p → p`.
+open Lean in
+run_cmd Lean.Elab.Command.liftTermElabM do
+  let ty := mkForall `p .default (mkSort 0) (mkForall `h .default (.bvar 0) (.bvar 1))
+  let pf := mkLambda `p .default (mkSort 0) (mkLambda `h .default (.bvar 0) (.bvar 0))
+  addDecl (.thmDecl { name := (`VacuityGateTests.vac_meta_helper).str "_proof_1",
+                      levelParams := [], type := ty, value := pf })
+
+/-- A theorem written by a local hygienic macro, so its name carries macro scopes (item 75). -/
+local macro "mk_scoped_vac" : command => `(theorem vac_macro_scoped (p : Prop) (h : p) : p := h)
+mk_scoped_vac
 
 -- The test list also has an entry for `VacuityGateTests.stale_removed`, a theorem that does not
 -- exist (renamed or deleted): the runner reports it as `STALE`, and the gate fails on such an
