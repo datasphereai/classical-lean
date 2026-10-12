@@ -83,7 +83,8 @@ def maxLevels : Nat := 64
     starting with nothing opened. A level is one of: a `∀` or `→`, opened as a metavariable
     (`pf' = pf m`); either half of an `∧` (`pf.1`, `pf.2`, order VACUITY-2); either direction of
     an `↔` (`pf.mp`, `pf.mpr`, order VACUITY-2). When `t'` is none of these, its head is unfolded
-    with `whnf`: this is how `S ⊆ T`, `Monotone f` and a named definition such as
+    with `whnf` at all transparency, so `@[irreducible]` definitions are opened too (order
+    VACUITY-2; test `vac_irreducible`): this is how `S ⊆ T`, `Monotone f` and a named definition such as
     `NoShortGainCycle r n` are opened. One `whnf` call unfolds every nested definition down to
     the next binder or connective (six nested ones: test `vac_deep_unfold`), so no count of
     unfoldings is kept. With `dataOnly`, it stops at the first binder whose type is a
@@ -104,7 +105,7 @@ where
       let m ← mkFreshExprMVar d
       go (mkApp pf m) (b.instantiate1 m) (ms.push m) (depth + 1)
     | t =>
-      let t' ← whnf t
+      let t' ← withTransparency .all (whnf t)
       match t'.getAppFnArgs with
       | (``And, #[a, b]) =>
         if ← go (mkApp3 (mkConst ``And.left) a b pf) a ms (depth + 1) then return true
@@ -213,7 +214,9 @@ def finish (locals : Array Expr) (pf concl : Expr) : MetaM Bool := do
     unless ← fill locals m do return false
   let pf ← instantiateMVars pf
   if pf.hasMVar then return false
-  try
+  -- at all transparency, as `openLevels` unfolds: `h a` for `h : IWrap P` with `IWrap`
+  -- irreducible is a function application only once `IWrap` is unfolded (test `vac_irreducible`)
+  try withTransparency .all do
     check pf
     isDefEq (← inferType pf) concl
   catch _ => return false
@@ -262,8 +265,7 @@ def followsFromHyp (xs : Array Expr) (concl : Expr) : MetaM Bool := do
     being uninformative is not a syntactic property; a conclusion that needs two hypotheses
     chained (`h (hq hr)`), because that is how real lemmas such as `Monotone.comp` are proved; a
     premise that is true for every value but not by `rfl` or `decide` (`0 + n = n`); a
-    contradictory hypothesis; a hypothesis inside an `@[irreducible]` definition (`whnf` does not
-    open it; the library has none at VACUITY-1). A closed premise that `decide` cannot finish
+    contradictory hypothesis. A closed premise that `decide` cannot finish
     (`Nat.Prime 1000003`) makes the theorem UNCHECKED, which fails the gate: safe, but a false
     alarm for a real theorem of that shape. The scan skips declarations with macro scopes
     (hygienic macro output) and `_proof_` lemmas with no source position, so a theorem added by
