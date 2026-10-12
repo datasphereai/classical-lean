@@ -306,6 +306,41 @@ def Witness (e : ℕ) : Prop := ∃ y, y = e
 
 theorem vac_exists_named (n : ℕ) : Witness n := show ∃ y, y = n from ⟨n, rfl⟩
 
+/-! ## Glued conclusions (Dustin's ruling of 2026-10-11, cold review r2 finding 3) -/
+
+/-- The reviewer's example: the conclusion is the two hypotheses glued with `∧`. -/
+theorem vac_glued_and (a : V) (h1 : P a) (h2 : Q a) : P a ∧ Q a := ⟨h1, h2⟩
+
+/-- An `↔` glued from two implications that are hypotheses. -/
+theorem vac_glued_iff (a : V) (h1 : P a → Q a) (h2 : Q a → P a) : P a ↔ Q a := ⟨h1, h2⟩
+
+/-- Membership in an intersection is an `∧` once unfolded (the reviewer's `vac_mem_inter_concl`). -/
+theorem vac_glued_inter (x : V) (hs : x ∈ S) (ht : x ∈ T) : x ∈ S ∩ T := ⟨hs, ht⟩
+
+/-- Nested, and one part closed by applying a hypothesis (the fixed test) with its premise met. -/
+theorem vac_glued_nested (a : V) (h1 : P a) (h2 : ∀ b, P b → Q b) (h3 : R a) :
+    P a ∧ (Q a ∧ R a) := ⟨h1, h2 a h1, h3⟩
+
+/-- One part is `True`. -/
+theorem vac_glued_true (a : V) (h : P a) : P a ∧ True := ⟨h, trivial⟩
+
+/-- A structure whose type is a proposition, other than `∧` and `↔`. -/
+structure Both (p q : Prop) : Prop where
+  left : p
+  right : q
+
+theorem vac_glued_struct (a : V) (h1 : P a) (h2 : Q a) : Both (P a) (Q a) := ⟨h1, h2⟩
+
+/-- An `∧` conclusion that needs real work: neither part is a hypothesis. -/
+theorem real_and_work (n : ℕ) (h : 2 ≤ n) : 1 ≤ n ∧ n ≠ 0 := ⟨by omega, by omega⟩
+
+/-- A computed fact, closed by `decide`: never flagged. -/
+theorem real_decide_fact : (3 : ℕ) < 5 ∧ 2 + 2 = 4 := by decide
+
+/-- A hypothesis glued to a computed fact: the second part needs `rfl`/`decide`, not a
+hypothesis, so the theorem passes (a stated limit of the glued rule). -/
+theorem real_hyp_and_computed (a : V) (h : P a) : P a ∧ 2 + 2 = 4 := ⟨h, rfl⟩
+
 -- A theorem added by meta code (`addDecl`) under a `_proof_` name, with no source position and
 -- used by nothing (item 75): the statement is `p → p`.
 open Lean in
