@@ -82,7 +82,7 @@ run_cmd do
       Lean.logInfo s!"SKIP {{u}}"
       continue
     try
-      match ← VacuityGate.judge list n ty with
+      {judge_match}
       | .pass => Lean.logInfo s!"PASS {{u}}"
       | .flag h _ w =>
         hit := hit.push u
@@ -131,9 +131,17 @@ def main(argv):
     # a gate whose flags are checked by the kernel (VACUITY-2 on) has a verdict for a rejection
     kernel_case = ('| .kernelRejected w m => Lean.logInfo s!"KERNEL-REJECTED {u} [{w}]: {m}"'
                    if "kernelRejected" in gtext else "")
+    # a gate with rule 5 (VACUITY-2 on): judge also returns rule 5 running out, printed apart
+    if "def rule5" in gtext:
+        judge_match = ('let (v, ro) ← VacuityGate.judge list n ty\n'
+                       '      if let some m := ro then Lean.logInfo s!"RULE5-RANOUT {u}: {m}"\n'
+                       '      match v with')
+    else:
+        judge_match = "match ← VacuityGate.judge list n ty with"
     src = (body + "\n\n" + gate_section(gtext) + "\n"
            + report.format(hb=heartbeats(gtext), lst=lst, macro_skip=macro_skip,
-                           used_line=used_line, helper_test=helper_test, kernel_case=kernel_case))
+                           used_line=used_line, helper_test=helper_test, kernel_case=kernel_case,
+                           judge_match=judge_match))
     with tempfile.TemporaryDirectory() as d:
         path = os.path.join(d, "VacuityGateTestRun.lean")
         with open(path, "w", encoding="utf-8") as f:
@@ -170,8 +178,13 @@ def main(argv):
         ok = v == want
         bad += (not ok) if not report_only else (v == "ERROR")
         print(f"{v:7} {short:36} expected {want:7} {'ok' if ok else 'MISMATCH'} {hashes[n]}")
+    for m in re.finditer(r"KERNEL-REJECTED (VacuityGateTests\.\S+) \[([^\]]*)\]: (.*)", out):
+        print(f"kernel rejected {m.group(1).split('.', 1)[1]} [{m.group(2)}]: {m.group(3)}")
+    ranout = re.findall(r"RULE5-RANOUT (VacuityGateTests\.\S+?):", out)
+    for n in sorted(ranout):
+        print(f"rule 5 ran out: {n.split('.', 1)[1]}")
     print(f"{len(verdicts)} tests, {sum(v == 'FLAG' for v in verdicts.values())} flagged, "
-          f"{bad} {'errors' if report_only else 'mismatches'}")
+          f"{len(ranout)} rule-5 run-outs, {bad} {'errors' if report_only else 'mismatches'}")
     return 1 if bad else 0
 
 

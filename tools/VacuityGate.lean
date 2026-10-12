@@ -27,8 +27,14 @@ Detected (see `isVacuousType`):
    (`P → P`, `(∀ a, P a) → P a`, `(S ⊆ T) → x ∈ S → x ∈ T`);
 3. conclusion is `∃ y, y = e` with `e` independent of `y`;
 4. (the old case 3, kept by ruling) the conclusion of a `∀` hypothesis unifies with the
-   conclusion, whatever that hypothesis's premises (`oldCase3`). The gate flags a theorem when
-   either test fires and says which.
+   conclusion, whatever that hypothesis's premises (`oldCase3`);
+5. (rule 5, order VACUITY-2) the hypotheses contradict each other: one of a short fixed list of
+   closing tactics proves `False` from them (`rule5`), within its own heartbeat budget.
+
+The gate flags a theorem when any of these fires and says which. Every flag of cases 1 to 3 and
+of rule 5 stands for a proof, checked by `Meta.check` and by the kernel (`kernelCheck`); the old
+case 3 builds no proof, and its flags say `old case 3 only` where nothing else fired. The known
+limits are listed in the docstring of `isVacuousType`.
 
 A theorem flagged here can still pass when it is on the reviewed list
 `tools/vacuity_reviewed.txt` under its name **and the hash of its statement** (see `Entry`); a
@@ -266,21 +272,30 @@ def followsFromHyp (xs : Array Expr) (concl : Expr) : MetaM (Option Expr) := do
        theorem.
     4. Its conclusion is `∃ y, y = e` with `e` independent of `y` — see `isTrivialExists`.
 
-    Known limitations, stated rather than hidden. Not detected: a statement that is true but
-    carries no information about its subject — `0 ≤ f x` for `f` valued in `Nat`, say — because
-    being uninformative is not a syntactic property; a conclusion that needs two hypotheses
-    chained (`h (hq hr)`), because that is how real lemmas such as `Monotone.comp` are proved; a
-    premise that is true for every value but not by `rfl` or `decide` (`0 + n = n`); a
-    contradictory hypothesis. A closed premise that `decide` cannot finish
-    (`Nat.Prime 1000003`) makes the theorem UNCHECKED, which fails the gate: safe, but a false
-    alarm for a real theorem of that shape. The scan skips a `_proof_` lemma with no source
-    position that some declaration uses (`isTacticHelper`), so a theorem added by meta code
-    (`addDecl`) under such a name and used by another declaration is not tested. These have to
-    be caught in review. Tests of the first ones: `tools/VacuityGateTests.lean`.
+    Known limitations of the whole gate (the fixed test, the old case 3 and rule 5), stated
+    rather than hidden; they have to be caught in review. As order VACUITY-2 leaves it:
+
+    * a statement that is true but carries no information about its subject — `0 ≤ f x` for
+      `f` valued in `Nat`, say — is not detected: being uninformative is not a syntactic
+      property;
+    * contradictory hypotheses that rule 5's tactics (`contradiction`, `linarith`, `omega`,
+      `norm_num`, `decide`, within `rule5Heartbeats`) do not refute are not detected;
+    * a closed premise that `decide` cannot finish (`Nat.Prime 1000003`) makes the theorem
+      UNCHECKED, which fails the gate: it fails closed, a false alarm for a real theorem of that
+      shape;
+    * a conclusion that needs two hypotheses chained (`h (hq hr)`, how real lemmas such as
+      `Monotone.comp` are proved), or a premise that is true for every value but not by `rfl` or
+      `decide` (`0 + n = n`), is caught only by the old case 3, so only when the hypothesis is a
+      plain `∀` (its `∀`s written out); inside `⊆`, a named definition, `∧` or `↔` it is missed;
+    * a `_proof_` lemma with no source position that some declaration uses is skipped
+      (`isTacticHelper`), so a theorem added under such a name by meta code (`addDecl`) and used
+      by another declaration is not tested.
+
+    Tests: `tools/VacuityGateTests.lean`.
 
     `vacuousProof` returns the statement with its hypotheses abstracted and a closed proof of it
     (`True.intro`, `⟨e, rfl⟩`, or the proof `followsFromHyp` built), which `judge` sends to the
-    kernel. -/
+    kernel (`kernelCheck`). -/
 def vacuousProof (type : Expr) : MetaM (Option (Expr × Expr)) :=
   forallTelescopeReducing type fun xs concl => do
     let close (pf : Expr) : MetaM (Option (Expr × Expr)) := do
@@ -297,16 +312,71 @@ def vacuousProof (type : Expr) : MetaM (Option (Expr × Expr)) :=
 /-- The fixed test as a yes or no (the test runner's template for older gates calls it). -/
 def isVacuousType (type : Expr) : MetaM Bool := return (← vacuousProof type).isSome
 
+/-- What the kernel said about the proof behind a flag. -/
+inductive KernelCheck
+  | accepted
+  /-- the kernel rejected the proof: `Meta.check` accepted a bad term -/
+  | rejected (msg : String)
+  /-- the kernel stopped on a resource limit (its heartbeats, memory, recursion depth) or was
+      interrupted: the proof was not checked, which says nothing against it -/
+  | notChecked (msg : String)
+
 /-- The kernel's check of a flag's proof (order VACUITY-2): the proof `pf` of the statement `ty`
     is added as a theorem to a copy of the environment, which is then dropped, so nothing is
-    added. Returns the kernel's message when it rejects the proof. `Meta.check` (in `finish`) is
-    the elaborator's checker; the kernel is the part of Lean every proof finally answers to. -/
-def kernelRejects (lps : List Name) (ty pf : Expr) : CoreM (Option String) := do
+    added. `Meta.check` (in `finish`) is the elaborator's checker; the kernel is the part of Lean
+    every proof finally answers to. A kernel time-out is `notChecked`, not `rejected`: a check
+    with rule 5's budget set to 1 heartbeat showed "(kernel) deterministic timeout" coming back
+    as a rejection before this was split. -/
+def kernelCheck (lps : List Name) (ty pf : Expr) : CoreM KernelCheck := do
   let decl := Declaration.thmDecl
     { name := `_vacuityGate_kernelCheck, levelParams := lps, type := ty, value := pf }
   match (← getEnv).toKernelEnv.addDecl (← getOptions) decl with
-  | .ok _ => return none
-  | .error e => return some ((← (e.toMessageData (← getOptions)).toString).splitOn "\n" |>.head!)
+  | .ok _ => return .accepted
+  | .error e =>
+    let m := (← (e.toMessageData (← getOptions)).toString).splitOn "\n" |>.head!
+    match e with
+    | .deterministicTimeout | .excessiveMemory | .deepRecursion | .interrupted =>
+      return .notChecked m
+    | _ => return .rejected m
+
+/-! ### Rule 5: contradictory hypotheses (order VACUITY-2) -/
+
+/-- Rule 5's own heartbeat budget per theorem, apart from the fixed test's: the gate's budget
+    before VACUITY-1. All of rule 5's tactics share it, so a slow rule 5 cannot starve the fixed
+    test into UNCHECKED, and adds at most this much work per theorem. -/
+def rule5Heartbeats : Nat := 400000
+
+/-- The closing tactics rule 5 tries, in this order. `norm_num` is run `at *`, so that it reads
+    the hypotheses; on the goal `False` alone it can do nothing. -/
+def rule5Tactics : Lean.Elab.Term.TermElabM (Array (TSyntax `tactic)) := do
+  return #[← `(tactic| contradiction), ← `(tactic| linarith), ← `(tactic| omega),
+    ← `(tactic| norm_num at *), ← `(tactic| decide)]
+
+/-- Rule 5: do the theorem's hypotheses contradict each other? It runs only when there is a
+    hypothesis that is a proposition, and tries each of `rule5Tactics` on the goal `False` with
+    the hypotheses in context. A proof found (complete, no `sorry`) is closed over the hypotheses,
+    `∀ xs, False`, and sent to the kernel (`kernelCheck`) before the tactic's state is dropped.
+    Returns `none` when no tactic closed the goal, and the kernel's answer when one did. Running
+    out of heartbeats is not caught here: it ends the search, and `judge` reports it. -/
+def rule5 (lps : List Name) (type : Expr) : Lean.Elab.Term.TermElabM (Option KernelCheck) :=
+  forallTelescopeReducing type fun xs _ => do
+    unless ← xs.anyM (fun x => do isProp (← inferType x)) do return none
+    for tac in ← rule5Tactics do
+      let s ← Lean.Elab.Term.saveState
+      let r ← try
+          let g ← mkFreshExprMVar (mkConst ``False)
+          let rest ← Lean.Elab.Term.withoutErrToSorry <|
+            Lean.Elab.Tactic.run g.mvarId! (Lean.Elab.Tactic.evalTactic tac)
+          Lean.Elab.Term.synthesizeSyntheticMVarsNoPostponing
+          let pf ← instantiateMVars g
+          if !rest.isEmpty || pf.hasMVar || pf.hasSorry then pure none
+          else
+            let ty ← mkForallFVars xs (mkConst ``False)
+            pure (some (← kernelCheck lps ty (← mkLambdaFVars xs pf)))
+        catch e => if e.isRuntime then throw e else pure none
+      s.restore
+      if r.isSome then return r
+    return none
 
 /-- The old case 3, kept beside the fixed test by ruling during order VACUITY-1, so the gate
     catches everything it caught before. The conclusion of a hypothesis whose leading `∀`s are
@@ -424,32 +494,49 @@ inductive Verdict
       gate (order VACUITY-2) -/
   | kernelRejected (why : String) (msg : String)
 
-/-- Flagged when the old case 3 **or** the fixed test (cases 1 to 4, `vacuousProof`) flags it;
-    `why` says which fired: `old case 3 only`, `fixed test`, or both. A flag of the fixed test
-    stands only once the kernel accepts its proof (`kernelRejects`); a rejection is its own
-    verdict. The old case 3 builds no proof, so its flags carry the label `old case 3 only` where
-    no other test fired. Each test runs in its own `liftTermElabM` (its own heartbeat count). At
-    this level `try` also catches running out of heartbeats: if the fixed test runs out, the
-    theorem is still flagged when the old case 3 fired, and is UNCHECKED otherwise. -/
-def judge (list : Array Entry) (n : Name) (type : Expr) : CommandElabM Verdict := do
+/-- Flagged when the old case 3, the fixed test (cases 1 to 4, `vacuousProof`) **or** rule 5
+    (`rule5`) flags it; `why` says which fired. A flag of the fixed test or of rule 5 stands only
+    once the kernel accepts its proof (`kernelCheck`); a rejection is its own verdict, and a
+    kernel that stops on a resource limit counts as the test running out. The old
+    case 3 builds no proof, so its flags carry the label `old case 3 only` where no other test
+    fired. Each test runs in its own `liftTermElabM` (its own heartbeat count); rule 5's budget
+    is `rule5Heartbeats`. At this level `try` also catches running out of heartbeats: if the
+    fixed test runs out, the theorem is still flagged when the old case 3 fired, and is
+    UNCHECKED otherwise. If rule 5 runs out, that is returned beside the verdict (the second
+    part): the gate prints it and counts it, and does not fail on it, since rule 5 is an
+    incomplete search and running out tells no more than finding nothing. -/
+def judge (list : Array Entry) (n : Name) (type : Expr) :
+    CommandElabM (Verdict × Option String) := do
   let lps := (← getConstInfo n).levelParams
   let old ← liftTermElabM (oldCase3 type)
   let mut why : Array String := if old then #["old case 3"] else #[]
   try
     if let some (ty, pf) ← liftTermElabM (vacuousProof type) then
-      if let some m ← liftCoreM (kernelRejects lps ty pf) then return .kernelRejected "fixed test" m
-      why := why.push "fixed test"
+      match ← liftCoreM (kernelCheck lps ty pf) with
+      | .accepted => why := why.push "fixed test"
+      | .rejected m => return (.kernelRejected "fixed test" m, none)
+      | .notChecked m => throwError m
   catch e =>
     let m := (← e.toMessageData.toString).splitOn "\n" |>.head!
-    unless old do return .unchecked m
+    unless old do return (.unchecked m, none)
     why := why.push s!"fixed test UNCHECKED: {m}"
-  if why.isEmpty then return .pass
+  let mut ranOut : Option String := none
+  try
+    let r ← withScope (fun s => { s with opts := maxHeartbeats.set s.opts rule5Heartbeats }) <|
+      liftTermElabM (rule5 lps type)
+    match r with
+    | some .accepted => why := why.push "rule 5"
+    | some (.rejected m) => return (.kernelRejected "rule 5" m, none)
+    | some (.notChecked m) => ranOut := some m
+    | none => pure ()
+  catch e => ranOut := some ((← e.toMessageData.toString).splitOn "\n" |>.head!)
+  if why.isEmpty then return (.pass, ranOut)
   if why == #["old case 3"] then why := #["old case 3 only"]
   let w := " + ".intercalate why.toList
   let h := statementHash type
   match list.find? (·.name == privateToUserName n) with
-  | some e => return if e.hash == h then .listed e w else .flag h (some e.hash) w
-  | none => return .flag h none w
+  | some e => return (if e.hash == h then .listed e w else .flag h (some e.hash) w, ranOut)
+  | none => return (.flag h none w, ranOut)
 
 /-- The `_proof_` constants that some declaration of the target modules, or of the current file,
     uses in its statement or its proof. Declarations of other modules (Mathlib) cannot use a
@@ -486,11 +573,14 @@ def isTacticHelper (used : NameSet) (n : Name) : CommandElabM Bool := do
                 else return false
   | _ => return false
 
-/-- Scan the target namespaces; return every theorem's verdict that is not a plain pass. -/
-def scan (list : Array Entry) : CommandElabM (Array (Name × Verdict)) := do
+/-- Scan the target namespaces; return every theorem's verdict that is not a plain pass, and
+    every theorem on which rule 5 ran out of heartbeats, with the message. -/
+def scan (list : Array Entry) :
+    CommandElabM (Array (Name × Verdict) × Array (Name × String)) := do
   let env ← getEnv
   let used ← liftCoreM usedHelpers
   let mut out := #[]
+  let mut ranOut := #[]
   for (n, ci) in env.constants.toList do
     match ci with
     | .thmInfo ti =>
@@ -507,13 +597,14 @@ def scan (list : Array Entry) : CommandElabM (Array (Name × Verdict)) := do
       if targets.any (fun ns => ns.isPrefixOf (privateToUserName n)) then
         -- At the command level `try` also catches running out of heartbeats, so a theorem whose
         -- test does not finish is reported as UNCHECKED, never passed.
-        let v ← try judge list n ti.type
-          catch e => pure (.unchecked ((← e.toMessageData.toString).splitOn "\n" |>.head!))
+        let (v, r) ← try judge list n ti.type
+          catch e => pure (.unchecked ((← e.toMessageData.toString).splitOn "\n" |>.head!), none)
+        if let some m := r then ranOut := ranOut.push (privateToUserName n, m)
         match v with
         | .pass => pure ()
         | v => out := out.push (privateToUserName n, v)
     | _ => pure ()
-  return out.qsort (·.1.toString < ·.1.toString)
+  return (out.qsort (·.1.toString < ·.1.toString), ranOut.qsort (·.1.toString < ·.1.toString))
 
 end VacuityGate
 
@@ -529,7 +620,7 @@ end VacuityGate
 set_option maxHeartbeats 2000000 in
 run_cmd do
   let list ← VacuityGate.loadList VacuityGate.reviewedPath
-  let found ← VacuityGate.scan list
+  let (found, ranOut) ← VacuityGate.scan list
   let mut bad : Array String := #[]
   let mut helpers := 0
   let mut pending : Array String := #[]
@@ -547,20 +638,29 @@ run_cmd do
   -- no longer flagged. The list must say exactly what the gate flags.
   let stale := list.filter fun e => !found.any (·.1 == e.name)
   for e in stale do bad := bad.push s!"{e.name} (stale entry in {VacuityGate.reviewedPath})"
+  -- Rule 5 running out is printed, theorem by theorem, and counted on the summary line, but does
+  -- not fail the gate (see `VacuityGate.judge`).
+  let r5 := s!"rule 5 ran out of its {VacuityGate.rule5Heartbeats} heartbeats on {ranOut.size} \
+theorem{if ranOut.size == 1 then "" else "s"}"
+  unless ranOut.isEmpty do
+    logInfo s!"vacuity gate: {r5} (not a failure; rule 5 is an incomplete search):\n  \
+{String.intercalate "\n  " (ranOut.toList.map fun (n, m) => s!"{n}: {m}")}"
   unless pending.isEmpty do
     logInfo s!"vacuity gate: {pending.size} VACUOUS-PENDING entr{if pending.size == 1 then "y" else "ies"} \
 (theorems that prove nothing beyond a hypothesis, left for a later order):\n  \
 {String.intercalate "\n  " pending.toList}"
   if bad.isEmpty then
     logInfo s!"vacuity gate PASS — no vacuous theorems in {VacuityGate.targets} \
-({helpers} reviewed helpers and {pending.size} VACUOUS-PENDING on {VacuityGate.reviewedPath})"
+({helpers} reviewed helpers and {pending.size} VACUOUS-PENDING on {VacuityGate.reviewedPath}); {r5}"
   else
-    throwError s!"vacuity gate FAIL — {bad.size} problem(s) (name, statement sha256):\n  \
+    throwError s!"vacuity gate FAIL — {bad.size} problem(s) (name, statement sha256); {r5}:\n  \
 {String.intercalate "\n  " bad.toList}\n\n\
 A statement is vacuous here if its conclusion is `True`; is one of its own hypotheses \
 (`P → P`); follows from one hypothesis by applying it, with that hypothesis's premises met by \
 the other hypotheses (`(∀ a, Q a → P a) → Q a → P a`, also through `⊆` and named definitions); \
-or is `∃ y, y = e` with `e` independent of `y` (provable by `⟨e, rfl⟩` for any `e`).\n\
+or is `∃ y, y = e` with `e` independent of `y` (provable by `⟨e, rfl⟩` for any `e`); or its \
+hypotheses contradict each other (rule 5: `contradiction`, `linarith`, `omega`, `norm_num` or \
+`decide` proves `False` from them).\n\
 Such a theorem builds green and is sorry-free while proving nothing. State a real conclusion \
 over real objects, or delete it. A deliberate helper that applies a hypothesis can go on \
 {VacuityGate.reviewedPath} under its name and statement hash, after review."
