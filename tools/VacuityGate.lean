@@ -21,17 +21,17 @@ the offending declarations.
 
 Detected (see `isVacuousType`):
 
-1. conclusion is `True`;
-2. conclusion is one of the theorem's own hypotheses, or follows from one hypothesis by
-   applying it, with that hypothesis's own premises met by the theorem's other hypotheses
-   (`P → P`, `(∀ a, P a) → P a`, `(S ⊆ T) → x ∈ S → x ∈ T`);
-3. conclusion is `∃ y, y = e` with `e` independent of `y`;
-4. (the old case 3, kept by ruling) the conclusion of a `∀` hypothesis unifies with the
-   conclusion, whatever that hypothesis's premises (`oldCase3`);
-5. (rule 5, order VACUITY-2) the hypotheses contradict each other: one of a short fixed list of
-   closing tactics proves `False` from them (`rule5`), within its own heartbeat budget.
+* the **fixed test**, cases 1 to 4 of `isVacuousType`: (1) the conclusion is `True`; (2) it is
+  one of the theorem's own hypotheses (`P → P`); (3) it follows from one hypothesis by applying
+  it, with that hypothesis's own premises met by the theorem's other hypotheses
+  (`(∀ a, P a) → P a`, `(S ⊆ T) → x ∈ S → x ∈ T`); (4) it is `∃ y, y = e` with `e` independent
+  of `y`;
+* the **old case 3**, kept by ruling: the conclusion of a `∀` hypothesis unifies with the
+  conclusion, whatever that hypothesis's premises (`oldCase3`);
+* **rule 5** (order VACUITY-2): the hypotheses contradict each other: one of a short fixed list
+  of closing tactics proves `False` from them (`rule5`), within its own heartbeat budget.
 
-The gate flags a theorem when any of these fires and says which. Every flag of cases 1 to 3 and
+The gate flags a theorem when any of these fires and says which. Every flag of the fixed test and
 of rule 5 stands for a proof, checked by `Meta.check` and by the kernel (`kernelCheck`); the old
 case 3 builds no proof, and its flags say `old case 3 only` where nothing else fired. The known
 limits are listed in the docstring of `isVacuousType`.
@@ -279,17 +279,37 @@ def followsFromHyp (xs : Array Expr) (concl : Expr) : MetaM (Option Expr) := do
       `f` valued in `Nat`, say — is not detected: being uninformative is not a syntactic
       property;
     * contradictory hypotheses that rule 5's tactics (`contradiction`, `linarith`, `omega`,
-      `norm_num`, `decide`, within `rule5Heartbeats`) do not refute are not detected;
-    * a closed premise that `decide` cannot finish (`Nat.Prime 1000003`) makes the theorem
-      UNCHECKED, which fails the gate: it fails closed, a false alarm for a real theorem of that
-      shape;
+      `norm_num`, `decide`, within `rule5Heartbeats`) do not refute are not detected; nor are
+      contradictions when no hypothesis is a proposition (`(e : Empty) : F 0`), since rule 5
+      runs only when one is;
+    * a closed premise that `decide` cannot finish (`Nat.Prime 1000003`) makes the fixed test
+      run out: the theorem is UNCHECKED, which fails the gate (it fails closed, a false alarm for
+      a real theorem of that shape), unless the old case 3 flags it, which it does when the
+      hypothesis is a plain `∀`;
     * a conclusion that needs two hypotheses chained (`h (hq hr)`, how real lemmas such as
       `Monotone.comp` are proved), or a premise that is true for every value but not by `rfl` or
       `decide` (`0 + n = n`), is caught only by the old case 3, so only when the hypothesis is a
       plain `∀` (its `∀`s written out); inside `⊆`, a named definition, `∧` or `↔` it is missed;
     * a `_proof_` lemma with no source position that some declaration uses is skipped
       (`isTacticHelper`), so a theorem added under such a name by meta code (`addDecl`) and used
-      by another declaration is not tested.
+      by another declaration is not tested;
+    * (cold review r2) a conclusion built from hypotheses by `⟨_, _⟩`, `Or.inl`, `⟨a, _⟩` or
+      membership in an intersection (`(hp : P a) (hq : Q a) : P a ∧ Q a`) is not detected:
+      `solve` builds such terms only for premises, never for the conclusion;
+    * (cold review r2) rule 5 reads the statement as written, with no unfolding, so the same
+      fact can be read two ways: `p → False` as a conclusion is opened (its conclusion is `False`
+      and rule 5 does not run), `¬ p` is not; a `∀ x ∈ [], F x` written out is an empty-premise
+      helper that rule 5 flags (test `real_forall_mem_nil`, listed), while the same `∀` inside a
+      definition (`PredicateStack.admits_nil`) is not read;
+    * (cold review r2) the scan selects theorems by the namespace `ClassicalLean`, not by module,
+      so a theorem a library module declares in another namespace is not tested; measured at
+      VACUITY-2: 5 such theorems, all generated equation lemmas (`harmonic.eq_1` and the like).
+
+    Flagged on purpose, not a limit: a lemma that is a projection or the identity once its
+    definitions are unfolded (`S ∩ T ⊆ S`, `Monotone id`, `a < b → a + 1 ≤ b` on `ℕ`). The fixed
+    test opens the conclusion as well as the hypotheses (test `vac_concl_subset`), so such a
+    lemma is flagged and stays only through a reviewed-list entry, as
+    `Simplex.orderedSimplex_subset_closedSimplex` does.
 
     Tests: `tools/VacuityGateTests.lean`.
 
@@ -298,13 +318,19 @@ def followsFromHyp (xs : Array Expr) (concl : Expr) : MetaM (Option Expr) := do
     kernel (`kernelCheck`). -/
 def vacuousProof (type : Expr) : MetaM (Option (Expr × Expr)) :=
   forallTelescopeReducing type fun xs concl => do
+    -- the proof is closed over the hypotheses and checked against the theorem's own statement
+    -- `type` (cold review r2, finding 7), which the kernel unfolds as needed
     let close (pf : Expr) : MetaM (Option (Expr × Expr)) := do
-      return some (← mkForallFVars xs concl, ← mkLambdaFVars xs pf)
-    if concl.isConstOf ``True then return ← close (mkConst ``True.intro)
-    if isTrivialExists concl then
-      if let .app (.app (.const ``Exists us) α) f@(.lam _ _ (.app (.app _ lhs) rhs) _) := concl then
-        let e := if lhs == .bvar 0 then rhs else lhs
-        return ← close (mkApp4 (mkConst ``Exists.intro us) α f e (mkApp2 (mkConst ``Eq.refl us) α e))
+      return some (type, ← mkLambdaFVars xs pf)
+    -- cases 1 and 4 also on the conclusion with its head unfolded, so `True` or `∃ y, y = e`
+    -- behind a named definition is seen (cold review r2, finding 4)
+    let c' ← whnf concl
+    if concl.isConstOf ``True || c'.isConstOf ``True then return ← close (mkConst ``True.intro)
+    for c in [concl, c'] do
+      if isTrivialExists c then
+        if let .app (.app (.const ``Exists us) α) f@(.lam _ _ (.app (.app _ lhs) rhs) _) := c then
+          let e := if lhs == .bvar 0 then rhs else lhs
+          return ← close (mkApp4 (mkConst ``Exists.intro us) α f e (mkApp2 (mkConst ``Eq.refl us) α e))
     match ← followsFromHyp xs concl with
     | some pf => close pf
     | none => return none
@@ -515,29 +541,38 @@ def judge (list : Array Entry) (n : Name) (type : Expr) :
     CommandElabM (Verdict × Option String) := do
   let lps := (← getConstInfo n).levelParams
   let old ← liftTermElabM (oldCase3 type)
-  let mut why : Array String := if old then #["old case 3"] else #[]
+  let mut fixed := false
+  let mut fixedOut : Option String := none
   try
     if let some (ty, pf) ← liftTermElabM (vacuousProof type) then
       match ← liftCoreM (kernelCheck lps ty pf) with
-      | .accepted => why := why.push "fixed test"
+      | .accepted => fixed := true
       | .rejected m => return (.kernelRejected "fixed test" m, none)
       | .notChecked m => throwError m
   catch e =>
     let m := (← e.toMessageData.toString).splitOn "\n" |>.head!
     unless old do return (.unchecked m, none)
-    why := why.push s!"fixed test UNCHECKED: {m}"
+    fixedOut := some m
+  let mut r5 := false
   let mut ranOut : Option String := none
   try
     let r ← withScope (fun s => { s with opts := maxHeartbeats.set s.opts rule5Heartbeats }) <|
       liftTermElabM (rule5 lps type)
     match r with
-    | some .accepted => why := why.push "rule 5"
+    | some .accepted => r5 := true
     | some (.rejected m) => return (.kernelRejected "rule 5" m, none)
     | some (.notChecked m) => ranOut := some m
     | none => pure ()
   catch e => ranOut := some ((← e.toMessageData.toString).splitOn "\n" |>.head!)
-  if why.isEmpty then return (.pass, ranOut)
-  if why == #["old case 3"] then why := #["old case 3 only"]
+  if !old && !fixed && !r5 then return (.pass, ranOut)
+  -- the label: which tests fired; `old case 3 only` when no test with a proof fired, also when
+  -- the fixed test ran out (cold review r2, finding 8)
+  let mut why : Array String := #[]
+  if old then
+    why := why.push <| if fixed || r5 then "old case 3" else
+      "old case 3 only" ++ (fixedOut.map (s!" (fixed test UNCHECKED: {·})") |>.getD "")
+  if fixed then why := why.push "fixed test"
+  if r5 then why := why.push "rule 5"
   let w := " + ".intercalate why.toList
   let h := statementHash type
   match list.find? (·.name == privateToUserName n) with
@@ -663,7 +698,8 @@ theorem{if ranOut.size == 1 then "" else "s"}"
 {String.intercalate "\n  " bad.toList}\n\n\
 A statement is vacuous here if its conclusion is `True`; is one of its own hypotheses \
 (`P → P`); follows from one hypothesis by applying it, with that hypothesis's premises met by \
-the other hypotheses (`(∀ a, Q a → P a) → Q a → P a`, also through `⊆` and named definitions); \
+the other hypotheses (`(∀ a, Q a → P a) → Q a → P a`, also through `⊆` and named definitions; \
+a flag labelled `old case 3 only` matched a hypothesis's conclusion without meeting its premises); \
 or is `∃ y, y = e` with `e` independent of `y` (provable by `⟨e, rfl⟩` for any `e`); or its \
 hypotheses contradict each other (rule 5: `contradiction`, `linarith`, `omega`, `norm_num` or \
 `decide` proves `False` from them).\n\

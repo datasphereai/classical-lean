@@ -36,8 +36,8 @@ Corollaries that are already load-bearing here:
   a deliberately broken input before being trusted green. If you add or change one, do the same
   and put both runs in the commit message.
 - **A clean proof footprint is not a claim about content.** `0 sorry, 0 native_decide` and
-  "vacuous" are compatible; that is what `tools/VacuityGate.lean` is for, and even it has a
-  stated blind spot (see §4).
+  "vacuous" are compatible; that is what `tools/VacuityGate.lean` is for, and even it has
+  stated limits (see §4).
 
 ---
 
@@ -626,12 +626,31 @@ Five gates, in `tools/`. Each was fail-tested; if you change one, fail-test it a
   *per-declaration* axiom on v4.29 (`<thm>._native.native_decide.ax_1_1`), not the
   `Lean.ofReduceBool` older Lean used, so a denylist of known axiom names would miss it. Still so
   at v4.34.0: round 17's gate probe produced `probe_native._native.native_decide.ax_1_1`.
-- **`VacuityGate.lean`** — four rules: conclusion is `True`; conclusion is one of the theorem's
-  own hypotheses; conclusion is an *instance* of a ∀-hypothesis; conclusion is `∃ y, y = e` with
-  `e` independent of `y`. **Stated blind spot:** a true-but-contentless statement such as
-  `[retired name]` for `psi` valued in `ℕ` is *not* caught, because being uninformative is not
-  a syntactic property. That exact shape was found in the wild presented as a named law. Only
-  review catches it.
+- **`VacuityGate.lean`** — flags a theorem when any of three tests fires, and says which
+  (order VACUITY-2): the **fixed test** (conclusion is `True`; is `∃ y, y = e` with `e`
+  independent of `y`; or follows from one hypothesis by applying it, opened through `⊆`, named and
+  `@[irreducible]` definitions, `∧` halves and `↔` directions, with that hypothesis's premises met
+  by the other hypotheses); the **old case 3** (the conclusion of a `∀` hypothesis matches,
+  premises ignored; labelled `old case 3 only` when nothing else fired); and **rule 5**
+  (`contradiction`, `linarith`, `omega`, `norm_num`, `decide` prove `False` from the written
+  hypotheses, 400000 heartbeats per theorem; running out is counted on the summary line, not a
+  failure). Every flag of the fixed test and rule 5 is a proof term checked by `Meta.check` and
+  by the kernel; a kernel rejection is KERNEL-REJECTED and fails the gate. Flagged theorems may
+  pass through `tools/vacuity_reviewed.txt` (name and statement hash). Tests:
+  `tools/VacuityGateTests.lean`, run by `tools/run_vacuity_tests.py`. **Stated limits** (the
+  docstring of `isVacuousType`, after the cold review of VACUITY-2): a true-but-contentless
+  statement such as `[retired name]` for `psi` valued in `ℕ` is *not* caught, because being
+  uninformative is not a syntactic property (that exact shape was found in the wild presented as
+  a named law; only review catches it); contradictions rule 5's tactics do not find, or with no
+  hypothesis that is a proposition; a closed premise `decide` cannot finish makes the theorem
+  UNCHECKED (fails closed) unless the old case 3 flags it; chained hypotheses and premises not
+  closed by `rfl` or `decide` are caught only in a plain `∀`; a `_proof_` helper with no source
+  position that some declaration uses is skipped; a conclusion built from hypotheses by `⟨_, _⟩`,
+  `Or.inl` or `⟨a, _⟩` is not caught; rule 5 reads the statement as written (`p → False` and
+  `¬ p` are read differently; `∀ x ∈ [], F x` written out is flagged and listed, the same inside
+  a definition is not); theorems are selected by the namespace `ClassicalLean`, not by module (5
+  generated equation lemmas fall outside). Flagged on purpose: lemmas that are a projection or
+  the identity once definitions are unfolded (`S ∩ T ⊆ S`); they stay through a list entry.
 - **`check_sorry.py`** — text-level, so it sees modules nobody wired into the aggregator. Scoped
   to `ClassicalLean/`; skips `.lake/` and `tools/`, and the reason is written in the file
   (it does not parse string literals, and the gates quote the words they detect).

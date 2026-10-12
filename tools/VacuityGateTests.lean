@@ -63,8 +63,8 @@ theorem vac_and_premise (h : ∀ a, Q a ∧ R a → P a) (a : V) (hq : Q a) (hr 
 /-- The premise is a disjunction, one side a hypothesis (review r1, finding 1). -/
 theorem vac_or_premise (h : ∀ a, Q a ∨ R a → P a) (a : V) (hr : R a) : P a := h a (Or.inr hr)
 
-/-- Five levels, each behind its own named definition (review r1, finding 3): the unfold count
-starts again after each binder. -/
+/-- Five levels, each behind its own named definition (review r1, finding 3). The unfold count
+this tested was removed in order VACUITY-2 (one `whnf` opens every nested definition). -/
 def W5 (P : V → Prop) : Prop := ∀ a, P a
 def W4 (P : V → Prop) : Prop := ∀ _ : ℕ, W5 P
 def W3 (P : V → Prop) : Prop := ∀ _ : ℕ, W4 P
@@ -289,6 +289,22 @@ theorem real_not_mem_nil (x : ℕ) : x ∉ ([] : List ℕ) := List.not_mem_nil
 /-- A theorem whose conclusion is `False` states that its hypotheses contradict: an
 impossibility result, not a vacuous one. Rule 5 does not run on it. -/
 theorem real_false_concl (n : ℕ) (h : n + 1 ≤ 0) : False := Nat.not_succ_le_zero n h
+
+/-- A conclusion written as `∀ x ∈ [], F x`: true because its premise is impossible. Rule 5
+reads the binder `x ∈ []` as a hypothesis and flags it, by design: it is an empty-premise helper,
+like `real_exfalso_helper`, and is on the test list (cold review r2, finding 1). -/
+theorem real_forall_mem_nil (F : ℕ → Prop) : ∀ x ∈ ([] : List ℕ), F x :=
+  fun _ h => absurd h List.not_mem_nil
+
+/-- `True` behind a named definition (cold review r2, finding 4). -/
+def Triv : Prop := True
+
+theorem vac_true_named : Triv := trivial
+
+/-- `∃ y, y = e` behind a named definition (cold review r2, finding 4). -/
+def Witness (e : ℕ) : Prop := ∃ y, y = e
+
+theorem vac_exists_named (n : ℕ) : Witness n := show ∃ y, y = n from ⟨n, rfl⟩
 
 -- A theorem added by meta code (`addDecl`) under a `_proof_` name, with no source position and
 -- used by nothing (item 75): the statement is `p → p`.

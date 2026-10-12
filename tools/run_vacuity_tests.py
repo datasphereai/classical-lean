@@ -90,7 +90,7 @@ run_cmd do
       | .listed e w =>
         hit := hit.push u
         Lean.logInfo s!"{{if e.pending then "PENDING" else "LISTED"}} {{u}} [{{w}}]"
-      | .unchecked m => Lean.logInfo s!"ERROR {{u}}: {{m}}"  -- not reached: `judge` never returns it
+      | .unchecked m => Lean.logInfo s!"ERROR {{u}}: {{m}}"  -- `judge` returns it when the fixed test runs out and nothing else fired
       {kernel_case}
     catch e =>
       Lean.logInfo m!"ERROR {{u}}: {{e.toMessageData}}"
