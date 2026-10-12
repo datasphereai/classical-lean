@@ -257,19 +257,37 @@ def followsFromHyp (xs : Array Expr) (concl : Expr) : MetaM (Option Expr) := do
       if found then return ← proof.get
   return none
 
+/-- Unfold the head of `e` by definitions only, without computing: stops at `ite`, `dite`, `cond`
+    and `decide`, so `Small 3` for `Small n := if n < 10 then True else False` stays an `ite`
+    and is not read as `True`, while `Triv := True` is (cold review r3, finding 2). -/
+partial def unfoldNamed (e : Expr) (fuel : Nat := 32) : MetaM Expr := do
+  let e ← whnfCore e
+  if fuel == 0 then return e
+  if let .const c _ := e.getAppFn then
+    if [``ite, ``dite, ``cond, ``Decidable.decide].contains c then return e
+  match ← unfoldDefinition? e with
+  | some e' => unfoldNamed e' (fuel - 1)
+  | none => return e
+
 /-- Case 5, a glued conclusion (Dustin's ruling of 2026-10-11 on cold review r2's finding 3): the
     conclusion, its head unfolded, is a structure whose type is a proposition (`∧`, `↔`, or
     another such as `Fact p`), and every field of it, in turn, is closed by `True`, by one
-    hypothesis (case 2, or applied as in case 3: `followsFromHyp`), or by being glued itself.
-    Returns the proof, the structure's constructor applied to the parts. A part that needs `rfl`,
-    `decide`, an instance or any other step makes it fail, so a computed fact such as
-    `fib 10 = 55` is never flagged (test `real_hyp_and_computed`). `top`: the whole conclusion,
-    which `vacuousProof` has already tried as one part. -/
-partial def gluedProof (xs : Array Expr) (concl : Expr) (top : Bool := true) :
+    hypothesis (case 2, or applied as in case 3: `followsFromHyp`, whose premises may be met as
+    in case 3, by `rfl` or `decide` among others), or by being glued itself. A part counts as
+    `True` only when `unfoldNamed` reaches `True`, without computing. Returns the proof, the
+    structure's constructor applied to the parts. A part that itself needs `rfl`, `decide`, an
+    instance, computation or any other step makes it fail, so a computed fact such as
+    `fib 10 = 55` or `Small 3` is never flagged (tests `real_hyp_and_computed`,
+    `real_hyp_and_small`). A part under a binder (`∀ x, Q x ∧ R x`, `Q a → Q a`) is not opened.
+    At most `maxLevels` levels deep, so a structure that contains itself (`Loop p` with a field
+    of type `Loop p`) ends (cold review r3, finding 1; test `real_loop_wrap`). `top`: the whole
+    conclusion, which `vacuousProof` has already tried as one part. -/
+partial def gluedProof (xs : Array Expr) (concl : Expr) (top : Bool := true) (depth : Nat := 0) :
     MetaM (Option Expr) := do
+  if depth ≥ maxLevels then return none
   let c ← whnf concl
   unless top do
-    if c.isConstOf ``True then return some (mkConst ``True.intro)
+    if (← unfoldNamed concl).isConstOf ``True then return some (mkConst ``True.intro)
     if let some pf ← followsFromHyp xs concl then return some pf
   let .const sn us := c.getAppFn | return none
   unless isStructure (← getEnv) sn do return none
@@ -283,7 +301,7 @@ partial def gluedProof (xs : Array Expr) (concl : Expr) (top : Bool := true) :
   repeat
     match ← whnf t with
     | .forallE _ d b _ =>
-      let some pf ← gluedProof xs d false | return none
+      let some pf ← gluedProof xs d false (depth + 1) | return none
       parts := parts.push pf
       t := b.instantiate1 pf
     | _ => break
@@ -331,10 +349,12 @@ partial def gluedProof (xs : Array Expr) (concl : Expr) (top : Bool := true) :
       by another declaration is not tested;
     * (cold review r2, narrowed by case 5) a conclusion glued from hypotheses is detected only
       when it is an `∧`, an `↔` or another structure whose type is a proposition, and every part
-      is `True` or closed by one hypothesis; a part that needs `rfl`, `decide`, an instance or
-      any other step makes the theorem pass (`(h : P a) : P a ∧ 2 + 2 = 4`, test
-      `real_hyp_and_computed`), and a conclusion glued with `∨` or `∃` (`Or.inl hp`,
-      `⟨a, hp⟩`) is not detected;
+      is `True` or closed by one hypothesis; a part that itself needs `rfl`, `decide`, an
+      instance, computation or any other step makes the theorem pass, so computed facts are
+      never flagged (`(h : P a) : P a ∧ 2 + 2 = 4`, test `real_hyp_and_computed`); a part under
+      a binder is not opened (`P a ∧ ∀ x, Q x ∧ R x` with each piece a hypothesis, or
+      `P a ↔ Q a` from `P a` and `Q a`, pass; cold review r3, finding 3); and a conclusion
+      glued with `∨` or `∃` (`Or.inl hp`, `⟨a, hp⟩`) is not detected;
     * (cold review r2) rule 5 reads the statement as written, with no unfolding, so the same
       fact can be read two ways: `p → False` as a conclusion is opened (its conclusion is `False`
       and rule 5 does not run), `¬ p` is not; a `∀ x ∈ [], F x` written out is an empty-premise
@@ -344,8 +364,10 @@ partial def gluedProof (xs : Array Expr) (concl : Expr) (top : Bool := true) :
       so a theorem a library module declares in another namespace is not tested; measured at
       VACUITY-2: 5 such theorems, all generated equation lemmas (`harmonic.eq_1` and the like).
 
-    Flagged on purpose, not a limit: a lemma that is a projection or the identity once its
-    definitions are unfolded (`S ∩ T ⊆ S`, `Monotone id`, `a < b → a + 1 ≤ b` on `ℕ`). The fixed
+    Flagged on purpose, not a limit: a lemma that is a projection, the identity, or (case 5) a
+    pairing of its hypotheses once its definitions and instances are unfolded (`S ∩ T ⊆ S`,
+    `Monotone id`, `a < b → a + 1 ≤ b` on `ℕ`, `x ∈ S → x ∈ T → x ∈ S ∩ T`, and
+    `a ≤ c → b ≤ d → (a, b) ≤ (c, d)`, the shape of `Prod.mk_le_mk`). The fixed
     test opens the conclusion as well as the hypotheses (test `vac_concl_subset`), so such a
     lemma is flagged and stays only through a reviewed-list entry, as
     `Simplex.orderedSimplex_subset_closedSimplex` does.
@@ -361,9 +383,10 @@ def vacuousProof (type : Expr) : MetaM (Option (Expr × Expr)) :=
     -- `type` (cold review r2, finding 7), which the kernel unfolds as needed
     let close (pf : Expr) : MetaM (Option (Expr × Expr)) := do
       return some (type, ← mkLambdaFVars xs pf)
-    -- cases 1 and 4 also on the conclusion with its head unfolded, so `True` or `∃ y, y = e`
-    -- behind a named definition is seen (cold review r2, finding 4)
-    let c' ← whnf concl
+    -- cases 1 and 4 also on the conclusion with its head unfolded by definitions, without
+    -- computing, so `True` or `∃ y, y = e` behind a named definition is seen (cold review r2,
+    -- finding 4) and a computed fact is not read as `True` (cold review r3, finding 2)
+    let c' ← unfoldNamed concl
     if concl.isConstOf ``True || c'.isConstOf ``True then return ← close (mkConst ``True.intro)
     for c in [concl, c'] do
       if isTrivialExists c then

@@ -13,3 +13,6 @@ VacuityGateTests.real_comp_increasing 3c4f95baf75b73be3a0112132ef05bd60b830bd399
 VacuityGateTests.real_exfalso_helper 6927778f455c39c6dc9867ff5b39b120240afa99205ef33d506dc48e1320c8bf HELPER from a contradiction, anything: rule 5 proves False from n + 1 ≤ 0, on purpose
 # an empty-premise helper rule 5 flags by design (cold review r2, finding 1)
 VacuityGateTests.real_forall_mem_nil f2fc18db35b11fce2d48b7aead1f00ce262e8a23d6ee1759aa229b96854a68ba HELPER for all x in [], F x: true because x ∈ [] is impossible; rule 5 reads the binder as a hypothesis
+# declarations Lean generates for the test-only self-containing structure Loop (cold review r3, finding 1)
+VacuityGateTests.Loop.rest eacb1102a5ca55e86d54ac0586d797395130ef15d052043d2b76190e7d07282c HELPER generated field projection of the test structure Loop, whose field is Loop p itself: Loop p → Loop p
+VacuityGateTests.Loop.brecOn 4f9dd82f4cc9085b24ec5ee8f592c676ba5eed3a4bfbcada67ed1b497d7472ac HELPER generated recursor helper of the test structure Loop; old case 3 matches its motive

@@ -341,6 +341,24 @@ theorem real_decide_fact : (3 : ℕ) < 5 ∧ 2 + 2 = 4 := by decide
 hypothesis, so the theorem passes (a stated limit of the glued rule). -/
 theorem real_hyp_and_computed (a : V) (h : P a) : P a ∧ 2 + 2 = 4 := ⟨h, rfl⟩
 
+/-- A structure whose type is a proposition and that contains itself (cold review r3, finding 1):
+case 5 must end, not recurse until Lean aborts. -/
+structure Loop (p : Prop) : Prop where
+  rest : Loop p
+
+structure LoopWrap (q : Prop) : Prop where
+  w : q
+
+theorem real_loop_wrap (p : Prop) (h : LoopWrap (Loop p)) : Loop p := h.w
+
+/-- A computed fact behind a definition (cold review r3, finding 2): `Small 3` evaluates to
+`True`, but only by computing, so it is not read as `True`, alone or as a part. -/
+def Small (n : ℕ) : Prop := if n < 10 then True else False
+
+theorem real_small_alone : Small 3 := by simp [Small]
+
+theorem real_hyp_and_small (a : V) (h : P a) : P a ∧ Small 3 := ⟨h, by simp [Small]⟩
+
 -- A theorem added by meta code (`addDecl`) under a `_proof_` name, with no source position and
 -- used by nothing (item 75): the statement is `p → p`.
 open Lean in

@@ -157,7 +157,8 @@ def main(argv):
         print(out)
         print(f"lean rc {p.returncode}, {len(verdicts)} verdicts")
         return 1
-    # a real_ test whose name is on the test list must come out LISTED (flagged, then passed
+    # a real_ test, or a generated declaration, whose name is on the test list must come out
+    # LISTED (flagged, then passed
     # through its entry); run with `--list /dev/null` to see the flag itself
     listed = set()
     if os.path.exists(lst):
@@ -170,7 +171,8 @@ def main(argv):
         short = n.split(".", 1)[1]
         want = {"vac": "FLAG", "listed": "LISTED", "pending": "PENDING",
                 "stale": "STALE"}.get(short.split("_")[0], "PASS")
-        if want == "PASS" and short.startswith("real_") and n in listed:
+        # any name on the test list that is not a `vac_` test, also one Lean generates (VACUITY-2)
+        if want == "PASS" and n in listed:
             want = "LISTED"
         # a generated `_proof_` helper of a theorem that must pass may be skipped
         if want == "PASS" and v == "SKIP" and "._proof_" in short:

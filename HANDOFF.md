@@ -630,7 +630,8 @@ Five gates, in `tools/`. Each was fail-tested; if you change one, fail-test it a
   (order VACUITY-2): the **fixed test** (conclusion is `True`; is `∃ y, y = e` with `e`
   independent of `y`; or follows from one hypothesis by applying it, opened through `⊆`, named and
   `@[irreducible]` definitions, `∧` halves and `↔` directions, with that hypothesis's premises met
-  by the other hypotheses); the **old case 3** (the conclusion of a `∀` hypothesis matches,
+  by the other hypotheses; or is an `∧`, an `↔` or another Prop structure every part of which is
+  `True` or closed by one hypothesis, Dustin's ruling of 2026-10-11); the **old case 3** (the conclusion of a `∀` hypothesis matches,
   premises ignored; labelled `old case 3 only` when nothing else fired); and **rule 5**
   (`contradiction`, `linarith`, `omega`, `norm_num`, `decide` prove `False` from the written
   hypotheses, 400000 heartbeats per theorem; running out is counted on the summary line, not a
@@ -645,12 +646,15 @@ Five gates, in `tools/`. Each was fail-tested; if you change one, fail-test it a
   hypothesis that is a proposition; a closed premise `decide` cannot finish makes the theorem
   UNCHECKED (fails closed) unless the old case 3 flags it; chained hypotheses and premises not
   closed by `rfl` or `decide` are caught only in a plain `∀`; a `_proof_` helper with no source
-  position that some declaration uses is skipped; a conclusion built from hypotheses by `⟨_, _⟩`,
-  `Or.inl` or `⟨a, _⟩` is not caught; rule 5 reads the statement as written (`p → False` and
+  position that some declaration uses is skipped; a conclusion glued from hypotheses is caught
+  only as an `∧`, `↔` or Prop structure whose parts are each `True` or one hypothesis (a part
+  needing `rfl`, `decide` or computation passes, so computed facts are never flagged; a part
+  under a binder is not opened; `∨` and `∃` are not caught); rule 5 reads the statement as written (`p → False` and
   `¬ p` are read differently; `∀ x ∈ [], F x` written out is flagged and listed, the same inside
   a definition is not); theorems are selected by the namespace `ClassicalLean`, not by module (5
-  generated equation lemmas fall outside). Flagged on purpose: lemmas that are a projection or
-  the identity once definitions are unfolded (`S ∩ T ⊆ S`); they stay through a list entry.
+  generated equation lemmas fall outside). Flagged on purpose: lemmas that are a projection, the
+  identity or a pairing of hypotheses once definitions and instances are unfolded
+  (`S ∩ T ⊆ S`, the shape of `Prod.mk_le_mk`); they stay through a list entry.
 - **`check_sorry.py`** — text-level, so it sees modules nobody wired into the aggregator. Scoped
   to `ClassicalLean/`; skips `.lake/` and `tools/`, and the reason is written in the file
   (it does not parse string literals, and the gates quote the words they detect).
