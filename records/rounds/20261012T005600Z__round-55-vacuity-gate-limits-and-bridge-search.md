@@ -49,3 +49,37 @@ VACUITY-2 on, at its end:
   the report; every report names its current baseline whether or not it changed.
 
 The cold-reviewed plan file itself is not edited.
+
+## Completed after the work
+
+Items 72 to 78 of MATH-PLAN-library-2 are done, with one ruling during the order (Dustin,
+2026-10-11, about 22:00 EDT): cold review r2's finding 3 ("glued assumptions") fixed here as case 5
+of the fixed test, not listed as a limit, followed by a second cold review (r3). No module was
+added or changed; `git diff d2cba27 -- ClassicalLean ClassicalLean.lean` is empty.
+
+Commits on `vacuity-2` (from `d2cba27`; nothing pushed):
+
+* `43145cb` records before the work (this fragment's first part).
+* `156b69c` `tools/bridge_search.py` and the baseline `records/bridges/VACUITY-1/`.
+* `9afa56b` tests for items 72 to 77, measured under the gate at `d2cba27` first.
+* `e700691` items 72 and 74; `1f584d0` the HELPER entry for
+  `ClassicalLean.Simplex.orderedSimplex_subset_closedSimplex` (the one library flag of item 72).
+* `3889b26` item 73; `091995c` item 75; `541bd7c` item 76.
+* `768efcf` item 77 (rule 5); `2c4b9b2` its fix (rule 5 read the negated conclusion as a
+  hypothesis and failed four real theorems).
+* `c81760a` cold review r2 applied or stated (item 78).
+* `cdad034` and `14b7ca4` the ruling: tests first, then case 5.
+* `d2503ba` cold review r3 applied or stated (its BLOCKER: no depth bound in case 5).
+
+Whole-library numbers, all on the **clean** tree at `d2503ba`: build 4166 jobs, 0 warnings;
+AxiomGate PASS 3158; VacuityGate PASS, 1 reviewed helper, 0 VACUOUS-PENDING, rule 5 ran out on 0
+theorems (3:19.71, 5044008 KB; before the order 2:47.48, 4977060 KB); check_sorry PASS 120;
+banned_vocab_scan PASS 120 files, 0 hits; check_records PASS 120. Gate 7 at `d2503ba`: ALL PASSED,
+120 modules 0 failed, 90482 declarations no errors, three standard axioms, 3158, planted fault
+named. Per-module theorem counts: unchanged, since no module changed.
+
+The plan's checks after: 224 of 232; the eight misses equal the predicted multiset
+(`setup.worktree`, `gate.maxUnfolds`, `gate.macro`, `gate.helper`, `gate.metacheck`,
+`gate.test.lim_and_hyp`, `gate.test.lim_false`, `gate.list`). The bridge search's end diff against
+`records/bridges/VACUITY-1/`: rc 0, nothing new or gone. **Current baseline:
+`records/bridges/VACUITY-1/`.** Report: lane `VACUITY-2-report.md`.
