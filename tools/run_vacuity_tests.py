@@ -69,6 +69,7 @@ run_cmd do
     if let .thmInfo _ := ci then
       if (`VacuityGateTests).isPrefixOf (Lean.privateToUserName n) then
         names := names.push n
+  {used_line}
   -- names the gate flagged or listed: an entry that matches none of them is stale, as in the gate
   let mut hit : Array Lean.Name := #[]
   for n in names.qsort (·.toString < ·.toString) do
@@ -77,7 +78,7 @@ run_cmd do
     if {macro_skip} && n.hasMacroScopes then
       Lean.logInfo s!"SKIP {{u}}"
       continue
-    if ← VacuityGate.isTacticHelper n then
+    if ← {helper_test} then
       Lean.logInfo s!"SKIP {{u}}"
       continue
     try
@@ -120,8 +121,15 @@ def main(argv):
     report = REPORT if "def judge" in gtext else REPORT_OLD
     # a gate whose scan skips names with macro scopes: the runner skips them too, and says SKIP
     macro_skip = "true" if "if n.hasMacroScopes then continue" in gtext else "false"
+    # a gate that skips only the `_proof_` helpers some declaration uses (VACUITY-2 on)
+    if "def usedHelpers" in gtext:
+        used_line = "let used ← Lean.Elab.Command.liftCoreM VacuityGate.usedHelpers"
+        helper_test = "VacuityGate.isTacticHelper used n"
+    else:
+        used_line, helper_test = "", "VacuityGate.isTacticHelper n"
     src = (body + "\n\n" + gate_section(gtext) + "\n"
-           + report.format(hb=heartbeats(gtext), lst=lst, macro_skip=macro_skip))
+           + report.format(hb=heartbeats(gtext), lst=lst, macro_skip=macro_skip,
+                           used_line=used_line, helper_test=helper_test))
     with tempfile.TemporaryDirectory() as d:
         path = os.path.join(d, "VacuityGateTestRun.lean")
         with open(path, "w", encoding="utf-8") as f:

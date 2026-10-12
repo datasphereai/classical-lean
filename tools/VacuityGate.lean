@@ -267,10 +267,10 @@ def followsFromHyp (xs : Array Expr) (concl : Expr) : MetaM Bool := do
     premise that is true for every value but not by `rfl` or `decide` (`0 + n = n`); a
     contradictory hypothesis. A closed premise that `decide` cannot finish
     (`Nat.Prime 1000003`) makes the theorem UNCHECKED, which fails the gate: safe, but a false
-    alarm for a real theorem of that shape. The scan skips declarations with macro scopes
-    (hygienic macro output) and `_proof_` lemmas with no source position, so a theorem added by
-    meta code (`addDecl`) under such a name is not tested; names alone cannot close that hole.
-    These have to be caught in review. Tests of the first ones: `tools/VacuityGateTests.lean`. -/
+    alarm for a real theorem of that shape. The scan skips a `_proof_` lemma with no source
+    position that some declaration uses (`isTacticHelper`), so a theorem added by meta code
+    (`addDecl`) under such a name and used by another declaration is not tested. These have to
+    be caught in review. Tests of the first ones: `tools/VacuityGateTests.lean`. -/
 def isVacuousType (type : Expr) : MetaM Bool :=
   forallTelescopeReducing type fun xs concl => do
     if concl.isConstOf ``True then return true
@@ -411,32 +411,56 @@ def judge (list : Array Entry) (n : Name) (type : Expr) : CommandElabM Verdict :
   | some e => return if e.hash == h then .listed e w else .flag h (some e.hash) w
   | none => return .flag h none w
 
+/-- The `_proof_` constants that some declaration of the target modules, or of the current file,
+    uses in its statement or its proof. Declarations of other modules (Mathlib) cannot use a
+    constant of the library, so they are not read. -/
+def usedHelpers : CoreM NameSet := do
+  let env ← getEnv
+  let mods := env.header.moduleNames
+  let mut s : NameSet := {}
+  for (n, ci) in env.constants.toList do
+    let inScope := match env.getModuleIdxFor? n with
+      | some i => targets.any (·.isPrefixOf mods[i.toNat]!)
+      | none => true
+    unless inScope do continue
+    let mut cs := ci.type.getUsedConstants
+    if let some v := ci.value? (allowOpaque := true) then cs := cs ++ v.getUsedConstants
+    for c in cs do
+      if let .str _ x := c then
+        if x.startsWith "_proof_" then s := s.insert c
+  return s
+
 /-- A `_proof_N` lemma that a tactic (mostly `omega`) or the elaborator abstracted out of a
     proof, such as `¬2 * (k + 2) = 2 * k + 4 → False`. Its statement is often trivial on purpose,
     and it is no one's theorem. Lean records no source position for these; every declaration
     written in a file has one, so a hand-written theorem called `foo._proof_1` is still tested
-    (test `vac_named_like_helper._proof_1`). Measured at VACUITY-1: 589 of the library's 3158
-    theorem constants are `_proof_` lemmas, none with a source position. -/
-def isTacticHelper (n : Name) : CommandElabM Bool := do
+    (test `vac_named_like_helper._proof_1`). And a tactic makes one to use it, so since order
+    VACUITY-2 a `_proof_` lemma is skipped only when some declaration uses it (`used`, from
+    `usedHelpers`): one added by meta code (`addDecl`) and used by nothing is tested (test
+    `vac_meta_helper._proof_1`). Measured at VACUITY-1: 589 of the library's 3158 theorem
+    constants are `_proof_` lemmas, none with a source position; 586 are used. -/
+def isTacticHelper (used : NameSet) (n : Name) : CommandElabM Bool := do
   match n with
-  | .str _ s => if s.startsWith "_proof_" then return (← findDeclarationRanges? n).isNone
+  | .str _ s => if s.startsWith "_proof_" then
+                  return (← findDeclarationRanges? n).isNone && used.contains n
                 else return false
   | _ => return false
 
 /-- Scan the target namespaces; return every theorem's verdict that is not a plain pass. -/
 def scan (list : Array Entry) : CommandElabM (Array (Name × Verdict)) := do
   let env ← getEnv
+  let used ← liftCoreM usedHelpers
   let mut out := #[]
   for (n, ci) in env.constants.toList do
     match ci with
     | .thmInfo ti =>
-      -- Skip only compiler/macro-generated declarations. `isInternal` is NOT
-      -- used, because it also skips user theorems whose name starts with `_`,
-      -- which would let a leading underscore bypass the gate. Auto-generated
-      -- equation and projection lemmas (`.eq_1`, `.injEq`, …) have real
-      -- equality conclusions, so the vacuity test never matches them.
-      if n.hasMacroScopes then continue
-      if ← isTacticHelper n then continue
+      -- Skip only tactic helpers that something uses. `isInternal` is NOT used, because it also
+      -- skips user theorems whose name starts with `_`, which would let a leading underscore
+      -- bypass the gate. Auto-generated equation and projection lemmas (`.eq_1`, `.injEq`, …)
+      -- have real equality conclusions, so the vacuity test never matches them. Theorems with
+      -- macro scopes (written by a hygienic macro) are tested since order VACUITY-2 (test
+      -- `vac_macro_scoped`); the library has none.
+      if ← isTacticHelper used n then continue
       -- On the USER name: a `private theorem` is stored as `_private.<Module>.0.<name>`,
       -- which no `ClassicalLean` prefix test matches, so testing the raw name would exempt
       -- every private declaration — the same hole that was measured in `AxiomGate`.
