@@ -21,11 +21,12 @@ the offending declarations.
 
 Detected (see `isVacuousType`):
 
-* the **fixed test**, cases 1 to 4 of `isVacuousType`: (1) the conclusion is `True`; (2) it is
+* the **fixed test**, cases 1 to 5 of `isVacuousType`: (1) the conclusion is `True`; (2) it is
   one of the theorem's own hypotheses (`P → P`); (3) it follows from one hypothesis by applying
   it, with that hypothesis's own premises met by the theorem's other hypotheses
   (`(∀ a, P a) → P a`, `(S ⊆ T) → x ∈ S → x ∈ T`); (4) it is `∃ y, y = e` with `e` independent
-  of `y`;
+  of `y`; (5) it is an `∧`, an `↔` or another structure whose type is a proposition, every part
+  of which is `True` or closed by one hypothesis (Dustin's ruling of 2026-10-11);
 * the **old case 3**, kept by ruling: the conclusion of a `∀` hypothesis unifies with the
   conclusion, whatever that hypothesis's premises (`oldCase3`);
 * **rule 5** (order VACUITY-2): the hypotheses contradict each other: one of a short fixed list
@@ -256,6 +257,38 @@ def followsFromHyp (xs : Array Expr) (concl : Expr) : MetaM (Option Expr) := do
       if found then return ← proof.get
   return none
 
+/-- Case 5, a glued conclusion (Dustin's ruling of 2026-10-11 on cold review r2's finding 3): the
+    conclusion, its head unfolded, is a structure whose type is a proposition (`∧`, `↔`, or
+    another such as `Fact p`), and every field of it, in turn, is closed by `True`, by one
+    hypothesis (case 2, or applied as in case 3: `followsFromHyp`), or by being glued itself.
+    Returns the proof, the structure's constructor applied to the parts. A part that needs `rfl`,
+    `decide`, an instance or any other step makes it fail, so a computed fact such as
+    `fib 10 = 55` is never flagged (test `real_hyp_and_computed`). `top`: the whole conclusion,
+    which `vacuousProof` has already tried as one part. -/
+partial def gluedProof (xs : Array Expr) (concl : Expr) (top : Bool := true) :
+    MetaM (Option Expr) := do
+  let c ← whnf concl
+  unless top do
+    if c.isConstOf ``True then return some (mkConst ``True.intro)
+    if let some pf ← followsFromHyp xs concl then return some pf
+  let .const sn us := c.getAppFn | return none
+  unless isStructure (← getEnv) sn do return none
+  let .inductInfo iv ← getConstInfo sn | return none
+  let [ctor] := iv.ctors | return none
+  unless iv.numIndices == 0 && c.getAppNumArgs == iv.numParams do return none
+  unless ← isProp c do return none
+  let mk := mkAppN (mkConst ctor us) c.getAppArgs
+  let mut t ← inferType mk
+  let mut parts : Array Expr := #[]
+  repeat
+    match ← whnf t with
+    | .forallE _ d b _ =>
+      let some pf ← gluedProof xs d false | return none
+      parts := parts.push pf
+      t := b.instantiate1 pf
+    | _ => break
+  return some (mkAppN mk parts)
+
 /-- A statement is *vacuous* if any of the following hold.
 
     1. Its conclusion is `True`.
@@ -271,6 +304,9 @@ def followsFromHyp (xs : Array Expr) (concl : Expr) : MetaM (Option Expr) := do
        instantiation, read `(∀ X S s, observed X S s ≥ psi S s) → observed X S s ≥ psi S s` as a
        theorem.
     4. Its conclusion is `∃ y, y = e` with `e` independent of `y` — see `isTrivialExists`.
+    5. Its conclusion is glued from hypotheses: an `∧`, an `↔` or another structure whose type
+       is a proposition, every part of which is `True` or closed by one hypothesis as in cases
+       2 and 3 (`gluedProof`; Dustin's ruling of 2026-10-11).
 
     Known limitations of the whole gate (the fixed test, the old case 3 and rule 5), stated
     rather than hidden; they have to be caught in review. As order VACUITY-2 leaves it:
@@ -293,9 +329,12 @@ def followsFromHyp (xs : Array Expr) (concl : Expr) : MetaM (Option Expr) := do
     * a `_proof_` lemma with no source position that some declaration uses is skipped
       (`isTacticHelper`), so a theorem added under such a name by meta code (`addDecl`) and used
       by another declaration is not tested;
-    * (cold review r2) a conclusion built from hypotheses by `⟨_, _⟩`, `Or.inl`, `⟨a, _⟩` or
-      membership in an intersection (`(hp : P a) (hq : Q a) : P a ∧ Q a`) is not detected:
-      `solve` builds such terms only for premises, never for the conclusion;
+    * (cold review r2, narrowed by case 5) a conclusion glued from hypotheses is detected only
+      when it is an `∧`, an `↔` or another structure whose type is a proposition, and every part
+      is `True` or closed by one hypothesis; a part that needs `rfl`, `decide`, an instance or
+      any other step makes the theorem pass (`(h : P a) : P a ∧ 2 + 2 = 4`, test
+      `real_hyp_and_computed`), and a conclusion glued with `∨` or `∃` (`Or.inl hp`,
+      `⟨a, hp⟩`) is not detected;
     * (cold review r2) rule 5 reads the statement as written, with no unfolding, so the same
       fact can be read two ways: `p → False` as a conclusion is opened (its conclusion is `False`
       and rule 5 does not run), `¬ p` is not; a `∀ x ∈ [], F x` written out is an empty-premise
@@ -331,9 +370,14 @@ def vacuousProof (type : Expr) : MetaM (Option (Expr × Expr)) :=
         if let .app (.app (.const ``Exists us) α) f@(.lam _ _ (.app (.app _ lhs) rhs) _) := c then
           let e := if lhs == .bvar 0 then rhs else lhs
           return ← close (mkApp4 (mkConst ``Exists.intro us) α f e (mkApp2 (mkConst ``Eq.refl us) α e))
-    match ← followsFromHyp xs concl with
-    | some pf => close pf
-    | none => return none
+    if let some pf ← followsFromHyp xs concl then return ← close pf
+    -- case 5, checked as `finish` checks case 3, then by the kernel in `judge`
+    let some pf ← gluedProof xs concl | return none
+    let ok ← try withTransparency .all do
+        check pf
+        isDefEq (← inferType pf) concl
+      catch _ => pure false
+    if ok then close pf else return none
 
 /-- The fixed test as a yes or no (the test runner's template for older gates calls it). -/
 def isVacuousType (type : Expr) : MetaM Bool := return (← vacuousProof type).isSome
