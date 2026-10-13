@@ -112,8 +112,8 @@ estimate into the null law does not:
   every nonempty set measure `5`, so only a constant string is almost everywhere measurable, and
   neither of these is. Their scores are `(1/2, 0)` and `(0, 1/2)`; at `q = 4` e-BH rejects one null
   at every outcome: the integral of the false share is `5 > 4 = q` (`= q · |H| / m`). When every
-  null string is measurable a finite measure would do (each score has mean at most `1`); not stated
-  here.
+  null string is measurable a finite measure would do (each score has integral at most `1`); not
+  stated here.
 * Lean's junk values decide three cases and keep the statements true: a string with null mass `0`
   has score `2^(−L) / 0 = 0`; for a string that is not almost everywhere measurable the null law is
   that point mass, so its score is at most `1` everywhere (`2^(−L) / 1` at the point, Lean's
