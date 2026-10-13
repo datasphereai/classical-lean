@@ -271,26 +271,36 @@ def followsFromHyp (xs : Array Expr) (concl : Expr) : MetaM (Option Expr) := do
     flagged (test `real_hyp_and_small3`, listed; a list entry, never a silent pass). Wrapping that
     call too would close it; order LEAN-27 allowed only the `whnfCore` call.
     A `match` that `whnfCore` leaves stuck (`matchMatcherApp?`) is opened branch by branch
-    (`lambdaBoundedTelescope` over each alternative's `altNumParams` pattern variables), and each
-    branch body is unfolded the same way, at most `maxLevels` matches deep. When every branch is
-    `True` the match is read as `True`; when any is not, it stays stuck (Dustin's ruling of
-    2026-10-12: nothing is computed when every branch is `True`). So `PairT x` for
-    `PairT (_, _) := True` is `True` (test `vac_pair_true`), while `Small2 0`, with a `True` and a
-    `False` branch, is not. A match with no branch stays stuck. -/
+    (`lambdaBoundedTelescope` over each alternative's `altNumParams` parameters: its pattern
+    variables, and any unit thunk and `h :` equations), and each branch body is unfolded the same
+    way, at most `maxLevels` matches deep (each branch keeps the same `fuel` for definitions).
+    When every branch is `True`, and Lean's `isDefEq` at `.all` agrees that the match is `True`,
+    the match is read as `True`; otherwise it stays stuck (Dustin's ruling of 2026-10-12: nothing
+    is computed when every branch is `True`). So `PairT x` for `PairT (_, _) := True` is `True`
+    (test `vac_pair_true`), while `Small2 0`, with a `True` and a `False` branch, is not. The
+    `isDefEq` check holds for a match on a variable of a structure type (eta), and not on a type
+    without eta (`ℕ`, `Bool`, other inductives): there the kernel cannot see the match as `True`,
+    no `True.intro` proof exists, and the match stays stuck, so `∀ n, NatT n` with both branches
+    `True` passes (a stated limit, test `lim_nat_true`), while such a match closed by a hypothesis
+    is still flagged through it (test `vac_hyp_and_nat_true`). A match with no branch stays
+    stuck. -/
 partial def unfoldNamed (e : Expr) (fuel : Nat := 32) (depth : Nat := 0) : MetaM Expr := do
   let e ← withConfig (fun c => { c with iota := false }) <| whnfCore e
   if fuel == 0 then return e
   if let .const c _ := e.getAppFn then
     if [``ite, ``dite, ``cond, ``Decidable.decide].contains c then return e
-  -- a `match` that `whnfCore` left stuck: `True` when every branch, its pattern variables bound,
-  -- unfolds to `True` (Dustin's ruling of 2026-10-12, order LEAN-27 job 0)
+  -- a `match` that `whnfCore` left stuck: `True` when every branch, its parameters bound,
+  -- unfolds to `True` (Dustin's ruling of 2026-10-12, order LEAN-27 job 0) and Lean's own `isDefEq`
+  -- agrees, so that `True.intro` is a proof the kernel accepts (job 0's review of `f70aa50`)
   if let some app ← matchMatcherApp? e then
     if depth ≥ maxLevels || app.alts.isEmpty then return e
     for alt in app.alts, k in app.altNumParams do
-      let isTrue ← lambdaBoundedTelescope alt k fun _ body => do
-        return (← unfoldNamed (mkAppN body app.remaining) (fuel - 1) (depth + 1)).isConstOf ``True
+      let isTrue ← lambdaBoundedTelescope alt k fun xs body => do
+        if xs.size < k then return false
+        return (← unfoldNamed (mkAppN body app.remaining) fuel (depth + 1)).isConstOf ``True
       unless isTrue do return e
-    return mkConst ``True
+    if ← withTransparency .all (isDefEq e (mkConst ``True)) then return mkConst ``True
+    return e
   match ← unfoldDefinition? e with
   | some e' => unfoldNamed e' (fuel - 1) depth
   | none => return e
