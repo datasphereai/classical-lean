@@ -110,9 +110,9 @@ case keeps the others):
   `checks.py`): on one point of mass `∞`, Lean's `μ.real` of every set is `∞.toReal = 0`, so `hp`
   holds with `p = 0` for the steps `+1, -1, +1, …`, which are independent and known in time, and the
   walk never leaves `(-1, 2)`: the set where it stays has mass `∞`, not `0`. For the second and
-  third theorems it follows from the others: independence of a step from the past, at the whole
-  space, forces the mass to be `0`, `1` or `∞`, and at `0` or `∞` every `μ.real` is `0`, so `hp`
-  forces `p = 0`, against `p > 0`.
+  third theorems it follows from the others: independence of the step's set `{X n = 1}` from the
+  whole space gives `μ s = μ s · μ univ`, so when the mass is not `1` (then it is `0` or `∞`) the
+  step's set has measure `0` or `∞`, its `μ.real` is `0`, and `hp` forces `p = 0`, against `p > 0`.
 
 ## What Mathlib provides
 
