@@ -66,3 +66,26 @@ bridge, row 154 (`GamblersRuin × LikelihoodScore`: item 84's Ville bound under 
 up-chance at most `p`), in the lane's `MATH-PLAN-library-2-bridges.md`; not load-bearing for items
 89 to 110, so the cut is not re-drawn. **Current baseline: `records/bridges/LEAN-28/`.**
 Report: lane `lean/LEAN-28-report.md`.
+
+### After Dustin's ruling on "checked in Lean" (2026-10-13)
+
+Ruling: a claim in the library must be checkable from the library. Three docstrings of this order
+(EffectiveSampleSize, cold review r80b; GamblersRuin, r84; LongestRun, r87) said a case was "checked
+in Lean" while the check was a reviewer's scratch file outside the repository. Each check is now an
+`example` at the end of its module (four examples), and each docstring names its example.
+EffectiveSampleSize's older line on order LEAN-16's identity now says the check was review r6's own
+scratch file, outside the library. No theorem, definition, proof or import changed; no named
+constant added (census of each module before and after: the same constants, name for name).
+Commits `b0b4f5e` and `c58db94`; confirming pass rx: PASS WITH FINDINGS 0/0/2 on `b0b4f5e`, fixed
+in `c58db94`, then PASS.
+
+Gates re-run on the clean tree at `c58db94`, all as predicted (`pred-gates2.md`, hashed first):
+build 4170 jobs, 0 warnings; AxiomGate PASS 3228; VacuityGate PASS, output identical to the
+first run (1 reviewed helper, 0 VACUOUS-PENDING, no UNCHECKED, no new list entry), its tests 88, 47
+flagged, 0 mismatches; check_sorry PASS 122; check_records PASS 122; gate 7 at `c58db94`: ALL
+PASSED, 4170 jobs, 122 modules 0 failed, 90615 declarations no errors (the same as at `1032cd3`),
+three standard axioms, 3228, planted fault named (20:00.86, 4752100 KB).
+`c58db94` is now the last commit touching anything outside `records/`. The bridge search was not
+re-run: the change adds no declaration and changes no proof (the axiom gate's 3228 and gate 7's
+declaration count are unchanged), so the baseline `records/bridges/LEAN-28/`, taken at `1032cd3`,
+should describe `c58db94` too. That is reasoned, not measured.
