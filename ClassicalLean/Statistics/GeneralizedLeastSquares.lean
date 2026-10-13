@@ -5,6 +5,7 @@ Authors: Dustin Watkins, Claude (Anthropic)
 -/
 
 import ClassicalLean.Statistics.GaussMarkov
+import ClassicalLean.Analysis.MinimumQuadraticForm
 
 /-!
 # Generalised least squares and Aitken's theorem
@@ -28,6 +29,25 @@ one, not a theorem of this file.
   `D V Dᵀ` with `D = C - glsMatrix V X`, as `GaussMarkov`'s `self_mul_transpose_sub_inv_eq` is at
   `V = 1`. When `V` is singular, Mathlib's `V⁻¹ = 0` makes the subtracted matrix `0`, and the
   statement says only that `C V Cᵀ` is positive semidefinite, which is true.
+
+**A common mean** (order LEAN-27, item 81). When the design `X` is a column of ones (one unknown,
+the common mean; `κ` has one element), generalised least squares is the least-variance weighting
+of `Analysis/MinimumQuadraticForm`: `glsMatrix_ones_eq_minWeights` says its row
+`(1ᵀ V⁻¹ 1)⁻¹ 1ᵀ V⁻¹` is `minWeights V = V⁻¹ 1 / (1ᵀ V⁻¹ 1)`, and
+`inv_transpose_mul_ones_eq` and `glsMatrix_ones_mul_mul_transpose` give its variance factor
+`1 / (1ᵀ V⁻¹ 1)`. The shared object is the positive definite quadratic form `wᵀ V w`: Aitken's
+theorem here and `inv_onesInvOnes_le_quadForm` there say the same thing for this design (a
+reading, not stated as a Lean theorem). The
+row's identity needs only `Vᵀ = V`, not the plan's "positive definite", so it is stated with that
+(wider than the plan's row); exact cases in order LEAN-27's `checks.py`: without symmetry,
+`V = [[2, 1], [0, 1]]` gives the row `(1/2, 1/2)` against `minWeights V = (0, 1)`; for a singular
+symmetric `V`, Mathlib's `V⁻¹ = 0` makes both sides `0` (and so does `1ᵀ V⁻¹ 1 = 0`, as for
+`V = diag(1, −1)`, under `0⁻¹ = 0`). The variance factor needs only that `κ` has one element
+(`[Unique κ]`, the one column), and all three theorems need it (cold review r81): with two
+columns of ones (`κ = Fin 2`, `V = 1`), `Xᵀ V⁻¹ X` is the singular all-`2` matrix, so Lean's
+inverse and the GLS row are `0`, against `minWeights 1 = (1/2, 1/2)` and a variance factor `1/2`.
+This file now imports `Analysis/MinimumQuadraticForm` (which imports only Mathlib,
+so no cycle).
 
 ## Hypotheses
 
@@ -55,7 +75,7 @@ Searched before this file was written (order LEAN-18, `grep -rniE` over Mathlib)
 
 namespace ClassicalLean.Statistics
 
-open Matrix
+open Matrix ClassicalLean.Analysis.MinimumQuadraticForm
 
 variable {ι κ : Type*} [Fintype ι] [Fintype κ] [DecidableEq ι] [DecidableEq κ]
 
@@ -142,5 +162,55 @@ theorem posSemidef_mul_mul_transpose_sub_inv {V : Matrix ι ι ℝ} (hV : V.PosS
     have hA0 : A⁻¹ = 0 := by rw [hA, hV0, Matrix.mul_zero, Matrix.zero_mul, Matrix.inv_zero]
     rw [hA0, sub_zero]
     exact hpsd C
+
+/-! ### A common mean (order LEAN-27, item 81) -/
+
+omit [Fintype κ] [DecidableEq κ] in
+/-- For `X` a matrix of ones with any column set `κ`, every entry of `Xᵀ V⁻¹ X` is `1ᵀ V⁻¹ 1`
+(the `1 × 1` matrix `1ᵀ V⁻¹ 1` when `κ` has one element). -/
+theorem transpose_mul_ones_eq (V : Matrix ι ι ℝ) :
+    (of fun _ _ ↦ (1 : ℝ) : Matrix ι κ ℝ)ᵀ * V⁻¹ * (of fun _ _ ↦ (1 : ℝ) : Matrix ι κ ℝ) =
+      of fun _ _ ↦ onesInvOnes V := by
+  ext a b
+  simp only [mul_apply, transpose_apply, of_apply, one_mul, mul_one, onesInvOnes, dotProduct,
+    Pi.one_apply, mulVec]
+  rw [Finset.sum_comm]
+
+/-- **The variance factor for a common mean** (order LEAN-27, item 81): for `X` a column of ones,
+`(Xᵀ V⁻¹ X)⁻¹ = 1 / (1ᵀ V⁻¹ 1)`, for every `V` (both sides are `0` when `V` is singular). -/
+theorem inv_transpose_mul_ones_eq [Unique κ] (V : Matrix ι ι ℝ) :
+    ((of fun _ _ ↦ (1 : ℝ) : Matrix ι κ ℝ)ᵀ * V⁻¹ * (of fun _ _ ↦ (1 : ℝ) : Matrix ι κ ℝ))⁻¹ =
+      (of fun _ _ ↦ (onesInvOnes V)⁻¹ : Matrix κ κ ℝ) := by
+  rw [transpose_mul_ones_eq, inv_def, adjugate_subsingleton, det_unique]
+  ext a b
+  simp [Subsingleton.elim a b, Ring.inverse_eq_inv']
+
+/-- **Generalised least squares for a common mean is the least-variance weighting** (order
+LEAN-27, item 81): for a symmetric `V` and `X` a column of ones, the row of `glsMatrix V X`,
+`(1ᵀ V⁻¹ 1)⁻¹ 1ᵀ V⁻¹`, is `minWeights V = V⁻¹ 1 / (1ᵀ V⁻¹ 1)`. -/
+theorem glsMatrix_ones_eq_minWeights [Unique κ] {V : Matrix ι ι ℝ} (hV : Vᵀ = V) (c : κ) :
+    glsMatrix V (of fun _ _ ↦ (1 : ℝ) : Matrix ι κ ℝ) c = minWeights V := by
+  have hVi : V⁻¹ᵀ = V⁻¹ := by rw [transpose_nonsing_inv, hV]
+  rw [glsMatrix, inv_transpose_mul_ones_eq]
+  ext j
+  simp only [minWeights, mul_apply, of_apply, transpose_apply, Pi.smul_apply,
+    smul_eq_mul, mulVec, dotProduct, mul_one, Finset.univ_unique, Finset.sum_singleton,
+    ← Finset.mul_sum]
+  congr 1
+  refine Finset.sum_congr rfl fun i _ ↦ ?_
+  rw [Pi.one_apply, mul_one, ← hVi, transpose_apply, hVi]
+
+/-- The covariance factor of generalised least squares for a common mean is `1 / (1ᵀ V⁻¹ 1)`,
+for every `V`: `glsMatrix_mul_mul_transpose` with `inv_transpose_mul_ones_eq`. -/
+theorem glsMatrix_ones_mul_mul_transpose [Unique κ] (V : Matrix ι ι ℝ) :
+    glsMatrix V (of fun _ _ ↦ (1 : ℝ) : Matrix ι κ ℝ) * V *
+        (glsMatrix V (of fun _ _ ↦ (1 : ℝ) : Matrix ι κ ℝ))ᵀ =
+      (of fun _ _ ↦ (onesInvOnes V)⁻¹ : Matrix κ κ ℝ) := by
+  rw [glsMatrix_mul_mul_transpose, inv_transpose_mul_ones_eq]
+
+/-- The hypothesis of `glsMatrix_ones_eq_minWeights` can be met: `V = 1` on `ℝ²`. -/
+example : glsMatrix (1 : Matrix (Fin 2) (Fin 2) ℝ) (of fun _ _ ↦ (1 : ℝ) : Matrix (Fin 2) Unit ℝ)
+    () = minWeights 1 :=
+  glsMatrix_ones_eq_minWeights (transpose_one) ()
 
 end ClassicalLean.Statistics
