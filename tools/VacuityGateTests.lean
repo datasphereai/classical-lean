@@ -385,14 +385,13 @@ def Small3 : ℕ → Prop
 
 theorem real_hyp_and_small3 (a : V) (h : P a) : P a ∧ Small3 0 := ⟨h, trivial⟩
 
-/-- `True` behind a `match` on a pair: with `iota := false` it is not reached, so this passes,
-where the gate before job 0 flagged it (job 0's review, finding 2). Recorded as this order's
-reading of Dustin's ruling, not a ruling of his (reading a `match` is computing, so a part or
-conclusion behind one passes); the question is put to him in LEAN-27's report. -/
+/-- `True` behind a `match` on a pair whose one branch is `True`: nothing is computed, so it must
+be flagged (Dustin's ruling of 2026-10-12 on job 0's review, finding 2). The gate at `c1b22b8`
+passes it, since `whnfCore` with `iota := false` stops at the `match`. -/
 def PairT : ℕ × ℕ → Prop
   | (_, _) => True
 
-theorem real_pair_true : ∀ x, PairT x := fun _ ↦ trivial
+theorem vac_pair_true : ∀ x, PairT x := fun _ ↦ trivial
 
 -- A theorem added by meta code (`addDecl`) under a `_proof_` name, with no source position and
 -- used by nothing (item 75): the statement is `p → p`.
