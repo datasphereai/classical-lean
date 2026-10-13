@@ -359,6 +359,18 @@ theorem real_small_alone : Small 3 := by simp [Small]
 
 theorem real_hyp_and_small (a : V) (h : P a) : P a ∧ Small 3 := ⟨h, by simp [Small]⟩
 
+/-- `True` behind set membership, reached by unfolding instances and definitions only: flagged
+(claude-ai's review of `d2503ba`, order LEAN-27, job 0). -/
+theorem vac_univ_mem : (5 : ℕ) ∈ (Set.univ : Set ℕ) := trivial
+
+/-- A computed fact behind a definition by pattern matching (order LEAN-27, job 0): `Small2 0` is
+`True` only by reducing the `match`, which is computing, so it is not read as `True`. -/
+def Small2 : ℕ → Prop
+  | 0 => True
+  | _ + 1 => False
+
+theorem real_hyp_and_small2 (a : V) (h : P a) : P a ∧ Small2 0 := ⟨h, trivial⟩
+
 -- A theorem added by meta code (`addDecl`) under a `_proof_` name, with no source position and
 -- used by nothing (item 75): the statement is `p → p`.
 open Lean in
