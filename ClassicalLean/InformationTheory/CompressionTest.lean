@@ -26,11 +26,13 @@ of the ruling sent during that order.
   integrable, mean at most `1`).
 * `integral_eFalseShare_score_le` (order LEAN-28, item 88): many such tests at once. Test `i` reads
   its own string `X i ω` (of its own length) with its own code `c i` and its own null law `p₀ i`,
-  all fixed in advance. Feed the scores to e-BH at level `q > 0` (`EValueStepUp`): if, for every
-  true null `i ∈ H`, the code is injective and prefix-free and the string's law is `p₀ i`, the mean
-  share of the rejections that fall in `H` is at most `q`, however the tests depend on each other;
-  `integral_eFalseShare_score_le_mul_card_div` gives the sharper `q · |H| / m`. The mean is taken
-  under a probability measure `μ`. Nothing is assumed about the tests outside `H`.
+  all fixed in advance. Feed the scores to e-BH at level `q > 0` (`EValueStepUp`: with `m` tests,
+  reject every test whose score is at least `m / (q k)`, where `k` is the largest count that works):
+  if, for every true null `i ∈ H`, the code is injective and prefix-free and the string's law is
+  `p₀ i`, the mean share of the rejections that fall in `H` is at most `q`, however the tests depend
+  on each other; `integral_eFalseShare_score_le_mul_card_div` gives the sharper `q · |H| / m`, where
+  `|H|` is the number of true nulls. The mean is taken under a probability measure `μ`. Nothing is
+  assumed about the tests outside `H`.
 * `measureReal_score_ge_le`: so, for `α > 0`, the chance under `p₀` that the score is at least
   `1 / α` is at most `α` (Markov's inequality). Rejecting the null when the score reaches `1 / α`
   is a test whose false-alarm rate is at most `α`.
@@ -101,26 +103,35 @@ estimate into the null law does not:
 * the null law is the string's law: the string is always `[true]` (length `1`), the null law is
   win rate `1/8`, code `x ↦ [x 0]`, `q = 1/4`: score `(1/2) / (1/8) = 4`, always rejected,
   `1 > 1/4`.
-* a probability measure (the share's mean is an expected value): needed, through Lean's junk law
-  of a string that is not almost everywhere measurable. Mathlib's `μ.map (X i)` is then a point
-  mass of mass `1` whatever the mass of `μ` (`Measure.map_of_not_aemeasurable_of_ne_zero`). On
-  `Bool` with the σ-algebra `⊥` and `μ` five times the point mass at `true`, two nulls with code
-  `x ↦ [x 0]` whose strings meet that point on complementary sets have scores `(1/2, 0)` and
-  `(0, 1/2)`; at `q = 4` e-BH rejects one null at every outcome: mean false share `5 > 4 = q`
-  (`= q · |H| / m`). When every null string is measurable a finite measure would do (each score
-  has mean at most `1`); not stated here.
-* Lean's junk values decide two cases and keep the statements true: a string with null mass `0`
-  has score `2^(−L) / 0 = 0`, and for a string that is not almost everywhere measurable the null
-  law is that point mass, so its score is at most `1` everywhere (`2^(−L) / 1` at the point, Lean's
-  `2^(−L) / 0 = 0` elsewhere), and the proof bounds it by the constant `1`.
+* a probability measure (the share's mean is an expected value): needed, through Lean's junk law of
+  a string that is not almost everywhere measurable. Mathlib's `μ.map (X i)` is then a point mass of
+  mass `1` whatever the mass of `μ` (`Measure.map_of_not_aemeasurable_of_ne_zero`). On `Bool` with
+  the σ-algebra `⊥` and `μ` five times the point mass at `true`, take two nulls with code
+  `x ↦ [x 0]`: the first string equals Mathlib's junk point (`Classical.ofNonempty`) only at `true`,
+  the second only at `false`. Under `⊥` the only measurable sets are `∅` and `Bool`, and `μ` gives
+  every nonempty set measure `5`, so only a constant string is almost everywhere measurable, and
+  neither of these is. Their scores are `(1/2, 0)` and `(0, 1/2)`; at `q = 4` e-BH rejects one null
+  at every outcome: the integral of the false share is `5 > 4 = q` (`= q · |H| / m`). When every
+  null string is measurable a finite measure would do (each score has mean at most `1`); not stated
+  here.
+* Lean's junk values decide three cases and keep the statements true: a string with null mass `0`
+  has score `2^(−L) / 0 = 0`; for a string that is not almost everywhere measurable the null law is
+  that point mass, so its score is at most `1` everywhere (`2^(−L) / 1` at the point, Lean's
+  `2^(−L) / 0 = 0` elsewhere), and the proof bounds it by the constant `1`; and if the share itself
+  is not almost everywhere measurable (a test outside `H` may read a string that is not measurable),
+  Lean's integral of it is `0`. The bound holds all the same: at every outcome the share is at most
+  `q / m` times a sum of integrable functions, one per true null, each with integral at most `1`.
 
 ## What Mathlib provides
 
 Kraft's inequality (`InformationTheory.IsPrefixFree.finsetSum_one_div_card_pow_length_le_one`),
 `ProbabilityTheory.bernoulliMeasure`, `Measure.pi` and `Measure.pi_pi`, `integral_fintype` and
-Markov's inequality `mul_meas_ge_le_integral_of_nonneg`. The library's `SourceCoding` uses the
-same Kraft inequality for Shannon's bounds. Mathlib v4.34.0 has no compression test: `compress`
-finds only set-family compressions (order LEAN-26's search).
+Markov's inequality `mul_meas_ge_le_integral_of_nonneg`. The library's `SourceCoding` uses the same
+Kraft inequality for Shannon's bounds. Item 88 also uses
+`Measure.map_of_not_aemeasurable_of_ne_zero` (the image of a nonzero measure under a map that is not
+almost everywhere measurable is a point mass of mass `1`), `integral_map`, `integrable_map_measure`,
+`integral_mono_of_nonneg` and `integral_finsetSum`. Mathlib v4.34.0 has no compression test:
+`compress` finds only set-family compressions (order LEAN-26's search).
 -/
 
 open MeasureTheory Finset
@@ -268,10 +279,11 @@ private theorem exists_score_le {i : ι} (hc : Function.Injective (c i))
     · simpa [hxy] using hL
     · simp [hxy]
 
-/-- **Compression tests fed to e-BH, sharp form** (order LEAN-28, item 88): the mean share of
-false finds is at most `q · |H| / m`. Each true null's score is at most a quantity of mean at most
-`1` (`exists_score_le`), and e-BH's share is, outcome by outcome, at most `q / m` times the sum of
-the null scores (`EValueStepUp.eFalseShare_le`). -/
+/-- **Compression tests fed to e-BH, sharp form** (order LEAN-28, item 88): under the hypotheses of
+`integral_eFalseShare_score_le`, the mean share of false finds is at most `q · |H| / m` (`m` tests,
+`|H|` true nulls). Each true null's score is at most a quantity of mean at most `1`
+(`exists_score_le`), and e-BH's share is, outcome by outcome, at most `q / m` times the sum of the
+null scores (`EValueStepUp.eFalseShare_le`). -/
 theorem integral_eFalseShare_score_le_mul_card_div {q : ℝ} (hq : 0 < q) {H : Finset ι}
     (hc : ∀ i ∈ H, Function.Injective (c i))
     (hpf : ∀ i ∈ H, InformationTheory.IsPrefixFree (Set.range (c i)))
