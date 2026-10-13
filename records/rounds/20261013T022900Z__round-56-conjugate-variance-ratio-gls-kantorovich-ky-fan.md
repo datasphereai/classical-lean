@@ -79,3 +79,5 @@ Dustin above is answered by that ruling. Gates re-run on the **clean** tree at `
 rule 5 ran out on 0, no UNCHECKED (2:47.33, 5051576 KB); tests 88, 47 flagged, 0 mismatches;
 check_sorry PASS 122; check_records PASS 122. Gate 7 at `ff68a8a`: ALL PASSED, 4168 jobs, 122 modules 0 failed, 90558 declarations no errors, three standard axioms, 3197, planted fault named (20:02.26, 4749160 KB). Current bridge baseline
 unchanged: `records/bridges/LEAN-27/` (no module changed since `15e003f`).
+
+**Added 2026-10-13, correction from claude-ai's pre-push review:** "nothing narrower than the plan's rows" above is wrong. Item 80 is narrower in form: the plan's product form `k γ 0 (1 + 2 ∑ (1 − j / k) ρ j)` is not stated in Lean, and the ratio form `variance_sum_div_eq` adds `k ≥ 1` and `γ 0 ≠ 0`, which the product form does not need (review r80, by hand). The report says so; the next library order proves the product form.
