@@ -86,15 +86,27 @@ collapses (`sum_sum_lag_eq`, for any `γ : ℕ → ℝ`) and
   needed by a case: for a measurable `X`, the covariance condition at `(i, i)` with `γ 0 ≠ 0`
   already puts `X i` in `L²`; kept because `variance_fun_sum` asks for it.
 
-The ratio's two hypotheses `k ≥ 1` and `γ 0 ≠ 0` are only for the division: multiplied through, the
-plan's product form `k γ 0 (1 + 2 ∑ (1 − j / k) ρ j)` is `variance_sum_eq_of_stationary` itself
-when they hold. A series indexed by `ℕ`, `X : ℕ → Ω → ℝ`, with the sum over `range k`, is
+The ratio's two hypotheses `k ≥ 1` and `γ 0 ≠ 0` are only for the division. The plan's product form
+`Var (X 0 + ⋯ + X (k - 1)) = k γ 0 (1 + 2 ∑_{1 ≤ j < k} (1 − j / k) ρ j)` is
+`variance_sum_eq_mul_one_add` (order LEAN-28, item 80b), with the hypotheses of
+`variance_sum_eq_of_stationary` only, no extra hypothesis. At `k = 0` both sides are `0`. When
+`γ 0 ≠ 0` it is the sum form multiplied out. When `γ 0 = 0`, `X 0` has variance `0`, so it equals
+its integral almost everywhere (Mathlib's `ae_eq_integral_of_variance_eq_zero`), every
+`cov (X 0, X j) = γ j` is `0`, and both sides are `0`. That step is needed: with `γ 0 = 0` and some
+`γ j ≠ 0` the two forms differ (`k = 2`, `γ = (0, 1)`: product `0`, sum `2`; order LEAN-28's
+`LEAN-28-check80b.py`, exact), but no series has such covariances. Its hypotheses are needed as the
+sum's are: dropping `MemLp` gives the sum's case above (left side `1`, Lean's junk covariances `0`,
+so `γ = 0` and the product form is `0`); dropping the covariance condition, `X 0 = X 1` with
+variance `1` and `γ = 0`, `k = 2`, gives `4` against `0`.
+
+A series indexed by `ℕ`, `X : ℕ → Ω → ℝ`, with the sum over `range k`, is
 `variance_sum_range_eq_of_stationary` (for item 115 of the plan, cold review r80); the sum's rows
 above apply to it unchanged, and its `example` meets its hypotheses.
 
-The hypotheses can be met together, with `γ 0 ≠ 0` and a lag `γ 1 ≠ 0`: the `example` after
-`variance_sum_div_eq` (two points of mass one, a measure of mass `2`, and twice the quantity that
-is `1` at one point and `0` at the other: `Var (2 X) = 4 = 2 · 1 + 2 · 1 · 1`).
+The hypotheses of `variance_sum_eq_of_stationary`, `variance_sum_div_eq` and
+`variance_sum_eq_mul_one_add` can be met together, with `γ 0 ≠ 0` and a lag `γ 1 ≠ 0`: the first
+`example` at the end of the module (two points of mass one, a measure of mass `2`, and twice the
+quantity that is `1` at one point and `0` at the other: `Var (2 X) = 4 = 2 · 1 + 2 · 1 · 1`).
 
 ## What Mathlib provides
 
@@ -487,6 +499,42 @@ theorem variance_sum_div_eq {k : ℕ} {X : Fin k → Ω → ℝ} (hX : ∀ i, Me
   refine sum_congr rfl fun j _ ↦ ?_
   field_simp
 
+/-- **The variance-ratio identity in product form** (order LEAN-28, item 80b): when
+`cov (X i, X j) = γ |i - j|`, with `ρ j = γ j / γ 0`,
+`Var (X 0 + ⋯ + X (k - 1)) = k γ 0 (1 + 2 ∑_{1 ≤ j < k} (1 - j / k) ρ j)`, with no hypothesis beyond
+those of `variance_sum_eq_of_stationary`. When `γ 0 = 0` (Lean's `γ j / 0 = 0`) the series has every
+`γ j = 0` for `j < k`, since `X 0` is then almost everywhere constant. -/
+theorem variance_sum_eq_mul_one_add {k : ℕ} {X : Fin k → Ω → ℝ} (hX : ∀ i, MemLp (X i) 2 μ)
+    {γ : ℕ → ℝ} (hcov : ∀ i j : Fin k, cov[X i, X j; μ] = γ (max (i : ℕ) j - min (i : ℕ) j)) :
+    Var[fun ω ↦ ∑ i, X i ω; μ] =
+      k * γ 0 * (1 + 2 * ∑ j ∈ Ico 1 k, (1 - (j : ℝ) / k) * (γ j / γ 0)) := by
+  rw [variance_sum_eq_of_stationary hX hcov]
+  rcases Nat.eq_zero_or_pos k with rfl | hk
+  · simp
+  by_cases hγ : γ 0 = 0
+  · -- `X 0` has variance `0`, so every lag covariance `γ j = cov (X 0, X j)` is `0`
+    have hv : Var[X ⟨0, hk⟩; μ] = 0 := by
+      rw [← covariance_self (hX _).aemeasurable, hcov]
+      simpa using hγ
+    have hae := ae_eq_integral_of_variance_eq_zero (hX ⟨0, hk⟩) hv
+    have h0 : ∀ j < k, γ j = 0 := by
+      intro j hj
+      have hc := hcov ⟨0, hk⟩ ⟨j, hj⟩
+      simp only [zero_le, max_eq_right, min_eq_left, Nat.sub_zero] at hc
+      rw [← hc, covariance]
+      refine (integral_congr_ae ?_).trans (integral_zero _ _)
+      filter_upwards [hae] with ω hω
+      simp [hω]
+    have hsum : ∑ j ∈ Ico 1 k, ((k : ℝ) - j) * γ j = 0 :=
+      sum_eq_zero fun j hj ↦ by rw [h0 j (mem_Ico.mp hj).2, mul_zero]
+    rw [hsum, hγ]
+    ring
+  · have hk' : (k : ℝ) ≠ 0 := Nat.cast_ne_zero.mpr hk.ne'
+    have e : ∀ j ∈ Ico 1 k, ((k : ℝ) - j) * γ j = k * γ 0 * ((1 - (j : ℝ) / k) * (γ j / γ 0)) :=
+      fun j _ ↦ by field_simp
+    rw [sum_congr rfl e, ← mul_sum]
+    ring
+
 /-- The variance of a sum for a covariance-stationary series indexed by `ℕ`: the same identity
 with `X : ℕ → Ω → ℝ` and the sum over `range k` (cold review r80, for item 115). -/
 theorem variance_sum_range_eq_of_stationary {k : ℕ} {X : ℕ → Ω → ℝ}
@@ -500,9 +548,10 @@ theorem variance_sum_range_eq_of_stationary {k : ℕ} {X : ℕ → Ω → ℝ}
   rw [hfun]
   exact h
 
-/-- The hypotheses of `variance_sum_eq_of_stationary` and `variance_sum_div_eq` hold together,
-with a lag `γ 1 ≠ 0`: two points with mass one each (a measure of mass `2`), and `X 0 = X 1` the
-quantity that is `1` at one point and `0` at the other (every covariance is `1`). -/
+/-- The hypotheses of `variance_sum_eq_of_stationary`, `variance_sum_div_eq` and
+`variance_sum_eq_mul_one_add` hold together, with a lag `γ 1 ≠ 0`: two points with mass one each
+(a measure of mass `2`), and `X 0 = X 1` the quantity that is `1` at one point and `0` at the other
+(every covariance is `1`). -/
 example : ∃ (μ : Measure Bool) (_ : IsFiniteMeasure μ) (X : Fin 2 → Bool → ℝ) (γ : ℕ → ℝ),
     (∀ i, MemLp (X i) 2 μ) ∧
       (∀ i j : Fin 2, cov[X i, X j; μ] = γ (max (i : ℕ) j - min (i : ℕ) j)) ∧

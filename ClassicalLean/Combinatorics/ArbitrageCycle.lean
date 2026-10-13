@@ -64,6 +64,17 @@ Checked in order LEAN-25 (`~/lean/lean25-checks/checks.py`, A1 to A4):
 * A nonempty set of assets for Bellman–Ford, whose minimum is over the assets; with no asset
   every statement about cycles is about the empty list only and holds.
 
+The three exact cases above (A1 to A3 of order LEAN-25's table) are Lean `example`s at the end of
+this file (order LEAN-28, item 86), each stated with this file's own definitions. A1 and A2 give
+only the rates between the two assets; both take the rate `1` from an asset to itself, which keeps
+the side that holds true (a single asset `[i]` is a cycle too, with product `r i i`): in A1 every
+cycle has product at most `1` (the prices `(1, 2)` telescope along any cycle, since every rate is
+at least `0`), and in A2 `p = (1, 1)` are prices. A3 takes the weights as given (`0` on the
+diagonal) and Bellman–Ford's round function `bellmanFord w k j` directly: with three assets and no
+negative cycle, round `2` still lowers the value at asset `2` after round `1` (from `−1` to `−2`),
+so stopping at round `n − 2` would be wrong; round `3` changes nothing (`bellmanFord_stable_iff`
+compares rounds `n` and `n − 1`).
+
 ## What is cited
 
 Bellman 1958, "On a routing problem"; Ford 1956, "Network Flow Theory". Not read here: author,
@@ -432,5 +443,85 @@ theorem forall_cycle_prod_le_one_iff_exists_prices [Finite ι] {r : ι → ι �
   · intro h
     obtain ⟨φ, hφ⟩ := (hasPrices_iff_potential hr).mp h
     exact (noGainCycle_iff_noNegativeCycle hr).mpr (cycleSum_nonneg_of_potential hφ)
+
+/-! ### Item 65's exact counterexamples (order LEAN-28, item 86) -/
+
+/-- **A1: a rate `0` breaks (a) ⇔ (c).** Rates `r 0 1 = 0`, `r 1 0 = 2` and `1` on the diagonal: no
+cycle gains (prices `(1, 2)`, telescoping), but with Lean's `log 0 = 0` the cycle `[0, 1]` has
+weight `−log 0 − log 2 = −log 2 < 0`. -/
+example : NoGainCycle (![![1, 0], ![2, 1]] : Fin 2 → Fin 2 → ℝ) ∧
+    ¬ NoNegativeCycle (negLog (![![1, 0], ![2, 1]] : Fin 2 → Fin 2 → ℝ)) := by
+  set r : Fin 2 → Fin 2 → ℝ := ![![1, 0], ![2, 1]] with hr
+  set p : Fin 2 → ℝ := ![1, 2] with hp
+  have hp0 : ∀ i, 0 < p i := fun i ↦ by fin_cases i <;> norm_num [hp]
+  have hr0 : ∀ i j, 0 ≤ r i j := fun i j ↦ by fin_cases i <;> fin_cases j <;> norm_num [hr]
+  have hrp : ∀ i j, r i j * p j ≤ p i := fun i j ↦ by
+    fin_cases i <;> fin_cases j <;> norm_num [hr, hp]
+  -- along a walk, the product of rates times the last price is at most the first price
+  have tele : ∀ (L : List (Fin 2)) (a : Fin 2),
+      walkProd r (a :: L) * p ((a :: L).getLast (List.cons_ne_nil a L)) ≤ p a := by
+    intro L
+    induction L with
+    | nil => intro a; simp [walkProd]
+    | cons b L ih =>
+      intro a
+      have h := ih b
+      simp only [walkProd, List.getLast_cons_cons]
+      calc r a b * walkProd r (b :: L) * p ((b :: L).getLast (List.cons_ne_nil b L))
+          = r a b * (walkProd r (b :: L) * p ((b :: L).getLast (List.cons_ne_nil b L))) := by ring
+        _ ≤ r a b * p b := mul_le_mul_of_nonneg_left h (hr0 a b)
+        _ ≤ p a := hrp a b
+  refine ⟨?_, fun h ↦ ?_⟩
+  · rintro (_ | ⟨a, L⟩) hc
+    · exact absurd rfl hc
+    have h := tele (L ++ [a]) a
+    have hl : (a :: (L ++ [a])).getLast (List.cons_ne_nil _ _) = a := by
+      rw [List.getLast_cons (by simp), List.getLast_append_singleton]
+    rw [hl] at h
+    have e : cycleProd r (a :: L) = walkProd r (a :: (L ++ [a])) := by
+      simp [cycleProd]
+    rw [e]
+    nlinarith [hp0 a]
+  · have h01 := h [0, 1] (by simp)
+    simp [cycleSum, walkSum, negLog, hr] at h01
+    linarith [Real.log_pos (by norm_num : (1 : ℝ) < 2)]
+
+/-- **A2: negative rates break (a) ⇔ (b).** Rates `r 0 1 = r 1 0 = −2` and `1` on the diagonal:
+`p = (1, 1)` are prices, but the cycle `[0, 1]` has product `4 > 1`. -/
+example : HasPrices (![![1, -2], ![-2, 1]] : Fin 2 → Fin 2 → ℝ) ∧
+    ¬ NoGainCycle (![![1, -2], ![-2, 1]] : Fin 2 → Fin 2 → ℝ) := by
+  refine ⟨⟨fun _ ↦ 1, fun _ ↦ one_pos, fun i j ↦ ?_⟩, fun h ↦ ?_⟩
+  · fin_cases i <;> fin_cases j <;> norm_num
+  · have h01 := h [0, 1] (by simp)
+    norm_num [cycleProd, walkProd] at h01
+
+/-- **A3: `n − 2` rounds of Bellman–Ford do not settle.** Three assets, weights
+`w 0 1 = w 1 2 = −1`, `0` on the diagonal and `5` elsewhere: no cycle has negative weight (the
+potential `(0, −1, −2)`), yet round `2` lowers the value at asset `2` after round `1` (from `−1` to
+at most `−2`); round `3` changes nothing. -/
+example : NoNegativeCycle (![![0, -1, 5], ![5, 0, -1], ![5, 5, 0]] : Fin 3 → Fin 3 → ℝ) ∧
+    bellmanFord (![![0, -1, 5], ![5, 0, -1], ![5, 5, 0]] : Fin 3 → Fin 3 → ℝ) 2 ≠
+      bellmanFord (![![0, -1, 5], ![5, 0, -1], ![5, 5, 0]] : Fin 3 → Fin 3 → ℝ) 1 ∧
+    bellmanFord (![![0, -1, 5], ![5, 0, -1], ![5, 5, 0]] : Fin 3 → Fin 3 → ℝ) 3 =
+      bellmanFord (![![0, -1, 5], ![5, 0, -1], ![5, 5, 0]] : Fin 3 → Fin 3 → ℝ) 2 := by
+  set w : Fin 3 → Fin 3 → ℝ := ![![0, -1, 5], ![5, 0, -1], ![5, 5, 0]] with hw
+  have hneg : NoNegativeCycle w :=
+    cycleSum_nonneg_of_potential (φ := ![0, -1, -2]) fun i j ↦ by
+      fin_cases i <;> fin_cases j <;> norm_num [hw]
+  refine ⟨hneg, fun h ↦ ?_, ?_⟩
+  · have hw01 : w 0 1 = -1 := by simp [hw]
+    have hw12 : w 1 2 = -1 := by simp [hw]
+    have h2 : bellmanFord w 2 2 ≤ -2 := by
+      have := bellmanFord_le_walkSum w 2 2 [0, 1] (by simp)
+      simp only [List.cons_append, List.nil_append, walkSum, hw01, hw12] at this
+      linarith
+    have h1 : -1 ≤ bellmanFord w 1 2 := by
+      change -1 ≤ min (bellmanFord w 0 2)
+        (univ.inf' univ_nonempty fun i ↦ bellmanFord w 0 i + w i 2)
+      refine le_min (by simp [bellmanFord]) (le_inf' _ _ fun i _ ↦ ?_)
+      fin_cases i <;> norm_num [bellmanFord, hw]
+    have := congrFun h 2
+    linarith
+  · simpa using bellmanFord_stable_of_short (w := w) fun c hc _ ↦ hneg c hc
 
 end ClassicalLean.Combinatorics

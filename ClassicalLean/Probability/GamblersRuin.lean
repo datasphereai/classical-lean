@@ -5,11 +5,13 @@ Authors: Dustin Watkins, Claude (Anthropic)
 -/
 
 import ClassicalLean.Probability.FairGame
+import ClassicalLean.Probability.MaximalInequality
 import Mathlib.Probability.Process.HittingTime
 import Mathlib.MeasureTheory.Integral.DominatedConvergence
+import Mathlib.Probability.HasLawExists
 
 /-!
-# Gambler's ruin for the fair `±1` walk
+# Gambler's ruin for the fair and the biased `±1` walk
 
 A walk starts at `0` and moves up or down by `1` at each step (`walk X n = X 0 + ⋯ + X (n − 1)`),
 each step `X n = ±1` with mean `0` and independent of the past. `exitTime X a b` is the first time
@@ -53,6 +55,55 @@ the rest worked out by hand):
 No hypothesis on `a` and `b` is needed (worked out by hand): with `a = 0 < b` the event holds at
 `n = 0` and the chance is `1 = b / b`; with `b = 0` the condition `-0 < walk 0` fails, so the chance
 is `0`; with `a = b = 0` the chance is Lean's `0 / 0 = 0`; in all three the exit time is `0`.
+
+## The biased walk (order LEAN-28, item 84)
+
+Each step is `1` with chance `p` and `-1` otherwise (`μ.real {X n = 1} = p` for every `n`), known by
+the next time and independent of the past, as above; `r = (1 - p) / p`.
+
+* `ae_exitTime_ne_top_of_biased`: the walk leaves `(-b, a)` with chance `1`, for **every** `p`
+  (wider than the plan's `0 < p < 1`, `p ≠ 1/2`). At `p = 1/2` it is `ae_exitTime_ne_top`;
+  otherwise Wald's identity (`FairGame`) gives `(2 p - 1) E[τ ∧ N] = E[S (τ ∧ N)]`, at most `a + b`
+  in size, so the capped exit times have mean at most `(a + b) / |2 p - 1|` and Markov's inequality
+  finishes as before.
+* `measureReal_hit_eq_of_biased`: for `0 < p < 1`, `p ≠ 1/2`, the walk reaches `a` before `-b`
+  with chance `(r ^ b - 1) / (r ^ (a + b) - 1)`. Since `E[r ^ X n] = p r + (1 - p) / r = 1`,
+  `r ^ (walk n)` is a martingale; stopped at the exit time capped at `N` it has mean `1`; it stays
+  between `r ^ (-b)` and `r ^ a`, so dominated convergence gives `E[r ^ (walk τ)] = 1`, that is
+  `r ^ a P + r ^ (-b) (1 - P) = 1`. At `a = b = 0` both sides are `0` (the right one Lean's
+  `0 / 0`).
+* `measureReal_exists_ge_le_of_biased`: for `0 < p < 1 - p`, the chance that the walk ever reaches
+  `a` is at most `(p / (1 - p)) ^ a`: the martingale `r ^ (walk n)` is nonnegative with mean `1`,
+  and on reaching `a` it is at least `r ^ a`; Ville's inequality (`MaximalInequality`, finite
+  horizon) bounds each horizon `N`, and the events grow with `N` (continuity of the measure from
+  below).
+* The hypotheses hold together: the `example` at the end of the file, at `p = 1/3` (independent
+  steps from Mathlib's `ProbabilityTheory.exists_iid`, which brings in
+  `Mathlib.Probability.HasLawExists`).
+
+Which hypotheses are needed (order LEAN-28's `checks.py`, exact; each case keeps the others):
+
+* `p > 0` (second theorem): at `p = 0` Lean's `r = 1 / 0 = 0` makes the formula
+  `(0 - 1) / (0 - 1) = 1` at `a = b = 1`, while the walk falls to `-1` first: chance `0` (the plan's
+  junk-value case). For the third theorem `p > 0` is not needed (at `p = 0` the walk only falls:
+  chance `1 ≤ 0 ^ 0 = 1` at `a = 0`, `0` after); it is kept for the proof's `r = (1 - p) / p`.
+* `p < 1` (second theorem): not needed by a case (at `p = 1`, `r = 0` and Lean's `0 ^ 0 = 1` make
+  the formula equal the true chance for every `a`, `b`); kept for the proof.
+* `p ≠ 1/2` (second theorem): at `p = 1/2`, `r = 1` and the formula is Lean's `0 / 0 = 0`, against
+  the fair walk's `b / (a + b) = 1/2` at `a = b = 1`.
+* `p < 1 - p` (third theorem): for `1/2 ≤ p < 1` the bound is at least `1` and holds; at `p = 1`
+  Lean's `p / (1 - p) = 1 / 0 = 0` makes the bound `0` at `a = 1`, against a chance `1`.
+* the steps' single law (`hp` with one `p`): steps `+1, -1, +1, …` (deterministic, so independent)
+  never leave `(-1, 2)`; for the other two, fair steps with `p = 1/3` stated give `1/3` against
+  `1/2` (second, `a = b = 1`) and a chance `5/8 > 1/2` of reaching `1` within three steps (third).
+* steps `±1`: steps `0` (with `p = 0`) never leave `(-1, 1)`; steps `±2` never land on `1` (chance
+  `0` against `1/3`); steps `+3` or `-1` reach `1` within 12 steps with chance above `1/2`.
+* independence: `X n = (-1) ^ n X 0` with `X 0` fair never leaves `(-2, 2)`; `X n = X 0` with up
+  chance `1/3`, `a = 1`, `b = 2`, gives `1/3` against `3/7`; three paths of mass `1/3`, each step
+  `+1` on exactly one, reach `1` with chance `2/3 > 1/2`. With the filtration that knows nothing,
+  independence holds and the same steps break only "each step known by the next time".
+* a probability measure: kept, as the fair theorems state it; not shown needed (independence of a
+  step from the past, at the whole space, already forces the mass to be `0`, `1` or `∞`).
 
 ## What Mathlib provides
 
@@ -577,5 +628,345 @@ theorem integral_exitTime_eq (hX : ∀ n, StronglyMeasurable[𝒢 (n + 1)] (X n)
     ring
 
 end Ruin
+
+/-! ### The biased walk (order LEAN-28, item 84) -/
+
+section Biased
+
+variable [IsProbabilityMeasure μ] {X : ℕ → Ω → ℝ}
+
+omit m0 in
+/-- A function of a `±1` step, written with the indicator of the step being `1`. -/
+private theorem comp_step_eq (hpm : ∀ n ω, X n ω = 1 ∨ X n ω = -1) (n : ℕ) (f : ℝ → ℝ) :
+    (fun ω ↦ f (X n ω)) =
+      fun ω ↦ f (-1) + (f 1 - f (-1)) * {ω | X n ω = 1}.indicator (fun _ ↦ (1 : ℝ)) ω := by
+  funext ω
+  rcases hpm n ω with h | h
+  · rw [Set.indicator_of_mem (show ω ∈ {ω | X n ω = 1} from h), h]
+    ring
+  · have hne : ω ∉ {ω | X n ω = 1} := fun hm ↦ by
+      have h1 : X n ω = 1 := hm
+      rw [h] at h1
+      norm_num at h1
+    rw [Set.indicator_of_notMem hne, h]
+    ring
+
+omit [IsProbabilityMeasure μ] in
+private theorem measurableSet_step_eq_one (hX : ∀ n, StronglyMeasurable[𝒢 (n + 1)] (X n))
+    (n : ℕ) : MeasurableSet {ω | X n ω = 1} :=
+  measurableSet_eq_fun ((hX n).measurable.mono (𝒢.le (n + 1)) le_rfl) measurable_const
+
+/-- Any function of a `±1` step is integrable. -/
+private theorem integrable_comp_step (hX : ∀ n, StronglyMeasurable[𝒢 (n + 1)] (X n))
+    (hpm : ∀ n ω, X n ω = 1 ∨ X n ω = -1) (n : ℕ) (f : ℝ → ℝ) :
+    Integrable (fun ω ↦ f (X n ω)) μ := by
+  rw [comp_step_eq hpm n f]
+  exact (integrable_const _).add
+    (((integrable_const (1 : ℝ)).indicator (measurableSet_step_eq_one hX n)).const_mul _)
+
+/-- The mean of a function of a step that is `1` with chance `p` and `-1` otherwise. -/
+private theorem integral_comp_step (hX : ∀ n, StronglyMeasurable[𝒢 (n + 1)] (X n))
+    (hpm : ∀ n ω, X n ω = 1 ∨ X n ω = -1) {p : ℝ} (hp : ∀ n, μ.real {ω | X n ω = 1} = p)
+    (n : ℕ) (f : ℝ → ℝ) :
+    ∫ ω, f (X n ω) ∂μ = f (-1) + (f 1 - f (-1)) * p := by
+  have hA := measurableSet_step_eq_one hX n
+  rw [comp_step_eq hpm n f, integral_add (integrable_const _)
+    (((integrable_const (1 : ℝ)).indicator hA).const_mul _), integral_const_mul,
+    integral_indicator_const _ hA, hp n]
+  simp
+
+omit m0 in
+/-- For `r > 0` and `|x| ≤ c`, `r ^ x ≤ r ^ c + r ^ (-c)`. -/
+private theorem rpow_le_add_of_abs_le {r x c : ℝ} (hr : 0 < r) (hx : |x| ≤ c) :
+    r ^ x ≤ r ^ c + r ^ (-c) := by
+  have h1 := Real.rpow_pos_of_pos hr c
+  have h2 := Real.rpow_pos_of_pos hr (-c)
+  rcases le_total 1 r with h | h
+  · have := Real.rpow_le_rpow_of_exponent_le h (le_of_abs_le hx)
+    linarith
+  · have := Real.rpow_le_rpow_of_exponent_ge hr h (neg_le_of_abs_le hx)
+    linarith
+
+/-- From a bound on the mean of the capped exit times, the walk leaves `(-b, a)` with chance `1`
+(Markov's inequality, as in `ae_exitTime_ne_top`). -/
+private theorem ae_exitTime_ne_top_of_le (hX : ∀ n, StronglyMeasurable[𝒢 (n + 1)] (X n))
+    (a b : ℕ) {C : ℝ}
+    (hC : ∀ N : ℕ, ∫ ω, ((min (exitTime X a b ω) (WithTop.some N)).untopA : ℝ) ∂μ ≤ C) :
+    ∀ᵐ ω ∂μ, exitTime X a b ω ≠ ⊤ := by
+  have hτ := isStoppingTime_exitTime hX a b
+  have hbound : ∀ N : ℕ, 0 < N → μ.real {ω | exitTime X a b ω = ⊤} ≤ C / N := by
+    intro N hN
+    have hNpos : (0 : ℝ) < N := Nat.cast_pos.mpr hN
+    have hint := integrable_untopA_min (μ := μ) hτ N
+    have hmk := mul_meas_ge_le_integral_of_nonneg (ae_of_all _ fun ω ↦ Nat.cast_nonneg _) hint N
+    have hsub : {ω | exitTime X a b ω = ⊤} ⊆
+        {ω | (N : ℝ) ≤ ((min (exitTime X a b ω) (WithTop.some N)).untopA : ℝ)} := fun ω hω ↦ by
+      simp only [Set.mem_ofPred_eq] at hω ⊢
+      rw [hω, untopA_min_top]
+    rw [le_div_iff₀ hNpos, mul_comm]
+    exact (mul_le_mul_of_nonneg_left (measureReal_mono hsub) hNpos.le).trans (hmk.trans (hC N))
+  have h0 : μ.real {ω | exitTime X a b ω = ⊤} ≤ 0 := by
+    refine ge_of_tendsto (tendsto_const_div_atTop_nhds_zero_nat C) ?_
+    filter_upwards [eventually_gt_atTop 0] with N hN
+    exact hbound N hN
+  have hzero : μ {ω | exitTime X a b ω = ⊤} = 0 :=
+    (measureReal_eq_zero_iff).mp (le_antisymm h0 measureReal_nonneg)
+  rw [ae_iff]
+  simpa only [ne_eq, not_not] using hzero
+
+/-- **The `±1` walk with independent steps of one law leaves `(-b, a)` with chance `1`** (order
+LEAN-28, item 84): each step is `1` with chance `p` and `-1` otherwise, for any `p` (wider than the
+plan's `0 < p < 1`, `p ≠ 1/2`). For `p = 1/2` this is `ae_exitTime_ne_top`; otherwise Wald's
+identity gives `(2 p - 1) E[τ ∧ N] = E[S (τ ∧ N)]`, at most `a + b` in size, so the capped exit
+times have mean at most `(a + b) / |2 p - 1|`. -/
+theorem ae_exitTime_ne_top_of_biased (hX : ∀ n, StronglyMeasurable[𝒢 (n + 1)] (X n))
+    (hind : ∀ n, Indep (MeasurableSpace.comap (X n) inferInstance) (𝒢 n) μ)
+    (hpm : ∀ n ω, X n ω = 1 ∨ X n ω = -1) {p : ℝ} (hp : ∀ n, μ.real {ω | X n ω = 1} = p)
+    (a b : ℕ) : ∀ᵐ ω ∂μ, exitTime X a b ω ≠ ⊤ := by
+  have hmean : ∀ n, ∫ ω, X n ω ∂μ = 2 * p - 1 := fun n ↦ by
+    have h := integral_comp_step hX hpm hp n id
+    simp only [id_eq] at h
+    rw [h]
+    ring
+  by_cases hp2 : 2 * p - 1 = 0
+  · exact ae_exitTime_ne_top hX hind hpm (fun n ↦ by rw [hmean n, hp2]) a b
+  have hτ := isStoppingTime_exitTime hX a b
+  refine ae_exitTime_ne_top_of_le hX a b (C := ((a : ℝ) + b) / |2 * p - 1|) fun N ↦ ?_
+  have hτN := hτ.min_const N
+  have hW := FairGame.integral_stoppedValue_sum_eq hX (integrable_step hX hpm) hmean hind hτN
+    (fun ω ↦ min_le_right _ _)
+  have hint :
+      Integrable (stoppedValue (walk X) fun ω ↦ min (exitTime X a b ω) (WithTop.some N)) μ :=
+    integrable_stoppedValue ℕ hτN (integrable_walk hX hpm) fun ω ↦ min_le_right _ _
+  have hbd : |∫ ω, stoppedValue (walk X) (fun ω ↦ min (exitTime X a b ω) (WithTop.some N)) ω ∂μ|
+      ≤ a + b :=
+    calc _ ≤ ∫ ω, |stoppedValue (walk X) (fun ω ↦ min (exitTime X a b ω) (WithTop.some N)) ω| ∂μ :=
+          abs_integral_le_integral_abs
+      _ ≤ ∫ _ω, ((a : ℝ) + b) ∂μ :=
+          integral_mono hint.abs (integrable_const _) fun ω ↦ abs_stoppedValue_min_le hpm a b N ω
+      _ = a + b := by simp
+  have hW' : ∫ ω, stoppedValue (walk X) (fun ω ↦ min (exitTime X a b ω) (WithTop.some N)) ω ∂μ =
+      (2 * p - 1) * ∫ ω, ((min (exitTime X a b ω) (WithTop.some N)).untopA : ℝ) ∂μ := hW
+  have hE0 : 0 ≤ ∫ ω, ((min (exitTime X a b ω) (WithTop.some N)).untopA : ℝ) ∂μ :=
+    integral_nonneg fun ω ↦ Nat.cast_nonneg _
+  rw [hW', abs_mul, abs_of_nonneg hE0] at hbd
+  rw [le_div_iff₀ (abs_pos.mpr hp2), mul_comm]
+  exact hbd
+
+/-- For a step up with chance `p ∈ (0, 1)` and `r = (1 - p) / p`, `r ^ (walk n)` is a martingale:
+`E[r ^ X n] = p r + (1 - p) / r = 1`. -/
+private theorem martingale_rpow_walk (hX : ∀ n, StronglyMeasurable[𝒢 (n + 1)] (X n))
+    (hind : ∀ n, Indep (MeasurableSpace.comap (X n) inferInstance) (𝒢 n) μ)
+    (hpm : ∀ n ω, X n ω = 1 ∨ X n ω = -1) {p : ℝ} (hp0 : 0 < p) (hp1 : p < 1)
+    (hp : ∀ n, μ.real {ω | X n ω = 1} = p) :
+    Martingale (fun n ω ↦ ((1 - p) / p) ^ walk X n ω) 𝒢 μ := by
+  set r := (1 - p) / p with hr
+  have hr0 : 0 < r := div_pos (by linarith) hp0
+  have hmeas : ∀ n, StronglyMeasurable[𝒢 n] (fun ω ↦ r ^ walk X n ω) := fun n ↦
+    (measurable_const.pow (stronglyMeasurable_walk hX n).measurable).stronglyMeasurable
+  have hint : ∀ n, Integrable (fun ω ↦ r ^ walk X n ω) μ := fun n ↦
+    Integrable.of_bound ((hmeas n).mono (𝒢.le n)).aestronglyMeasurable
+      (r ^ (n : ℝ) + r ^ (-(n : ℝ)))
+      (ae_of_all _ fun ω ↦ by
+        rw [Real.norm_eq_abs, abs_of_pos (Real.rpow_pos_of_pos hr0 _)]
+        exact rpow_le_add_of_abs_le hr0 (abs_walk_le hpm n ω))
+  refine martingale_of_condExp_sub_eq_zero_nat hmeas hint fun n ↦ ?_
+  change μ[(fun ω ↦ r ^ walk X (n + 1) ω) - (fun ω ↦ r ^ walk X n ω) | 𝒢 n] =ᵐ[μ] 0
+  have e : (fun ω ↦ r ^ walk X (n + 1) ω) - (fun ω ↦ r ^ walk X n ω) =
+      (fun ω ↦ r ^ walk X n ω) * fun ω ↦ r ^ X n ω - 1 := by
+    funext ω
+    simp only [Pi.sub_apply, Pi.mul_apply, walk_succ, Real.rpow_add hr0]
+    ring
+  rw [e]
+  have hXm : Measurable (X n) := (hX n).measurable.mono (𝒢.le (n + 1)) le_rfl
+  have hGm : StronglyMeasurable[MeasurableSpace.comap (X n) inferInstance]
+      (fun ω ↦ r ^ X n ω - 1) :=
+    (((measurable_const.pow measurable_id).sub_const 1).comp
+      (comap_measurable (X n))).stronglyMeasurable
+  have hce := condExp_indep_eq hXm.comap_le (𝒢.le n) hGm (hind n)
+  have hp0' : p ≠ 0 := hp0.ne'
+  have hq0 : 1 - p ≠ 0 := (sub_pos.mpr hp1).ne'
+  have hG0 : ∫ ω, (r ^ X n ω - 1) ∂μ = 0 := by
+    rw [integral_comp_step hX hpm hp n fun x ↦ r ^ x - 1]
+    simp only [Real.rpow_one, Real.rpow_neg_one, hr]
+    field_simp
+    ring
+  have hGint : Integrable (fun ω ↦ r ^ X n ω - 1) μ :=
+    integrable_comp_step hX hpm n fun x ↦ r ^ x - 1
+  have hprod : Integrable ((fun ω ↦ r ^ walk X n ω) * fun ω ↦ r ^ X n ω - 1) μ := by
+    rw [← e]
+    exact (hint (n + 1)).sub (hint n)
+  have hmul := condExp_mul_of_stronglyMeasurable_left (m := 𝒢 n) (hmeas n) hprod hGint
+  filter_upwards [hmul, hce] with ω h1 h2
+  rw [h1, Pi.mul_apply, h2]
+  simp only [hG0, mul_zero, Pi.zero_apply]
+
+/-- **The biased walk reaches `a` first with chance `(r ^ b - 1) / (r ^ (a + b) - 1)`** (order
+LEAN-28, item 84), `r = (1 - p) / p`, for a step up with chance `p`, `0 < p < 1`, `p ≠ 1/2`. -/
+theorem measureReal_hit_eq_of_biased (hX : ∀ n, StronglyMeasurable[𝒢 (n + 1)] (X n))
+    (hind : ∀ n, Indep (MeasurableSpace.comap (X n) inferInstance) (𝒢 n) μ)
+    (hpm : ∀ n ω, X n ω = 1 ∨ X n ω = -1) {p : ℝ} (hp0 : 0 < p) (hp1 : p < 1) (hp2 : p ≠ 1 / 2)
+    (hp : ∀ n, μ.real {ω | X n ω = 1} = p) (a b : ℕ) :
+    μ.real {ω | ∃ n, walk X n ω = a ∧ ∀ k ≤ n, -(b : ℝ) < walk X k ω} =
+      (((1 - p) / p) ^ b - 1) / (((1 - p) / p) ^ (a + b) - 1) := by
+  classical
+  set A := {ω | ∃ n, walk X n ω = a ∧ ∀ k ≤ n, -(b : ℝ) < walk X k ω}
+  set r := (1 - p) / p with hr
+  have hr0 : 0 < r := div_pos (by linarith) hp0
+  have hr1 : r ≠ 1 := by
+    intro h
+    rw [hr, div_eq_one_iff_eq hp0.ne'] at h
+    exact hp2 (by linarith)
+  have ha : (0 : ℝ) ≤ a := Nat.cast_nonneg a
+  have hb : (0 : ℝ) ≤ b := Nat.cast_nonneg b
+  -- `a = b = 0`: the event is empty and the right side is Lean's `0 / 0`
+  rcases Nat.eq_zero_or_pos (a + b) with hab | hab
+  · have hb0 : b = 0 := by omega
+    have hempty : A = ∅ := by
+      ext ω
+      simp only [A, Set.mem_ofPred_eq, Set.mem_empty_iff_false, iff_false, not_exists, not_and]
+      intro n _ h
+      have := h 0 (Nat.zero_le n)
+      rw [walk_zero, hb0] at this
+      simp at this
+    rw [hempty, measureReal_empty, hab, hb0]
+    simp
+  set M : ℕ → Ω → ℝ := fun n ω ↦ r ^ walk X n ω
+  have hmart : Martingale M 𝒢 μ := martingale_rpow_walk hX hind hpm hp0 hp1 hp
+  have hτ := isStoppingTime_exitTime hX a b
+  have hτN : ∀ N : ℕ, IsStoppingTime 𝒢 fun ω ↦ min (exitTime X a b ω) (WithTop.some N) :=
+    hτ.min_const
+  have hae := ae_exitTime_ne_top_of_biased hX hind hpm hp a b
+  -- `E[M (τ ∧ N)] = E[M 0] = 1`
+  have hE : ∀ N : ℕ,
+      ∫ ω, stoppedValue M (fun ω ↦ min (exitTime X a b ω) (WithTop.some N)) ω ∂μ = 1 := fun N ↦ by
+    rw [FairGame.integral_stoppedValue_eq hmart (hτN N) fun ω ↦ min_le_right _ _]
+    simp [M, walk_zero]
+  -- dominated convergence, with the bound `r ^ (a + b) + r ^ (-(a + b))`
+  have hlim := tendsto_integral_of_dominated_convergence (μ := μ)
+    (F := fun N ω ↦ stoppedValue M (fun ω ↦ min (exitTime X a b ω) (WithTop.some N)) ω)
+    (fun _ ↦ r ^ ((a : ℝ) + b) + r ^ (-((a : ℝ) + b)))
+    (fun N ↦ (integrable_stoppedValue ℕ (hτN N) hmart.integrable
+      fun ω ↦ min_le_right _ _).aestronglyMeasurable) (integrable_const _)
+    (fun N ↦ ae_of_all _ fun ω ↦ by
+      have hI := stoppedValue_min_mem_Icc hpm a b N ω
+      have e : stoppedValue M (fun ω ↦ min (exitTime X a b ω) (WithTop.some N)) ω =
+          r ^ stoppedValue (walk X) (fun ω ↦ min (exitTime X a b ω) (WithTop.some N)) ω := rfl
+      rw [e, Real.norm_eq_abs, abs_of_pos (Real.rpow_pos_of_pos hr0 _)]
+      refine rpow_le_add_of_abs_le hr0 (abs_le.mpr ⟨?_, ?_⟩) <;> linarith [hI.1, hI.2])
+    (by filter_upwards [hae] with ω hω using tendsto_stoppedValue_min hω M)
+  simp only [hE] at hlim
+  have hEτ : ∫ ω, stoppedValue M (exitTime X a b) ω ∂μ = 1 :=
+    (tendsto_nhds_unique tendsto_const_nhds hlim).symm
+  -- at the exit time the walk is at `a` on `A` and at `-b` off it
+  have hA : MeasurableSet A := measurableSet_hit hX a b
+  have hsv : (fun ω ↦ stoppedValue M (exitTime X a b) ω) =ᵐ[μ]
+      fun ω ↦ r ^ (if ω ∈ A then (a : ℝ) else -(b : ℝ)) := by
+    filter_upwards [hae] with ω hω
+    exact congrArg (r ^ ·) (stoppedValue_exitTime_eq hpm a b hω)
+  have hite : (fun ω ↦ r ^ (if ω ∈ A then (a : ℝ) else -(b : ℝ))) =
+      fun ω ↦ if ω ∈ A then r ^ (a : ℝ) else r ^ (-(b : ℝ)) := by
+    funext ω
+    split_ifs <;> rfl
+  rw [integral_congr_ae hsv, hite, integral_ite hA, Real.rpow_neg hr0.le, Real.rpow_natCast,
+    Real.rpow_natCast] at hEτ
+  -- `hEτ : (r ^ b)⁻¹ + (r ^ a - (r ^ b)⁻¹) P = 1`
+  have hrb : 0 < r ^ b := pow_pos hr0 b
+  have hinv : r ^ b * (r ^ b)⁻¹ = 1 := mul_inv_cancel₀ hrb.ne'
+  have key : (r ^ (a + b) - 1) * μ.real A = r ^ b - 1 := by
+    linear_combination r ^ b * hEτ - (1 - μ.real A) * hinv
+  have hne : r ^ (a + b) - 1 ≠ 0 := by
+    intro h
+    have h1 : r ^ (a + b) = 1 := by linarith
+    exact hr1 ((pow_eq_one_iff_of_nonneg hr0.le (by omega)).mp h1)
+  rw [eq_div_iff hne, mul_comm (μ.real A)]
+  exact key
+
+/-- **Ville's inequality for the biased walk** (order LEAN-28, item 84): when a step goes up with
+chance `p < 1 - p` (`p > 0`), the chance that the walk ever reaches `a` is at most
+`(p / (1 - p)) ^ a`. The martingale `r ^ (walk n)`, `r = (1 - p) / p > 1`, is nonnegative and
+starts at `1`; on reaching `a` it is at least `r ^ a`. Ville's inequality
+(`MaximalInequality.measureReal_exists_le_of_supermartingale`) bounds each horizon `N`, and the
+events grow with `N`. -/
+theorem measureReal_exists_ge_le_of_biased (hX : ∀ n, StronglyMeasurable[𝒢 (n + 1)] (X n))
+    (hind : ∀ n, Indep (MeasurableSpace.comap (X n) inferInstance) (𝒢 n) μ)
+    (hpm : ∀ n ω, X n ω = 1 ∨ X n ω = -1) {p : ℝ} (hp0 : 0 < p) (hpq : p < 1 - p)
+    (hp : ∀ n, μ.real {ω | X n ω = 1} = p) (a : ℕ) :
+    μ.real {ω | ∃ n, (a : ℝ) ≤ walk X n ω} ≤ (p / (1 - p)) ^ a := by
+  set r := (1 - p) / p with hr
+  have hr0 : 0 < r := div_pos (by linarith) hp0
+  have hr1 : 1 ≤ r := by
+    rw [hr, le_div_iff₀ hp0]
+    linarith
+  have hmart : Martingale (fun n ω ↦ r ^ walk X n ω) 𝒢 μ :=
+    martingale_rpow_walk hX hind hpm hp0 (by linarith) hp
+  have hc : 0 ≤ (p / (1 - p)) ^ a := pow_nonneg (div_nonneg hp0.le (by linarith)) a
+  have hN : ∀ N : ℕ, μ.real {ω | ∃ n ≤ N, (a : ℝ) ≤ walk X n ω} ≤ (p / (1 - p)) ^ a := by
+    intro N
+    have hville := MaximalInequality.measureReal_exists_le_of_supermartingale
+      hmart.supermartingale (fun n ω ↦ (Real.rpow_pos_of_pos hr0 _).le)
+      (Real.rpow_pos_of_pos hr0 (a : ℝ)) N
+    have hM0 : ∫ ω, (fun n ω ↦ r ^ walk X n ω) 0 ω ∂μ = 1 := by simp [walk_zero]
+    rw [hM0] at hville
+    calc μ.real {ω | ∃ n ≤ N, (a : ℝ) ≤ walk X n ω}
+        ≤ μ.real {ω | ∃ n ≤ N, r ^ (a : ℝ) ≤ (fun n ω ↦ r ^ walk X n ω) n ω} := by
+          refine measureReal_mono fun ω ⟨n, hn, h⟩ ↦ ⟨n, hn, ?_⟩
+          exact Real.rpow_le_rpow_of_exponent_le hr1 h
+      _ ≤ 1 / r ^ (a : ℝ) := hville
+      _ = (p / (1 - p)) ^ a := by
+          rw [Real.rpow_natCast, one_div, ← inv_pow, hr, inv_div]
+  have hU : {ω | ∃ n, (a : ℝ) ≤ walk X n ω} =
+      ⋃ N : ℕ, {ω | ∃ n ≤ N, (a : ℝ) ≤ walk X n ω} := by
+    ext ω
+    simp only [Set.mem_iUnion, Set.mem_ofPred_eq]
+    constructor
+    · rintro ⟨n, hn⟩
+      exact ⟨n, n, le_rfl, hn⟩
+    · rintro ⟨N, n, -, hn⟩
+      exact ⟨n, hn⟩
+  have hmono : Monotone fun N : ℕ ↦ {ω | ∃ n ≤ N, (a : ℝ) ≤ walk X n ω} :=
+    fun N N' hNN' ω ⟨n, hn, h⟩ ↦ ⟨n, hn.trans hNN', h⟩
+  rw [hU, measureReal_def, hmono.measure_iUnion]
+  refine ENNReal.toReal_le_of_le_ofReal hc (iSup_le fun N ↦ ?_)
+  rw [← ENNReal.ofReal_toReal (measure_ne_top μ _)]
+  exact ENNReal.ofReal_le_ofReal (hN N)
+
+end Biased
+
+/-- The hypotheses of `ae_exitTime_ne_top_of_biased`, `measureReal_hit_eq_of_biased` and
+`measureReal_exists_ge_le_of_biased` hold together, at `p = 1/3`: independent steps `B n`, `true`
+with chance `1/3` (Mathlib's `ProbabilityTheory.exists_iid`), read as `±1`; the step at time `n` is
+the one indexed `n + 1`, and the filtration is the one the steps generate. -/
+example : ∃ (Ω : Type) (m0 : MeasurableSpace Ω) (μ : Measure Ω) (_ : IsProbabilityMeasure μ)
+    (𝒢 : Filtration ℕ m0) (X : ℕ → Ω → ℝ),
+    (∀ n, StronglyMeasurable[𝒢 (n + 1)] (X n)) ∧
+      (∀ n, Indep (MeasurableSpace.comap (X n) inferInstance) (𝒢 n) μ) ∧
+      (∀ n ω, X n ω = 1 ∨ X n ω = -1) ∧ (∀ n, μ.real {ω | X n ω = 1} = 1 / 3) ∧
+      (0 : ℝ) < 1 / 3 ∧ (1 / 3 : ℝ) < 1 ∧ (1 / 3 : ℝ) ≠ 1 / 2 ∧ (1 / 3 : ℝ) < 1 - 1 / 3 := by
+  set ν : Measure Bool := ENNReal.ofReal (1 / 3) • Measure.dirac true +
+    ENNReal.ofReal (2 / 3) • Measure.dirac false with hν
+  have hν1 : IsProbabilityMeasure ν := ⟨by
+    simp only [hν, Measure.add_apply, Measure.smul_apply, measure_univ, smul_eq_mul, mul_one]
+    rw [← ENNReal.ofReal_add (by norm_num) (by norm_num)]
+    norm_num⟩
+  obtain ⟨Ω, mΩ, P, B, hBm, hBlaw, hBind, hP⟩ := exists_iid ℕ ν
+  set g : Bool → ℝ := fun c ↦ if c then 1 else -1 with hg
+  have hgm : Measurable g := measurable_of_countable g
+  set f : ℕ → Ω → ℝ := fun i ω ↦ g (B i ω) with hf
+  have hfm : ∀ i, StronglyMeasurable (f i) := fun i ↦ (hgm.comp (hBm i)).stronglyMeasurable
+  have hfind : iIndepFun f P := hBind.comp (fun _ ↦ g) fun _ ↦ hgm
+  refine ⟨Ω, mΩ, P, hP, Filtration.natural f hfm, fun n ↦ f (n + 1), fun n ↦ ?_, fun n ↦ ?_,
+    fun n ω ↦ ?_, fun n ↦ ?_, by norm_num, by norm_num, by norm_num, by norm_num⟩
+  · exact Filtration.stronglyAdapted_natural hfm (n + 1)
+  · exact hfind.indep_comap_natural_of_lt hfm (Nat.lt_succ_self n)
+  · simp only [f, g]
+    split_ifs <;> simp
+  · have hset : {ω | f (n + 1) ω = 1} = B (n + 1) ⁻¹' {true} := by
+      ext ω
+      simp only [f, g, Set.mem_ofPred_eq, Set.mem_preimage, Set.mem_singleton_iff]
+      cases B (n + 1) ω <;> norm_num
+    rw [hset, measureReal_def, ← Measure.map_apply (hBm _) (measurableSet_singleton _),
+      (hBlaw (n + 1)).map_eq]
+    simp [hν]
 
 end ClassicalLean.Probability.GamblersRuin

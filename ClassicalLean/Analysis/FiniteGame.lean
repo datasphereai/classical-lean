@@ -58,8 +58,18 @@ player picks a mixed strategy `x` (a probability vector on the rows, a point of
   bound the gap between the upper and lower values by the same quantities, and letting `T` grow
   gives
   `minimax_eq_of_exponentialWeights`, **a second proof of the equality in item 62**, for
-  payoffs in `[0, 1]` (any matrix reduces to that by an affine change of payoffs, not proved
-  here).
+  payoffs in `[0, 1]`.
+* **Item 85 (order LEAN-28), the second proof for every real matrix.**
+  `minimax_eq_of_exponentialWeights_of_affine`: the upper and lower values are equal for every real
+  matrix, by the affine change `A' = (A − m) / (M − m)` with `m = −∑ |A i j|` and `M = ∑ |A i j|`,
+  which puts every payoff of `A'` in `[0, 1]`, and `minimax_eq_of_exponentialWeights` for `A'`. On
+  strategies `payoff A x y = m + (M − m) payoff A' x y`, and `t ↦ m + (M − m) t` is monotone and
+  continuous, so it carries both values of `A'` to those of `A`. Item 62 (Sion) is not used. Lean's
+  junk value decides nothing here: when `M = m` the matrix is `0`, `A'` is Lean's `0 / 0 = 0`, and
+  the back map `m + 0 · v` still gives the right value `0`. No hypothesis: with no rows or no
+  columns both values are Lean's `0` (an infimum or supremum over an empty family of reals), so the
+  theorem asks for neither `Nonempty ι` nor `Nonempty κ`, unlike `minimax_eq_of_matrix` (wider in
+  form, the same content).
 
 ## Hypotheses
 
@@ -517,6 +527,94 @@ theorem minimax_eq_of_exponentialWeights [Nonempty ι] [Nonempty κ] {A : Matrix
     nlinarith
   linarith [le_abs_self ((⨅ x : closedSimplex ι, ⨆ y : closedSimplex κ, payoff A x y) -
       ⨆ y : closedSimplex κ, ⨅ x : closedSimplex ι, payoff A x y)]
+
+/-- **Item 66's second proof for every real matrix (item 85, order LEAN-28).** The upper value
+equals the lower value for any real payoff matrix, by exponential weights after the affine change
+`A' = (A − m) / (M − m)`, `m = −∑ |A i j|`, `M = ∑ |A i j|`; not through Sion's theorem. -/
+theorem minimax_eq_of_exponentialWeights_of_affine (A : Matrix ι κ ℝ) :
+    ⨅ x : closedSimplex ι, ⨆ y : closedSimplex κ, payoff A x y =
+      ⨆ y : closedSimplex κ, ⨅ x : closedSimplex ι, payoff A x y := by
+  rcases isEmpty_or_nonempty ι with hι | hι
+  · have : IsEmpty (closedSimplex ι) := ⟨fun x ↦ by
+      have h := x.2.2
+      simp at h⟩
+    simp [Real.iSup_const_zero]
+  rcases isEmpty_or_nonempty κ with hκ | hκ
+  · have : IsEmpty (closedSimplex κ) := ⟨fun y ↦ by
+      have h := y.2.2
+      simp at h⟩
+    simp [Real.iInf_const_zero]
+  have : Nonempty (closedSimplex ι) := closedSimplex_nonempty.to_subtype
+  have : Nonempty (closedSimplex κ) := closedSimplex_nonempty.to_subtype
+  set S : ℝ := ∑ i, ∑ j, |A i j| with hS
+  have hS0 : 0 ≤ S := sum_nonneg fun i _ ↦ sum_nonneg fun j _ ↦ abs_nonneg _
+  have habs : ∀ i j, |A i j| ≤ S := fun i j ↦
+    (single_le_sum (f := fun j ↦ |A i j|) (fun j _ ↦ abs_nonneg _) (mem_univ j)).trans
+      (single_le_sum (f := fun i ↦ ∑ j, |A i j|) (fun i _ ↦ sum_nonneg fun j _ ↦ abs_nonneg _)
+        (mem_univ i))
+  set m : ℝ := -S with hm
+  set M : ℝ := S with hM
+  set A' : Matrix ι κ ℝ := of fun i j ↦ (A i j - m) / (M - m) with hA'
+  have hMm0 : 0 ≤ M - m := by linarith
+  have hA'01 : ∀ i j, A' i j ∈ Set.Icc (0 : ℝ) 1 := fun i j ↦ by
+    have h := abs_le.mp (habs i j)
+    simp only [hA', of_apply]
+    refine ⟨div_nonneg (by linarith) (by linarith), div_le_one_of_le₀ (by linarith) (by linarith)⟩
+  have hent : ∀ i j, A i j = m + (M - m) * A' i j := fun i j ↦ by
+    rcases eq_or_lt_of_le hS0 with h0 | hpos
+    · have := habs i j
+      rw [← h0] at this
+      have hA0 : A i j = 0 := abs_nonpos_iff.mp this
+      have hm0 : m = 0 := by rw [hm, ← h0, neg_zero]
+      rw [hA0, hm0, ← h0]
+      ring
+    · have hMm : M - m ≠ 0 := by
+        intro h
+        linarith
+      simp only [hA', of_apply]
+      field_simp
+      ring
+  have hback : ∀ x ∈ closedSimplex ι, ∀ y ∈ closedSimplex κ,
+      payoff A x y = m + (M - m) * payoff A' x y := by
+    intro x hx y hy
+    have hrow : ∀ i, (A *ᵥ y) i = m + (M - m) * (A' *ᵥ y) i := fun i ↦
+      calc (A *ᵥ y) i = ∑ j, A i j * y j := rfl
+        _ = ∑ j, (m * y j + (M - m) * (A' i j * y j)) :=
+            sum_congr rfl fun j _ ↦ by rw [hent i j]; ring
+        _ = m * ∑ j, y j + (M - m) * ∑ j, A' i j * y j := by
+            rw [sum_add_distrib, ← mul_sum, ← mul_sum]
+        _ = m + (M - m) * (A' *ᵥ y) i := by rw [hy.2, mul_one]; rfl
+    calc payoff A x y = ∑ i, x i * (A *ᵥ y) i := rfl
+      _ = ∑ i, (m * x i + (M - m) * (x i * (A' *ᵥ y) i)) :=
+          sum_congr rfl fun i _ ↦ by rw [hrow i]; ring
+      _ = m * ∑ i, x i + (M - m) * ∑ i, x i * (A' *ᵥ y) i := by
+          rw [sum_add_distrib, ← mul_sum, ← mul_sum]
+      _ = m + (M - m) * payoff A' x y := by rw [hx.2, mul_one]; rfl
+  have hval := minimax_eq_of_exponentialWeights hA'01
+  set f : ℝ → ℝ := fun t ↦ m + (M - m) * t with hf
+  have hfm : Monotone f := fun t u htu ↦ by
+    change m + (M - m) * t ≤ m + (M - m) * u
+    linarith [mul_le_mul_of_nonneg_left htu hMm0]
+  have hfc : Continuous f := continuous_const.add (continuous_const.mul continuous_id)
+  have hup : ⨅ x : closedSimplex ι, ⨆ y : closedSimplex κ, payoff A x y =
+      f (⨅ x : closedSimplex ι, ⨆ y : closedSimplex κ, payoff A' x y) := by
+    rw [hfm.map_ciInf_of_continuousAt hfc.continuousAt (bddBelow_iSup_payoff A')]
+    congr 1
+    funext x
+    rw [hfm.map_ciSup_of_continuousAt hfc.continuousAt (bddAbove_payoff A' x.2)]
+    congr 1
+    funext y
+    exact hback x x.2 y y.2
+  have hlow : ⨆ y : closedSimplex κ, ⨅ x : closedSimplex ι, payoff A x y =
+      f (⨆ y : closedSimplex κ, ⨅ x : closedSimplex ι, payoff A' x y) := by
+    rw [hfm.map_ciSup_of_continuousAt hfc.continuousAt (bddAbove_iInf_payoff A')]
+    congr 1
+    funext y
+    rw [hfm.map_ciInf_of_continuousAt hfc.continuousAt (bddBelow_payoff A' y.2)]
+    congr 1
+    funext x
+    exact hback x x.2 y y.2
+  rw [hup, hlow, hval]
 
 /-! ### Item 63 -/
 

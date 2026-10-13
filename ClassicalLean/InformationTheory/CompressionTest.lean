@@ -8,6 +8,7 @@ import Mathlib.InformationTheory.Coding.Kraft
 import Mathlib.Probability.Distributions.Bernoulli
 import Mathlib.MeasureTheory.Constructions.Pi
 import Mathlib.MeasureTheory.Integral.Bochner.SumMeasure
+import ClassicalLean.Probability.EValueStepUp
 
 /-!
 # A code is a bet: compression as a test against a null law fixed in advance
@@ -22,8 +23,14 @@ of the ruling sent during that order.
 * `integral_score_le_one`: the score has mean at most `1` under `p₀`, for any finite measure
   `p₀`. With `score_nonneg`, the score is an e-value: a nonnegative quantity whose mean under the
   null is at most `1`, the kind `EValueStepUp`'s `integral_eFalseShare_le` takes (nonnegative,
-  integrable, mean at most `1`). No Lean lemma here joins the two; the plan's "feeds EValueStepUp"
-  is that match of hypotheses.
+  integrable, mean at most `1`).
+* `integral_eFalseShare_score_le` (order LEAN-28, item 88): many such tests at once. Test `i` reads
+  its own string `X i ω` (of its own length) with its own code `c i` and its own null law `p₀ i`,
+  all fixed in advance. Feed the scores to e-BH at level `q > 0` (`EValueStepUp`): if, for every
+  true null `i ∈ H`, the code is injective and prefix-free and the string's law is `p₀ i`, the mean
+  share of the rejections that fall in `H` is at most `q`, however the tests depend on each other;
+  `integral_eFalseShare_score_le_mul_card_div` gives the sharper `q · |H| / m`. The mean is taken
+  under a probability measure `μ`. Nothing is assumed about the tests outside `H`.
 * `measureReal_score_ge_le`: so, for `α > 0`, the chance under `p₀` that the score is at least
   `1 / α` is at most `α` (Markov's inequality). Rejecting the null when the score reaches `1 / α`
   is a test whose false-alarm rate is at most `α`.
@@ -82,6 +89,30 @@ estimate into the null law does not:
   string the score is not the ratio it stands for; the null law gives those strings no weight.
 * The plan's run-length code (first bit, then the number of runs and each run length in Elias
   gamma code) meets Kraft and the fair-coin bound for every `n ≤ 12` (line C1).
+
+**Hypotheses of the e-BH statements** (order LEAN-28's checks, exact, one test unless said):
+
+* `q > 0`: at `q = 0`, with strings of length `0` (one string, score `1`), Lean's `1 / (0 · 1) = 0`
+  makes the test reject always: mean false share `1 > 0`.
+* the code injective, for a null: every string of length `2` sent to `[]`, fair coin, `q = 1/4`:
+  every score is `4`, the test always rejects, `1 > 1/4`.
+* the code prefix-free, for a null: words `[]`, `[0]`, `[1]`, `[0, 0]` at length `2`, fair coin,
+  `q = 1/2`: scores `4, 2, 2, 1`, three of four strings rejected, `3/4 > 1/2`.
+* the null law is the string's law: the string is always `[true]` (length `1`), the null law is
+  win rate `1/8`, code `x ↦ [x 0]`, `q = 1/4`: score `(1/2) / (1/8) = 4`, always rejected,
+  `1 > 1/4`.
+* a probability measure (the share's mean is an expected value): needed, through Lean's junk law
+  of a string that is not almost everywhere measurable. Mathlib's `μ.map (X i)` is then a point
+  mass of mass `1` whatever the mass of `μ` (`Measure.map_of_not_aemeasurable_of_ne_zero`). On
+  `Bool` with the σ-algebra `⊥` and `μ` five times the point mass at `true`, two nulls with code
+  `x ↦ [x 0]` whose strings meet that point on complementary sets have scores `(1/2, 0)` and
+  `(0, 1/2)`; at `q = 4` e-BH rejects one null at every outcome: mean false share `5 > 4 = q`
+  (`= q · |H| / m`). When every null string is measurable a finite measure would do (each score
+  has mean at most `1`); not stated here.
+* Lean's junk values decide two cases and keep the statements true: a string with null mass `0`
+  has score `2^(−L) / 0 = 0`, and for a string that is not almost everywhere measurable the null
+  law is that point mass, so its score is at most `1` everywhere (`2^(−L) / 1` at the point, Lean's
+  `2^(−L) / 0 = 0` elsewhere), and the proof bounds it by the constant `1`.
 
 ## What Mathlib provides
 
@@ -197,5 +228,106 @@ theorem measureReal_len_add_le_le {c : (Fin n → Bool) → List Bool}
   calc (2 : ℝ) ^ k * 2⁻¹ ^ n ≤ 2 ^ k * 2⁻¹ ^ ((c x).length + k) := by gcongr
     _ = 2⁻¹ ^ (c x).length := by
       rw [pow_add, mul_comm, mul_assoc, ← mul_pow, inv_mul_cancel₀ two_ne_zero, one_pow, mul_one]
+
+/-! ### Many compression tests at once, by e-BH (order LEAN-28, item 88) -/
+
+section EBH
+
+open ClassicalLean.Probability.EValueStepUp
+
+variable {ι Ω : Type*} [Fintype ι] [DecidableEq ι] [MeasurableSpace Ω] {μ : Measure Ω}
+  [IsProbabilityMeasure μ] {len : ι → ℕ} {c : (i : ι) → (Fin (len i) → Bool) → List Bool}
+  {p₀ : (i : ι) → Measure (Fin (len i) → Bool)} {X : (i : ι) → Ω → Fin (len i) → Bool}
+
+omit [Fintype ι] [DecidableEq ι] in
+/-- For a true null, the score of test `i`, `ω ↦ score (c i) (p₀ i) (X i ω)`, is at most an
+integrable quantity with mean at most `1`: the score itself when `X i` is almost everywhere
+measurable, and the constant `1` otherwise. In that case Mathlib's `μ.map (X i)` is a point mass
+(`Measure.map_of_not_aemeasurable_of_ne_zero`), so `p₀ i` is one, and every score is at most `1`. -/
+private theorem exists_score_le {i : ι} (hc : Function.Injective (c i))
+    (hpf : InformationTheory.IsPrefixFree (Set.range (c i))) (hlaw : μ.map (X i) = p₀ i) :
+    ∃ g : Ω → ℝ, Integrable g μ ∧ ∫ ω, g ω ∂μ ≤ 1 ∧ ∀ ω, score (c i) (p₀ i) (X i ω) ≤ g ω := by
+  by_cases hXm : AEMeasurable (X i) μ
+  · have : IsFiniteMeasure (p₀ i) := hlaw ▸ inferInstance
+    have hsm : AEStronglyMeasurable (score (c i) (p₀ i)) (μ.map (X i)) :=
+      (Measurable.of_discrete).aestronglyMeasurable
+    have hint : Integrable (score (c i) (p₀ i)) (μ.map (X i)) := by
+      rw [hlaw]
+      exact Integrable.of_finite
+    refine ⟨fun ω ↦ score (c i) (p₀ i) (X i ω), (integrable_map_measure hsm hXm).mp hint, ?_,
+      fun ω ↦ le_rfl⟩
+    rw [← integral_map hXm hsm, hlaw]
+    exact integral_score_le_one hc hpf (p₀ i)
+  · refine ⟨fun _ ↦ 1, integrable_const _, by simp, fun ω ↦ ?_⟩
+    obtain ⟨y, hy⟩ : ∃ y, p₀ i = Measure.dirac y :=
+      ⟨_, hlaw.symm.trans (Measure.map_of_not_aemeasurable_of_ne_zero hXm
+        (IsProbabilityMeasure.ne_zero μ))⟩
+    have hL : (2 : ℝ)⁻¹ ^ (c i (X i ω)).length ≤ 1 := pow_le_one₀ (by norm_num) (by norm_num)
+    rw [score, hy, measureReal_def, Measure.dirac_apply' _ (measurableSet_singleton _)]
+    by_cases hxy : y = X i ω
+    · simpa [hxy] using hL
+    · simp [hxy]
+
+/-- **Compression tests fed to e-BH, sharp form** (order LEAN-28, item 88): the mean share of
+false finds is at most `q · |H| / m`. Each true null's score is at most a quantity of mean at most
+`1` (`exists_score_le`), and e-BH's share is, outcome by outcome, at most `q / m` times the sum of
+the null scores (`EValueStepUp.eFalseShare_le`). -/
+theorem integral_eFalseShare_score_le_mul_card_div {q : ℝ} (hq : 0 < q) {H : Finset ι}
+    (hc : ∀ i ∈ H, Function.Injective (c i))
+    (hpf : ∀ i ∈ H, InformationTheory.IsPrefixFree (Set.range (c i)))
+    (hlaw : ∀ i ∈ H, μ.map (X i) = p₀ i) :
+    ∫ ω, eFalseShare q H (fun i ↦ score (c i) (p₀ i) (X i ω)) ∂μ ≤
+      q * H.card / Fintype.card ι := by
+  choose! g hgint hg1 hle using fun i (hi : i ∈ H) ↦
+    exists_score_le (hc i hi) (hpf i hi) (hlaw i hi)
+  have hk : 0 ≤ q / Fintype.card ι := div_nonneg hq.le (Nat.cast_nonneg _)
+  calc ∫ ω, eFalseShare q H (fun i ↦ score (c i) (p₀ i) (X i ω)) ∂μ
+      ≤ ∫ ω, q / Fintype.card ι * ∑ i ∈ H, g i ω ∂μ := by
+        refine integral_mono_of_nonneg
+          (Filter.Eventually.of_forall fun ω ↦ div_nonneg (Nat.cast_nonneg _) (Nat.cast_nonneg _))
+          ((integrable_finsetSum H hgint).const_mul _) (Filter.Eventually.of_forall fun ω ↦ ?_)
+        exact (eFalseShare_le hq H fun i _ ↦ score_nonneg _ _ _).trans
+          (mul_le_mul_of_nonneg_left (sum_le_sum fun i hi ↦ hle i hi ω) hk)
+    _ = q / Fintype.card ι * ∑ i ∈ H, ∫ ω, g i ω ∂μ := by
+        rw [integral_const_mul, integral_finsetSum H hgint]
+    _ ≤ q / Fintype.card ι * ∑ _i ∈ H, (1 : ℝ) := mul_le_mul_of_nonneg_left (sum_le_sum hg1) hk
+    _ = q * H.card / Fintype.card ι := by
+        rw [sum_const, nsmul_eq_mul, mul_one]
+        ring
+
+/-- **Compression tests fed to e-BH keep the expected false share at most `q`** (order LEAN-28,
+item 88). Each test `i` has its own code `c i` and its own null law `p₀ i`, fixed in advance; for
+every true null `i ∈ H` the code is injective and prefix-free and the law of the string `X i` is
+`p₀ i`. Then, at level `q > 0` and under a probability measure `μ`, the mean share of e-BH's
+rejections that fall in `H` is at most `q`, whatever the dependence between the tests. -/
+theorem integral_eFalseShare_score_le {q : ℝ} (hq : 0 < q) {H : Finset ι}
+    (hc : ∀ i ∈ H, Function.Injective (c i))
+    (hpf : ∀ i ∈ H, InformationTheory.IsPrefixFree (Set.range (c i)))
+    (hlaw : ∀ i ∈ H, μ.map (X i) = p₀ i) :
+    ∫ ω, eFalseShare q H (fun i ↦ score (c i) (p₀ i) (X i ω)) ∂μ ≤ q := by
+  refine (integral_eFalseShare_score_le_mul_card_div hq hc hpf hlaw).trans ?_
+  rcases Nat.eq_zero_or_pos (Fintype.card ι) with h | h
+  · simp [h, hq.le]
+  · rw [div_le_iff₀ (by exact_mod_cast h)]
+    exact mul_le_mul_of_nonneg_left (by exact_mod_cast H.card_le_univ) hq.le
+
+end EBH
+
+/-- The hypotheses of `integral_eFalseShare_score_le` and
+`integral_eFalseShare_score_le_mul_card_div` hold together: one test, strings of length `1`
+under the fair coin, the code `x ↦ [x 0]`, the null law the fair coin, `q = 1/2`. -/
+example : ∃ (μ : Measure (Fin 1 → Bool)) (_ : IsProbabilityMeasure μ)
+    (c : Unit → (Fin 1 → Bool) → List Bool) (p₀ : Unit → Measure (Fin 1 → Bool))
+    (X : Unit → (Fin 1 → Bool) → Fin 1 → Bool),
+    (0 : ℝ) < 1 / 2 ∧ (∀ i ∈ (univ : Finset Unit), Function.Injective (c i)) ∧
+      (∀ i ∈ (univ : Finset Unit), InformationTheory.IsPrefixFree (Set.range (c i))) ∧
+      (∀ i ∈ (univ : Finset Unit), μ.map (X i) = p₀ i) := by
+  refine ⟨bernProd 1 fairCoin, inferInstance, fun _ x ↦ [x 0], fun _ ↦ bernProd 1 fairCoin,
+    fun _ ↦ id, by norm_num, fun _ _ x y h ↦ ?_, fun _ _ ↦ ?_, fun _ _ ↦ Measure.map_id⟩
+  · funext j
+    rw [Subsingleton.elim j 0]
+    simpa using h
+  · rintro _ ⟨x, rfl⟩ _ ⟨y, rfl⟩ hxy
+    exact hxy.eq_of_length (by simp)
 
 end ClassicalLean.InformationTheory.CompressionTest

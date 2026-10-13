@@ -43,8 +43,14 @@ Each other hypothesis is needed (lines R3 and R4):
   a run has chance `1/2 > 6 · 2⁻⁵ = 3/16`.
 * independence, for the second bound: alternating trials (trial `i + 1` loses exactly when trial
   `i` wins), each with chance `1/2`, `n = 4`, `r = 2`: no run has chance `1 > (3/4)^2 = 9/16`.
-* The second theorem also assumes each `A i` measurable, which Mathlib's lemma on independence
-  of disjoint groups of events asks for; whether the bound needs it is not settled here.
+* The second theorem assumes each trial's event `A i`, `i < n`, measurable, and the bound needs
+  it (order LEAN-28, item 87): without it, one trial on a two-point space where only `∅` and the
+  whole space are measurable, with the point mass at `true` and `A 0 = {true}`, is independent
+  (one event always is, under a probability measure) and loses with chance `q = 1`, but Lean's
+  `P.real` of the set `{false}`, which the σ-algebra cannot measure, is its outer measure `1`, so
+  the chance of no run of `1` loss is `1 > (1 − 1)^1 = 0` (the `example` at the end of this file).
+  The trials from `n` on need not be measurable (they play no part), so the hypothesis is stated for
+  `i < n` only (wider than order LEAN-26's `∀ i`, from which it follows).
 
 Measured in the same checks (exact dynamic programming, not proved in Lean): both bounds hold for
 `q ∈ {1/2, 1/3, 3/5, 9/10}`, `n ≤ 40`, every `r ≤ n + 3` (line R1); for fair trials the mean
@@ -130,10 +136,12 @@ lemma measurableSet_allLost {A : ℕ → Set Ω} (hA : ∀ i, MeasurableSet (A i
   Finset.measurableSet_biInter _ fun i _ ↦ hA i
 
 /-- **No streak is unlikely when `(1 − q^r)^⌊n / r⌋` is small.** In `n` independent trials that
-each lose with chance `q`, the chance of no run of `r` losses is at most `(1 − q^r)^⌊n / r⌋`. -/
+each lose with chance `q`, the chance of no run of `r` losses is at most `(1 − q^r)^⌊n / r⌋`. The
+trials' events must be measurable: without that the bound fails (the `example` at the end of this
+file). -/
 theorem measureReal_no_run_le {P : Measure Ω} {A : ℕ → Set Ω}
-    {n r : ℕ} {q : ℝ} (hA : ∀ i, MeasurableSet (A i)) (hind : iIndepSet (fun i : Fin n ↦ A i) P)
-    (hq : ∀ i < n, P.real (A i) = q) :
+    {n r : ℕ} {q : ℝ} (hA : ∀ i < n, MeasurableSet (A i))
+    (hind : iIndepSet (fun i : Fin n ↦ A i) P) (hq : ∀ i < n, P.real (A i) = q) :
     P.real (runEvent A n r)ᶜ ≤ (1 - q ^ r) ^ (n / r) := by
   have := hind.isProbabilityMeasure
   rcases Nat.eq_zero_or_pos r with rfl | hr
@@ -152,7 +160,7 @@ theorem measureReal_no_run_le {P : Measure Ω} {A : ℕ → Set Ω}
           {j : Fin n | J' * r ≤ (j : ℕ) ∧ (j : ℕ) < J' * r + r} := by
         rw [Set.disjoint_left]; intro j h1 h2; simp only [Set.mem_ofPred_eq] at h1 h2; omega
       have hI := hind.indep_generateFrom_of_disjoint (s := fun i : Fin n ↦ A i)
-        (fun j ↦ hA j) _ _ hS
+        (fun j ↦ hA j j.isLt) _ _ hS
       have gen : ∀ (T : Set (Fin n)) (i : ℕ) (hi : i < n), (⟨i, hi⟩ : Fin n) ∈ T →
           MeasurableSet[MeasurableSpace.generateFrom {t | ∃ m ∈ T, A m = t}] (A i) :=
         fun T i hi hT ↦ MeasurableSpace.measurableSet_generateFrom ⟨⟨i, hi⟩, hT, rfl⟩
@@ -174,7 +182,9 @@ theorem measureReal_no_run_le {P : Measure Ω} {A : ℕ → Set Ω}
         exact gen _ i (by omega) (by simp only [Set.mem_ofPred_eq]; omega)
       rw [range_add_one, Finset.set_biInter_insert, Set.inter_comm, measureReal_def,
         (Indep_iff _ _ P).mp hI _ _ m1 m2, ENNReal.toReal_mul, ← measureReal_def,
-        ← measureReal_def, ih (by omega), measureReal_compl (measurableSet_allLost hA r J'),
+        ← measureReal_def, ih (by omega),
+        measureReal_compl (show MeasurableSet (allLost A r J') from
+          Finset.measurableSet_biInter _ fun i hi ↦ hA i (by have := mem_Ico.mp hi; omega)),
         probReal_univ, allLost, measureReal_iInter_Ico hind hq hJ'n, pow_succ]
   refine (measureReal_mono ?_).trans (key J le_rfl).le
   intro ω hω
@@ -184,5 +194,46 @@ theorem measureReal_no_run_le {P : Measure Ω} {A : ℕ → Set Ω}
   refine ⟨j * r, ?_, fun i hi ↦ ?_⟩
   · have := Nat.mul_le_mul_right r (Nat.succ_le_of_lt hj); rw [Nat.succ_mul] at this; omega
   · exact Set.mem_iInter₂.mp hall i hi
+
+/-- **Why `measureReal_no_run_le` keeps its measurability hypothesis** (order LEAN-28, item 87). On
+`Bool` with the σ-algebra `⊥` (only `∅` and `univ` measurable) and the point mass at `true`, the
+single event `A 0 = {true}` is independent (one trial), loses with chance `1`, yet the chance of
+no run of one loss, Lean's outer measure of `{false}`, is `1`, above the bound `(1 − 1^1)^1 = 0`. -/
+example : ∃ (P : @Measure Bool ⊥) (A : ℕ → Set Bool),
+    iIndepSet (fun i : Fin 1 ↦ A i) P ∧ (∀ i < 1, P.real (A i) = 1) ∧
+      (1 - (1 : ℝ) ^ 1) ^ (1 / 1) < P.real (runEvent A 1 1)ᶜ := by
+  let _ : MeasurableSpace Bool := ⊥
+  refine ⟨Measure.dirac true, fun _ ↦ {true}, ?_, fun i _ ↦ ?_, ?_⟩
+  · change iIndep (fun i : Fin 1 ↦ MeasurableSpace.generateFrom {({true} : Set Bool)}) _
+    rw [iIndep_iff]
+    intro s f _
+    rcases Finset.eq_empty_or_nonempty s with rfl | ⟨i₀, hi₀⟩
+    · simp
+    · have hs : s = {i₀} := by
+        ext i
+        simp only [Finset.mem_singleton, Subsingleton.elim i i₀, hi₀]
+      subst hs
+      simp
+  · simp [measureReal_def, Measure.dirac_apply_of_mem (Set.mem_singleton true)]
+  · have hrun : runEvent (fun _ ↦ ({true} : Set Bool)) 1 1 = {true} := by
+      ext ω
+      simp only [runEvent, Set.mem_ofPred_eq, Set.mem_singleton_iff]
+      constructor
+      · rintro ⟨s, hs, h⟩
+        exact h s (mem_Ico.mpr ⟨le_rfl, Nat.lt_succ_self s⟩)
+      · intro h
+        exact ⟨0, le_rfl, fun i _ ↦ h⟩
+    rw [hrun]
+    have htop : ∀ t : Set Bool, MeasurableSet t → ({true}ᶜ : Set Bool) ⊆ t → t = Set.univ := by
+      intro t ht hsub
+      rcases MeasurableSpace.measurableSet_bot_iff.mp ht with rfl | rfl
+      · exact absurd (hsub (show false ∈ ({true}ᶜ : Set Bool) by simp)) (by simp)
+      · rfl
+    have h1 : (Measure.dirac true : Measure Bool) ({true}ᶜ : Set Bool) = 1 := by
+      rw [← measure_toMeasurable,
+        htop _ (measurableSet_toMeasurable _ _) (subset_toMeasurable _ _)]
+      simp
+    rw [measureReal_def, h1]
+    norm_num
 
 end ClassicalLean.Probability.LongestRun
