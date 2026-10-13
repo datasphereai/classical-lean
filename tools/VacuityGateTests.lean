@@ -371,6 +371,28 @@ def Small2 : ℕ → Prop
 
 theorem real_hyp_and_small2 (a : V) (h : P a) : P a ∧ Small2 0 := ⟨h, trivial⟩
 
+/-- The same computed fact alone, through case 1 (job 0's review, finding 4). -/
+theorem real_small2_alone : Small2 0 := trivial
+
+/-- A computed fact behind a definition by structural recursion: a stated limit on the strict
+side. Only `unfoldNamed`'s `whnfCore` runs with `iota := false`; its `unfoldDefinition?` runs
+with `iota` on, and on a structural recursion its smart-unfolding path reduces the `match`, so
+`Small3 0` is read as `True` and this theorem is flagged; listed in
+`tools/vacuity_reviewed_tests.txt` (order LEAN-27, job 0's review, findings 1 and 4). -/
+def Small3 : ℕ → Prop
+  | 0 => True
+  | n + 1 => Small3 n
+
+theorem real_hyp_and_small3 (a : V) (h : P a) : P a ∧ Small3 0 := ⟨h, trivial⟩
+
+/-- `True` behind a `match` on a pair: with `iota := false` it is not reached, so this passes,
+where the gate before job 0 flagged it (job 0's review, finding 2). Recorded as the ruling's
+choice: reading a `match` is computing, so a part or conclusion behind one passes. -/
+def PairT : ℕ × ℕ → Prop
+  | (_, _) => True
+
+theorem real_pair_true : ∀ x, PairT x := fun _ ↦ trivial
+
 -- A theorem added by meta code (`addDecl`) under a `_proof_` name, with no source position and
 -- used by nothing (item 75): the statement is `p → p`.
 open Lean in

@@ -16,3 +16,5 @@ VacuityGateTests.real_forall_mem_nil f2fc18db35b11fce2d48b7aead1f00ce262e8a23d6e
 # declarations Lean generates for the test-only self-containing structure Loop (cold review r3, finding 1)
 VacuityGateTests.Loop.rest eacb1102a5ca55e86d54ac0586d797395130ef15d052043d2b76190e7d07282c HELPER generated field projection of the test structure Loop, whose field is Loop p itself: Loop p → Loop p
 VacuityGateTests.Loop.brecOn 4f9dd82f4cc9085b24ec5ee8f592c676ba5eed3a4bfbcada67ed1b497d7472ac HELPER generated recursor helper of the test structure Loop; old case 3 matches its motive
+# a computed part behind a structural recursion, still flagged: the strict-side limit of order LEAN-27 job 0
+VacuityGateTests.real_hyp_and_small3 5519f04011b76843d38b6de4bab6a79a924bf0d36d9c7dbf50b985b352da7e69 HELPER P a ∧ Small3 0: Small3 0 is True only by reducing a match, which the smart-unfolding path of unfoldDefinition? still does (iota is off only in whnfCore)

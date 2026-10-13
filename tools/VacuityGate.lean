@@ -263,11 +263,16 @@ def followsFromHyp (xs : Array Expr) (concl : Expr) : MetaM (Option Expr) := do
     runs with `iota := false` (`Meta.Config`), so it reduces no `match` and no recursor, and
     `Small2 0` for `Small2` defined by cases stays a `match` (order LEAN-27, job 0; under the
     default `smartUnfolding` option, `unfoldDefinition?` does not unfold a matcher either).
-    Limit, on the strict side: for a definition by structural recursion, `unfoldDefinition?`
-    takes the smart-unfolding path (`_sunfold`), which reduces the `match` whatever `iota` says,
-    so `Small3 0` for `Small3 | 0 => True | n + 1 => Small3 n` is still read as `True` and a
-    glued part such as `P a ∧ Small3 0` is flagged (measured in LEAN-27's probe; a reviewed-list
-    entry, never a silent pass). -/
+    Limit, on the strict side: only the `whnfCore` call runs with `iota := false`; the
+    `unfoldDefinition?` call below runs with `iota` on, and for a definition by structural
+    recursion it takes the smart-unfolding path (`_sunfold`), whose `reduceMatcher?` reduces the
+    `match` (through `whnf`, which reads `iota`). So `Small3 0` for
+    `Small3 | 0 => True | n + 1 => Small3 n` is still read as `True` and `P a ∧ Small3 0` is
+    flagged (test `real_hyp_and_small3`, listed; a list entry, never a silent pass). Wrapping that
+    call too would close it; order LEAN-27 allowed only the `whnfCore` call. Also measured: `True`
+    behind a `match` on a pair (`PairT (_, _) := True`) is no longer reached, so `∀ x, PairT x`
+    passes where the gate before LEAN-27 flagged it (test `real_pair_true`): a `match` counts as
+    computing. -/
 partial def unfoldNamed (e : Expr) (fuel : Nat := 32) : MetaM Expr := do
   let e ← withConfig (fun c => { c with iota := false }) <| whnfCore e
   if fuel == 0 then return e
