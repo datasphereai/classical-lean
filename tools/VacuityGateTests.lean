@@ -393,6 +393,19 @@ def PairT : ℕ × ℕ → Prop
 
 theorem vac_pair_true : ∀ x, PairT x := fun _ ↦ trivial
 
+/-- Every branch `True`, on `ℕ`, which has no eta: the kernel cannot see `NatT n` as `True` for a
+variable `n`, so no `True.intro` proof of it exists for the gate to send. A stated limit: it
+passes (job 0's review of `f70aa50`, finding 2, option (c); Dustin's answer pending). -/
+def NatT : ℕ → Prop
+  | 0 => True
+  | _ + 1 => True
+
+theorem lim_nat_true : ∀ n, NatT n := fun n ↦ by cases n <;> trivial
+
+/-- The same match as a glued part next to a hypothesis that closes it: flagged through that
+hypothesis, as before LEAN-27 (job 0's review of `f70aa50`, finding 1). -/
+theorem vac_hyp_and_nat_true (a : V) (n : ℕ) (h : P a) (hn : NatT n) : P a ∧ NatT n := ⟨h, hn⟩
+
 -- A theorem added by meta code (`addDecl`) under a `_proof_` name, with no source position and
 -- used by nothing (item 75): the statement is `p → p`.
 open Lean in
