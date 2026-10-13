@@ -259,9 +259,17 @@ def followsFromHyp (xs : Array Expr) (concl : Expr) : MetaM (Option Expr) := do
 
 /-- Unfold the head of `e` by definitions only, without computing: stops at `ite`, `dite`, `cond`
     and `decide`, so `Small 3` for `Small n := if n < 10 then True else False` stays an `ite`
-    and is not read as `True`, while `Triv := True` is (cold review r3, finding 2). -/
+    and is not read as `True`, while `Triv := True` is (cold review r3, finding 2). `whnfCore`
+    runs with `iota := false` (`Meta.Config`), so it reduces no `match` and no recursor, and
+    `Small2 0` for `Small2` defined by cases stays a `match` (order LEAN-27, job 0; under the
+    default `smartUnfolding` option, `unfoldDefinition?` does not unfold a matcher either).
+    Limit, on the strict side: for a definition by structural recursion, `unfoldDefinition?`
+    takes the smart-unfolding path (`_sunfold`), which reduces the `match` whatever `iota` says,
+    so `Small3 0` for `Small3 | 0 => True | n + 1 => Small3 n` is still read as `True` and a
+    glued part such as `P a ∧ Small3 0` is flagged (measured in LEAN-27's probe; a reviewed-list
+    entry, never a silent pass). -/
 partial def unfoldNamed (e : Expr) (fuel : Nat := 32) : MetaM Expr := do
-  let e ← whnfCore e
+  let e ← withConfig (fun c => { c with iota := false }) <| whnfCore e
   if fuel == 0 then return e
   if let .const c _ := e.getAppFn then
     if [``ite, ``dite, ``cond, ``Decidable.decide].contains c then return e
