@@ -43,14 +43,22 @@ Each other hypothesis is needed (lines R3 and R4):
   a run has chance `1/2 > 6 · 2⁻⁵ = 3/16`.
 * independence, for the second bound: alternating trials (trial `i + 1` loses exactly when trial
   `i` wins), each with chance `1/2`, `n = 4`, `r = 2`: no run has chance `1 > (3/4)^2 = 9/16`.
-* The second theorem assumes each trial's event `A i`, `i < n`, measurable, and the bound needs
-  it (order LEAN-28, item 87): without it, one trial on a two-point space where only `∅` and the
-  whole space are measurable, with the point mass at `true` and `A 0 = {true}`, is independent
-  (one event always is, under a probability measure) and loses with chance `q = 1`, but Lean's
-  `P.real` of the set `{false}`, which the σ-algebra cannot measure, is its outer measure `1`, so
-  the chance of no run of `1` loss is `1 > (1 − 1)^1 = 0` (the `example` at the end of this file).
-  The trials from `n` on need not be measurable (they play no part), so the hypothesis is stated for
-  `i < n` only (wider than order LEAN-26's `∀ i`, from which it follows).
+* The second theorem assumes each trial's event `A i`, `i < n`, measurable, and the bound needs it
+  (order LEAN-28, item 87): without it, one trial on a two-point space where only `∅` and the whole
+  space are measurable, with the point mass at `true` and `A 0 = {true}`, is independent (one event
+  always is, under a probability measure). Lean's `P.real` of a set the σ-algebra cannot measure is
+  its outer measure: for `{true}` it is `1`, so the trial loses with chance `q = 1`, and for
+  `{false}` it is also `1`, so the chance of no run of `1` loss is `1 > (1 − 1)^1 = 0` (the second
+  `example` at the end of this file). Both outer measures matter: read as inner measures (`0` each)
+  the bound would hold. The trials from `n` on need not be measurable (they play no part), so the
+  hypothesis is stated for `i < n` only; this makes the theorem wider than order LEAN-26's, whose
+  statement (with `∀ i`) follows from it.
+* each trial losing with chance `q` (cold review r87, checked in Lean): for the second theorem,
+  `A i = ∅` for every `i` (measurable and independent) with `q = 1` stated, `n = r = 1`: no run has
+  chance `1 > (1 − 1)^1 = 0`; for the first, `A i` the whole space with `q = 0` stated, `n = r = 1`:
+  a run has chance `1 > 1 · 0^1 = 0`.
+* The hypotheses of the second theorem hold together: the first `example` at the end of this file
+  (`Bool`, the point mass at `true`, every `A i = {true}`, `n = r = 1`, `q = 1`).
 
 Measured in the same checks (exact dynamic programming, not proved in Lean): both bounds hold for
 `q ∈ {1/2, 1/3, 3/5, 9/10}`, `n ≤ 40`, every `r ≤ n + 3` (line R1); for fair trials the mean
@@ -131,14 +139,16 @@ theorem measureReal_exists_run_le {P : Measure Ω} {A : ℕ → Set Ω}
 /-- The `j`-th block of `r` trials, `j r, …, j r + r − 1`, holds only losses. -/
 def allLost (A : ℕ → Set Ω) (r j : ℕ) : Set Ω := ⋂ i ∈ Ico (j * r) (j * r + r), A i
 
-lemma measurableSet_allLost {A : ℕ → Set Ω} (hA : ∀ i, MeasurableSet (A i)) (r j : ℕ) :
-    MeasurableSet (allLost A r j) :=
-  Finset.measurableSet_biInter _ fun i _ ↦ hA i
+/-- A block of losses is an event when the block's own trials are (order LEAN-28: only the block's
+trials, `j r ≤ i < j r + r`, need to be measurable). -/
+lemma measurableSet_allLost {A : ℕ → Set Ω} {r j : ℕ}
+    (hA : ∀ i ∈ Ico (j * r) (j * r + r), MeasurableSet (A i)) : MeasurableSet (allLost A r j) :=
+  Finset.measurableSet_biInter _ hA
 
 /-- **No streak is unlikely when `(1 − q^r)^⌊n / r⌋` is small.** In `n` independent trials that
 each lose with chance `q`, the chance of no run of `r` losses is at most `(1 − q^r)^⌊n / r⌋`. The
-trials' events must be measurable: without that the bound fails (the `example` at the end of this
-file). -/
+trials' events must be measurable: without that the bound fails (the second `example` at the end
+of this file; the first shows the hypotheses hold together). -/
 theorem measureReal_no_run_le {P : Measure Ω} {A : ℕ → Set Ω}
     {n r : ℕ} {q : ℝ} (hA : ∀ i < n, MeasurableSet (A i))
     (hind : iIndepSet (fun i : Fin n ↦ A i) P) (hq : ∀ i < n, P.real (A i) = q) :
@@ -183,8 +193,8 @@ theorem measureReal_no_run_le {P : Measure Ω} {A : ℕ → Set Ω}
       rw [range_add_one, Finset.set_biInter_insert, Set.inter_comm, measureReal_def,
         (Indep_iff _ _ P).mp hI _ _ m1 m2, ENNReal.toReal_mul, ← measureReal_def,
         ← measureReal_def, ih (by omega),
-        measureReal_compl (show MeasurableSet (allLost A r J') from
-          Finset.measurableSet_biInter _ fun i hi ↦ hA i (by have := mem_Ico.mp hi; omega)),
+        measureReal_compl (measurableSet_allLost (r := r) (j := J') fun i hi ↦
+          hA i (by have := mem_Ico.mp hi; omega)),
         probReal_univ, allLost, measureReal_iInter_Ico hind hq hJ'n, pow_succ]
   refine (measureReal_mono ?_).trans (key J le_rfl).le
   intro ω hω
@@ -195,10 +205,30 @@ theorem measureReal_no_run_le {P : Measure Ω} {A : ℕ → Set Ω}
   · have := Nat.mul_le_mul_right r (Nat.succ_le_of_lt hj); rw [Nat.succ_mul] at this; omega
   · exact Set.mem_iInter₂.mp hall i hi
 
+/-- The hypotheses of `measureReal_no_run_le` hold together (order LEAN-28, item 87, cold review
+r87): `Bool` with all its subsets measurable, the point mass at `true`, every trial's event
+`{true}`, `n = r = 1`, `q = 1`. -/
+example : ∃ (P : Measure Bool) (A : ℕ → Set Bool), (∀ i < 1, MeasurableSet (A i)) ∧
+    iIndepSet (fun i : Fin 1 ↦ A i) P ∧ (∀ i < 1, P.real (A i) = 1) := by
+  refine ⟨Measure.dirac true, fun _ ↦ {true}, fun _ _ ↦ measurableSet_singleton _, ?_,
+    fun i _ ↦ ?_⟩
+  · change iIndep (fun i : Fin 1 ↦ MeasurableSpace.generateFrom {({true} : Set Bool)}) _
+    rw [iIndep_iff]
+    intro s f _
+    rcases Finset.eq_empty_or_nonempty s with rfl | ⟨i₀, hi₀⟩
+    · simp
+    · have hs : s = {i₀} := by
+        ext i
+        simp only [Finset.mem_singleton, Subsingleton.elim i i₀, hi₀]
+      subst hs
+      simp
+  · simp [measureReal_def, Measure.dirac_apply_of_mem (Set.mem_singleton true)]
+
 /-- **Why `measureReal_no_run_le` keeps its measurability hypothesis** (order LEAN-28, item 87). On
 `Bool` with the σ-algebra `⊥` (only `∅` and `univ` measurable) and the point mass at `true`, the
-single event `A 0 = {true}` is independent (one trial), loses with chance `1`, yet the chance of
-no run of one loss, Lean's outer measure of `{false}`, is `1`, above the bound `(1 − 1^1)^1 = 0`. -/
+single event `A 0 = {true}` is independent (one trial) and loses with chance `1` (Lean's outer
+measure of `{true}`), yet the chance of no run of one loss, Lean's outer measure of `{false}`, is
+`1`, above the bound `(1 − 1^1)^1 = 0`. -/
 example : ∃ (P : @Measure Bool ⊥) (A : ℕ → Set Bool),
     iIndepSet (fun i : Fin 1 ↦ A i) P ∧ (∀ i < 1, P.real (A i) = 1) ∧
       (1 - (1 : ℝ) ^ 1) ^ (1 / 1) < P.real (runEvent A 1 1)ᶜ := by
