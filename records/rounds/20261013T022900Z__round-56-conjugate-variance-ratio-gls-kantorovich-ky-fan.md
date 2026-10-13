@@ -37,4 +37,32 @@ store row 20261012-005).
 
 ## Completed after the work
 
-(to be written after the work)
+Items 79 to 83 of MATH-PLAN-library-2 are proved, no `sorry`, no new axiom; nothing narrower than
+the plan's rows (three statements wider, each said in its module docstring). Job 0 landed in two
+stages, the second by Dustin's ruling of 2026-10-12 (PairT must FLAG); one question to him is open
+(an all-`True` match on a type without eta passes, test `lim_nat_true`).
+
+Commits on `lean-27` (from `92f8ae5`; nothing pushed):
+
+* `442a536` records before the work (this fragment's first part).
+* Job 0: `68759cd` tests, `df2bd52` the iota fix, `04fe81e` and `c1b22b8` its review's findings;
+  reopened: `62b160e` tests, `f70aa50` branch opening, `66402b7` tests, `82899d4` the `isDefEq`
+  check and depth cap.
+* `8f0980e` item 81 (`ClassicalLean/Statistics/GeneralizedLeastSquares.lean`), `e31168b` item 82
+  (`ClassicalLean/Algebra/Kantorovich.lean`), `2970d06` item 83 (`ClassicalLean/Algebra/MinMax.lean`),
+  `e78115a` item 79 (`ClassicalLean/Analysis/ConvexConjugate.lean`), `f11be68` item 80
+  (`ClassicalLean/Probability/EffectiveSampleSize.lean`); `ClassicalLean.lean` gained two import lines.
+* `15e003f` HANDOFF.md and ROADMAP.md; `6d84072` the bridge baseline `records/bridges/LEAN-27/`.
+
+Per-module theorem constants (census of scratch copies, the axiom gate's `.thmInfo` predicate under
+`ClassicalLean`): ConvexConjugate 5; Kantorovich 3; EffectiveSampleSize 50 → 63; GeneralizedLeastSquares
+6 → 12; MinMax 30 → 42.
+
+Whole-library numbers, all on the **clean** tree at `6d84072`: build 4168 jobs, 0 warnings;
+AxiomGate PASS 3197; VacuityGate PASS, 1 reviewed helper, 0 VACUOUS-PENDING, rule 5 ran out on 0
+theorems, no new list entry (2:52.31, 5049780 KB); the gate's tests 85, 47 flagged, 0 mismatches;
+check_sorry PASS 122; check_records PASS 122. Gate 7 at `6d84072`: ALL PASSED, 4168 jobs, 122 modules 0 failed, 90558 declarations no errors, three standard axioms, 3197, planted fault named (20:17.84, 4749584 KB); `6d84072` adds only `records/bridges/LEAN-27/` to `15e003f`.
+
+Bridge search (standing rule 2) against `records/bridges/VACUITY-1/`: rc 1, 140 new, 28 gone; no new
+bridge (the strong pairs are plan items 98 and 111). **Current baseline: `records/bridges/LEAN-27/`.**
+Report: lane `LEAN-27-report.md`.
