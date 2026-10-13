@@ -60,6 +60,42 @@ at indices 1 and 2 are not closed (measured 2026-10-09). `recDenom (sumSumPowRec
 `(1 - X)² (1 - ρ X)`; that identity was checked in Lean by review r6 of order LEAN-16 and is not
 stated here.
 
+**The variance of a sum for a covariance-stationary series** (order LEAN-27, item 80). When the
+covariances depend only on the lag, `cov (X i, X j) = γ |i - j|`, the double sum of covariances
+collapses (`sum_sum_lag_eq`, for any `γ : ℕ → ℝ`) and
+`Var (X 0 + ⋯ + X (k - 1)) = k γ 0 + 2 ∑_{1 ≤ j < k} (k - j) γ j`
+(`variance_sum_eq_of_stationary`); dividing by `k γ 0` gives the variance-ratio identity
+`1 + 2 ∑_{1 ≤ j < k} (1 - j / k) ρ j` with `ρ j = γ j / γ 0` (`variance_sum_div_eq`). Only the
+`γ j` with `j < k` enter. Checked exactly on an MA(1) series (`X t = Z t + Z (t - 1)`, `γ = (2, 1,
+0, …)`, `k = 1, …, 6`) in order LEAN-27's `checks.py`. Which hypotheses are needed:
+
+* `k ≥ 1` and `γ 0 ≠ 0` for the ratio: at `k = 0` the left side is Lean's `0 / 0 = 0` and the right
+  side `1`; with `X = 0`, `γ = 0`, `k = 2` the same (`checks.py`).
+* The covariance condition: for the sum, `X 0 = X 1` with variance `1` and `γ = 0`, `k = 2`, gives
+  `4` against `0`; for the ratio (keeping `γ 0 ≠ 0`, cold review r80), the same `X` with
+  `γ = (1, 0)` gives `4 / 2 = 2` against `1 + 2 · (1/2) · 0 = 1` (`checks.py`; `γ = (2, 0)` would
+  give `1` against `1`, so `γ 0 = 1` matters).
+* `MemLp (X i) 2` (finite variances), for the sum, by hand, not computed: take `X 0` outside `L²`
+  and `X 1 = Y − X 0` with `Y` in `L²` of variance `1`. Then the self-covariances of `X 0` and
+  `X 1` and, here, the cross-covariances are Lean's junk `0` (with `a = X 0 − μ[X 0]` and
+  `b = Y − μ[Y]`: where `|a| ≥ 2 |b|`, `|a (b − a)| ≥ a² / 2`, and elsewhere `a² ≤ 4 b²`, so `a²`
+  and `a (b − a)` are not integrable, and neither is `(b − a)²`, since `a² ≤ 2 (b − a)² + 2 b²`;
+  cold review r80), so `γ = 0` meets the covariance condition, while
+  `X 0 + X 1 = Y` has variance `1`. Not every covariance with a quantity outside `L²` is junk:
+  `cov (X 0, Y)` for a bounded `Y` can be an honest nonzero integral. For the ratio, not shown
+  needed by a case: for a measurable `X`, the covariance condition at `(i, i)` with `γ 0 ≠ 0`
+  already puts `X i` in `L²`; kept because `variance_fun_sum` asks for it.
+
+The ratio's two hypotheses `k ≥ 1` and `γ 0 ≠ 0` are only for the division: multiplied through, the
+plan's product form `k γ 0 (1 + 2 ∑ (1 − j / k) ρ j)` is `variance_sum_eq_of_stationary` itself
+when they hold. A series indexed by `ℕ`, `X : ℕ → Ω → ℝ`, with the sum over `range k`, is
+`variance_sum_range_eq_of_stationary` (for item 115 of the plan, cold review r80); the sum's rows
+above apply to it unchanged, and its `example` meets its hypotheses.
+
+The hypotheses can be met together, with `γ 0 ≠ 0` and a lag `γ 1 ≠ 0`: the `example` after
+`variance_sum_div_eq` (two points of mass one, a measure of mass `2`, and twice the quantity that
+is `1` at one point and `0` at the other: `Var (2 X) = 4 = 2 · 1 + 2 · 1 · 1`).
+
 ## What Mathlib provides
 
 The variance of a finite sum as the double sum of covariances (`ProbabilityTheory.variance_fun_sum`)
@@ -371,5 +407,120 @@ theorem variance_average_le_of_steady [IsProbabilityMeasure μ] {Z x : ℕ → �
   · have : (n : ℝ) ≠ 0 := by exact_mod_cast hn.ne'
     field_simp
     ring
+
+/-! ### The variance of a sum for a covariance-stationary series (order LEAN-27, item 80) -/
+
+omit [IsFiniteMeasure μ] in
+/-- A new row and a new column: the double sum of `γ |i - j|` over `i, j < n + 1` is the sum over
+`i, j < n`, plus twice `∑ i < n, γ (n - i)`, plus `γ 0`. -/
+lemma sum_sum_lag_succ (γ : ℕ → ℝ) (n : ℕ) :
+    ∑ i ∈ range (n + 1), ∑ j ∈ range (n + 1), γ (max i j - min i j) =
+      ∑ i ∈ range n, ∑ j ∈ range n, γ (max i j - min i j) +
+        2 * ∑ i ∈ range n, γ (n - i) + γ 0 := by
+  have hcol : ∑ i ∈ range n, γ (max i n - min i n) = ∑ i ∈ range n, γ (n - i) :=
+    sum_congr rfl fun i hi ↦ by
+      rw [max_eq_right (mem_range.mp hi).le, min_eq_left (mem_range.mp hi).le]
+  have hrow : ∑ j ∈ range n, γ (max n j - min n j) = ∑ j ∈ range n, γ (n - j) :=
+    sum_congr rfl fun j hj ↦ by
+      rw [max_eq_left (mem_range.mp hj).le, min_eq_right (mem_range.mp hj).le]
+  rw [sum_range_succ, sum_range_succ (fun j ↦ γ (max n j - min n j)), max_self, min_self,
+    Nat.sub_self, hrow]
+  simp_rw [sum_range_succ (fun j ↦ γ (max _ j - min _ j))]
+  rw [sum_add_distrib, hcol]
+  ring
+
+omit [IsFiniteMeasure μ] in
+/-- `∑ i, j < k, γ |i - j| = 2 ∑ j < k, (k - j) γ j - k γ 0`. -/
+lemma sum_sum_lag_eq_range (γ : ℕ → ℝ) (k : ℕ) :
+    ∑ i ∈ range k, ∑ j ∈ range k, γ (max i j - min i j) =
+      2 * ∑ j ∈ range k, ((k : ℝ) - j) * γ j - k * γ 0 := by
+  induction k with
+  | zero => simp
+  | succ n ih =>
+    have hrefl : ∑ i ∈ range (n + 1), γ (n - i) = ∑ j ∈ range (n + 1), γ j := by
+      have := sum_range_reflect γ (n + 1)
+      simpa only [Nat.add_sub_cancel] using this
+    rw [sum_range_succ (fun i ↦ γ (n - i)), Nat.sub_self] at hrefl
+    rw [sum_sum_lag_succ, ih, sum_range_succ (fun j ↦ ((↑(n + 1) : ℝ) - j) * γ j)]
+    have hw : ∑ j ∈ range n, ((↑(n + 1) : ℝ) - j) * γ j =
+        ∑ j ∈ range n, ((n : ℝ) - j) * γ j + ∑ j ∈ range n, γ j := by
+      rw [← sum_add_distrib]
+      exact sum_congr rfl fun j _ ↦ by push_cast; ring
+    rw [hw, sum_range_succ γ n] at *
+    push_cast
+    linarith
+
+omit [IsFiniteMeasure μ] in
+/-- **The double sum of lagged values.** For any `γ : ℕ → ℝ`,
+`∑ i, j < k, γ |i - j| = k γ 0 + 2 ∑_{1 ≤ j < k} (k - j) γ j`. -/
+theorem sum_sum_lag_eq (γ : ℕ → ℝ) (k : ℕ) :
+    ∑ i ∈ range k, ∑ j ∈ range k, γ (max i j - min i j) =
+      k * γ 0 + 2 * ∑ j ∈ Ico 1 k, ((k : ℝ) - j) * γ j := by
+  rw [sum_sum_lag_eq_range]
+  rcases Nat.eq_zero_or_pos k with rfl | hk
+  · simp
+  · rw [sum_range_eq_add_Ico _ hk]
+    push_cast
+    ring
+
+/-- **The variance of a sum of a covariance-stationary series** (order LEAN-27, item 80): when
+`cov (X i, X j) = γ |i - j|`, `Var (X 0 + ⋯ + X (k - 1)) = k γ 0 + 2 ∑_{1 ≤ j < k} (k - j) γ j`. -/
+theorem variance_sum_eq_of_stationary {k : ℕ} {X : Fin k → Ω → ℝ} (hX : ∀ i, MemLp (X i) 2 μ)
+    {γ : ℕ → ℝ} (hcov : ∀ i j : Fin k, cov[X i, X j; μ] = γ (max (i : ℕ) j - min (i : ℕ) j)) :
+    Var[fun ω ↦ ∑ i, X i ω; μ] = k * γ 0 + 2 * ∑ j ∈ Ico 1 k, ((k : ℝ) - j) * γ j := by
+  rw [variance_fun_sum hX, ← sum_sum_lag_eq]
+  simp_rw [hcov]
+  rw [Fin.sum_univ_eq_sum_range (fun i ↦ ∑ j : Fin k, γ (max i (j : ℕ) - min i (j : ℕ))) k]
+  exact sum_congr rfl fun i _ ↦ Fin.sum_univ_eq_sum_range (fun j ↦ γ (max i j - min i j)) k
+
+/-- **The variance-ratio identity.** With `k ≥ 1` and `γ 0 ≠ 0`, and `ρ j = γ j / γ 0`:
+`Var (X 0 + ⋯ + X (k - 1)) / (k γ 0) = 1 + 2 ∑_{1 ≤ j < k} (1 - j / k) ρ j`. -/
+theorem variance_sum_div_eq {k : ℕ} {X : Fin k → Ω → ℝ} (hX : ∀ i, MemLp (X i) 2 μ)
+    {γ : ℕ → ℝ} (hcov : ∀ i j : Fin k, cov[X i, X j; μ] = γ (max (i : ℕ) j - min (i : ℕ) j))
+    (hk : 0 < k) (hγ : γ 0 ≠ 0) :
+    Var[fun ω ↦ ∑ i, X i ω; μ] / (k * γ 0) =
+      1 + 2 * ∑ j ∈ Ico 1 k, (1 - (j : ℝ) / k) * (γ j / γ 0) := by
+  have hk' : (k : ℝ) ≠ 0 := Nat.cast_ne_zero.mpr hk.ne'
+  rw [variance_sum_eq_of_stationary hX hcov, add_div, div_self (mul_ne_zero hk' hγ),
+    mul_div_assoc, sum_div]
+  congr 2
+  refine sum_congr rfl fun j _ ↦ ?_
+  field_simp
+
+/-- The variance of a sum for a covariance-stationary series indexed by `ℕ`: the same identity
+with `X : ℕ → Ω → ℝ` and the sum over `range k` (cold review r80, for item 115). -/
+theorem variance_sum_range_eq_of_stationary {k : ℕ} {X : ℕ → Ω → ℝ}
+    (hX : ∀ i < k, MemLp (X i) 2 μ) {γ : ℕ → ℝ}
+    (hcov : ∀ i < k, ∀ j < k, cov[X i, X j; μ] = γ (max i j - min i j)) :
+    Var[fun ω ↦ ∑ i ∈ range k, X i ω; μ] = k * γ 0 + 2 * ∑ j ∈ Ico 1 k, ((k : ℝ) - j) * γ j := by
+  have h := variance_sum_eq_of_stationary (X := fun i : Fin k ↦ X i) (fun i ↦ hX i i.isLt)
+    (fun i j ↦ hcov i i.isLt j j.isLt)
+  have hfun : (fun ω ↦ ∑ i ∈ range k, X i ω) = fun ω ↦ ∑ i : Fin k, X i ω :=
+    funext fun ω ↦ (Fin.sum_univ_eq_sum_range (fun i ↦ X i ω) k).symm
+  rw [hfun]
+  exact h
+
+/-- The hypotheses of `variance_sum_eq_of_stationary` and `variance_sum_div_eq` hold together,
+with a lag `γ 1 ≠ 0`: two points with mass one each (a measure of mass `2`), and `X 0 = X 1` the
+quantity that is `1` at one point and `0` at the other (every covariance is `1`). -/
+example : ∃ (μ : Measure Bool) (_ : IsFiniteMeasure μ) (X : Fin 2 → Bool → ℝ) (γ : ℕ → ℝ),
+    (∀ i, MemLp (X i) 2 μ) ∧
+      (∀ i j : Fin 2, cov[X i, X j; μ] = γ (max (i : ℕ) j - min (i : ℕ) j)) ∧
+      0 < 2 ∧ γ 0 ≠ 0 ∧ γ 1 ≠ 0 := by
+  refine ⟨Measure.dirac true + Measure.dirac false, inferInstance,
+    fun _ b ↦ if b then 1 else 0, fun _ ↦ 1, fun _ ↦ MemLp.of_discrete, ?_, two_pos, one_ne_zero,
+    one_ne_zero⟩
+  intro i j
+  simp [covariance, integral_add_measure, Integrable.of_finite]
+
+/-- The hypotheses of `variance_sum_range_eq_of_stationary` hold together: the same two points
+and quantity, indexed by `ℕ`, `k = 2`. -/
+example : ∃ (μ : Measure Bool) (_ : IsFiniteMeasure μ) (X : ℕ → Bool → ℝ) (γ : ℕ → ℝ),
+    (∀ i < 2, MemLp (X i) 2 μ) ∧
+      (∀ i < 2, ∀ j < 2, cov[X i, X j; μ] = γ (max i j - min i j)) ∧ γ 0 ≠ 0 := by
+  refine ⟨Measure.dirac true + Measure.dirac false, inferInstance,
+    fun _ b ↦ if b then 1 else 0, fun _ ↦ 1, fun _ _ ↦ MemLp.of_discrete, ?_, one_ne_zero⟩
+  intro i _ j _
+  simp [covariance, integral_add_measure, Integrable.of_finite]
 
 end ClassicalLean.Probability.EffectiveSampleSize
