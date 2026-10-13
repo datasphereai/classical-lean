@@ -14,9 +14,9 @@ import Mathlib.Probability.HasLawExists
 # Gambler's ruin for the fair and the biased `±1` walk
 
 A walk starts at `0` and moves up or down by `1` at each step (`walk X n = X 0 + ⋯ + X (n − 1)`),
-each step `X n = ±1` with mean `0` and independent of the past. `exitTime X a b` is the first time
-the walk is at `a` or above, or at `-b` or below (`⊤` if never). Order LEAN-22 (item 44 of the
-plan) proves, for whole numbers `a, b ≥ 0`:
+each step `X n = ±1` independent of the past; the fair walk's steps have mean `0`. `exitTime X a b`
+is the first time the walk is at `a` or above, or at `-b` or below (`⊤` if never). Order LEAN-22
+(item 44 of the plan) proves, for whole numbers `a, b ≥ 0`:
 
 * `ae_exitTime_ne_top`: the walk leaves `(-b, a)` with chance `1`;
 * `measureReal_hit_eq`: it reaches `a` before `-b` with chance `b / (a + b)`
@@ -81,7 +81,8 @@ the next time and independent of the past, as above; `r = (1 - p) / p`.
   steps from Mathlib's `ProbabilityTheory.exists_iid`, which brings in
   `Mathlib.Probability.HasLawExists`).
 
-Which hypotheses are needed (order LEAN-28's `checks.py`, exact; each case keeps the others):
+Which hypotheses are needed (order LEAN-28's `checks.py`, exact, unless a row says otherwise; each
+case keeps the others):
 
 * `p > 0` (second theorem): at `p = 0` Lean's `r = 1 / 0 = 0` makes the formula
   `(0 - 1) / (0 - 1) = 1` at `a = b = 1`, while the walk falls to `-1` first: chance `0` (the plan's
@@ -96,14 +97,22 @@ Which hypotheses are needed (order LEAN-28's `checks.py`, exact; each case keeps
 * the steps' single law (`hp` with one `p`): steps `+1, -1, +1, …` (deterministic, so independent)
   never leave `(-1, 2)`; for the other two, fair steps with `p = 1/3` stated give `1/3` against
   `1/2` (second, `a = b = 1`) and a chance `5/8 > 1/2` of reaching `1` within three steps (third).
-* steps `±1`: steps `0` (with `p = 0`) never leave `(-1, 1)`; steps `±2` never land on `1` (chance
-  `0` against `1/3`); steps `+3` or `-1` reach `1` within 12 steps with chance above `1/2`.
+* steps `±1`: steps `0` (with `p = 0`) never leave `(-1, 1)` (first theorem); steps `+1` with chance
+  `1/3` and `-2` otherwise reach `1` before `-2` with chance `1/3`, against the formula's `3/7`
+  (second, `a = 1`, `b = 2`); steps `+1` with chance `1/3` and `+2` otherwise reach `1` with chance
+  `1 > 1/2` (third, `a = 1`). Steps that are never `1`, such as `±2`, would not do for the second
+  and third: through `hp` they force `p = 0`, which those theorems exclude (cold review r84).
 * independence: `X n = (-1) ^ n X 0` with `X 0` fair never leaves `(-2, 2)`; `X n = X 0` with up
   chance `1/3`, `a = 1`, `b = 2`, gives `1/3` against `3/7`; three paths of mass `1/3`, each step
   `+1` on exactly one, reach `1` with chance `2/3 > 1/2`. With the filtration that knows nothing,
   independence holds and the same steps break only "each step known by the next time".
-* a probability measure: kept, as the fair theorems state it; not shown needed (independence of a
-  step from the past, at the whole space, already forces the mass to be `0`, `1` or `∞`).
+* a probability measure: needed by the first theorem (cold review r84, checked in Lean, not in
+  `checks.py`): on one point of mass `∞`, Lean's `μ.real` of every set is `∞.toReal = 0`, so `hp`
+  holds with `p = 0` for the steps `+1, -1, +1, …`, which are independent and known in time, and the
+  walk never leaves `(-1, 2)`: the set where it stays has mass `∞`, not `0`. For the second and
+  third theorems it follows from the others: independence of a step from the past, at the whole
+  space, forces the mass to be `0`, `1` or `∞`, and at `0` or `∞` every `μ.real` is `0`, so `hp`
+  forces `p = 0`, against `p > 0`.
 
 ## What Mathlib provides
 
@@ -111,7 +120,10 @@ Hitting times as stopping times (`hittingAfter`, `Adapted.isStoppingTime_hitting
 `IsStoppingTime.min_const`, `integrable_stoppedValue`, `condExp_indep_eq`,
 `condExp_mul_of_stronglyMeasurable_left`, dominated and monotone convergence. No random walk and no
 gambler's ruin: `gambler|ruin` has 2 unrelated hits and `random ?walk|simple random|symmetric walk`
-none in Mathlib v4.34.0 (order LEAN-22's search).
+none in Mathlib v4.34.0 (order LEAN-22's search), and `biased.*walk|asymmetric.*walk` none, pinned
+and on master (order LEAN-28's search). The biased part also uses
+`martingale_of_condExp_sub_eq_zero_nat`, `ProbabilityTheory.exists_iid`,
+`iIndepFun.indep_comap_natural_of_lt` and `Monotone.measure_iUnion`.
 -/
 
 open MeasureTheory ProbabilityTheory Finset Filter Topology
