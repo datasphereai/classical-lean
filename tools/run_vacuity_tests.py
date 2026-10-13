@@ -12,8 +12,8 @@ for every theorem in the namespace `VacuityGateTests`, into a scratch file, and 
 
 Names are printed with the private prefix dropped and macro scopes erased (a theorem written by a
 hygienic macro), and the expectation is read from that name. The first word of each test's name is
-its expectation: `vac_` must be flagged; `real_` and `lim_`
-must pass. Exit 0 when every test meets its expectation (or with --report-only, when every test
+its expectation: `vac_` must be flagged, `vac_unchecked_` must come out UNCHECKED (fail closed);
+`real_` and `lim_` must pass. Exit 0 when every test meets its expectation (or with --report-only, when every test
 got a verdict), 1 otherwise. `--gate FILE` tests another version of the gate, e.g. one written out
 by `git show <commit>:tools/VacuityGate.lean`; `--tests` and `--list` replace the test file and
 its reviewed list (theorems in another file must also sit in the namespace `VacuityGateTests`).
@@ -90,7 +90,7 @@ run_cmd do
       | .listed e w =>
         hit := hit.push u
         Lean.logInfo s!"{{if e.pending then "PENDING" else "LISTED"}} {{u}} [{{w}}]"
-      | .unchecked m => Lean.logInfo s!"ERROR {{u}}: {{m}}"  -- `judge` returns it when the fixed test runs out and nothing else fired
+      | .unchecked m => Lean.logInfo s!"UNCHECKED {{u}}: {{m}}"  -- the fixed test ran out or could not confirm, and nothing else fired
       {kernel_case}
     catch e =>
       Lean.logInfo m!"ERROR {{u}}: {{e.toMessageData}}"
@@ -150,7 +150,7 @@ def main(argv):
                            capture_output=True, text=True)
     out = p.stdout + p.stderr
     verdicts, hashes = {}, {}
-    for m in re.finditer(r"\b(FLAG|PASS|LISTED|PENDING|STALE|SKIP|ERROR|KERNEL-REJECTED) (VacuityGateTests\.\S+?):?(?=\s|$)( [0-9a-f]{64})?( \[[^\]]*\])?", out):
+    for m in re.finditer(r"\b(FLAG|PASS|LISTED|PENDING|STALE|SKIP|ERROR|KERNEL-REJECTED|UNCHECKED) (VacuityGateTests\.\S+?):?(?=\s|$)( [0-9a-f]{64})?( \[[^\]]*\])?", out):
         verdicts[m.group(2)] = m.group(1)
         hashes[m.group(2)] = ((m.group(4) or "") + " " + (m.group(3) or "")).strip()
     if p.returncode != 0 or not verdicts:
@@ -171,6 +171,10 @@ def main(argv):
         short = n.split(".", 1)[1]
         want = {"vac": "FLAG", "listed": "LISTED", "pending": "PENDING",
                 "stale": "STALE"}.get(short.split("_")[0], "PASS")
+        # `vac_unchecked_`: empty, and the gate cannot confirm its proof, so it must fail closed
+        # as UNCHECKED (Dustin's ruling of 2026-10-13, order LEAN-27 job 0)
+        if short.startswith("vac_unchecked_"):
+            want = "UNCHECKED"
         # any name on the test list that is not a `vac_` test, also one Lean generates (VACUITY-2)
         if want == "PASS" and n in listed:
             want = "LISTED"

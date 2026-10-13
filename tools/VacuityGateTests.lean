@@ -394,16 +394,23 @@ def PairT : ℕ × ℕ → Prop
 theorem vac_pair_true : ∀ x, PairT x := fun _ ↦ trivial
 
 /-- Every branch `True`, on `ℕ`, which has no eta: the kernel cannot see `NatT n` as `True` for a
-variable `n`, so no `True.intro` proof of it exists for the gate to send. A stated limit: it
-passes (job 0's review of `f70aa50`, finding 2, option (c); Dustin's answer pending). -/
+variable `n`, so the gate's `True.intro` proof is refused. The theorem is empty, as `PairT`'s is;
+it fails closed as UNCHECKED, never a pass (Dustin's ruling of 2026-10-13 on job 0). -/
 def NatT : ℕ → Prop
   | 0 => True
   | _ + 1 => True
 
-theorem lim_nat_true : ∀ n, NatT n := fun n ↦ by cases n <;> trivial
+theorem vac_unchecked_nat_true : ∀ n, NatT n := fun n ↦ by cases n <;> trivial
 
-/-- The same match as a glued part next to a hypothesis that closes it: flagged through that
-hypothesis, as before LEAN-27 (job 0's review of `f70aa50`, finding 1). -/
+/-- The same match glued to a hypothesis, with nothing that closes the match part: empty, and
+UNCHECKED for the same reason. -/
+theorem vac_unchecked_hyp_and_nat_true (a : V) (n : ℕ) (h : P a) : P a ∧ NatT n :=
+  ⟨h, by cases n <;> trivial⟩
+
+/-- The match next to a part with content (`1 ≤ m` needs work): not empty, passes. -/
+theorem real_nat_true_and_work (n m : ℕ) (h : 2 ≤ m) : NatT n ∧ 1 ≤ m :=
+  ⟨by cases n <;> trivial, by omega⟩
+
 theorem vac_hyp_and_nat_true (a : V) (n : ℕ) (h : P a) (hn : NatT n) : P a ∧ NatT n := ⟨h, hn⟩
 
 -- A theorem added by meta code (`addDecl`) under a `_proof_` name, with no source position and
