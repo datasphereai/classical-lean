@@ -76,15 +76,15 @@ collapses (`sum_sum_lag_eq`, for any `γ : ℕ → ℝ`) and
   `γ = (1, 0)` gives `4 / 2 = 2` against `1 + 2 · (1/2) · 0 = 1` (`checks.py`; `γ = (2, 0)` would
   give `1` against `1`, so `γ 0 = 1` matters).
 * `MemLp (X i) 2` (finite variances), for the sum, by hand, not computed: take `X 0` outside `L²`
-  and `X 1 = Y − X 0` with `Y` in `L²` of variance `1`. Then the self-covariances of `X 0` and
-  `X 1` and, here, the cross-covariances are Lean's junk `0` (with `a = X 0 − μ[X 0]` and
-  `b = Y − μ[Y]`: where `|a| ≥ 2 |b|`, `|a (b − a)| ≥ a² / 2`, and elsewhere `a² ≤ 4 b²`, so `a²`
-  and `a (b − a)` are not integrable, and neither is `(b − a)²`, since `a² ≤ 2 (b − a)² + 2 b²`;
-  cold review r80), so `γ = 0` meets the covariance condition, while
-  `X 0 + X 1 = Y` has variance `1`. Not every covariance with a quantity outside `L²` is junk:
-  `cov (X 0, Y)` for a bounded `Y` can be an honest nonzero integral. For the ratio, not shown
-  needed by a case: for a measurable `X`, the covariance condition at `(i, i)` with `γ 0 ≠ 0`
-  already puts `X i` in `L²`; kept because `variance_fun_sum` asks for it.
+  and `X 1 = Y − X 0` with `Y` in `L²` of mean `0` and variance `1`. Then the self-covariances of
+  `X 0` and `X 1` and, here, the cross-covariances are Lean's junk `0`, the integral of a
+  non-integrable function (with `a = X 0 − μ[X 0]` and `b = Y − μ[Y]`: where `|a| ≥ 2 |b|`,
+  `|a (b − a)| ≥ a² / 2`, and elsewhere `a² ≤ 4 b²`, so `a²` and `a (b − a)` are not integrable, and
+  neither is `(b − a)²`, since `a² ≤ 2 (b − a)² + 2 b²`; cold review r80), so `γ = 0` meets the
+  covariance condition, while `X 0 + X 1 = Y` has variance `1`. Not every covariance with a quantity
+  outside `L²` is junk: `cov (X 0, Y)` for a bounded `Y` can be an honest nonzero integral. For the
+  ratio, not shown needed by a case: for a measurable `X`, the covariance condition at `(i, i)` with
+  `γ 0 ≠ 0` already puts `X i` in `L²`; kept because `variance_fun_sum` asks for it.
 
 The ratio's two hypotheses `k ≥ 1` and `γ 0 ≠ 0` are only for the division. The plan's product form
 `Var (X 0 + ⋯ + X (k - 1)) = k γ 0 (1 + 2 ∑_{1 ≤ j < k} (1 − j / k) ρ j)` is
@@ -96,8 +96,13 @@ its integral almost everywhere (Mathlib's `ae_eq_integral_of_variance_eq_zero`),
 `γ j ≠ 0` the two forms differ (`k = 2`, `γ = (0, 1)`: product `0`, sum `2`; order LEAN-28's
 `LEAN-28-check80b.py`, exact), but no series has such covariances. Its hypotheses are needed as the
 sum's are: dropping `MemLp` gives the sum's case above (left side `1`, Lean's junk covariances `0`,
-so `γ = 0` and the product form is `0`); dropping the covariance condition, `X 0 = X 1` with
-variance `1` and `γ = 0`, `k = 2`, gives `4` against `0`.
+the integral of a non-integrable function, so `γ = 0` and the product form is `0`); dropping the
+covariance condition, `X 0 = X 1` with variance `1` and `γ = 0`, `k = 2`, gives `4` against `0`. The
+finite measure is needed by the sum and the product form alike (cold review r80b, checked in Lean):
+with masses `1`, `1` and `∞` on three points, `X 0` the indicator of the first and `X 1` minus the
+indicator of the second, each centred product is a nonzero constant on the point of infinite mass,
+so every covariance is Lean's junk `0` (the integral of a non-integrable function) and `γ = 0` meets
+the covariance condition, while the sum has integral `0` and variance `2`; both forms give `0`.
 
 A series indexed by `ℕ`, `X : ℕ → Ω → ℝ`, with the sum over `range k`, is
 `variance_sum_range_eq_of_stationary` (for item 115 of the plan, cold review r80); the sum's rows
@@ -420,7 +425,8 @@ theorem variance_average_le_of_steady [IsProbabilityMeasure μ] {Z x : ℕ → �
     field_simp
     ring
 
-/-! ### The variance of a sum for a covariance-stationary series (order LEAN-27, item 80) -/
+/-! ### The variance of a sum for a covariance-stationary series (order LEAN-27, item 80; order
+LEAN-28, item 80b) -/
 
 omit [IsFiniteMeasure μ] in
 /-- A new row and a new column: the double sum of `γ |i - j|` over `i, j < n + 1` is the sum over
