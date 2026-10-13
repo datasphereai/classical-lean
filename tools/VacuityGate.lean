@@ -269,18 +269,30 @@ def followsFromHyp (xs : Array Expr) (concl : Expr) : MetaM (Option Expr) := do
     `match` (through `whnf`, which reads `iota`). So `Small3 0` for
     `Small3 | 0 => True | n + 1 => Small3 n` is still read as `True` and `P a ∧ Small3 0` is
     flagged (test `real_hyp_and_small3`, listed; a list entry, never a silent pass). Wrapping that
-    call too would close it; order LEAN-27 allowed only the `whnfCore` call. Also measured: `True`
-    behind a `match` on a pair (`PairT (_, _) := True`) is no longer reached, so `∀ x, PairT x`
-    passes where the gate before LEAN-27 flagged it (test `real_pair_true`): this order's reading
-    of Dustin's ruling (a `match` counts as computing), not a ruling of his; the question is put to
-    him in LEAN-27's report. -/
-partial def unfoldNamed (e : Expr) (fuel : Nat := 32) : MetaM Expr := do
+    call too would close it; order LEAN-27 allowed only the `whnfCore` call.
+    A `match` that `whnfCore` leaves stuck (`matchMatcherApp?`) is opened branch by branch
+    (`lambdaBoundedTelescope` over each alternative's `altNumParams` pattern variables), and each
+    branch body is unfolded the same way, at most `maxLevels` matches deep. When every branch is
+    `True` the match is read as `True`; when any is not, it stays stuck (Dustin's ruling of
+    2026-10-12: nothing is computed when every branch is `True`). So `PairT x` for
+    `PairT (_, _) := True` is `True` (test `vac_pair_true`), while `Small2 0`, with a `True` and a
+    `False` branch, is not. A match with no branch stays stuck. -/
+partial def unfoldNamed (e : Expr) (fuel : Nat := 32) (depth : Nat := 0) : MetaM Expr := do
   let e ← withConfig (fun c => { c with iota := false }) <| whnfCore e
   if fuel == 0 then return e
   if let .const c _ := e.getAppFn then
     if [``ite, ``dite, ``cond, ``Decidable.decide].contains c then return e
+  -- a `match` that `whnfCore` left stuck: `True` when every branch, its pattern variables bound,
+  -- unfolds to `True` (Dustin's ruling of 2026-10-12, order LEAN-27 job 0)
+  if let some app ← matchMatcherApp? e then
+    if depth ≥ maxLevels || app.alts.isEmpty then return e
+    for alt in app.alts, k in app.altNumParams do
+      let isTrue ← lambdaBoundedTelescope alt k fun _ body => do
+        return (← unfoldNamed (mkAppN body app.remaining) (fuel - 1) (depth + 1)).isConstOf ``True
+      unless isTrue do return e
+    return mkConst ``True
   match ← unfoldDefinition? e with
-  | some e' => unfoldNamed e' (fuel - 1)
+  | some e' => unfoldNamed e' (fuel - 1) depth
   | none => return e
 
 /-- Case 5, a glued conclusion (Dustin's ruling of 2026-10-11 on cold review r2's finding 3): the
