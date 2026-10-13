@@ -271,8 +271,9 @@ def followsFromHyp (xs : Array Expr) (concl : Expr) : MetaM (Option Expr) := do
     flagged (test `real_hyp_and_small3`, listed; a list entry, never a silent pass). Wrapping that
     call too would close it; order LEAN-27 allowed only the `whnfCore` call. Also measured: `True`
     behind a `match` on a pair (`PairT (_, _) := True`) is no longer reached, so `∀ x, PairT x`
-    passes where the gate before LEAN-27 flagged it (test `real_pair_true`): a `match` counts as
-    computing. -/
+    passes where the gate before LEAN-27 flagged it (test `real_pair_true`): this order's reading
+    of Dustin's ruling (a `match` counts as computing), not a ruling of his; the question is put to
+    him in LEAN-27's report. -/
 partial def unfoldNamed (e : Expr) (fuel : Nat := 32) : MetaM Expr := do
   let e ← withConfig (fun c => { c with iota := false }) <| whnfCore e
   if fuel == 0 then return e
