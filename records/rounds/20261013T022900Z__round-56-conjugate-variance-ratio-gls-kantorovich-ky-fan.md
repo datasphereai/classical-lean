@@ -66,3 +66,16 @@ check_sorry PASS 122; check_records PASS 122. Gate 7 at `6d84072`: ALL PASSED, 4
 Bridge search (standing rule 2) against `records/bridges/VACUITY-1/`: rc 1, 140 new, 28 gone; no new
 bridge (the strong pairs are plan items 98 and 111). **Current baseline: `records/bridges/LEAN-27/`.**
 Report: lane `LEAN-27-report.md`.
+
+**Added 2026-10-13 after a second ruling (Dustin, about 23:52 EDT on 2026-10-12): NatT must fail
+closed as UNCHECKED, never pass.** Job 0 reopened again: `66776eb` tests (`vac_unchecked_nat_true`,
+`vac_unchecked_hyp_and_nat_true`, `real_nat_true_and_work`; the runner expects UNCHECKED for names
+starting `vac_unchecked_`), `5344c16` the fix (an all-`True` match whose `True.intro` proof the
+kernel cannot confirm makes the fixed test throw "every case is True; kernel could not confirm the
+proof", which `judge` turns into UNCHECKED), confirming review PASS WITH FINDINGS (7 MINOR, stated
+in HANDOFF.md §4), `ff68a8a` HANDOFF.md §4. No `ClassicalLean/` file changed. The open question to
+Dustin above is answered by that ruling. Gates re-run on the **clean** tree at `ff68a8a`: build
+4168 jobs, 0 warnings; AxiomGate PASS 3197; VacuityGate PASS, 1 reviewed helper, 0 VACUOUS-PENDING,
+rule 5 ran out on 0, no UNCHECKED (2:47.33, 5051576 KB); tests 88, 47 flagged, 0 mismatches;
+check_sorry PASS 122; check_records PASS 122. Gate 7 at `ff68a8a`: ALL PASSED, 4168 jobs, 122 modules 0 failed, 90558 declarations no errors, three standard axioms, 3197, planted fault named (20:02.26, 4749160 KB). Current bridge baseline
+unchanged: `records/bridges/LEAN-27/` (no module changed since `15e003f`).
