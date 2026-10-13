@@ -579,12 +579,12 @@ example : ∃ (μ : Measure Bool) (_ : IsFiniteMeasure μ) (X : ℕ → Bool →
   simp [covariance, integral_add_measure, Integrable.of_finite]
 
 open scoped ENNReal in
-/-- **Why the finite measure is needed** (cold review r80b): masses `1`, `1` and `∞` on three
-points, `X 0` the indicator of the first point and `X 1` minus the indicator of the second. Both are
-in `L²`, every covariance is Lean's junk `0` (the integral of a non-integrable function, as each
-centred product is a nonzero constant on the point of infinite mass), so `γ = 0` meets the
-covariance condition with `k = 2`; the sum has variance `2`, and the sum form and the product form
-both give `0`. -/
+/-- **Why `variance_sum_eq_of_stationary` and `variance_sum_eq_mul_one_add` need the finite
+measure** (cold review r80b): masses `1`, `1` and `∞` on three points, `X 0` the indicator of the
+first point and `X 1` minus the indicator of the second. Both are in `L²`, every covariance is
+Lean's junk `0` (the integral of a non-integrable function, as each centred product is a nonzero
+constant on the point of infinite mass), so `γ = 0` meets the covariance condition with `k = 2`;
+the sum has variance `2`, and the sum form and the product form both give `0`. -/
 example : ∃ (μ : Measure (Fin 3)) (X : Fin 2 → Fin 3 → ℝ) (γ : ℕ → ℝ), ¬ IsFiniteMeasure μ ∧
     (∀ i, MemLp (X i) 2 μ) ∧
     (∀ i j : Fin 2, cov[X i, X j; μ] = γ (max (i : ℕ) j - min (i : ℕ) j)) ∧

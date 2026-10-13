@@ -112,8 +112,9 @@ case keeps the others):
   and known in time, and the walk never leaves `(-1, 2)`: the set where it stays has mass `∞`, not
   `0`. For the second and third theorems it follows from the others (by hand): independence of
   the step's set `{X n = 1}` from the whole space gives `μ s = μ s · μ univ`, so when the mass is
-  not `1` (then it is `0` or `∞`) the step's set has measure `0` or `∞`, its `μ.real` is `0`, and
-  `hp` forces `p = 0`, against `p > 0`.
+  not `1` the step's set has measure `0` or `∞`, its `μ.real` is `0`, and `hp` forces `p = 0`,
+  against `p > 0`. (The mass is then `0` or `∞`, as the whole space, in both σ-algebras, gives
+  `μ univ = μ univ · μ univ`.)
 
 ## What Mathlib provides
 
