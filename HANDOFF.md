@@ -667,28 +667,39 @@ Five gates, in `tools/`. Each was fail-tested; if you change one, fail-test it a
   generated equation lemmas fall outside). Flagged on purpose: lemmas that are a projection, the
   identity or a pairing of hypotheses once definitions and instances are unfolded
   (`S ∩ T ⊆ S`, the shape of `Prod.mk_le_mk`); they stay through a list entry.
-  **Dated 2026-10-13 UTC (order LEAN-27, job 0, with Dustin's ruling of 2026-10-12):** what counts
-  as "computing" when a part is read as `True`. `unfoldNamed` runs `whnfCore` with `iota := false`,
-  so a `match` or recursor is not reduced there. A `match` it leaves stuck is opened branch by
-  branch (`matchMatcherApp?`, each alternative's parameters bound by `lambdaBoundedTelescope`); if
-  every branch unfolds to `True` and Lean's `isDefEq` at `.all` agrees, the match is read as
-  `True`, otherwise it stays stuck. So `P a ∧ Small2 0` passes (one branch `True`, one `False`:
+  **Dated 2026-10-13 UTC (order LEAN-27, job 0, with Dustin's rulings of 2026-10-12 and
+  2026-10-13):** what counts as "computing" when a part is read as `True`. `unfoldNamed` runs
+  `whnfCore` with `iota := false`, so a `match` or recursor is not reduced there. A `match` it
+  leaves stuck is opened branch by branch (`matchMatcherApp?`, each alternative's parameters bound
+  by `lambdaBoundedTelescope`); if every branch unfolds to `True`, the match is read as `True`,
+  otherwise it stays stuck. So `P a ∧ Small2 0` passes (one branch `True`, one `False`:
   computing), and `∀ x, PairT x` with `PairT (_, _) := True` is flagged (one branch, `True`:
-  nothing computed). Limits measured in LEAN-27, each with a test: a definition by structural
-  recursion (`Small3`) is still read as `True` through `unfoldDefinition?`'s smart unfolding, which
-  runs with `iota` on (strict side; `real_hyp_and_small3`, listed); an all-`True` match on a type
-  without eta (`NatT` on `ℕ`, `Bool`, other inductives) is not read as `True`, since the kernel
-  cannot see it and no `True.intro` proof exists, so `∀ n, NatT n` passes (`lim_nat_true`; Dustin's
-  answer pending) while such a part closed by a hypothesis is still flagged
-  (`vac_hyp_and_nat_true`); `isDefEq` also refuses a structure in `Prop` (`And`); a chain of
-  all-`True` matches on constructors or literals costs about `kᵈ` calls, bounded by the heartbeat
-  budget (worst case UNCHECKED). Stale text left for a later gate order (outside `unfoldNamed`,
-  the only function LEAN-27 could change): `gluedProof`'s docstring line 316 and `vacuousProof`'s
-  limits list line 389 say computed facts are "never flagged" (a structural recursion such as
-  `Small3` is), its heading line 366 still reads "As order VACUITY-2 leaves it", and
-  `KernelCheck.rejected`'s docstring line 447 names `Meta.check` as the cause, which is not
-  always the path (line numbers at `82899d4`). The tests are 85 verdicts, 47 flagged, 0
-  mismatches.
+  nothing computed). Where the `True` reading is used, `confirmTrue` (`isDefEq` at `.all`) asks
+  whether `True.intro` proves it: yes for a structure outside `Prop` (eta) or a constructor, no
+  for a variable of `ℕ`, `Bool` or another inductive (`NatT`). Then a hypothesis that closes the
+  part is tried (`vac_hyp_and_nat_true`, flagged), and failing that the theorem is **UNCHECKED**,
+  "every case is True; kernel could not confirm the proof", which fails the gate and is never a
+  pass (`vac_unchecked_nat_true`, `vac_unchecked_hyp_and_nat_true`; the runner expects UNCHECKED
+  for names starting `vac_unchecked_`); a part with content still makes the glue fail first
+  (`real_nat_true_and_work` passes). Measured limits, each with a test: a definition by structural
+  recursion (`Small3`) is still read as `True` through `unfoldDefinition?`'s smart unfolding,
+  which runs with `iota` on (strict side; `real_hyp_and_small3`, listed); a chain of all-`True`
+  matches on constructors or literals costs about `kᵈ` calls, bounded by the heartbeat budget
+  (worst case UNCHECKED). Stale text left for a later gate order, line numbers at `5344c16`:
+  `gluedProof`'s docstring line 328 and `vacuousProof`'s limits list line 407 say computed facts
+  are "never flagged" (a structural recursion such as `Small3` is); its heading line 384 still
+  reads "As order VACUITY-2 leaves it"; the `KernelCheck.rejected` and `Verdict.kernelRejected`
+  docstrings (lines 471, 652) name `Meta.check` as the cause, and `Verdict.unchecked`'s says only
+  "did not finish within the heartbeat budget", where an unconfirmed `True` reading now also gives
+  it. The tests are 88 verdicts, 47 flagged, 2 UNCHECKED as expected, 0 mismatches.
+  From the confirming review of `5344c16` (PASS WITH FINDINGS, 7 MINOR, stated here, not changed,
+  for a later gate order): a **recursive** all-`True` predicate (`NatT2 | 0 => True | n + 1 =>
+  NatT2 n`) is not read as `True`, so `∀ n, NatT2 n` passes silently (a gap older than LEAN-27;
+  catching it means induction, which needs its own ruling); `confirmTrue`'s docstring claims too
+  much ("a structure outside `Prop`": `Fin 2` is one, and its all-`True` match is not confirmed,
+  failing closed); `judge`'s docstring should say that "old case 3 only (fixed test UNCHECKED: …)"
+  can label an empty theorem; the runner checks the UNCHECKED verdict but not its message, prints
+  it with a 7-wide column, and its message regex fits its own line format, not the gate's.
 - **`check_sorry.py`** — text-level, so it sees modules nobody wired into the aggregator. Scoped
   to `ClassicalLean/`; skips `.lake/` and `tools/`, and the reason is written in the file
   (it does not parse string literals, and the gates quote the words they detect).
