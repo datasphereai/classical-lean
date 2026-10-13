@@ -588,6 +588,26 @@ Items 79 to 83 of MATH-PLAN-library-2, each a base that a later item of that pla
   the largest `∑ re ⟪T uᵢ, uᵢ⟫` over orthonormal families; item 142 rests on it (for matrices, use
   `eigenvalues₀`, the module docstring says how).
 
+### 1.19 Batch 2 of the second plan (order LEAN-28, round 57)
+
+Items 84 to 88 of MATH-PLAN-library-2 and item 80b, all in existing modules:
+
+* `Probability/GamblersRuin` (item 84, a bridge to `Probability/MaximalInequality`, which it now
+  imports): the biased walk leaves `(−b, a)` with chance `1`, reaches `a` first with chance
+  `(r^b − 1)/(r^(a+b) − 1)`, and, when it drifts down, ever reaches `a` with chance at most
+  `(p/q)^a` (Ville's inequality on `r^(walk)`); item 95 rests on it.
+* `Analysis/FiniteGame` (item 85): item 66's second proof of the minimax equality, for every real
+  matrix (an affine change of payoffs), without Sion's theorem.
+* `Combinatorics/ArbitrageCycle` (item 86): item 65's exact counterexamples as Lean `example`s.
+* `Probability/LongestRun` (item 87): item 69's open point settled: the measurability hypothesis is
+  needed (a Lean `example`), and only for the trials that count.
+* `InformationTheory/CompressionTest` (item 88): compression scores, each against its own null law,
+  fed to e-BH (`Probability/EValueStepUp`, now imported) keep the expected false share at most `q`;
+  the measure must be a probability measure (with a finite measure the statement is false, through
+  Lean's value for the law of a string that is not measurable).
+* `Probability/EffectiveSampleSize` (item 80b): the variance-ratio identity in the plan's product
+  form, `variance_sum_eq_mul_one_add`, with no extra hypothesis (closes LEAN-27's narrowing in form).
+
 ## 2. Categories to add
 
 Tiered by how much work they do inside the system that already exists, not by how interesting

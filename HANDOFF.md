@@ -217,6 +217,24 @@ order's working tree, re-measured by its gates on the clean tree (round 56's fra
 **122 modules, 3197 theorem constants (3158 + 39), `lake build` 4168 jobs, 0 warnings**. Job 0
 changed the vacuity gate's `unfoldNamed` (§4).
 
+**Dated 2026-10-13 UTC (order LEAN-28, round 57; branch `lean-28`, DSMain):** batch 2 of
+MATH-PLAN-library-2, items 84 to 88, and item 80b; no new module, six extended:
+`Probability/GamblersRuin` (the biased `±1` walk: it leaves `(−b, a)` with chance `1` for every up
+chance `p`, reaches `a` first with chance `(r^b − 1)/(r^(a+b) − 1)`, `r = (1 − p)/p`, and for
+`p < 1 − p` ever reaches `a` with chance at most `(p/(1 − p))^a`, by Ville's inequality; it now
+imports `Probability/MaximalInequality` and Mathlib's `Probability/HasLawExists`),
+`Analysis/FiniteGame` (the minimax equality by exponential weights for every real matrix, by an
+affine change of payoffs, without Sion's theorem), `Combinatorics/ArbitrageCycle` (item 65's
+counterexamples A1 to A3 as Lean `example`s), `Probability/LongestRun` (the measurability
+hypothesis of `measureReal_no_run_le` stays, now only for the trials that count, with a Lean
+`example` of why), `InformationTheory/CompressionTest` (compression scores fed to e-BH keep the
+expected false share at most `q`, under a probability measure, which is needed; it now imports
+`Probability/EValueStepUp`) and `Probability/EffectiveSampleSize` (item 80's product form,
+`variance_sum_eq_mul_one_add`, with no extra hypothesis). Counts on this order's working tree,
+re-measured by its gates on the clean tree (round 57's fragment): **122 modules, 3228 theorem
+constants (3197 + 31), `lake build` 4170 jobs, 0 warnings** (two Mathlib modules more, from
+`HasLawExists`).
+
 ---
 
 ## 2. What I claimed, and what I actually checked
