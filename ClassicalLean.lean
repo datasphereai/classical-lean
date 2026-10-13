@@ -124,6 +124,7 @@ import ClassicalLean.Statistics.NeymanPearson
 import ClassicalLean.InformationTheory.MethodOfTypes
 import ClassicalLean.Probability.GlivenkoCantelli
 import ClassicalLean.Statistics.JamesStein
+import ClassicalLean.Analysis.ConvexConjugate
 import ClassicalLean.Algebra.Kantorovich
 
 /-!
