@@ -425,8 +425,7 @@ theorem variance_average_le_of_steady [IsProbabilityMeasure μ] {Z x : ℕ → �
     field_simp
     ring
 
-/-! ### The variance of a sum for a covariance-stationary series (order LEAN-27, item 80; order
-LEAN-28, item 80b) -/
+/-! ### The variance of a sum for a covariance-stationary series (items 80 and 80b) -/
 
 omit [IsFiniteMeasure μ] in
 /-- A new row and a new column: the double sum of `γ |i - j|` over `i, j < n + 1` is the sum over
