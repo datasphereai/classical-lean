@@ -77,8 +77,8 @@ the next time and independent of the past, as above; `r = (1 - p) / p`.
   and on reaching `a` it is at least `r ^ a`; Ville's inequality (`MaximalInequality`, finite
   horizon) bounds each horizon `N`, and the events grow with `N` (continuity of the measure from
   below).
-* The hypotheses hold together: the `example` at the end of the file, at `p = 1/3` (independent
-  steps from Mathlib's `ProbabilityTheory.exists_iid`, which brings in
+* The hypotheses hold together: the first `example` at the end of the file, at `p = 1/3`
+  (independent steps from Mathlib's `ProbabilityTheory.exists_iid`, which brings in
   `Mathlib.Probability.HasLawExists`).
 
 Which hypotheses are needed (order LEAN-28's `checks.py`, exact, unless a row says otherwise; each
@@ -106,13 +106,14 @@ case keeps the others):
   chance `1/3`, `a = 1`, `b = 2`, gives `1/3` against `3/7`; three paths of mass `1/3`, each step
   `+1` on exactly one, reach `1` with chance `2/3 > 1/2`. With the filtration that knows nothing,
   independence holds and the same steps break only "each step known by the next time".
-* a probability measure: needed by the first theorem (cold review r84, checked in Lean, not in
-  `checks.py`): on one point of mass `∞`, Lean's `μ.real` of every set is `∞.toReal = 0`, so `hp`
-  holds with `p = 0` for the steps `+1, -1, +1, …`, which are independent and known in time, and the
-  walk never leaves `(-1, 2)`: the set where it stays has mass `∞`, not `0`. For the second and
-  third theorems it follows from the others: independence of the step's set `{X n = 1}` from the
-  whole space gives `μ s = μ s · μ univ`, so when the mass is not `1` (then it is `0` or `∞`) the
-  step's set has measure `0` or `∞`, its `μ.real` is `0`, and `hp` forces `p = 0`, against `p > 0`.
+* a probability measure: needed by the first theorem (cold review r84; the second `example` at
+  the end of the file): on one point of mass `∞`, Lean's `μ.real` of every set is
+  `∞.toReal = 0`, so `hp` holds with `p = 0` for the steps `+1, -1, +1, …`, which are independent
+  and known in time, and the walk never leaves `(-1, 2)`: the set where it stays has mass `∞`, not
+  `0`. For the second and third theorems it follows from the others (by hand): independence of
+  the step's set `{X n = 1}` from the whole space gives `μ s = μ s · μ univ`, so when the mass is
+  not `1` (then it is `0` or `∞`) the step's set has measure `0` or `∞`, its `μ.real` is `0`, and
+  `hp` forces `p = 0`, against `p > 0`.
 
 ## What Mathlib provides
 
@@ -980,5 +981,60 @@ example : ∃ (Ω : Type) (m0 : MeasurableSpace Ω) (μ : Measure Ω) (_ : IsPro
     rw [hset, measureReal_def, ← Measure.map_apply (hBm _) (measurableSet_singleton _),
       (hBlaw (n + 1)).map_eq]
     simp [hν]
+
+open scoped ENNReal in
+/-- **Why `ae_exitTime_ne_top_of_biased` needs a probability measure** (cold review r84): one point
+of mass `∞`. Lean's `μ.real` of every set is `∞.toReal = 0`, so `hp` holds with `p = 0` for the
+steps `+1, -1, +1, …`, which are independent and known in advance (the filtration that knows
+nothing), and the walk `0, 1, 0, 1, …` never leaves `(-1, 2)`: the set where it stays has mass `∞`,
+not `0`. -/
+example : ∃ (μ : Measure Unit) (𝒢 : Filtration ℕ (inferInstance : MeasurableSpace Unit))
+    (X : ℕ → Unit → ℝ) (p : ℝ), ¬ IsProbabilityMeasure μ ∧
+    (∀ n, StronglyMeasurable[𝒢 (n + 1)] (X n)) ∧
+    (∀ n, Indep (MeasurableSpace.comap (X n) inferInstance) (𝒢 n) μ) ∧
+    (∀ n ω, X n ω = 1 ∨ X n ω = -1) ∧ (∀ n, μ.real {ω | X n ω = 1} = p) ∧
+    ¬ (∀ᵐ ω ∂μ, exitTime X 2 1 ω ≠ ⊤) := by
+  set μ : Measure Unit := (∞ : ℝ≥0∞) • Measure.dirac () with hμ
+  have hμu : μ Set.univ = ∞ := by simp [hμ]
+  have hset : ∀ s : Set Unit, s = ∅ ∨ s = Set.univ := fun s ↦ by
+    by_cases h : () ∈ s
+    · exact Or.inr (Set.eq_univ_of_forall fun x ↦ by cases x; exact h)
+    · exact Or.inl (Set.eq_empty_of_forall_notMem fun x ↦ by cases x; exact h)
+  set X : ℕ → Unit → ℝ := fun n _ ↦ (-1 : ℝ) ^ n with hX
+  have hwalk : ∀ n, walk X n () = if Even n then 0 else 1 := fun n ↦ by
+    induction n with
+    | zero => simp [walk]
+    | succ n ih =>
+      have hs : walk X (n + 1) () = walk X n () + (-1 : ℝ) ^ n := by
+        simp [walk, sum_range_succ, hX]
+      rw [hs, ih]
+      rcases Nat.even_or_odd n with h | h
+      · simp [h, h.neg_one_pow, Nat.even_add_one]
+      · simp [Nat.not_even_iff_odd.mpr h, h.neg_one_pow, Nat.even_add_one]
+  have hexit : exitTime X 2 1 () = ⊤ := by
+    rw [exitTime, hittingAfter_eq_top_iff]
+    intro j _
+    simp only [Set.mem_ofPred_eq, hwalk]
+    split_ifs <;> norm_num
+  refine ⟨μ, ⊥, X, 0, fun h ↦ ?_, fun n ↦ stronglyMeasurable_const, fun n ↦ ?_, fun n ω ↦ ?_,
+    fun n ↦ ?_, fun h ↦ ?_⟩
+  · have := h.measure_univ
+    rw [hμu] at this
+    exact ENNReal.top_ne_one this
+  · rw [Indep_iff]
+    intro t1 t2 _ _
+    rcases hset t1 with h1 | h1 <;> rcases hset t2 with h2 | h2 <;> simp [h1, h2, hμu]
+  · rcases Nat.even_or_odd n with h | h
+    · exact Or.inl h.neg_one_pow
+    · exact Or.inr h.neg_one_pow
+  · rcases hset {ω | X n ω = 1} with h | h
+    · rw [h, measureReal_empty]
+    · rw [h, measureReal_def, hμu]
+      simp
+  · rw [ae_iff] at h
+    have hs : {ω | ¬ exitTime X 2 1 ω ≠ ⊤} = Set.univ :=
+      Set.eq_univ_of_forall fun ω ↦ by cases ω; exact not_not.mpr hexit
+    rw [hs, hμu] at h
+    exact ENNReal.top_ne_zero h
 
 end ClassicalLean.Probability.GamblersRuin

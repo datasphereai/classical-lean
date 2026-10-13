@@ -57,8 +57,8 @@ rational: `recDenom (sumSumPowRec ρ) · ∑ S n Xⁿ = X + ρ X²` (`recDenom_m
 new column) and `sum_pow_sub_succ`. The generating-function proof sets
 `backward.isDefEq.respectTransparency false`, as that module explains; without it the coefficients
 at indices 1 and 2 are not closed (measured 2026-10-09). `recDenom (sumSumPowRec ρ)` is
-`(1 - X)² (1 - ρ X)`; that identity was checked in Lean by review r6 of order LEAN-16 and is not
-stated here.
+`(1 - X)² (1 - ρ X)`; review r6 of order LEAN-16 checked that identity in its own scratch file,
+outside the library, and it is not stated here.
 
 **The variance of a sum for a covariance-stationary series** (order LEAN-27, item 80). When the
 covariances depend only on the lag, `cov (X i, X j) = γ |i - j|`, the double sum of covariances
@@ -98,7 +98,8 @@ its integral almost everywhere (Mathlib's `ae_eq_integral_of_variance_eq_zero`),
 sum's are: dropping `MemLp` gives the sum's case above (left side `1`, Lean's junk covariances `0`,
 the integral of a non-integrable function, so `γ = 0` and the product form is `0`); dropping the
 covariance condition, `X 0 = X 1` with variance `1` and `γ = 0`, `k = 2`, gives `4` against `0`. The
-finite measure is needed by the sum and the product form alike (cold review r80b, checked in Lean):
+finite measure is needed by the sum and the product form alike (cold review r80b; the third
+`example` at the end of the module):
 with masses `1`, `1` and `∞` on three points, `X 0` the indicator of the first and `X 1` minus the
 indicator of the second, each centred product is a nonzero constant on the point of infinite mass,
 so every covariance is Lean's junk `0` (the integral of a non-integrable function) and `γ = 0` meets
@@ -576,5 +577,64 @@ example : ∃ (μ : Measure Bool) (_ : IsFiniteMeasure μ) (X : ℕ → Bool →
     fun _ b ↦ if b then 1 else 0, fun _ ↦ 1, fun _ _ ↦ MemLp.of_discrete, ?_, one_ne_zero⟩
   intro i _ j _
   simp [covariance, integral_add_measure, Integrable.of_finite]
+
+open scoped ENNReal in
+/-- **Why the finite measure is needed** (cold review r80b): masses `1`, `1` and `∞` on three
+points, `X 0` the indicator of the first point and `X 1` minus the indicator of the second. Both are
+in `L²`, every covariance is Lean's junk `0` (the integral of a non-integrable function, as each
+centred product is a nonzero constant on the point of infinite mass), so `γ = 0` meets the
+covariance condition with `k = 2`; the sum has variance `2`, and the sum form and the product form
+both give `0`. -/
+example : ∃ (μ : Measure (Fin 3)) (X : Fin 2 → Fin 3 → ℝ) (γ : ℕ → ℝ), ¬ IsFiniteMeasure μ ∧
+    (∀ i, MemLp (X i) 2 μ) ∧
+    (∀ i j : Fin 2, cov[X i, X j; μ] = γ (max (i : ℕ) j - min (i : ℕ) j)) ∧
+    Var[fun ω ↦ ∑ i, X i ω; μ] = 2 ∧
+    ((2 : ℕ) : ℝ) * γ 0 + 2 * ∑ j ∈ Ico (1 : ℕ) 2, (((2 : ℕ) : ℝ) - j) * γ j = 0 ∧
+    ((2 : ℕ) : ℝ) * γ 0 *
+      (1 + 2 * ∑ j ∈ Ico (1 : ℕ) 2, (1 - (j : ℝ) / (2 : ℕ)) * (γ j / γ 0)) = 0 := by
+  set ν : Measure (Fin 3) := Measure.dirac 0 + Measure.dirac 1 + (∞ : ℝ≥0∞) • Measure.dirac 2
+    with hν
+  have hlint : ∀ g : Fin 3 → ℝ≥0∞, ∫⁻ ω, g ω ∂ν = g 0 + g 1 + ∞ * g 2 := fun g ↦ by
+    simp [hν, lintegral_add_measure, lintegral_smul_measure, lintegral_dirac]
+  -- a function is integrable exactly when it is `0` at the point of infinite mass
+  have hint : ∀ f : Fin 3 → ℝ, Integrable f ν ↔ f 2 = 0 := fun f ↦ by
+    refine ⟨fun h ↦ ?_, fun h ↦ ⟨(measurable_of_finite f).aestronglyMeasurable, ?_⟩⟩
+    · have h2 : ∫⁻ ω, ‖f ω‖ₑ ∂ν < ∞ := h.2
+      rw [hlint] at h2
+      by_contra hne
+      rw [ENNReal.top_mul (by simpa using hne)] at h2
+      simp at h2
+    · change ∫⁻ ω, ‖f ω‖ₑ ∂ν < ∞
+      rw [hlint, h]
+      simp
+  have hinteg : ∀ f : Fin 3 → ℝ, f 2 = 0 → ∫ ω, f ω ∂ν = f 0 + f 1 := fun f h ↦ by
+    have hI := (hint f).mpr h
+    rw [hν] at hI ⊢
+    obtain ⟨h01, h2⟩ := integrable_add_measure.mp hI
+    rw [integral_add_measure h01 h2, integral_smul_measure]
+    simp [integral_add_measure, Integrable.of_finite, h]
+  set X : Fin 2 → Fin 3 → ℝ :=
+    ![fun ω ↦ if ω = 0 then 1 else 0, fun ω ↦ if ω = 1 then -1 else 0] with hX
+  have hX2 : ∀ i, X i 2 = 0 := fun i ↦ by fin_cases i <;> simp [hX]
+  have hmean : ∀ i, ∫ ω, X i ω ∂ν ≠ 0 := fun i ↦ by
+    rw [hinteg _ (hX2 i)]
+    fin_cases i <;> simp [hX]
+  refine ⟨ν, X, fun _ ↦ 0, fun h ↦ ?_, fun i ↦ ?_, fun i j ↦ ?_, ?_, by simp, by simp⟩
+  · have := measure_lt_top ν Set.univ
+    rw [← lintegral_one, hlint] at this
+    simp at this
+  · rw [memLp_two_iff_integrable_sq (measurable_of_finite _).aestronglyMeasurable, hint]
+    simp [hX2 i]
+  · rw [covariance]
+    apply integral_undef
+    rw [hint]
+    simp [hX2 i, hX2 j, hmean i, hmean j]
+  · have hS : ∫ ω, (∑ i, X i ω) ∂ν = 0 := by
+      rw [hinteg (fun ω ↦ ∑ i, X i ω) (by simp [hX2])]
+      simp [hX]
+    simp only [variance, evariance]
+    rw [hS, hlint]
+    simp [hX]
+    norm_num
 
 end ClassicalLean.Probability.EffectiveSampleSize

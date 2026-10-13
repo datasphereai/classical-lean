@@ -53,7 +53,8 @@ Each other hypothesis is needed (lines R3 and R4):
   the bound would hold. The trials from `n` on need not be measurable (they play no part), so the
   hypothesis is stated for `i < n` only; this makes the theorem wider than order LEAN-26's, whose
   statement (with `∀ i`) follows from it.
-* each trial losing with chance `q` (cold review r87, checked in Lean): for the second theorem,
+* each trial losing with chance `q` (cold review r87; the third `example` at the end of this file
+  for the second theorem, the fourth for the first): for the second theorem,
   `A i = ∅` for every `i` (measurable and independent) with `q = 1` stated, `n = r = 1`: no run has
   chance `1 > (1 − 1)^1 = 0`; for the first, `A i` the whole space with `q = 0` stated, `n = r = 1`:
   a run has chance `1 > 1 · 0^1 = 0`.
@@ -264,6 +265,55 @@ example : ∃ (P : @Measure Bool ⊥) (A : ℕ → Set Bool),
         htop _ (measurableSet_toMeasurable _ _) (subset_toMeasurable _ _)]
       simp
     rw [measureReal_def, h1]
+    norm_num
+
+/-- **Why `measureReal_no_run_le` needs each trial to lose with chance `q`** (cold review r87): one
+trial on `Bool` with the point mass at `true`, `A 0 = ∅` (measurable, and independent, as one event
+is under a probability measure), and `q = 1` stated, `n = r = 1`: no run has chance `1`, above the
+bound `(1 − 1^1)^1 = 0`. -/
+example : ∃ (P : Measure Bool) (A : ℕ → Set Bool), (∀ i < 1, MeasurableSet (A i)) ∧
+    iIndepSet (fun i : Fin 1 ↦ A i) P ∧
+      (1 - (1 : ℝ) ^ 1) ^ (1 / 1) < P.real (runEvent A 1 1)ᶜ := by
+  refine ⟨Measure.dirac true, fun _ ↦ ∅, fun _ _ ↦ MeasurableSet.empty, ?_, ?_⟩
+  · change iIndep (fun i : Fin 1 ↦ MeasurableSpace.generateFrom {(∅ : Set Bool)}) _
+    rw [iIndep_iff]
+    intro s f _
+    rcases Finset.eq_empty_or_nonempty s with rfl | ⟨i₀, hi₀⟩
+    · simp
+    · have hs : s = {i₀} := by
+        ext i
+        simp only [Finset.mem_singleton, Subsingleton.elim i i₀, hi₀]
+      subst hs
+      simp
+  · have hrun : runEvent (fun _ ↦ (∅ : Set Bool)) 1 1 = ∅ := by
+      ext ω
+      simp only [runEvent, Set.mem_ofPred_eq, Set.mem_empty_iff_false, iff_false, not_exists,
+        not_and]
+      intro s hs h
+      exact h s (mem_Ico.mpr ⟨le_rfl, Nat.lt_succ_self s⟩)
+    rw [hrun, Set.compl_empty, probReal_univ]
+    norm_num
+
+/-- **Why `measureReal_exists_run_le` needs each trial to lose with chance `q`** (cold review r87):
+one trial on `Bool` with the point mass at `true`, `A 0` the whole space (independent, as one event
+is under a probability measure), and `q = 0` stated, `n = r = 1`: a run has chance `1`, above the
+bound `1 · 0^1 = 0`. -/
+example : ∃ (P : Measure Bool) (A : ℕ → Set Bool), iIndepSet (fun i : Fin 1 ↦ A i) P ∧
+    ((1 + 1 - 1 : ℕ) : ℝ) * (0 : ℝ) ^ 1 < P.real (runEvent A 1 1) := by
+  refine ⟨Measure.dirac true, fun _ ↦ Set.univ, ?_, ?_⟩
+  · change iIndep (fun i : Fin 1 ↦ MeasurableSpace.generateFrom {(Set.univ : Set Bool)}) _
+    rw [iIndep_iff]
+    intro s f _
+    rcases Finset.eq_empty_or_nonempty s with rfl | ⟨i₀, hi₀⟩
+    · simp
+    · have hs : s = {i₀} := by
+        ext i
+        simp only [Finset.mem_singleton, Subsingleton.elim i i₀, hi₀]
+      subst hs
+      simp
+  · have hrun : runEvent (fun _ ↦ (Set.univ : Set Bool)) 1 1 = Set.univ :=
+      Set.eq_univ_of_forall fun _ ↦ ⟨0, le_rfl, fun _ _ ↦ Set.mem_univ _⟩
+    rw [hrun, probReal_univ]
     norm_num
 
 end ClassicalLean.Probability.LongestRun
