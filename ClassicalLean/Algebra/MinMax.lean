@@ -7,7 +7,7 @@ Authors: Dustin Watkins, Claude (Anthropic)
 import Mathlib.Analysis.InnerProductSpace.Spectrum
 
 /-!
-# Courant–Fischer min–max, and Weyl's eigenvalue inequalities
+# Courant–Fischer min–max, Weyl's eigenvalue inequalities, and Ky Fan's maximum principle
 
 `T` is a symmetric (self-adjoint) linear map on a finite-dimensional real or complex inner product
 space `E` of dimension `n`; Mathlib's `hT.eigenvalues hn : Fin n → ℝ` lists its eigenvalues
@@ -28,13 +28,35 @@ space `E` of dimension `n`; Mathlib's `hT.eigenvalues hn : Fin n → ℝ` lists 
   when `k + n ≤ i + j + 1`. Both take `hS` before `hT`, in the order of `S + T`.
 * `eigenvalues_le_eigenvalues_add` — adding a positive semidefinite `T` lowers no eigenvalue
   (its hypothesis is the second half of Mathlib's `LinearMap.IsPositive`).
+* `sum_eigenvalues_eq_iSup` — order LEAN-27, item 83, **Ky Fan's maximum principle**: for
+  `k ≤ n`, `λ₀ + ⋯ + λ_{k−1}` is the largest value of `∑ᵢ re ⟪T uᵢ, uᵢ⟫` over orthonormal families
+  `u₀, …, u_{k−1}`. Without the supremum: `sum_re_inner_le_sum_eigenvalues` (every orthonormal
+  family is below) and `sum_re_inner_eigenvectorBasis` (the first `k` eigenvectors reach it). The
+  proof: with `wⱼ = ∑ᵢ |⟪bⱼ, uᵢ⟫|²` in the eigenvector basis `b`, the sum is `∑ⱼ λⱼ wⱼ`; each
+  `wⱼ ≤ 1` by Bessel's inequality over the orthonormal `u` (Mathlib's
+  `Orthonormal.sum_inner_products_le`), `∑ⱼ wⱼ = k` since each `uᵢ` has norm `1`, and then
+  `sum_mul_le_sum_of_antitone` (weights in `[0, 1]` summing to `k` put at most the `k` largest
+  values). Needed, by exact cases in order LEAN-27's `checks.py`: for that lemma, `λ` decreasing
+  (`λ = (0, 1)`, `w = (0, 1)`, `k = 1`: `1 > 0`), `w ≥ 0` (`λ = (1, 1, 0)`, `w = (1, 1, −1)`,
+  `k = 1`: `2 > 1`; cold review r83 replaced a case that also broke `w ≤ 1`), `w ≤ 1`
+  (`λ = (1, 0, 0)`, `w = (2, 0, 0)`, `k = 2`: `2 > 1`) and `∑ w = k` (`λ = (1, 1)`, `w = (1, 1)`,
+  `k = 1`: `2 > 1`), each case keeping the other hypotheses (the script checks that); for the
+  bound, orthonormality, both halves (`T = id` on `ℝ¹`, `u₀ = 2`: `4 > 1`; and `T = diag(1, 0)` on
+  `ℝ²`, `k = 2`, `u₀ = u₁ = e₀`: `2 > 1`). `k ≤ n` is what lets the first `k` eigenvalues be named;
+  with `k > n` there is no orthonormal family of `k` vectors, so a `⨆` over them would be over an
+  empty type, which Lean sets to `0`. For a matrix, the sorted list is Mathlib's
+  `Matrix.IsHermitian.eigenvalues₀` (`eigenvalues` is indexed through an arbitrary equivalence and
+  is not sorted), and the bridge to this linear-map form is `Matrix.toEuclideanLin` (import
+  `Mathlib.Analysis.Matrix.Spectrum`; take `hn := finrank_euclideanSpace` and
+  `hT := Matrix.isSymmetric_toEuclideanLin_iff.mpr hA`, and the left side is `hA.eigenvalues₀`;
+  a note for item 142 of the plan, cold review r83).
 
-The proof: in an orthonormal basis of eigenvectors, `re ⟪T x, x⟫ = ∑ λᵢ |cᵢ|²` and
-`‖x‖² = ∑ |cᵢ|²` (`re_inner_eq_sum`, `norm_sq_eq_sum`), so the span of the first `k + 1`
-eigenvectors has `re ⟪T x, x⟫ ≥ λ_k ‖x‖²` and the span of the last `n − k` has `≤`. Two subspaces
-whose dimensions add up to more than `n` share a unit vector (`exists_unit_mem_inf`, from
-`dim (V ⊔ W) + dim (V ⊓ W) = dim V + dim W`). Each theorem picks such a vector in the right
-intersection.
+The proof of Courant–Fischer and Weyl: in an orthonormal basis of eigenvectors,
+`re ⟪T x, x⟫ = ∑ λᵢ |cᵢ|²` and `‖x‖² = ∑ |cᵢ|²` (`re_inner_eq_sum`, `norm_sq_eq_sum`), so the
+span of the first `k + 1` eigenvectors has `re ⟪T x, x⟫ ≥ λ_k ‖x‖²` and the span of the last
+`n − k` has `≤`. Two subspaces whose dimensions add up to more than `n` share a unit vector
+(`exists_unit_mem_inf`, from `dim (V ⊔ W) + dim (V ⊓ W) = dim V + dim W`). Each theorem picks
+such a vector in the right intersection.
 
 ## Hypotheses
 
@@ -54,7 +76,8 @@ vector.
 Citations: Courant 1920, "Über die Eigenwerte bei den Differentialgleichungen der mathematischen
 Physik"; Fischer 1905, "Über quadratische Formen mit reellen Koeffizienten"; Weyl 1912, "Das
 asymptotische Verteilungsgesetz der Eigenwerte linearer partieller Differentialgleichungen".
-None was read for this file.
+Ky Fan 1949, "On a theorem of Weyl concerning eigenvalues of linear transformations I",
+Proc. Nat. Acad. Sci. 35. None was read for this file.
 
 ## Mathlib at v4.34.0
 
@@ -70,6 +93,12 @@ hits are Weyl groups). Mathlib has `eigenvalues_antitone`, `eigenvectorBasis`,
 not used).
 Main lemmas used: `Submodule.finrank_sup_add_finrank_inf_eq`, `finrank_span_eq_card`,
 `Basis.mem_span_image`, `norm_smul_inv_norm`, `PiLp.inner_apply`, `EuclideanSpace.norm_sq_eq`.
+For Ky Fan (order LEAN-27, re-run by MATH-PLAN-library-2's check script and by cold review r83):
+`ky fan|kyFan` 0 lines in pinned Mathlib and in Mathlib master at `2da3ab0a`, 0 in the library
+before this item;
+the nearest Mathlib fact is `Matrix.IsHermitian.trace_eq_sum_eigenvalues` (the case `k = n`, with
+no supremum). Ky Fan's proof here uses Bessel's inequality (`Orthonormal.sum_inner_products_le`),
+not Courant–Fischer.
 -/
 
 open Module LinearMap Submodule
@@ -305,5 +334,113 @@ theorem eigenvalues_le_eigenvalues_add (hT0 : ∀ x, 0 ≤ RCLike.re ⟪T x, x�
   rw [hx1, one_pow, mul_one] at hU
   rw [re_inner_add_apply] at hle
   linarith [hT0 x]
+
+/-! ### Ky Fan's maximum principle (order LEAN-27, item 83) -/
+
+/-- Weights in `[0, 1]` summing to `k` put at most the `k` largest values: for `λ` decreasing,
+`∑ λⱼ wⱼ ≤ λ₀ + ⋯ + λ_{k−1}`. -/
+theorem sum_mul_le_sum_of_antitone {N : ℕ} {lam w : Fin N → ℝ} (hlam : Antitone lam)
+    (hw0 : ∀ j, 0 ≤ w j) (hw1 : ∀ j, w j ≤ 1) {k : ℕ} (hk : k ≤ N) (hsum : ∑ j, w j = k) :
+    ∑ j, lam j * w j ≤ ∑ i : Fin k, lam (Fin.castLE hk i) := by
+  rcases Nat.eq_zero_or_pos k with rfl | hk0
+  · have hw : ∀ j, w j = 0 := fun j ↦ by
+      have := (Finset.sum_eq_zero_iff_of_nonneg fun j _ ↦ hw0 j).mp (by simpa using hsum) j
+      exact this (Finset.mem_univ j)
+    simp [hw]
+  set S : Finset (Fin N) := Finset.univ.image (Fin.castLE hk) with hSdef
+  have hmem : ∀ j : Fin N, j ∈ S ↔ (j : ℕ) < k := fun j ↦ by
+    simp only [hSdef, Finset.mem_image, Finset.mem_univ, true_and]
+    exact ⟨fun ⟨i, hi⟩ ↦ hi ▸ i.isLt, fun h ↦ ⟨⟨j, h⟩, rfl⟩⟩
+  have hcard : (S.card : ℝ) = k := by
+    rw [hSdef, Finset.card_image_of_injective _ (Fin.castLE_injective hk)]
+    simp
+  have hRHS : ∑ i : Fin k, lam (Fin.castLE hk i) = ∑ j ∈ S, lam j := by
+    rw [hSdef, Finset.sum_image fun a _ b _ h ↦ Fin.castLE_injective hk h]
+  set c := lam ⟨k - 1, by omega⟩
+  have hin : ∀ j ∈ S, c ≤ lam j := fun j hj ↦
+    hlam (Fin.mk_le_mk.mpr (by have := (hmem j).mp hj; omega) : j ≤ ⟨k - 1, by omega⟩)
+  have hout : ∀ j ∈ Sᶜ, lam j ≤ c := fun j hj ↦ by
+    have : ¬ (j : ℕ) < k := fun h ↦ (Finset.mem_compl.mp hj) ((hmem j).mpr h)
+    exact hlam (Fin.mk_le_mk.mpr (by omega) : (⟨k - 1, by omega⟩ : Fin N) ≤ j)
+  have h1 : ∑ j ∈ Sᶜ, lam j * w j ≤ ∑ j ∈ Sᶜ, c * w j :=
+    Finset.sum_le_sum fun j hj ↦ mul_le_mul_of_nonneg_right (hout j hj) (hw0 j)
+  have h2 : ∑ j ∈ S, c * (1 - w j) ≤ ∑ j ∈ S, lam j * (1 - w j) :=
+    Finset.sum_le_sum fun j hj ↦ mul_le_mul_of_nonneg_right (hin j hj) (sub_nonneg.2 (hw1 j))
+  have h3 : ∑ j ∈ S, w j + ∑ j ∈ Sᶜ, w j = k := by rw [Finset.sum_add_sum_compl, hsum]
+  rw [← Finset.sum_add_sum_compl S (fun j ↦ lam j * w j), hRHS]
+  simp only [mul_sub, mul_one, Finset.sum_sub_distrib, ← Finset.mul_sum] at h1 h2
+  rw [Finset.sum_const, nsmul_eq_mul, hcard] at h2
+  have h4 : ∑ j ∈ Sᶜ, w j = k - ∑ j ∈ S, w j := by linarith
+  rw [h4, mul_sub] at h1
+  linarith
+
+/-- **Ky Fan, the bound.** For every orthonormal family `u₀, …, u_{k−1}`, `k ≤ n`:
+`∑ᵢ re ⟪T uᵢ, uᵢ⟫ ≤ λ₀ + ⋯ + λ_{k−1}`. -/
+theorem sum_re_inner_le_sum_eigenvalues {k : ℕ} (hk : k ≤ n) {u : Fin k → E}
+    (hu : Orthonormal 𝕜 u) :
+    ∑ i, RCLike.re ⟪T (u i), u i⟫_𝕜 ≤ ∑ i : Fin k, hT.eigenvalues hn (Fin.castLE hk i) := by
+  set b := hT.eigenvectorBasis hn
+  set w : Fin n → ℝ := fun j ↦ ∑ i, ‖b.repr (u i) j‖ ^ 2
+  have hsum : ∑ i, RCLike.re ⟪T (u i), u i⟫_𝕜 = ∑ j, hT.eigenvalues hn j * w j := by
+    simp only [re_inner_eq_sum hn hT, w, Finset.mul_sum]
+    exact Finset.sum_comm
+  have hw0 : ∀ j, 0 ≤ w j := fun j ↦ Finset.sum_nonneg fun i _ ↦ sq_nonneg _
+  have hw1 : ∀ j, w j ≤ 1 := fun j ↦ by
+    have := hu.sum_inner_products_le (x := b j) (s := Finset.univ)
+    rw [b.orthonormal.1 j, one_pow] at this
+    refine le_trans (le_of_eq ?_) this
+    refine Finset.sum_congr rfl fun i _ ↦ ?_
+    rw [b.repr_apply_apply, norm_inner_symm]
+  have hw : ∑ j, w j = k := by
+    simp only [w]
+    rw [Finset.sum_comm]
+    simp [← norm_sq_eq_sum, hu.1]
+  rw [hsum]
+  exact sum_mul_le_sum_of_antitone (hT.eigenvalues_antitone hn) hw0 hw1 hk hw
+
+/-- **Ky Fan, reached** at the first `k` eigenvectors. -/
+theorem sum_re_inner_eigenvectorBasis {k : ℕ} (hk : k ≤ n) :
+    ∑ i : Fin k, RCLike.re ⟪T (hT.eigenvectorBasis hn (Fin.castLE hk i)),
+        hT.eigenvectorBasis hn (Fin.castLE hk i)⟫_𝕜 =
+      ∑ i : Fin k, hT.eigenvalues hn (Fin.castLE hk i) := by
+  refine Finset.sum_congr rfl fun i _ ↦ ?_
+  rw [hT.apply_eigenvectorBasis, inner_smul_left, inner_self_eq_norm_sq_to_K,
+    (hT.eigenvectorBasis hn).orthonormal.1]
+  simp
+
+/-- **Ky Fan's maximum principle** (order LEAN-27, item 83): for `k ≤ n`, the sum of the `k`
+largest eigenvalues of `T` is the largest value of `∑ᵢ re ⟪T uᵢ, uᵢ⟫` over orthonormal families
+`u₀, …, u_{k−1}`. The supremum is over a nonempty family bounded above, so it is a true maximum,
+not Lean's junk `0`. -/
+theorem sum_eigenvalues_eq_iSup {k : ℕ} (hk : k ≤ n) :
+    ∑ i : Fin k, hT.eigenvalues hn (Fin.castLE hk i) =
+      ⨆ u : {u : Fin k → E // Orthonormal 𝕜 u}, ∑ i, RCLike.re ⟪T (u.1 i), u.1 i⟫_𝕜 := by
+  have hv : Orthonormal 𝕜 (hT.eigenvectorBasis hn ∘ Fin.castLE hk) :=
+    (hT.eigenvectorBasis hn).orthonormal.comp _ (Fin.castLE_injective hk)
+  have : Nonempty {u : Fin k → E // Orthonormal 𝕜 u} := ⟨⟨_, hv⟩⟩
+  refine le_antisymm ?_ (ciSup_le fun u ↦ sum_re_inner_le_sum_eigenvalues hn hT hk u.2)
+  refine le_ciSup_of_le ⟨_, Set.forall_mem_range.mpr fun u ↦
+    sum_re_inner_le_sum_eigenvalues hn hT hk u.2⟩ ⟨_, hv⟩ ?_
+  exact (sum_re_inner_eigenvectorBasis hn hT hk).ge
+
+/-- The hypotheses of `sum_mul_le_sum_of_antitone` can be met together. -/
+example : ∃ (lam w : Fin 2 → ℝ), Antitone lam ∧ (∀ j, 0 ≤ w j) ∧ (∀ j, w j ≤ 1) ∧ 1 ≤ 2 ∧
+    ∑ j, w j = (1 : ℕ) :=
+  ⟨0, fun _ ↦ 1 / 2, antitone_const, fun _ ↦ by norm_num, fun _ ↦ by norm_num, by norm_num,
+    by simp⟩
+
+/-- The hypotheses of `sum_re_inner_le_sum_eigenvalues` and `sum_eigenvalues_eq_iSup` can be met
+together: the identity on `ℝ²`, `k = 1`, `u₀` the first standard basis vector. -/
+example : ∃ (T : EuclideanSpace ℝ (Fin 2) →ₗ[ℝ] EuclideanSpace ℝ (Fin 2))
+    (u : Fin 1 → EuclideanSpace ℝ (Fin 2)), T.IsSymmetric ∧
+      finrank ℝ (EuclideanSpace ℝ (Fin 2)) = 2 ∧ 1 ≤ 2 ∧ Orthonormal ℝ u :=
+  ⟨LinearMap.id, EuclideanSpace.basisFun (Fin 2) ℝ ∘ Fin.castLE (by norm_num),
+    LinearMap.IsSymmetric.id, finrank_euclideanSpace_fin, by norm_num,
+    (EuclideanSpace.basisFun (Fin 2) ℝ).orthonormal.comp _ (Fin.castLE_injective _)⟩
+
+/-- Ky Fan applied on a concrete space, every type given (cold review r83): the identity on
+`ℝ²`, `k = 1`. -/
+example := sum_eigenvalues_eq_iSup (𝕜 := ℝ) (E := EuclideanSpace ℝ (Fin 2))
+  finrank_euclideanSpace_fin LinearMap.IsSymmetric.id (k := 1) (by norm_num)
 
 end ClassicalLean.MinMax
