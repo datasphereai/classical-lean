@@ -186,6 +186,8 @@ def main(argv):
         print(f"{v:7} {short:36} expected {want:7} {'ok' if ok else 'MISMATCH'} {hashes[n]}")
     for m in re.finditer(r"KERNEL-REJECTED (VacuityGateTests\.\S+) \[([^\]]*)\]: (.*)", out):
         print(f"kernel rejected {m.group(1).split('.', 1)[1]} [{m.group(2)}]: {m.group(3)}")
+    for m in re.finditer(r"UNCHECKED (VacuityGateTests\.\S+): (.*)", out):
+        print(f"unchecked {m.group(1).split('.', 1)[1]}: {m.group(2)}")
     ranout = re.findall(r"RULE5-RANOUT (VacuityGateTests\.\S+?):", out)
     for n in sorted(ranout):
         print(f"rule 5 ran out: {n.split('.', 1)[1]}")

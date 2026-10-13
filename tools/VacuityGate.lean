@@ -274,24 +274,25 @@ def followsFromHyp (xs : Array Expr) (concl : Expr) : MetaM (Option Expr) := do
     (`lambdaBoundedTelescope` over each alternative's `altNumParams` parameters: its pattern
     variables, and any unit thunk and `h :` equations), and each branch body is unfolded the same
     way, at most `maxLevels` matches deep (each branch keeps the same `fuel` for definitions).
-    When every branch is `True`, and Lean's `isDefEq` at `.all` agrees that the match is `True`,
-    the match is read as `True`; otherwise it stays stuck (Dustin's ruling of 2026-10-12: nothing
-    is computed when every branch is `True`). So `PairT x` for `PairT (_, _) := True` is `True`
-    (test `vac_pair_true`), while `Small2 0`, with a `True` and a `False` branch, is not. The
-    `isDefEq` check holds for a match on a variable of a structure type (eta), and not on a type
-    without eta (`ℕ`, `Bool`, other inductives): there the kernel cannot see the match as `True`,
-    no `True.intro` proof exists, and the match stays stuck, so `∀ n, NatT n` with both branches
-    `True` passes (a stated limit, test `lim_nat_true`), while such a match closed by a hypothesis
-    is still flagged through it (test `vac_hyp_and_nat_true`). A match with no branch stays
-    stuck. -/
+    When every branch is `True` the match is read as `True`; otherwise it stays stuck (Dustin's
+    ruling of 2026-10-12: nothing is computed when every branch is `True`). So `PairT x` for
+    `PairT (_, _) := True` is `True` (test `vac_pair_true`), while `Small2 0`, with a `True` and a
+    `False` branch, is not. Where the reading is used (`vacuousProof`, `gluedProof`), `confirmTrue`
+    asks whether `True.intro` proves it: yes for a structure outside `Prop` (eta) or a
+    constructor; no for a variable of `ℕ`, `Bool` or another inductive. When it cannot, a
+    hypothesis that closes the part is tried (test `vac_hyp_and_nat_true`, flagged), and failing
+    that the theorem is UNCHECKED, which fails the gate, never a pass (`unconfirmedMsg`; Dustin's
+    ruling of 2026-10-13; tests `vac_unchecked_nat_true`, `vac_unchecked_hyp_and_nat_true`). A
+    part with content still makes the glue fail first (`real_nat_true_and_work` passes). A match
+    with no branch stays stuck. -/
 partial def unfoldNamed (e : Expr) (fuel : Nat := 32) (depth : Nat := 0) : MetaM Expr := do
   let e ← withConfig (fun c => { c with iota := false }) <| whnfCore e
   if fuel == 0 then return e
   if let .const c _ := e.getAppFn then
     if [``ite, ``dite, ``cond, ``Decidable.decide].contains c then return e
   -- a `match` that `whnfCore` left stuck: `True` when every branch, its parameters bound,
-  -- unfolds to `True` (Dustin's ruling of 2026-10-12, order LEAN-27 job 0) and Lean's own `isDefEq`
-  -- agrees, so that `True.intro` is a proof the kernel accepts (job 0's review of `f70aa50`)
+  -- unfolds to `True` (Dustin's ruling of 2026-10-12, order LEAN-27 job 0); whether `True.intro`
+  -- proves it is checked where the reading is used (`confirmTrue`, Dustin's ruling of 2026-10-13)
   if let some app ← matchMatcherApp? e then
     if depth ≥ maxLevels || app.alts.isEmpty then return e
     for alt in app.alts, k in app.altNumParams do
@@ -299,11 +300,22 @@ partial def unfoldNamed (e : Expr) (fuel : Nat := 32) (depth : Nat := 0) : MetaM
         if xs.size < k then return false
         return (← unfoldNamed (mkAppN body app.remaining) fuel (depth + 1)).isConstOf ``True
       unless isTrue do return e
-    if ← withTransparency .all (isDefEq e (mkConst ``True)) then return mkConst ``True
-    return e
+    return mkConst ``True
   match ← unfoldDefinition? e with
   | some e' => unfoldNamed e' (fuel - 1) depth
   | none => return e
+
+/-- Is `e`, which `unfoldNamed` reads as `True`, `True` for Lean's `isDefEq` at `.all`, so that
+    `True.intro` is a proof the kernel accepts? Yes for a match on a variable of a structure type
+    outside `Prop` (eta) or on a constructor; no for an all-`True` match on a variable of `ℕ`,
+    `Bool` or another inductive type without eta (job 0's review of `f70aa50`). -/
+def confirmTrue (e : Expr) : MetaM Bool :=
+  withTransparency .all (isDefEq e (mkConst ``True))
+
+/-- The message of a theorem the fixed test reads as empty through an all-`True` match whose
+    `True.intro` proof it cannot confirm: the test fails closed, so `judge` returns UNCHECKED, which
+    fails the gate, never a pass (Dustin's ruling of 2026-10-13, order LEAN-27 job 0). -/
+def unconfirmedMsg : String := "every case is True; kernel could not confirm the proof"
 
 /-- Case 5, a glued conclusion (Dustin's ruling of 2026-10-11 on cold review r2's finding 3): the
     conclusion, its head unfolded, is a structure whose type is a proposition (`∧`, `↔`, or
@@ -318,12 +330,18 @@ partial def unfoldNamed (e : Expr) (fuel : Nat := 32) (depth : Nat := 0) : MetaM
     At most `maxLevels` levels deep, so a structure that contains itself (`Loop p` with a field
     of type `Loop p`) ends (cold review r3, finding 1; test `real_loop_wrap`). `top`: the whole
     conclusion, which `vacuousProof` has already tried as one part. -/
-partial def gluedProof (xs : Array Expr) (concl : Expr) (top : Bool := true) (depth : Nat := 0) :
-    MetaM (Option Expr) := do
+partial def gluedProof (xs : Array Expr) (concl : Expr) (unconf : IO.Ref Bool)
+    (top : Bool := true) (depth : Nat := 0) : MetaM (Option Expr) := do
   if depth ≥ maxLevels then return none
   let c ← whnf concl
   unless top do
-    if (← unfoldNamed concl).isConstOf ``True then return some (mkConst ``True.intro)
+    if (← unfoldNamed concl).isConstOf ``True then
+      if ← confirmTrue concl then return some (mkConst ``True.intro)
+      if let some pf ← followsFromHyp xs concl then return some pf
+      -- read `True` (every case of a match is `True`), but `True.intro` is no proof the kernel
+      -- accepts: the glue goes on, and `vacuousProof` fails closed if it succeeds
+      unconf.set true
+      return some (mkConst ``True.intro)
     if let some pf ← followsFromHyp xs concl then return some pf
   let .const sn us := c.getAppFn | return none
   unless isStructure (← getEnv) sn do return none
@@ -337,7 +355,7 @@ partial def gluedProof (xs : Array Expr) (concl : Expr) (top : Bool := true) (de
   repeat
     match ← whnf t with
     | .forallE _ d b _ =>
-      let some pf ← gluedProof xs d false (depth + 1) | return none
+      let some pf ← gluedProof xs d unconf false (depth + 1) | return none
       parts := parts.push pf
       t := b.instantiate1 pf
     | _ => break
@@ -423,7 +441,11 @@ def vacuousProof (type : Expr) : MetaM (Option (Expr × Expr)) :=
     -- computing, so `True` or `∃ y, y = e` behind a named definition is seen (cold review r2,
     -- finding 4) and a computed fact is not read as `True` (cold review r3, finding 2)
     let c' ← unfoldNamed concl
-    if concl.isConstOf ``True || c'.isConstOf ``True then return ← close (mkConst ``True.intro)
+    if concl.isConstOf ``True then return ← close (mkConst ``True.intro)
+    if c'.isConstOf ``True then
+      if ← confirmTrue concl then return ← close (mkConst ``True.intro)
+      if let some pf ← followsFromHyp xs concl then return ← close pf
+      throwError unconfirmedMsg
     for c in [concl, c'] do
       if isTrivialExists c then
         if let .app (.app (.const ``Exists us) α) f@(.lam _ _ (.app (.app _ lhs) rhs) _) := c then
@@ -431,7 +453,9 @@ def vacuousProof (type : Expr) : MetaM (Option (Expr × Expr)) :=
           return ← close (mkApp4 (mkConst ``Exists.intro us) α f e (mkApp2 (mkConst ``Eq.refl us) α e))
     if let some pf ← followsFromHyp xs concl then return ← close pf
     -- case 5, checked as `finish` checks case 3, then by the kernel in `judge`
-    let some pf ← gluedProof xs concl | return none
+    let unconf ← IO.mkRef false
+    let some pf ← gluedProof xs concl unconf | return none
+    if ← unconf.get then throwError unconfirmedMsg
     let ok ← try withTransparency .all do
         check pf
         isDefEq (← inferType pf) concl
