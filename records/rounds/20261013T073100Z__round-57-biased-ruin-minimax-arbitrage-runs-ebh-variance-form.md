@@ -30,4 +30,39 @@ The vacuity gate is used as LEAN-27 left it (no change to `tools/` except a poss
 
 ## Completed after the work
 
-(to be written after the work)
+Items 84 to 88 of MATH-PLAN-library-2 and item 80b are proved, no `sorry`, no new axiom. Narrowing:
+none (nothing narrower than the plan's rows). Wider, each said in its module docstring: item 84's
+`ae_exitTime_ne_top_of_biased` asks nothing of `p`; item 85 asks for no `Nonempty`; item 87's
+measurability hypothesis is only for the trials `i < n`; item 88 adds the sharper `q · |H| / m`.
+Item 88 is stated under a probability measure, the plan's expected share; a first draft for any
+finite measure was false (through Lean's point-mass law of a string that is not measurable) and was
+not committed. LEAN-27's item 80 narrowing (the product form not stated in Lean) is closed:
+`variance_sum_eq_mul_one_add` in `Probability/EffectiveSampleSize`, with no extra hypothesis.
+
+Commits on `lean-28` (from `deb08cb`; nothing pushed):
+
+* `c5c004b` records before the work (this fragment's first part).
+* `325c526` the six modules (items 84 to 88 and 80b); no new module, `ClassicalLean.lean` unchanged.
+* Cold reviews' fixes, each closed by a confirming pass: `f328482`, `92dfa7b` (EffectiveSampleSize,
+  r80b, two rounds); `6a1b65b`, `96f5cf7` (CompressionTest, r88, two rounds); `8b268ee`, `8cf6be5`
+  (GamblersRuin, r84, two rounds); `d0e6b8e` (FiniteGame, r85); `3f4df2f` (ArbitrageCycle, r86);
+  `e81ab8a` (LongestRun, r87: a satisfiability example, and `measurableSet_allLost` asks only for
+  its block's trials).
+* `1032cd3` HANDOFF.md and ROADMAP.md; `8ae25e2` the bridge baseline `records/bridges/LEAN-28/`.
+
+Per-module theorem constants (census of scratch copies, the axiom gate's `.thmInfo` predicate under
+`ClassicalLean`): GamblersRuin 51 → 68; FiniteGame 55 → 56; ArbitrageCycle 47 → 47; LongestRun
+37 → 38 (one helper renumbered); CompressionTest 15 → 18; EffectiveSampleSize 63 → 72.
+
+Whole-library numbers on the **clean** tree at `8ae25e2`: build 4170 jobs (two Mathlib modules
+more, from `Mathlib.Probability.HasLawExists`), 0 warnings; AxiomGate PASS 3228 (3197 + 31);
+VacuityGate PASS, 1 reviewed helper, 0 VACUOUS-PENDING, rule 5 ran out on 0 theorems, no UNCHECKED,
+no new list entry (2:51.62, 5050648 KB); the gate's tests 88, 47 flagged, 0 mismatches; check_sorry
+PASS 122; check_records PASS 122. Gate 7 at `1032cd3`, the last commit touching anything outside `records/`: ALL PASSED, 4170 jobs, 122 modules 0 failed, 90615 declarations no errors, three standard axioms, 3228, planted fault named (20:06.74, 4750424 KB); `8ae25e2` adds only `records/bridges/LEAN-28/` to `1032cd3`.
+
+Bridge search (standing rule 2) against `records/bridges/LEAN-27/` at `1032cd3`: rc 1, 17 new (13
+pairs, 4 shapes), 42 gone; `GamblersRuin × MaximalInequality` gone (now import-related). One new
+bridge, row 154 (`GamblersRuin × LikelihoodScore`: item 84's Ville bound under only a conditional
+up-chance at most `p`), in the lane's `MATH-PLAN-library-2-bridges.md`; not load-bearing for items
+89 to 110, so the cut is not re-drawn. **Current baseline: `records/bridges/LEAN-28/`.**
+Report: lane `lean/LEAN-28-report.md`.
