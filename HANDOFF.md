@@ -205,6 +205,18 @@ and `erw` does — one `example` in `LucasSequenceGeneratingFunction`, two proof
 `PowerSumCases`. The re-run of `RingPowerSeries.lean` (rc 0, no output) is in
 `~/work/_bump-evidence/ring-v4.34.0-g5.txt`.
 
+**Dated 2026-10-13 UTC (order LEAN-27, round 56; branch `lean-27`, DSMain):** batch 1 of
+MATH-PLAN-library-2, items 79 to 83: two new modules, `Analysis/ConvexConjugate` (the convex
+conjugate valued in `EReal`, Fenchel–Young, antitonicity, `f** ≤ f`) and `Algebra/Kantorovich`
+(the Kantorovich inequality under Loewner bounds, and the equal mix of eigenvectors that reaches
+it), and three extended: `Probability/EffectiveSampleSize` (the variance of a sum for a
+covariance-stationary series, and the variance-ratio identity), `Statistics/GeneralizedLeastSquares`
+(generalised least squares for a common mean is `minWeights`; it now imports
+`Analysis/MinimumQuadraticForm`) and `Algebra/MinMax` (Ky Fan's maximum principle). Counts on this
+order's working tree, re-measured by its gates on the clean tree (round 56's fragment):
+**122 modules, 3197 theorem constants (3158 + 39), `lake build` 4168 jobs, 0 warnings**. Job 0
+changed the vacuity gate's `unfoldNamed` (§4).
+
 ---
 
 ## 2. What I claimed, and what I actually checked
@@ -655,6 +667,28 @@ Five gates, in `tools/`. Each was fail-tested; if you change one, fail-test it a
   generated equation lemmas fall outside). Flagged on purpose: lemmas that are a projection, the
   identity or a pairing of hypotheses once definitions and instances are unfolded
   (`S ∩ T ⊆ S`, the shape of `Prod.mk_le_mk`); they stay through a list entry.
+  **Dated 2026-10-13 UTC (order LEAN-27, job 0, with Dustin's ruling of 2026-10-12):** what counts
+  as "computing" when a part is read as `True`. `unfoldNamed` runs `whnfCore` with `iota := false`,
+  so a `match` or recursor is not reduced there. A `match` it leaves stuck is opened branch by
+  branch (`matchMatcherApp?`, each alternative's parameters bound by `lambdaBoundedTelescope`); if
+  every branch unfolds to `True` and Lean's `isDefEq` at `.all` agrees, the match is read as
+  `True`, otherwise it stays stuck. So `P a ∧ Small2 0` passes (one branch `True`, one `False`:
+  computing), and `∀ x, PairT x` with `PairT (_, _) := True` is flagged (one branch, `True`:
+  nothing computed). Limits measured in LEAN-27, each with a test: a definition by structural
+  recursion (`Small3`) is still read as `True` through `unfoldDefinition?`'s smart unfolding, which
+  runs with `iota` on (strict side; `real_hyp_and_small3`, listed); an all-`True` match on a type
+  without eta (`NatT` on `ℕ`, `Bool`, other inductives) is not read as `True`, since the kernel
+  cannot see it and no `True.intro` proof exists, so `∀ n, NatT n` passes (`lim_nat_true`; Dustin's
+  answer pending) while such a part closed by a hypothesis is still flagged
+  (`vac_hyp_and_nat_true`); `isDefEq` also refuses a structure in `Prop` (`And`); a chain of
+  all-`True` matches on constructors or literals costs about `kᵈ` calls, bounded by the heartbeat
+  budget (worst case UNCHECKED). Stale text left for a later gate order (outside `unfoldNamed`,
+  the only function LEAN-27 could change): `gluedProof`'s docstring line 316 and `vacuousProof`'s
+  limits list line 389 say computed facts are "never flagged" (a structural recursion such as
+  `Small3` is), its heading line 366 still reads "As order VACUITY-2 leaves it", and
+  `KernelCheck.rejected`'s docstring line 447 names `Meta.check` as the cause, which is not
+  always the path (line numbers at `82899d4`). The tests are 85 verdicts, 47 flagged, 0
+  mismatches.
 - **`check_sorry.py`** — text-level, so it sees modules nobody wired into the aggregator. Scoped
   to `ClassicalLean/`; skips `.lake/` and `tools/`, and the reason is written in the file
   (it does not parse string literals, and the gates quote the words they detect).

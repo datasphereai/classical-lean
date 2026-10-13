@@ -568,6 +568,26 @@ order LEAN-16's `LEAN-16-statements.lean` (item 6), and its check script's outpu
 `C6 P9 mixture bound: OK | 2000 random sequences` (rerun 2026-10-09 UTC, output identical to the lane
 copy).
 
+### 1.18 Batch 1 of the second plan (order LEAN-27, round 56)
+
+Items 79 to 83 of MATH-PLAN-library-2, each a base that a later item of that plan rests on:
+
+* `Analysis/ConvexConjugate` (new, item 79): the convex conjugate `f* y = ⨆ x, (y ⬝ x − f x)`
+  valued in `EReal`, Fenchel–Young for real `f`, `f ≤ g ⇒ g* ≤ f*`, `f** ≤ f`, and both sides of the
+  supremum (`sub_le_convexConjugate`, `convexConjugate_le_iff`) for item 117 (the conjugate of
+  log-sum-exp).
+* `Probability/EffectiveSampleSize` (item 80): `Var (X 0 + ⋯ + X (k − 1)) = k γ 0 +
+  2 ∑_{1 ≤ j < k} (k − j) γ j` for a covariance-stationary series, the variance-ratio identity, and
+  the `ℕ`-indexed form for item 115.
+* `Statistics/GeneralizedLeastSquares` (item 81, a bridge): for a common mean, generalised least
+  squares is `MinimumQuadraticForm.minWeights`, with variance factor `1 / (1ᵀ V⁻¹ 1)`. The two
+  modules are now import-related (the bridge search's pair is gone); item 98 rests on it.
+* `Algebra/Kantorovich` (new, item 82): `(xᵀ A x)(xᵀ A⁻¹ x) ≤ ((m + M)² / (4 m M)) ‖x‖⁴` for
+  `m ≤ A ≤ M`, `0 < m`, and equality at an equal mix of eigenvectors; items 98 and 111 rest on it.
+* `Algebra/MinMax` (item 83): Ky Fan's maximum principle, the sum of the `k` largest eigenvalues as
+  the largest `∑ re ⟪T uᵢ, uᵢ⟫` over orthonormal families; item 142 rests on it (for matrices, use
+  `eigenvalues₀`, the module docstring says how).
+
 ## 2. Categories to add
 
 Tiered by how much work they do inside the system that already exists, not by how interesting
