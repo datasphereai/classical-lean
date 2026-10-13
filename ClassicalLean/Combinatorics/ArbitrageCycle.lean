@@ -68,12 +68,14 @@ The three exact cases above (A1 to A3 of order LEAN-25's table) are Lean `exampl
 this file (order LEAN-28, item 86), each stated with this file's own definitions. A1 and A2 give
 only the rates between the two assets; both take the rate `1` from an asset to itself, which keeps
 the side that holds true (a single asset `[i]` is a cycle too, with product `r i i`): in A1 every
-cycle has product at most `1` (the prices `(1, 2)` telescope along any cycle, since every rate is
-at least `0`), and in A2 `p = (1, 1)` are prices. A3 takes the weights as given (`0` on the
-diagonal) and Bellman–Ford's round function `bellmanFord w k j` directly: with three assets and no
-negative cycle, round `2` still lowers the value at asset `2` after round `1` (from `−1` to `−2`),
-so stopping at round `n − 2` would be wrong; round `3` changes nothing (`bellmanFord_stable_iff`
-compares rounds `n` and `n − 1`).
+cycle has product at most `1` (the prices `(1, 2)` telescope along any cycle, since every rate is at
+least `0`), and in A2 `p = (1, 1)` are prices (for the pair `(i, i)` prices ask `r i i · p i ≤ p i`,
+which the rate `1` meets). A3 takes the weights as given (`0` on the diagonal) and Bellman–Ford's
+round function `bellmanFord w k j` directly: with three assets and no negative cycle, round `2`
+still lowers the value at asset `2` after round `1` (from `−1` to `−2`), so stopping at round
+`n − 2` would be wrong; round `3` changes nothing (`bellmanFord_stable_iff` compares rounds `n` and
+`n − 1`; with the rates `exp (−w)`, `negLog` gives back `w`, so A3 is a case of it with positive
+rates).
 
 ## What is cited
 
@@ -498,7 +500,7 @@ example : HasPrices (![![1, -2], ![-2, 1]] : Fin 2 → Fin 2 → ℝ) ∧
 /-- **A3: `n − 2` rounds of Bellman–Ford do not settle.** Three assets, weights
 `w 0 1 = w 1 2 = −1`, `0` on the diagonal and `5` elsewhere: no cycle has negative weight (the
 potential `(0, −1, −2)`), yet round `2` lowers the value at asset `2` after round `1` (from `−1` to
-at most `−2`); round `3` changes nothing. -/
+`−2`); round `3` changes nothing. -/
 example : NoNegativeCycle (![![0, -1, 5], ![5, 0, -1], ![5, 5, 0]] : Fin 3 → Fin 3 → ℝ) ∧
     bellmanFord (![![0, -1, 5], ![5, 0, -1], ![5, 5, 0]] : Fin 3 → Fin 3 → ℝ) 2 ≠
       bellmanFord (![![0, -1, 5], ![5, 0, -1], ![5, 5, 0]] : Fin 3 → Fin 3 → ℝ) 1 ∧
