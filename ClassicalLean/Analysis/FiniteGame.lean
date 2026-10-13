@@ -61,19 +61,23 @@ player picks a mixed strategy `x` (a probability vector on the rows, a point of
   payoffs in `[0, 1]`.
 * **Item 85 (order LEAN-28), the second proof for every real matrix.**
   `minimax_eq_of_exponentialWeights_of_affine`: the upper and lower values are equal for every real
-  matrix, by the affine change `A' = (A − m) / (M − m)` with `m = −∑ |A i j|` and `M = ∑ |A i j|`,
-  which puts every payoff of `A'` in `[0, 1]`, and `minimax_eq_of_exponentialWeights` for `A'`. On
-  strategies `payoff A x y = m + (M − m) payoff A' x y`, and `t ↦ m + (M − m) t` is monotone and
-  continuous, so it carries both values of `A'` to those of `A`. Item 62 (Sion) is not used. Lean's
-  junk value decides nothing here: when `M = m` the matrix is `0`, `A'` is Lean's `0 / 0 = 0`, and
-  the back map `m + 0 · v` still gives the right value `0`. No hypothesis: with no rows or no
-  columns both values are Lean's `0` (an infimum or supremum over an empty family of reals), so the
-  theorem asks for neither `Nonempty ι` nor `Nonempty κ`, unlike `minimax_eq_of_matrix` (wider in
-  form, the same content).
+  matrix, by the affine change `A' = (A − m) / (M − m)` with the bounds `m = −∑ |A i j|` and
+  `M = ∑ |A i j|` (not the least and largest entries: every entry lies between them), which puts
+  every payoff of `A'` in `[0, 1]`, and `minimax_eq_of_exponentialWeights` for `A'`. On strategies
+  `payoff A x y = m + (M − m) payoff A' x y`, and `t ↦ m + (M − m) t` is monotone and continuous, so
+  it carries both values of `A'` to those of `A`. Item 62 (Sion) is not used. Lean's junk value
+  decides nothing here: with these bounds `M = m` only for the zero matrix; then `A'` is Lean's
+  `0 / 0 = 0`, and the back map `m + 0 · v` still gives the right value `0`. No hypothesis: with no
+  rows or no columns both values are Lean's `0` (an infimum or supremum over an empty family of
+  reals), so the theorem asks for neither `Nonempty ι` nor `Nonempty κ`, unlike
+  `minimax_eq_of_matrix` (wider in form, the same content).
 
 ## Hypotheses
 
-Checked in order LEAN-25 (`~/lean/lean25-checks/checks.py`; exact fractions unless marked):
+Item 85 (order LEAN-28) has no hypothesis; its zero-matrix case and the affine change are checked
+in order LEAN-28's `checks.py` (line `85.affine`: 200 random rational matrices, the zero matrix
+included). The rest was checked in order LEAN-25 (`~/lean/lean25-checks/checks.py`; exact
+fractions unless marked):
 
 * Item 62, nonempty `ι` and `κ`: with no rows the simplex is empty and no saddle point
   exists. The equality of values would still hold, but only because Lean reads an infimum or
@@ -530,7 +534,9 @@ theorem minimax_eq_of_exponentialWeights [Nonempty ι] [Nonempty κ] {A : Matrix
 
 /-- **Item 66's second proof for every real matrix (item 85, order LEAN-28).** The upper value
 equals the lower value for any real payoff matrix, by exponential weights after the affine change
-`A' = (A − m) / (M − m)`, `m = −∑ |A i j|`, `M = ∑ |A i j|`; not through Sion's theorem. -/
+`A' = (A − m) / (M − m)`, `m = −∑ |A i j|`, `M = ∑ |A i j|`; not through Sion's theorem. With no
+rows or no columns both sides are Lean's `0` (an infimum or supremum over an empty family of reals),
+so no `Nonempty` hypothesis is asked. -/
 theorem minimax_eq_of_exponentialWeights_of_affine (A : Matrix ι κ ℝ) :
     ⨅ x : closedSimplex ι, ⨆ y : closedSimplex κ, payoff A x y =
       ⨆ y : closedSimplex κ, ⨅ x : closedSimplex ι, payoff A x y := by
