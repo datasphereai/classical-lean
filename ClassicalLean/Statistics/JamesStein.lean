@@ -548,3 +548,8 @@ theorem integral_sqNorm_jamesStein_sub_two (θ : Fin 2 → ℝ) :
   rw [integral_sqNorm_sub]; norm_num
 
 end ClassicalLean.Statistics
+
+/-- The hypotheses of `integral_norm_sq_jamesStein_lt` hold together: dimension `d = 3`, the least
+for which `3 ≤ d`; the mean `θ = (1, 1, 1)`. -/
+example := ClassicalLean.Statistics.integral_norm_sq_jamesStein_lt (d := 3) (by norm_num)
+  (θ := fun _ ↦ 1)

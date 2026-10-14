@@ -1156,3 +1156,33 @@ example := ClassicalLean.Statistics.indepFun_of_isComplete_of_ancillary
   (A := Prod.snd) measurable_snd
   (fun θ θ' ↦ by simp only [Measure.map_snd_prod, measure_univ, one_smul])
   (θ := ⟨⟨1 / 2, by norm_num, by norm_num⟩, by constructor <;> norm_num [← Subtype.coe_lt_coe]⟩)
+
+open MeasureTheory ClassicalLean.Statistics in
+/-- The hypotheses of `eq_sampleMean_of_variance_eq` hold together: two flips (`n + 1 = 2`) of a
+coin with chance `p` of heads; the estimator `T`, half the number of heads, has mean `p` for every
+`p` strictly between `0` and `1` (computed over the four sequences); at `p = 1/2` its variance
+equals the sample mean's, since it is the sample mean, the only estimator the theorem allows. -/
+example := ClassicalLean.Statistics.eq_sampleMean_of_variance_eq (n := 1)
+  (T := fun ω ↦ (numHeads ω : ℝ) / 2)
+  (fun p ↦ by
+    rw [integral_fintype Integrable.of_finite, show (Finset.univ : Finset (Fin 2 → Bool)) =
+      {![true, true], ![true, false], ![false, true], ![false, false]} by decide]
+    simp [coinFlips_real_singleton, Fin.prod_univ_two,
+      show numHeads ![true, true] = 2 by decide, show numHeads ![true, false] = 1 by decide,
+      show numHeads ![false, true] = 1 by decide, show numHeads ![false, false] = 0 by decide]
+    ring)
+  (p := ⟨⟨1 / 2, by norm_num, by norm_num⟩, by constructor <;> norm_num [← Subtype.coe_lt_coe]⟩)
+  (by norm_num)
+
+open MeasureTheory ClassicalLean.Statistics in
+/-- The hypotheses of `variance_sampleMean_le` hold together: two flips (`n + 1 = 2`) of a coin with
+chance `p` of heads; the estimator `T`, `1` when the first flip is heads and `0` otherwise, has mean
+`p` for every `p` strictly between `0` and `1` (computed over the four sequences); `p = 1/2`. -/
+example := ClassicalLean.Statistics.variance_sampleMean_le (n := 1)
+  (T := fun ω ↦ if ω 0 then 1 else 0)
+  (fun p ↦ by
+    rw [integral_fintype Integrable.of_finite, show (Finset.univ : Finset (Fin 2 → Bool)) =
+      {![true, true], ![true, false], ![false, true], ![false, false]} by decide]
+    simp [coinFlips_real_singleton, Fin.prod_univ_two]
+    ring)
+  (p := ⟨⟨1 / 2, by norm_num, by norm_num⟩, by constructor <;> norm_num [← Subtype.coe_lt_coe]⟩)

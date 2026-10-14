@@ -847,3 +847,12 @@ theorem iSup_bayesRisk_eq_minimaxRisk_of_finite {Θ 𝓧 𝓨 : Type*} [Measurab
 end BayesFinite
 
 end ClassicalLean.Analysis
+
+open MeasureTheory ProbabilityTheory in
+/-- The hypotheses of `iSup_bayesRisk_eq_minimaxRisk_of_finite` hold together: two parameters, two
+observations and two actions; the 0–1 loss (`0` for the right action, `1` otherwise), finite
+everywhere; and the kernel that observes the parameter itself, a Markov kernel, so finite. -/
+example := ClassicalLean.Analysis.iSup_bayesRisk_eq_minimaxRisk_of_finite (Θ := Fin 2)
+  (𝓧 := Fin 2) (𝓨 := Fin 2) (ℓ := fun θ y ↦ if θ = y then 0 else 1)
+  (fun θ y ↦ by split_ifs <;> simp)
+  (P := Kernel.deterministic (fun θ ↦ θ) (measurable_of_finite _))

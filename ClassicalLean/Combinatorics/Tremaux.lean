@@ -891,3 +891,24 @@ theorem isTremauxTree_of_tremaux (hG : G.Connected) {s : V} {pick : Chooser G s}
   omega
 
 end ClassicalLean.Combinatorics
+
+/-- The hypotheses of `isTremauxTree_of_tremaux` hold together: the complete graph on three
+crossroads (a triangle, so it has a cycle), which is connected; start `s = 0`; the chooser that
+takes the smallest crossroads it is offered, which is valid because it always picks one of them. -/
+example := ClassicalLean.Combinatorics.isTremauxTree_of_tremaux (V := Fin 3) (G := ⊤)
+  SimpleGraph.connected_top (s := 0) (pick := fun _ c ↦ if h : c.Nonempty then c.min' h else 0)
+  (fun _ c hc ↦ by simp [hc, Finset.min'_mem])
+
+/-- The hypotheses of `tremaux_crosses_twice` hold together: the complete graph on three crossroads
+(a triangle), connected; start `s = 0`; the chooser that takes the smallest crossroads it is
+offered, valid because it always picks one of them; the dart from `0` to `1`. -/
+example := ClassicalLean.Combinatorics.tremaux_crosses_twice (V := Fin 3) (G := ⊤)
+  SimpleGraph.connected_top (s := 0) (pick := fun _ c ↦ if h : c.Nonempty then c.min' h else 0)
+  (fun _ c hc ↦ by simp [hc, Finset.min'_mem]) (d := ⟨(0, 1), by simp⟩)
+
+/-- The hypotheses of `tremaux_visits_all` hold together: the complete graph on three crossroads
+(a triangle), connected; start `s = 0`; the chooser that takes the smallest crossroads it is
+offered, valid because it always picks one of them; the crossroads `v = 2`. -/
+example := ClassicalLean.Combinatorics.tremaux_visits_all (V := Fin 3) (G := ⊤)
+  SimpleGraph.connected_top (s := 0) (pick := fun _ c ↦ if h : c.Nonempty then c.min' h else 0)
+  (fun _ c hc ↦ by simp [hc, Finset.min'_mem]) (v := 2)
