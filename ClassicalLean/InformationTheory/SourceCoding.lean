@@ -274,3 +274,32 @@ theorem exists_isPrefixFree_sum_mul_length_lt {p : ι → ℝ} (hp0 : ∀ i, 0 <
         rfl
 
 end ClassicalLean.Simplex
+
+open InformationTheory in
+/-- The hypotheses of `shannonEntropy_le_sum_mul_length` hold together: the probability vector
+`p = (1/2, 1/4, 1/4)` on three symbols and the binary code `[true]`, `[false, true]`,
+`[false, false]`, which is injective, and uniquely decodable because it is prefix-free and does not
+contain the empty word. -/
+example := ClassicalLean.Simplex.shannonEntropy_le_sum_mul_length (ι := Fin 3) (α := Bool)
+  (p := ![1 / 2, 1 / 4, 1 / 4]) (fun i ↦ by fin_cases i <;> norm_num)
+  (by simp [Fin.sum_univ_three]; norm_num)
+  (c := ![[true], [false, true], [false, false]])
+  (fun i j h ↦ by fin_cases i <;> fin_cases j <;> simp_all)
+  (IsPrefixFree.isUniquelyDecodable
+    (by
+      rintro _ ⟨i, rfl⟩ _ ⟨j, rfl⟩ h
+      fin_cases i <;> fin_cases j <;> simp_all)
+    (by rintro ⟨i, hi⟩; fin_cases i <;> simp_all))
+
+open InformationTheory in
+/-- The hypotheses of `shannonEntropy_le_sum_mul_length_of_isPrefixFree` hold together: the
+probability vector `p = (1/2, 1/4, 1/4)` on three symbols and the binary code `[true]`,
+`[false, true]`, `[false, false]`, which is injective and prefix-free. -/
+example := ClassicalLean.Simplex.shannonEntropy_le_sum_mul_length_of_isPrefixFree (ι := Fin 3)
+  (α := Bool) (p := ![1 / 2, 1 / 4, 1 / 4]) (fun i ↦ by fin_cases i <;> norm_num)
+  (by simp [Fin.sum_univ_three]; norm_num)
+  (c := ![[true], [false, true], [false, false]])
+  (fun i j h ↦ by fin_cases i <;> fin_cases j <;> simp_all)
+  (by
+    rintro _ ⟨i, rfl⟩ _ ⟨j, rfl⟩ h
+    fin_cases i <;> fin_cases j <;> simp_all)

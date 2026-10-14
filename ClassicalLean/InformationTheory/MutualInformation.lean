@@ -273,3 +273,17 @@ theorem shannonEntropy_eq_add_condEntropy {P : α × β → ℝ} (hP : ∀ ab, 0
   ring
 
 end ClassicalLean.Simplex
+
+/-- The hypotheses of `mutualInfo_markov_le` hold together: on two symbols each, the joint weights
+`P (a, b) = 2/5` when `a = b` and `1/10` otherwise are nonnegative, and the channel with rows
+`(3/4, 1/4)` and `(1/4, 3/4)` has nonnegative entries and rows summing to `1`. -/
+example := ClassicalLean.Simplex.mutualInfo_markov_le (α := Fin 2) (β := Fin 2) (γ := Fin 2)
+  (P := fun ab ↦ if ab.1 = ab.2 then 2 / 5 else 1 / 10) (fun ab ↦ by split_ifs <;> norm_num)
+  (K := !![3 / 4, 1 / 4; 1 / 4, 3 / 4])
+  (fun b c ↦ by fin_cases b <;> fin_cases c <;> norm_num)
+  (fun b ↦ by fin_cases b <;> simp [Fin.sum_univ_two] <;> norm_num)
+
+/-- The hypotheses of `shannonEntropy_eq_add_condEntropy` hold together: on two symbols each, the
+joint weights `P (a, b) = 2/5` when `a = b` and `1/10` otherwise are nonnegative. -/
+example := ClassicalLean.Simplex.shannonEntropy_eq_add_condEntropy (α := Fin 2) (β := Fin 2)
+  (P := fun ab ↦ if ab.1 = ab.2 then 2 / 5 else 1 / 10) (fun ab ↦ by split_ifs <;> norm_num)

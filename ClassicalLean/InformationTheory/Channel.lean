@@ -234,3 +234,12 @@ theorem sq_sum_abs_sub_le_two_mul_relEntropy {p q : ι → ℝ} (hp0 : ∀ i, 0 
     linarith
 
 end ClassicalLean.Simplex
+
+/-- The hypotheses of `sq_sum_abs_sub_le_two_mul_relEntropy` hold together: on two symbols, `p =
+(1/4, 3/4)` and `q = (1/2, 1/2)` are probability vectors, and `q` is never `0`, so `p` has support
+where `q` does. -/
+example := ClassicalLean.Simplex.sq_sum_abs_sub_le_two_mul_relEntropy (ι := Fin 2)
+  (p := ![1 / 4, 3 / 4]) (q := ![1 / 2, 1 / 2])
+  (fun i ↦ by fin_cases i <;> norm_num) (by simp [Fin.sum_univ_two]; norm_num)
+  (fun i ↦ by fin_cases i <;> norm_num) (by simp [Fin.sum_univ_two]; norm_num)
+  (fun i h ↦ by fin_cases i <;> simp_all)
