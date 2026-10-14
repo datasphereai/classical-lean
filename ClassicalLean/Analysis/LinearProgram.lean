@@ -561,3 +561,15 @@ example : PrimalFeasible (-1 : Matrix Unit Unit ℝ) 1 0 ∧
   refine ⟨⟨le_rfl, fun _ ↦ by simp⟩, fun _ ↦ by simp [vecMul, dotProduct], by simp [dotProduct]⟩
 
 end ClassicalLean.LinearProgram
+
+open Matrix in
+/-- The hypotheses of `lp_strong_duality` hold together: for the program with two variables and
+two constraints, `A` with rows `(1, 1)` and `(1, −1)`, `b = (2, 1)`, `c = (1, 1)`, the point
+`x = (1/2, 1/2)` is primal feasible (`x ≥ 0`, `A x = (1, 0) ≤ b`) and `y = (1, 0)` is dual feasible
+(`y ≥ 0`, `y A = (1, 1) ≥ c`). -/
+example := ClassicalLean.LinearProgram.lp_strong_duality (m := Fin 2) (n := Fin 2)
+  (A := !![1, 1; 1, -1]) (b := ![2, 1]) (c := ![1, 1])
+  ⟨![1 / 2, 1 / 2], fun i ↦ by fin_cases i <;> norm_num,
+    fun i ↦ by fin_cases i <;> norm_num [mulVec, dotProduct, Fin.sum_univ_two]⟩
+  ⟨![1, 0], fun i ↦ by fin_cases i <;> norm_num,
+    fun j ↦ by fin_cases j <;> simp [vecMul, dotProduct, Fin.sum_univ_two]⟩

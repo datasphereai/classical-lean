@@ -444,3 +444,27 @@ example := sum_eigenvalues_eq_iSup (𝕜 := ℝ) (E := EuclideanSpace ℝ (Fin 2
   finrank_euclideanSpace_fin LinearMap.IsSymmetric.id (k := 1) (by norm_num)
 
 end ClassicalLean.MinMax
+
+open Module LinearMap Submodule in
+/-- The hypotheses of `eigenvalues_add_le` hold together: on the Euclidean plane `ℝ²` (dimension
+`n = 2`), `S = id + P₁` and `T = id + P₀`, with `P₁` and `P₀` the orthogonal projections onto the
+two coordinate axes, are symmetric (sums of symmetric maps), with eigenvalues `2` and `1` each; the
+indices `i = 0`, `j = 1`, `k = 1` have `i + j ≤ k`. -/
+example := ClassicalLean.MinMax.eigenvalues_add_le (𝕜 := ℝ) (E := EuclideanSpace ℝ (Fin 2))
+  (n := 2) (hn := finrank_euclideanSpace_fin)
+  (S := LinearMap.id + ((span ℝ {EuclideanSpace.single (1 : Fin 2) (1 : ℝ)}).starProjection :
+    EuclideanSpace ℝ (Fin 2) →ₗ[ℝ] EuclideanSpace ℝ (Fin 2)))
+  (T := LinearMap.id + ((span ℝ {EuclideanSpace.single (0 : Fin 2) (1 : ℝ)}).starProjection :
+    EuclideanSpace ℝ (Fin 2) →ₗ[ℝ] EuclideanSpace ℝ (Fin 2)))
+  (hS := IsSymmetric.id.add (starProjection_isSymmetric _))
+  (hT := IsSymmetric.id.add (starProjection_isSymmetric _)) (i := 0) (j := 1) (k := 1) (by decide)
+
+open Module LinearMap Submodule in
+/-- The hypotheses of `eigenvalues_eq_iSup_iInf` hold together: on the Euclidean plane `ℝ²`
+(dimension `n = 2`), `T = id + P₀`, with `P₀` the orthogonal projection onto the first axis, is
+symmetric (a sum of symmetric maps), with eigenvalues `2` and `1`; `k = 1`. -/
+example := ClassicalLean.MinMax.eigenvalues_eq_iSup_iInf (𝕜 := ℝ) (E := EuclideanSpace ℝ (Fin 2))
+  (n := 2) (hn := finrank_euclideanSpace_fin)
+  (T := LinearMap.id + ((span ℝ {EuclideanSpace.single (0 : Fin 2) (1 : ℝ)}).starProjection :
+    EuclideanSpace ℝ (Fin 2) →ₗ[ℝ] EuclideanSpace ℝ (Fin 2)))
+  (hT := IsSymmetric.id.add (starProjection_isSymmetric _)) (k := 1)

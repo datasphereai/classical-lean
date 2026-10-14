@@ -263,3 +263,20 @@ theorem abs_simpson_error_pow_four_eq_bound :
   norm_num
 
 end ClassicalLean
+
+open Set in
+/-- The hypotheses of `simpson_error_le` hold together: on `[0, 1]` (`0 ≤ 1`, not a point), with
+`N = 2` panels, `f x = x ^ 4` and its derivatives `4 x ^ 3`, `12 x ^ 2`, `24 x` and `24`, each the
+derivative of the one before on the interval, and `|f⁗| = 24 ≤ M = 24`. -/
+example := ClassicalLean.simpson_error_le (f := fun x ↦ x ^ 4) (f₁ := fun x ↦ 4 * x ^ 3)
+  (f₂ := fun x ↦ 12 * x ^ 2) (f₃ := fun x ↦ 24 * x) (f₄ := fun _ ↦ 24) (a := 0) (b := 1)
+  (M := 24) (by norm_num) (N := 2) (by norm_num)
+  (fun x _ ↦ by simpa using (hasDerivAt_pow 4 x).hasDerivWithinAt)
+  (fun x _ ↦ by
+    have := ((hasDerivAt_pow 3 x).const_mul 4).hasDerivWithinAt (s := Icc 0 1)
+    convert this using 1; ring)
+  (fun x _ ↦ by
+    have := ((hasDerivAt_pow 2 x).const_mul 12).hasDerivWithinAt (s := Icc 0 1)
+    convert this using 1; ring)
+  (fun x _ ↦ by simpa using ((hasDerivAt_id x).const_mul 24).hasDerivWithinAt)
+  (fun x _ ↦ by norm_num)

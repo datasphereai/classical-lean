@@ -165,3 +165,12 @@ theorem abs_sum_sub_integral_le {f f' : ℝ → ℝ} {a b : ℤ} (hab : a ≤ b)
     _ = |f' t| / 2 := by ring
 
 end ClassicalLean
+
+open Set in
+/-- The hypotheses of `sum_eq_integral_add` hold together: the integers from `a = 0` to `b = 3`
+(`0 ≤ 3`, four points), `f x = x ^ 2`, continuous, with derivative `f' x = 2 x` at every point,
+which is continuous, so integrable on `[0, 3]`. -/
+example := ClassicalLean.sum_eq_integral_add (f := fun x ↦ x ^ 2) (f' := fun x ↦ 2 * x)
+  (a := 0) (b := 3) (by norm_num) (continuous_pow 2).continuousOn
+  (fun t _ ↦ by simpa using hasDerivAt_pow 2 t)
+  ((continuous_const.mul continuous_id).intervalIntegrable _ _)
