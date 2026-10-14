@@ -851,8 +851,10 @@ end ClassicalLean.Analysis
 open MeasureTheory ProbabilityTheory in
 /-- The hypotheses of `iSup_bayesRisk_eq_minimaxRisk_of_finite` hold together: two parameters, two
 observations and two actions; the 0–1 loss (`0` for the right action, `1` otherwise), finite
-everywhere; and the kernel that observes the parameter itself, a Markov kernel, so finite. -/
+everywhere; and the kernel that tells nothing, the observation `0` whatever the parameter, a Markov
+kernel, so finite. (So the game's value is `1/2`, reached by the rule that picks each action with
+chance `1/2`; worked by hand, not checked in Lean.) -/
 example := ClassicalLean.Analysis.iSup_bayesRisk_eq_minimaxRisk_of_finite (Θ := Fin 2)
   (𝓧 := Fin 2) (𝓨 := Fin 2) (ℓ := fun θ y ↦ if θ = y then 0 else 1)
   (fun θ y ↦ by split_ifs <;> simp)
-  (P := Kernel.deterministic (fun θ ↦ θ) (measurable_of_finite _))
+  (P := Kernel.const (Fin 2) (Measure.dirac (0 : Fin 2)))
