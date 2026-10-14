@@ -266,7 +266,8 @@ end ClassicalLean
 
 open Set in
 /-- The hypotheses of `simpson_error_le` hold together: on `[0, 1]` (`0 ≤ 1`, not a point), with
-`N = 2` panels, `f x = x ^ 4` and its derivatives `4 x ^ 3`, `12 x ^ 2`, `24 x` and `24`, each the
+`N = 2` panel pairs (four panels of width `1/4`), `f x = x ^ 4` and its derivatives `4 x ^ 3`,
+`12 x ^ 2`, `24 x` and `24`, each the
 derivative of the one before on the interval, and `|f⁗| = 24 ≤ M = 24`. -/
 example := ClassicalLean.simpson_error_le (f := fun x ↦ x ^ 4) (f₁ := fun x ↦ 4 * x ^ 3)
   (f₂ := fun x ↦ 12 * x ^ 2) (f₃ := fun x ↦ 24 * x) (f₄ := fun _ ↦ 24) (a := 0) (b := 1)
