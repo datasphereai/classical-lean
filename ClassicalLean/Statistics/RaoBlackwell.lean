@@ -121,4 +121,4 @@ four points, the σ-algebra `m` that knows only whether the point is in `{0, 1}`
 estimator `T = (1, 2, 3, 5)` is bounded, so square integrable; `θ = 2`. -/
 example := ClassicalLean.Statistics.integral_sq_condExp_sub_le (Ω := Fin 4)
   (m := MeasurableSpace.comap (fun ω : Fin 4 ↦ (ω : ℕ) / 2) ⊤) (μ := uniformOn Set.univ)
-  (fun _ _ ↦ MeasurableSet.of_discrete) (T := ![1, 2, 3, 5]) MemLp.of_discrete 2
+  (fun _ _ ↦ MeasurableSet.of_discrete) (T := ![1, 2, 3, 5]) MemLp.of_discrete (θ := 2)

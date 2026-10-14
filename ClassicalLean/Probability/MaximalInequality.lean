@@ -563,4 +563,4 @@ example := ClassicalLean.Probability.MaximalInequality.measureReal_exists_abs_ge
           rw [condExp_of_stronglyMeasurable le_rfl StronglyMeasurable.of_discrete
             Integrable.of_finite]
           exact Eventually.of_forall fun ω ↦ by simp⟩
-  (fun _ ↦ MemLp.of_discrete) (ε := 1 / 2) (by norm_num) 2
+  (fun _ ↦ MemLp.of_discrete) (ε := 1 / 2) (by norm_num) (n := 2)

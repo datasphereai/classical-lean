@@ -169,4 +169,4 @@ end ClassicalLean.Analysis
 rate `η = 1/2 > 0`; `T = 4` rounds, against expert `i = 1`. -/
 example := ClassicalLean.Analysis.sum_inner_softmax_le (ι := Fin 2)
   (l := fun t j ↦ if (t + (j : ℕ)) % 2 = 0 then 1 else 0)
-  (fun t j ↦ by split_ifs <;> norm_num) (η := 1 / 2) (by norm_num) 4 1
+  (fun t j ↦ by split_ifs <;> norm_num) (η := 1 / 2) (by norm_num) (T := 4) (i := 1)

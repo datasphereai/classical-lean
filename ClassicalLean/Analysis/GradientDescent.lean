@@ -390,7 +390,7 @@ so with any larger constant); `x = 1`, `y = 3`. -/
 example := ClassicalLean.Analysis.le_add_inner_gradient_add_sq (E := ℝ) (f := fun y ↦ y ^ 2 / 2)
   (f' := fun y ↦ y) (L := 2)
   (fun x ↦ by simpa using ((hasDerivAt_pow 2 x).div_const 2).hasGradientAt)
-  (LipschitzWith.id.weaken (by norm_num)) 1 3
+  (LipschitzWith.id.weaken (by norm_num)) (x := 1) (y := 3)
 
 /-- The hypotheses of `add_inner_gradient_le` hold together: on `ℝ`, `f x = x ^ 2 / 2` is convex
 on the whole line (strongly convex with `m = 1`, since `f x − x ^ 2 / 2 = 0`), the points `x = 1`
@@ -416,7 +416,7 @@ example := ClassicalLean.Analysis.sub_le_of_gradientStep (E := ℝ) (f := fun y 
     ext x; simp; ring).convexOn fun r ↦ by positivity)
   (fun x ↦ by simpa using ((hasDerivAt_pow 2 x).div_const 2).hasGradientAt)
   (LipschitzWith.id.weaken (by norm_num)) (by norm_num) (x := fun k ↦ (1 / 2) ^ k)
-  (fun k ↦ by simp [pow_succ]; ring) 0 (k := 3) (by norm_num)
+  (fun k ↦ by simp [pow_succ]; ring) (z := 0) (k := 3) (by norm_num)
 
 /-- The hypotheses of `dist_gradientStep_le` hold together: on `ℝ`, `f x = x ^ 2 / 2` is strongly
 convex with `m = 1 ≥ 0` (`f x − x ^ 2 / 2 = 0` is convex), has gradient `f' x = x`, and `f'` is
@@ -430,7 +430,7 @@ example := ClassicalLean.Analysis.dist_gradientStep_le (E := ℝ) (f := fun y �
     ext x; simp; ring)
   (fun x ↦ by simpa using ((hasDerivAt_pow 2 x).div_const 2).hasGradientAt)
   (LipschitzWith.id.weaken (by norm_num)) (x := fun k ↦ (1 / 2) ^ k)
-  (fun k ↦ by simp [pow_succ]; ring) (xs := 0) rfl 3
+  (fun k ↦ by simp [pow_succ]; ring) (xs := 0) rfl (k := 3)
 
 /-- The hypotheses of `isMinOn_of_kkt` hold together: on `ℝ`, minimise `f x = x ^ 2 / 2` (convex)
 under two constraints, `g 0 x = 1 − x ≤ 0` (active at `xbar = 1`, multiplier `w 0 = 1`) and
