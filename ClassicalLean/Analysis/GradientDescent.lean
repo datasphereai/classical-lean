@@ -383,3 +383,74 @@ theorem isMinOn_of_kkt {ι : Type*} [Fintype ι] {f : E → ℝ} {g : ι → E �
   linarith
 
 end ClassicalLean.Analysis
+
+/-- The hypotheses of `le_add_inner_gradient_add_sq` hold together: on `ℝ`, `f x = x ^ 2 / 2` has
+gradient `f' x = x` at every point, and `f'` is Lipschitz with constant `L = 2` (it is with `1`,
+so with any larger constant); `x = 1`, `y = 3`. -/
+example := ClassicalLean.Analysis.le_add_inner_gradient_add_sq (E := ℝ) (f := fun y ↦ y ^ 2 / 2)
+  (f' := fun y ↦ y) (L := 2)
+  (fun x ↦ by simpa using ((hasDerivAt_pow 2 x).div_const 2).hasGradientAt)
+  (LipschitzWith.id.weaken (by norm_num)) 1 3
+
+/-- The hypotheses of `add_inner_gradient_le` hold together: on `ℝ`, `f x = x ^ 2 / 2` is convex
+on the whole line (strongly convex with `m = 1`, since `f x − x ^ 2 / 2 = 0`), the points `x = 1`
+and `y = 3` lie in it, and `f` has gradient `1` at `x = 1`. -/
+example := ClassicalLean.Analysis.add_inner_gradient_le (E := ℝ) (f := fun y ↦ y ^ 2 / 2)
+  (f' := 1) (x := 1) (y := 3) (s := Set.univ)
+  ((show StrongConvexOn Set.univ 1 (fun y : ℝ ↦ y ^ 2 / 2) by
+    rw [strongConvexOn_iff_convex]
+    convert convexOn_const (0 : ℝ) (convex_univ : Convex ℝ (Set.univ : Set ℝ)) using 1
+    ext x; simp; ring).convexOn fun r ↦ by positivity)
+  (Set.mem_univ _) (Set.mem_univ _)
+  (by simpa using ((hasDerivAt_pow 2 (1 : ℝ)).div_const 2).hasGradientAt)
+
+/-- The hypotheses of `sub_le_of_gradientStep` hold together: on `ℝ`, `f x = x ^ 2 / 2` is convex
+(strongly convex with `m = 1`), has gradient `f' x = x`, and `f'` is Lipschitz with `L = 2 > 0`;
+the steps `x k = (1/2) ^ k` are gradient steps of size `1/L`, `x (k + 1) = x k − x k / 2`; the
+point `z = 0` and the step `k = 3 > 0`. -/
+example := ClassicalLean.Analysis.sub_le_of_gradientStep (E := ℝ) (f := fun y ↦ y ^ 2 / 2)
+  (f' := fun y ↦ y) (L := 2)
+  ((show StrongConvexOn Set.univ 1 (fun y : ℝ ↦ y ^ 2 / 2) by
+    rw [strongConvexOn_iff_convex]
+    convert convexOn_const (0 : ℝ) (convex_univ : Convex ℝ (Set.univ : Set ℝ)) using 1
+    ext x; simp; ring).convexOn fun r ↦ by positivity)
+  (fun x ↦ by simpa using ((hasDerivAt_pow 2 x).div_const 2).hasGradientAt)
+  (LipschitzWith.id.weaken (by norm_num)) (by norm_num) (x := fun k ↦ (1 / 2) ^ k)
+  (fun k ↦ by simp [pow_succ]; ring) 0 (k := 3) (by norm_num)
+
+/-- The hypotheses of `dist_gradientStep_le` hold together: on `ℝ`, `f x = x ^ 2 / 2` is strongly
+convex with `m = 1 ≥ 0` (`f x − x ^ 2 / 2 = 0` is convex), has gradient `f' x = x`, and `f'` is
+Lipschitz with `L = 2`, so `1 − m / L = 1/2` is not `0`; the steps `x k = (1/2) ^ k` are gradient
+steps of size `1/L`; the minimiser `xs = 0` has `f' xs = 0`; `k = 3`. -/
+example := ClassicalLean.Analysis.dist_gradientStep_le (E := ℝ) (f := fun y ↦ y ^ 2 / 2)
+  (f' := fun y ↦ y) (L := 2) (m := 1) zero_le_one
+  (by
+    rw [strongConvexOn_iff_convex]
+    convert convexOn_const (0 : ℝ) (convex_univ : Convex ℝ (Set.univ : Set ℝ)) using 1
+    ext x; simp; ring)
+  (fun x ↦ by simpa using ((hasDerivAt_pow 2 x).div_const 2).hasGradientAt)
+  (LipschitzWith.id.weaken (by norm_num)) (x := fun k ↦ (1 / 2) ^ k)
+  (fun k ↦ by simp [pow_succ]; ring) (xs := 0) rfl 3
+
+/-- The hypotheses of `isMinOn_of_kkt` hold together: on `ℝ`, minimise `f x = x ^ 2 / 2` (convex)
+under two constraints, `g 0 x = 1 − x ≤ 0` (active at `xbar = 1`, multiplier `w 0 = 1`) and
+`g 1 x = x − 5 ≤ 0` (slack at `xbar`, multiplier `w 1 = 0`), both affine, so convex; the
+gradients at `xbar = 1` are `a = 1`, `b 0 = −1`, `b 1 = 1`; the multipliers are nonnegative,
+`w i * g i xbar = 0` for each, and `a + w 0 * b 0 + w 1 * b 1 = 0`. -/
+example := ClassicalLean.Analysis.isMinOn_of_kkt (E := ℝ) (ι := Fin 2) (f := fun y ↦ y ^ 2 / 2)
+  (g := ![fun x ↦ 1 - x, fun x ↦ x - 5]) (xbar := 1) (a := 1) (b := ![-1, 1]) (w := ![1, 0])
+  ((show StrongConvexOn Set.univ 1 (fun y : ℝ ↦ y ^ 2 / 2) by
+    rw [strongConvexOn_iff_convex]
+    convert convexOn_const (0 : ℝ) (convex_univ : Convex ℝ (Set.univ : Set ℝ)) using 1
+    ext x; simp; ring).convexOn fun r ↦ by positivity)
+  (fun i ↦ by
+    fin_cases i
+    · exact (convexOn_const (1 : ℝ) convex_univ).sub (concaveOn_id convex_univ)
+    · exact (convexOn_id convex_univ).sub (concaveOn_const (5 : ℝ) convex_univ))
+  (by simpa using ((hasDerivAt_pow 2 (1 : ℝ)).div_const 2).hasGradientAt)
+  (fun i ↦ by
+    fin_cases i
+    · simpa using ((hasDerivAt_id (1 : ℝ)).const_sub 1).hasGradientAt
+    · simpa using ((hasDerivAt_id (1 : ℝ)).sub_const 5).hasGradientAt)
+  (fun i ↦ by fin_cases i <;> norm_num) (fun i ↦ by fin_cases i <;> norm_num)
+  (by simp [Fin.sum_univ_two])

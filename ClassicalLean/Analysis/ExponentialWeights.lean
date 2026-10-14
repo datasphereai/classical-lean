@@ -163,3 +163,10 @@ theorem sum_inner_softmax_le {l : ℕ → ι → ℝ} (hl : ∀ t j, l t j ∈ S
   exact le_of_mul_le_mul_left this hη
 
 end ClassicalLean.Analysis
+
+/-- The hypotheses of `sum_inner_softmax_le` hold together: two experts whose losses alternate,
+`l t j = 1` when `t + j` is even and `0` otherwise, so every loss lies in `[0, 1]`; the learning
+rate `η = 1/2 > 0`; `T = 4` rounds, against expert `i = 1`. -/
+example := ClassicalLean.Analysis.sum_inner_softmax_le (ι := Fin 2)
+  (l := fun t j ↦ if (t + (j : ℕ)) % 2 = 0 then 1 else 0)
+  (fun t j ↦ by split_ifs <;> norm_num) (η := 1 / 2) (by norm_num) 4 1
