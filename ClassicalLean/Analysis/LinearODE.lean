@@ -87,4 +87,4 @@ open Matrix in
 `t` (the module's `hasDerivAt_exp_smul_mulVec`); `t = 1`. -/
 example := ClassicalLean.Analysis.eq_exp_smul_mulVec (n := Fin 2) (A := !![0, 1; -1, 0])
   (x := fun s ↦ NormedSpace.exp (s • !![0, 1; -1, 0]) *ᵥ ![1, 0])
-  (fun t ↦ ClassicalLean.Analysis.hasDerivAt_exp_smul_mulVec _ _ t) 1
+  (fun t ↦ ClassicalLean.Analysis.hasDerivAt_exp_smul_mulVec _ _ t) (t := 1)
