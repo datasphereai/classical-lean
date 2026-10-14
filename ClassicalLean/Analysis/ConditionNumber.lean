@@ -109,3 +109,12 @@ theorem norm_sub_div_le_cond_of_mulVec {𝕜 : Type*} [RCLike 𝕜] {n : Type*} 
     (fun y ↦ by simp [Matrix.mulVec_mulVec, Matrix.nonsing_inv_mul A hA]) hb hb'
 
 end ClassicalLean.Analysis
+
+/-- The hypotheses of `norm_sub_div_le_cond` hold together: on the plane `ℝ × ℝ`, `A = 2 • id`,
+whose inverse `B = (1/2) • id` undoes it, and the points `x = (1, 0)`, `x' = (1, 1)` with images
+`b = A x = (2, 0)` and `b' = A x' = (2, 2)`. -/
+example := ClassicalLean.Analysis.norm_sub_div_le_cond (𝕜 := ℝ) (E := ℝ × ℝ) (F := ℝ × ℝ)
+  (A := (2 : ℝ) • ContinuousLinearMap.id ℝ (ℝ × ℝ))
+  (B := (1 / 2 : ℝ) • ContinuousLinearMap.id ℝ (ℝ × ℝ))
+  (fun x ↦ by simp [smul_smul]) (x := (1, 0)) (x' := (1, 1)) (b := (2, 0)) (b' := (2, 2))
+  (by simp) (by simp)

@@ -271,3 +271,10 @@ theorem rank_mul_leastSquares {κ : Type*} [Fintype κ] [DecidableEq κ] {X : Ma
   omega
 
 end ClassicalLean.Statistics
+
+open Matrix in
+/-- The hypotheses of `sum_rank_eq_iff` hold together: over `ℚ` (characteristic `0`), the two
+`2 × 2` matrices `diag (1, 0)` and `diag (0, 1)` sum to the identity. -/
+example := ClassicalLean.Statistics.sum_rank_eq_iff (K := ℚ) (n := Fin 2) (ι := Fin 2)
+  (A := ![!![1, 0; 0, 0], !![0, 0; 0, 1]])
+  (by ext i j; fin_cases i <;> fin_cases j <;> simp [Fin.sum_univ_two])

@@ -80,3 +80,11 @@ theorem eq_exp_smul_mulVec {A : Matrix n n ℝ} {x : ℝ → n → ℝ}
   exact congrFun h t
 
 end ClassicalLean.Analysis
+
+open Matrix in
+/-- The hypotheses of `eq_exp_smul_mulVec` hold together: for the rotation generator
+`A = [[0, 1], [−1, 0]]` on `ℝ²`, the curve `x t = exp (t A) (1, 0)` has derivative `A x t` at every
+`t` (the module's `hasDerivAt_exp_smul_mulVec`); `t = 1`. -/
+example := ClassicalLean.Analysis.eq_exp_smul_mulVec (n := Fin 2) (A := !![0, 1; -1, 0])
+  (x := fun s ↦ NormedSpace.exp (s • !![0, 1; -1, 0]) *ᵥ ![1, 0])
+  (fun t ↦ ClassicalLean.Analysis.hasDerivAt_exp_smul_mulVec _ _ t) 1

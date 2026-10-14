@@ -192,3 +192,17 @@ theorem measureReal_gt_ge_of_nonneg {X : Ω → ℝ} (hX0 : 0 ≤ᵐ[μ] X) {θ 
   measureReal_gt_ge (integral_nonneg_of_ae hX0) hθ0 hθ1
 
 end ClassicalLean.Probability
+
+open MeasureTheory ProbabilityTheory in
+/-- The hypotheses of `measureReal_sub_integral_ge_le` hold together: under the uniform probability
+on four points, `X = (1, 2, 3, 5)` is bounded, so square integrable, and not constant; `t = 1 > 0`.
+-/
+example := ClassicalLean.Probability.measureReal_sub_integral_ge_le (Ω := Fin 4)
+  (μ := uniformOn Set.univ) (X := ![1, 2, 3, 5]) MemLp.of_discrete (t := 1) (by norm_num)
+
+open MeasureTheory in
+/-- The hypotheses of `measureReal_gt_ge` hold together: on `Bool` with the point mass at
+`true` (a probability measure), `X = 1` has mean `1 ≥ 0` because `X` is positive, not because
+the measure is trivial, and `θ = 1/2` lies in `[0, 1]`. -/
+example := ClassicalLean.Probability.measureReal_gt_ge (Ω := Bool) (μ := Measure.dirac true)
+  (X := fun _ : Bool => (1 : ℝ)) (by simp) (θ := 1 / 2) (by norm_num) (by norm_num)
