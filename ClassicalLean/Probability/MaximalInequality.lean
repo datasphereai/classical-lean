@@ -564,3 +564,42 @@ example := ClassicalLean.Probability.MaximalInequality.measureReal_exists_abs_ge
             Integrable.of_finite]
           exact Eventually.of_forall fun ω ↦ by simp⟩
   (fun _ ↦ MemLp.of_discrete) (ε := 1 / 2) (by norm_num) (n := 2)
+
+open MeasureTheory ProbabilityTheory Filter in
+/-- The hypotheses of `integral_sup_sq_le` hold together: under the uniform probability on two
+points, the filtration that knows nothing at time `0` and everything from time `1` on, and the walk
+`M 0 = 0`, `M n = (1, −1)` for `n ≥ 1` (one fair `±1` step, then still): `M` is adapted (`M 0` is a
+constant), its conditional mean given time `0` is its mean `0 = M 0`, and from time `1` on it is
+known, so it is a martingale; `n = 2`. -/
+example := ClassicalLean.Probability.MaximalInequality.integral_sup_sq_le (Ω := Fin 2)
+  (μ := uniformOn Set.univ)
+  (𝒢 := ⟨fun n ↦ if n = 0 then ⊥ else (inferInstance : MeasurableSpace (Fin 2)),
+    fun i j hij ↦ by
+      rcases i with _ | i
+      · exact bot_le
+      · rcases j with _ | j
+        · omega
+        · exact le_rfl,
+    fun i ↦ by rcases i with _ | i; exacts [bot_le, le_rfl]⟩)
+  (M := fun n ω ↦ if n = 0 then 0 else ![1, -1] ω)
+  ⟨fun n ↦ by
+      rcases n with _ | n
+      · exact (stronglyMeasurable_const : StronglyMeasurable[⊥] fun _ : Fin 2 ↦ (0 : ℝ))
+      · exact (StronglyMeasurable.of_discrete :
+          StronglyMeasurable[(inferInstance : MeasurableSpace (Fin 2))] (_ : Fin 2 → ℝ)),
+    fun i j hij ↦ by
+      rcases i with _ | i
+      · change condExp ⊥ (uniformOn Set.univ) _ =ᵐ[uniformOn Set.univ] _
+        rw [condExp_bot]
+        refine Eventually.of_forall fun ω ↦ ?_
+        rcases j with _ | j
+        · simp
+        · rw [integral_fintype Integrable.of_finite]
+          simp [uniformOn_univ, Measure.real, Fin.sum_univ_two]
+      · rcases j with _ | j
+        · omega
+        · change condExp (inferInstance : MeasurableSpace (Fin 2)) (uniformOn Set.univ) _ =ᵐ[_] _
+          rw [condExp_of_stronglyMeasurable le_rfl StronglyMeasurable.of_discrete
+            Integrable.of_finite]
+          exact Eventually.of_forall fun ω ↦ by simp⟩
+  (n := 2)

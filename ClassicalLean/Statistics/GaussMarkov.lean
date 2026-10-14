@@ -450,3 +450,12 @@ theorem not_forall_leastSquares_append_row :
   exact one_ne_zero (show (1 : ℝ) = 0 from h1)
 
 end ClassicalLean.Statistics
+
+open Matrix in
+/-- The hypotheses of `leastSquares_append_row` hold together: the `3 × 2` design whose columns are
+the first two unit vectors of `ℝ³` has Gram matrix `1`, whose determinant `1` is a unit; the new row
+`x = (1, 1)`, the old responses `y = (1, 2, 3)` and the new one `y' = 4`. -/
+example := ClassicalLean.Statistics.leastSquares_append_row (ι := Fin 3) (κ := Fin 2)
+  (X := !![1, 0; 0, 1; 0, 0])
+  (by simp [isUnit_iff_ne_zero, det_fin_two, mul_apply, Fin.sum_univ_three]) (x := ![1, 1])
+  (y := ![1, 2, 3]) (y' := 4)

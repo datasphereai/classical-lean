@@ -1039,3 +1039,30 @@ example : ∃ (μ : Measure Unit) (𝒢 : Filtration ℕ (inferInstance : Measur
     exact ENNReal.top_ne_zero h
 
 end ClassicalLean.Probability.GamblersRuin
+
+open MeasureTheory ProbabilityTheory in
+/-- The hypotheses of `measureReal_hit_eq` hold together: on the space of coin sequences `ℕ → Bool`
+with independent fair coins (Mathlib's `Measure.infinitePi` of the uniform law on `Bool`), the
+steps `X n = ±1` read from coin `n + 1`; the filtration is the one the coins' values generate, so
+step `n` is known at time `n + 1` and independent of what time `n` knows; each step is `1` or
+`-1`, and of mean `0`; the targets `a = 2` and `b = 1`. -/
+example := ClassicalLean.Probability.GamblersRuin.measureReal_hit_eq (Ω := ℕ → Bool)
+  (μ := Measure.infinitePi fun _ ↦ uniformOn Set.univ)
+  (𝒢 := Filtration.natural (fun i (ω : ℕ → Bool) ↦ if ω i then (1 : ℝ) else -1)
+    fun i ↦ ((measurable_of_countable fun c : Bool ↦ if c then (1 : ℝ) else -1).comp
+      (measurable_pi_apply i)).stronglyMeasurable)
+  (X := fun n ω ↦ if ω (n + 1) then 1 else -1)
+  (fun n ↦ Filtration.stronglyAdapted_natural
+    (u := fun i (ω : ℕ → Bool) ↦ if ω i then (1 : ℝ) else -1) _ (n + 1))
+  (fun n ↦ (iIndepFun_infinitePi (P := fun _ : ℕ ↦ (uniformOn Set.univ : Measure Bool))
+    (X := fun _ (c : Bool) ↦ if c then (1 : ℝ) else -1)
+    fun _ ↦ measurable_of_countable _).indep_comap_natural_of_lt _ (Nat.lt_succ_self n))
+  (fun n ω ↦ by split_ifs <;> simp)
+  (fun n ↦ by
+    rw [← integral_map (φ := fun ω : ℕ → Bool ↦ ω (n + 1))
+      (f := fun c : Bool ↦ if c then (1 : ℝ) else -1) (measurable_pi_apply (n + 1)).aemeasurable
+      (measurable_of_countable fun c : Bool ↦ if c then (1 : ℝ) else -1).aestronglyMeasurable,
+      Measure.infinitePi_map_eval, integral_fintype Integrable.of_finite]
+    simp only [Measure.real, uniformOn_univ]
+    simp)
+  (a := 2) (b := 1)

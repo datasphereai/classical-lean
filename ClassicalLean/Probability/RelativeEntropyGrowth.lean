@@ -323,3 +323,12 @@ theorem relEntropy_vecMul_le_of_klDiv {β : Type*} [Fintype β] [MeasurableSpace
 end Measures
 
 end ClassicalLean.Probability.RelativeEntropyGrowth
+
+open MeasureTheory in
+/-- The hypotheses of `toReal_klDiv_eq_relEntropy` hold together: on two points, `μ` with mass `1`
+at each and `ν` with mass `1` at the point `0` and `2` at the point `1` are finite, with different
+totals (`2` and `3`), and `ν` charges every point, so no point has `ν {i} = 0`. -/
+example := ClassicalLean.Probability.RelativeEntropyGrowth.toReal_klDiv_eq_relEntropy (α := Fin 2)
+  (μ := Measure.dirac 0 + Measure.dirac 1)
+  (ν := Measure.dirac 0 + Measure.dirac 1 + Measure.dirac 1)
+  (fun i h ↦ by fin_cases i <;> simp at h)

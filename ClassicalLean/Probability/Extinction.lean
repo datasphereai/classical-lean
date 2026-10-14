@@ -306,3 +306,21 @@ theorem extinctionChance_eq_one_iff (hp1 : p 1 ≠ 1) :
 end
 
 end ClassicalLean.Probability.Extinction
+
+/-- The hypotheses of `tendsto_iterate_zero` hold together: the offspring law with chance `1/4` of
+no child, `1/4` of one and `1/2` of two (mean `5/4`, so the line can survive), nonnegative and
+summing to `1`. -/
+example := ClassicalLean.Probability.Extinction.tendsto_iterate_zero
+  (p := fun k : ℕ ↦ if k = 0 then (1 / 4 : ℝ) else if k = 1 then 1 / 4 else if k = 2 then 1 / 2
+    else 0)
+  (hp0 := fun k ↦ by split_ifs <;> norm_num)
+  (hp := by
+    have h : HasSum (fun k : ℕ ↦ if k = 0 then (1 / 4 : ℝ) else if k = 1 then 1 / 4
+        else if k = 2 then 1 / 2 else 0)
+        (∑ k ∈ Finset.range 3, if k = 0 then (1 / 4 : ℝ) else if k = 1 then 1 / 4
+          else if k = 2 then 1 / 2 else 0) :=
+      hasSum_sum_of_ne_finset_zero fun k hk ↦ by
+        simp only [Finset.mem_range, not_lt] at hk
+        simp [show k ≠ 0 by omega, show k ≠ 1 by omega, show k ≠ 2 by omega]
+    norm_num [Finset.sum_range_succ] at h
+    exact h)

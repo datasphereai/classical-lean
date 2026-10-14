@@ -231,3 +231,9 @@ theorem eq_riccatiRoot_of_riccatiStep_eq {a h q r P : ℝ} (hq : 0 < q) (hr : 0 
   linarith [abs_eq_zero.mp this]
 
 end ClassicalLean.Probability
+
+/-- The hypotheses of `tendsto_riccatiStep` hold together: state factor `a = 1/2`, observation
+gain `h = 1 ≠ 0`, process noise `q = 1 > 0`, observation noise `r = 1 ≥ 0` (not `0`), and the
+starting error variance `P = 1 ≥ 0` (not `0`). -/
+example := ClassicalLean.Probability.tendsto_riccatiStep (a := 1 / 2) (h := 1) (q := 1) (r := 1)
+  (P := 1) (by norm_num) (by norm_num) (by norm_num) (by norm_num)

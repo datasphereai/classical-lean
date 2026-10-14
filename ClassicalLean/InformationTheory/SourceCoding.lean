@@ -303,3 +303,8 @@ example := ClassicalLean.Simplex.shannonEntropy_le_sum_mul_length_of_isPrefixFre
   (by
     rintro _ ⟨i, rfl⟩ _ ⟨j, rfl⟩ h
     fin_cases i <;> fin_cases j <;> simp_all)
+
+/-- The hypotheses of `exists_isPrefixFree_length_eq` hold together: over the binary alphabet,
+the lengths `1, 2, 3` have Kraft sum `1/2 + 1/4 + 1/8 = 7/8 ≤ 1`. -/
+example := ClassicalLean.Simplex.exists_isPrefixFree_length_eq (ι := Fin 3) (α := Bool)
+  (ℓ := ![1, 2, 3]) (by simp [Fin.sum_univ_three]; norm_num)
