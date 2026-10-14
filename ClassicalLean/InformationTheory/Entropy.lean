@@ -364,3 +364,8 @@ theorem two_mul_sq_sub_le_relEntropy {p q : ℝ} (hp0 : 0 < p) (hp1 : p < 1) (hq
     nlinarith [h]
 
 end ClassicalLean.Simplex
+
+/-- The hypotheses of `two_mul_sq_sub_le_relEntropy` hold together: `p = 1/2` lies strictly
+between `0` and `1`, and `q = 1/4` lies in `[0, 1]` without being an end point. -/
+example := ClassicalLean.Simplex.two_mul_sq_sub_le_relEntropy (p := 1 / 2) (q := 1 / 4)
+  (by norm_num) (by norm_num) (by norm_num) (by norm_num)

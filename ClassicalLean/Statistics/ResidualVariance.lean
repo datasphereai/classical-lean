@@ -101,3 +101,46 @@ theorem integral_residual_sq_div {X : Matrix ι κ ℝ} (hX : IsUnit (Xᵀ * X).
     mul_one]
 
 end ClassicalLean.Statistics
+
+open MeasureTheory ProbabilityTheory Matrix in
+/-- The hypotheses of `integral_residual_sq` hold together: the `3 × 2` design whose columns are
+the first two unit vectors of `ℝ³` (Gram matrix `1`, determinant `1`), `β = (1, 2)`, and, under the
+uniform probability on four points, the noise `ε 0 = (1, 1, -1, -1)`, `ε 1 = (1, -1, 1, -1)`,
+`ε 2 = (1, -1, -1, 1)`: bounded, each of mean `0`, each of variance `1` and pairwise uncorrelated
+(the rows of a `4 × 4` Hadamard matrix after its first), so `σ = 1`. -/
+example := ClassicalLean.Statistics.integral_residual_sq (ι := Fin 3) (κ := Fin 2) (Ω := Fin 4)
+  (μ := uniformOn Set.univ) (X := !![1, 0; 0, 1; 0, 0])
+  (by simp [isUnit_iff_ne_zero, det_fin_two, mul_apply, Fin.sum_univ_three]) (β := ![1, 2])
+  (ε := ![![1, 1, -1, -1], ![1, -1, 1, -1], ![1, -1, -1, 1]]) (fun _ ↦ MemLp.of_discrete)
+  (fun i ↦ by
+    rw [integral_fintype Integrable.of_finite]
+    fin_cases i <;> simp [uniformOn_univ, Measure.real, Fin.sum_univ_four])
+  (σ := 1)
+  (fun i j ↦ by
+    simp only [covariance]
+    rw [integral_fintype Integrable.of_finite]
+    fin_cases i <;> fin_cases j <;>
+      simp [integral_fintype Integrable.of_finite, uniformOn_univ, Measure.real,
+        Fin.sum_univ_four] <;> norm_num)
+
+open MeasureTheory ProbabilityTheory Matrix in
+/-- The hypotheses of `integral_residual_sq_div` hold together: the witness of
+`integral_residual_sq` above (a `3 × 2` design with Gram matrix `1`, `β = (1, 2)`, and, under the
+uniform probability on four points, three bounded noise terms of mean `0`, variance `1` and no
+correlation, the rows of a `4 × 4` Hadamard matrix after its first), and `p = 2 < n = 3`, so the
+divisor `n − p = 1` is not `0`. -/
+example := ClassicalLean.Statistics.integral_residual_sq_div (ι := Fin 3) (κ := Fin 2) (Ω := Fin 4)
+  (μ := uniformOn Set.univ) (X := !![1, 0; 0, 1; 0, 0])
+  (by simp [isUnit_iff_ne_zero, det_fin_two, mul_apply, Fin.sum_univ_three]) (β := ![1, 2])
+  (ε := ![![1, 1, -1, -1], ![1, -1, 1, -1], ![1, -1, -1, 1]]) (fun _ ↦ MemLp.of_discrete)
+  (fun i ↦ by
+    rw [integral_fintype Integrable.of_finite]
+    fin_cases i <;> simp [uniformOn_univ, Measure.real, Fin.sum_univ_four])
+  (σ := 1)
+  (fun i j ↦ by
+    simp only [covariance]
+    rw [integral_fintype Integrable.of_finite]
+    fin_cases i <;> fin_cases j <;>
+      simp [integral_fintype Integrable.of_finite, uniformOn_univ, Measure.real,
+        Fin.sum_univ_four] <;> norm_num)
+  (by simp)

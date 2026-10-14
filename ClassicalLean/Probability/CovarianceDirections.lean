@@ -495,3 +495,11 @@ theorem one_add_le_integral_trace_sq_sampleCov [Nonempty ι] [Nonempty κ] {X : 
 end SampleCovariance
 
 end ClassicalLean.Probability.CovarianceDirections
+
+open MeasureTheory ProbabilityTheory in
+/-- The hypotheses of `integral_dotProduct_mulVec` hold together: under the uniform probability on
+four points, the two coordinates `X 0 = (1, 1, -1, -1)` and `X 1 = (1, -1, 2, 0)` are bounded, so
+square integrable; `A` is the `2 × 2` identity. -/
+example := ClassicalLean.Probability.CovarianceDirections.integral_dotProduct_mulVec
+  (ι := Fin 2) (Ω := Fin 4) (μ := uniformOn Set.univ)
+  (X := ![![1, 1, -1, -1], ![1, -1, 2, 0]]) (fun _ ↦ MemLp.of_discrete) (A := 1)

@@ -312,3 +312,19 @@ theorem not_forall_leastSquares_fromCols_mulVec_inr :
   norm_num at hkey
 
 end ClassicalLean.Statistics
+
+open Matrix in
+/-- The hypotheses of `trace_residualMaker` hold together: the `3 × 2` design whose columns are the
+first two unit vectors of `ℝ³` has Gram matrix `X₁ᵀ X₁ = 1`, whose determinant `1` is a unit; and
+`n − p = 3 − 2 = 1`, not `0`. -/
+example := ClassicalLean.Statistics.trace_residualMaker (ι := Fin 3) (κ₁ := Fin 2)
+  (X₁ := !![1, 0; 0, 1; 0, 0])
+  (by simp [isUnit_iff_ne_zero, det_fin_two, mul_apply, Fin.sum_univ_three])
+
+open Matrix in
+/-- The hypotheses of `rank_residualMaker` hold together: the `3 × 2` design whose columns are the
+first two unit vectors of `ℝ³` has Gram matrix `X₁ᵀ X₁ = 1`, whose determinant `1` is a unit; and
+`n − p = 3 − 2 = 1`, not `0`. -/
+example := ClassicalLean.Statistics.rank_residualMaker (ι := Fin 3) (κ₁ := Fin 2)
+  (X₁ := !![1, 0; 0, 1; 0, 0])
+  (by simp [isUnit_iff_ne_zero, det_fin_two, mul_apply, Fin.sum_univ_three])

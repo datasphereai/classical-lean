@@ -325,3 +325,47 @@ theorem measureReal_sum_ge_le_exp_neg_sq {W : ℕ → Ω → ℝ} (hadp : Strong
 end RelativeEntropy
 
 end ClassicalLean.Probability.LikelihoodScore
+
+open MeasureTheory ProbabilityTheory Filter in
+/-- The hypotheses of `measureReal_sum_ge_le_exp_neg_relEntropy` hold together: under the uniform
+probability on two points, with the filtration in which every time knows the outcome (each `𝒢 n`
+is the whole σ-algebra, so the conditional mean of `W (n + 1)` is `W (n + 1)` itself), the
+outcomes `W n`, `1/2` at the point `0` and `0` at the point `1`, lie in `[0, 1]` and are at most
+`p₀ = 1/2`; and `p₀ = 1/2 ≤ q = 3/4 < 1`, with `N = 4`. -/
+example := ClassicalLean.Probability.LikelihoodScore.measureReal_sum_ge_le_exp_neg_relEntropy
+  (p₀ := 1 / 2) (q := 3 / 4) (Ω := Fin 2) (μ := uniformOn Set.univ)
+  (𝒢 := Filtration.const ℕ (inferInstance : MeasurableSpace (Fin 2)) le_rfl)
+  (W := fun _ ω ↦ if ω = 0 then 1 / 2 else 0)
+  (fun _ ↦ (StronglyMeasurable.of_discrete :
+    StronglyMeasurable[(inferInstance : MeasurableSpace (Fin 2))] _))
+  (fun _ ω ↦ by fin_cases ω <;> norm_num) (fun _ ω ↦ by fin_cases ω <;> norm_num)
+  (fun n ↦ by
+    rw [condExp_of_stronglyMeasurable
+      ((Filtration.const ℕ (inferInstance : MeasurableSpace (Fin 2)) le_rfl).le n)
+      (StronglyMeasurable.of_discrete :
+        StronglyMeasurable[(inferInstance : MeasurableSpace (Fin 2))] _)
+      Integrable.of_finite]
+    exact Eventually.of_forall fun ω ↦ by fin_cases ω <;> norm_num)
+  (by norm_num) (by norm_num) (by norm_num) (by norm_num) (N := 4)
+
+open MeasureTheory ProbabilityTheory Filter in
+/-- The hypotheses of `measureReal_sum_ge_le_exp_neg_sq` hold together: under the uniform
+probability on two points, with the filtration in which every time knows the outcome (each `𝒢 n`
+is the whole σ-algebra, so the conditional mean of `W (n + 1)` is `W (n + 1)` itself), the
+outcomes `W n`, `1/2` at the point `0` and `0` at the point `1`, lie in `[0, 1]` and are at most
+`p₀ = 1/2`; and `p₀ = 1/2 ≤ q = 3/4 < 1`, with `N = 4`. -/
+example := ClassicalLean.Probability.LikelihoodScore.measureReal_sum_ge_le_exp_neg_sq
+  (p₀ := 1 / 2) (q := 3 / 4) (Ω := Fin 2) (μ := uniformOn Set.univ)
+  (𝒢 := Filtration.const ℕ (inferInstance : MeasurableSpace (Fin 2)) le_rfl)
+  (W := fun _ ω ↦ if ω = 0 then 1 / 2 else 0)
+  (fun _ ↦ (StronglyMeasurable.of_discrete :
+    StronglyMeasurable[(inferInstance : MeasurableSpace (Fin 2))] _))
+  (fun _ ω ↦ by fin_cases ω <;> norm_num) (fun _ ω ↦ by fin_cases ω <;> norm_num)
+  (fun n ↦ by
+    rw [condExp_of_stronglyMeasurable
+      ((Filtration.const ℕ (inferInstance : MeasurableSpace (Fin 2)) le_rfl).le n)
+      (StronglyMeasurable.of_discrete :
+        StronglyMeasurable[(inferInstance : MeasurableSpace (Fin 2))] _)
+      Integrable.of_finite]
+    exact Eventually.of_forall fun ω ↦ by fin_cases ω <;> norm_num)
+  (by norm_num) (by norm_num) (by norm_num) (by norm_num) (N := 4)
