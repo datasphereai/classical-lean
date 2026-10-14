@@ -257,3 +257,14 @@ theorem measureReal_empirical_mem_le {p : α → ℝ} (hp0 : ∀ i, 0 ≤ p i) (
         mul_le_mul_of_nonneg_right hcard (exp_pos _).le
 
 end ClassicalLean.InformationTheory
+
+open ClassicalLean.Simplex in
+/-- The hypotheses of `measureReal_empirical_mem_le` hold together: a fair choice between two
+letters, `p = (1/2, 1/2)`, nonnegative; `n = 4` draws; the set `E` holding the one empirical law
+`(3/4, 1/4)`, and `d` its relative entropy to `p`, `3/4 · log (3/2) + 1/4 · log (1/2)`, which is
+positive: every empirical law in `E` is at relative entropy at least `d` from `p`, with no zero
+coordinate. -/
+example := ClassicalLean.InformationTheory.measureReal_empirical_mem_le (α := Fin 2)
+  (p := ![1 / 2, 1 / 2]) (fun i ↦ by fin_cases i <;> norm_num) (n := 4)
+  (E := {![3 / 4, 1 / 4]}) (d := relEntropy ![3 / 4, 1 / 4] ![1 / 2, 1 / 2])
+  (fun ω h ↦ by rw [Set.mem_singleton_iff.mp h])

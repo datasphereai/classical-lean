@@ -997,3 +997,74 @@ theorem eq_sampleMean_of_variance_eq (n : ℕ) {T : (Fin (n + 1) → Bool) → �
 end CoinFlips
 
 end ClassicalLean.Statistics
+
+open MeasureTheory ClassicalLean.Statistics in
+/-- The hypotheses of `IsSufficient.exists_condExp_eq` hold together: two flips of a coin with
+chance `p` of heads, for every `p` strictly between `0` and `1` (the family `coinFlips 2 p`), and
+the number of heads, sufficient by the module's `isSufficient_numHeads`; the statistic `T` is `1`
+when the first flip is heads and `0` otherwise, measurable and integrable on the finite space. -/
+example := ClassicalLean.Statistics.IsSufficient.exists_condExp_eq
+  (P := fun p : Set.Ioo (0 : unitInterval) 1 ↦ coinFlips 2 p)
+  (m := MeasurableSpace.comap (numHeads (n := 2)) ⊤) (isSufficient_numHeads 2)
+  (T := fun ω ↦ if ω 0 then 1 else 0) (measurable_of_countable _).stronglyMeasurable
+  (fun _ ↦ Integrable.of_finite)
+
+open MeasureTheory ClassicalLean.Statistics in
+/-- The hypotheses of `IsSufficient.raoBlackwell` hold together: two flips of a coin with chance
+`p` of heads, for every `p` strictly between `0` and `1`, each a probability measure, and the
+number of heads, sufficient by the module's `isSufficient_numHeads`; the estimator `T` is `1` when
+the first flip is heads and `0` otherwise, measurable and bounded, so square integrable. -/
+example := ClassicalLean.Statistics.IsSufficient.raoBlackwell
+  (P := fun p : Set.Ioo (0 : unitInterval) 1 ↦ coinFlips 2 p)
+  (m := MeasurableSpace.comap (numHeads (n := 2)) ⊤) (isSufficient_numHeads 2)
+  (T := fun ω ↦ if ω 0 then 1 else 0) (measurable_of_countable _).stronglyMeasurable
+  (fun _ ↦ MemLp.of_bound (measurable_of_countable _).aestronglyMeasurable 1
+    (Eventually.of_forall fun ω ↦ by split_ifs <;> simp))
+
+open MeasureTheory ClassicalLean.Statistics in
+/-- The hypotheses of `isSufficient_iff_factorization` hold together: two flips of a coin with
+chance `p` of heads, for every `p` strictly between `0` and `1`, each a probability measure, give
+every sequence the positive chance `p ^ k (1 − p) ^ (2 − k)`, `k` its number of heads; the statistic
+is the number of heads. -/
+example := ClassicalLean.Statistics.isSufficient_iff_factorization
+  (P := fun p : Set.Ioo (0 : unitInterval) 1 ↦ coinFlips 2 p)
+  (fun p ω ↦ by
+    rw [coinFlips_real_singleton_eq_pow]
+    have h0 : (0 : ℝ) < (p : unitInterval) := p.2.1
+    have h1 : ((p : unitInterval) : ℝ) < 1 := p.2.2
+    have : (0 : ℝ) < 1 - (p : unitInterval) := by linarith
+    positivity)
+  (S := numHeads (n := 2))
+
+open MeasureTheory ClassicalLean.Statistics in
+/-- The hypotheses of `variance_le_of_isSufficient_of_isComplete` hold together: two flips of a
+coin with chance `p` of heads, for every `p` strictly between `0` and `1`, each a probability
+measure; the number of heads, sufficient and complete (the module's `isSufficient_numHeads` and
+`isComplete_numHeads`); the sample mean `U`, half the number of heads, a function of it, bounded,
+of mean `p`; the first flip `T` (`1` for heads), bounded, also of mean `p`; `τ p = p`, at
+`p = 1/2`. -/
+example := ClassicalLean.Statistics.variance_le_of_isSufficient_of_isComplete
+  (P := fun p : Set.Ioo (0 : unitInterval) 1 ↦ coinFlips 2 p)
+  (m := MeasurableSpace.comap (numHeads (n := 2)) ⊤) (isSufficient_numHeads 2)
+  (isComplete_numHeads 2) (U := fun ω ↦ (numHeads ω : ℝ) / 2)
+  (T := fun ω ↦ if ω 0 then 1 else 0) (τ := fun p ↦ ((p : unitInterval) : ℝ))
+  ((measurable_of_countable fun k : ℕ ↦ (k : ℝ) / 2).comp
+    (comap_measurable numHeads)).stronglyMeasurable
+  (fun _ ↦ Integrable.of_finite)
+  (fun p ↦ by
+    rw [integral_fintype Integrable.of_finite, show (Finset.univ : Finset (Fin 2 → Bool)) =
+      {![true, true], ![true, false], ![false, true], ![false, false]} by decide]
+    simp [coinFlips_real_singleton, Fin.prod_univ_two,
+      show numHeads ![true, true] = 2 by decide, show numHeads ![true, false] = 1 by decide,
+      show numHeads ![false, true] = 1 by decide, show numHeads ![false, false] = 0 by decide]
+    ring)
+  (measurable_of_countable _).stronglyMeasurable
+  (fun _ ↦ MemLp.of_bound (measurable_of_countable _).aestronglyMeasurable 1
+    (Filter.Eventually.of_forall fun ω ↦ by split_ifs <;> simp))
+  (fun p ↦ by
+    rw [integral_fintype Integrable.of_finite, show (Finset.univ : Finset (Fin 2 → Bool)) =
+      {![true, true], ![true, false], ![false, true], ![false, false]} by decide]
+    simp [coinFlips_real_singleton, Fin.prod_univ_two]
+    ring)
+  (θ := ⟨⟨1 / 2, by norm_num, by norm_num⟩, by
+    constructor <;> norm_num [← Subtype.coe_lt_coe]⟩)

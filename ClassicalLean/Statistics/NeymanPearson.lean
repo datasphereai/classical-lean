@@ -445,3 +445,39 @@ theorem exists_thresholdTest_size_eq {ν : Measure Ω} {f₀ : Ω → ℝ} {S : 
     rw [integral_mul_eq_integral_withDensity h₀ hf₀0, integral_thresholdTest hS, hsize]⟩
 
 end ClassicalLean.Statistics
+
+open MeasureTheory in
+/-- The hypotheses of `power_le_of_likelihoodRatioTest` hold together: on two points with the
+counting measure, the null density `f₀ = (3/2, 1/2)` and the alternative `f₁ = (1/2, 3/2)`, both
+integrable; the threshold `k = 1 ≥ 0`; the likelihood ratio test `φ' = (0, 1)`, which rejects
+exactly where `f₁ > f₀`; and the test `φ = 1/4` everywhere, of size `1/2`, the same as `φ'`'s. -/
+example := ClassicalLean.Statistics.power_le_of_likelihoodRatioTest (Ω := Fin 2)
+  (ν := Measure.count) (f₀ := ![3 / 2, 1 / 2]) (f₁ := ![1 / 2, 3 / 2])
+  Integrable.of_finite Integrable.of_finite (k := 1) (by norm_num)
+  (φ' := ![0, 1]) ⟨measurable_of_finite _, fun ω ↦ by fin_cases ω <;> simp⟩
+  (fun ω ↦ by fin_cases ω <;> norm_num)
+  (φ := fun _ ↦ 1 / 4) ⟨measurable_const, fun _ ↦ by norm_num⟩
+  (by simp [integral_fintype, Measure.real, Fin.sum_univ_two]; norm_num)
+
+open MeasureTheory Set in
+/-- The hypotheses of `isUniformlyMostPowerful_of_monotoneLikelihoodRatio` hold together: two
+parameters `0 < 1`; on two points with the counting measure, the densities `f 0 = (3/4, 1/4)` and
+`f 1 = (1/4, 3/4)`, integrable, nonnegative and summing to `1`; the statistic `S ω = ω`,
+measurable, in which the ratio `f 1 / f 0` is `1/3` at `S = 0` and `3` at `S = 1`, nondecreasing;
+the null boundary `θ₀ = 0`, the cut `c = 1/2` and the tie chance `γ = 1/2 ∈ [0, 1]`. -/
+example := ClassicalLean.Statistics.isUniformlyMostPowerful_of_monotoneLikelihoodRatio
+  (Ω := Fin 2) (Θ := Fin 2) (ν := Measure.count) (f := ![![3 / 4, 1 / 4], ![1 / 4, 3 / 4]])
+  (S := fun ω ↦ (ω : ℝ)) (measurable_of_finite _) (fun _ ↦ Integrable.of_finite)
+  (fun θ ω ↦ by fin_cases θ <;> fin_cases ω <;> norm_num)
+  (fun θ ↦ by fin_cases θ <;> simp [integral_fintype, Measure.real, Fin.sum_univ_two] <;> norm_num)
+  (fun θ θ' h ↦ by
+    fin_cases θ <;> fin_cases θ'
+    all_goals first
+      | exact absurd h (by decide)
+      | refine ⟨fun t ↦ if t ≤ 0 then 1 / 3 else 3, fun a b hab ↦ ?_, fun t ↦ ?_,
+          fun ω ↦ by fin_cases ω <;> norm_num⟩
+        · dsimp only
+          split_ifs <;> linarith
+        · dsimp only
+          split_ifs <;> norm_num)
+  (θ₀ := 0) (c := 1 / 2) (γ := 1 / 2) ⟨by norm_num, by norm_num⟩
