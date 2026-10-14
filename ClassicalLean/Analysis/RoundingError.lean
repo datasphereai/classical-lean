@@ -277,3 +277,17 @@ theorem abs_hornerComputed_sub_le {u x : ℝ} {a ε δ : ℕ → ℝ} {n : ℕ} 
   exact mul_le_mul_of_nonneg_right (hη i hi) (by positivity)
 
 end ClassicalLean.Analysis.RoundingError
+
+/-- The hypotheses of `abs_dotComputed_sub_le` hold together: unit roundoff `u = 1/10`, every
+rounding error `ε i` and `δ k` equal to `1/20`, so at most `u` in size, and `n = 2` (three terms),
+where `(n + 1) u = 3/10 < 1`; the vectors are `x i = i + 1` and `y i = 2`. -/
+example := ClassicalLean.Analysis.RoundingError.abs_dotComputed_sub_le (u := 1 / 10)
+  (x := fun i ↦ i + 1) (y := fun _ ↦ 2) (ε := fun _ ↦ 1 / 20) (δ := fun _ ↦ 1 / 20) (n := 2)
+  (fun _ _ ↦ by norm_num [abs_of_pos]) (fun _ _ ↦ by norm_num [abs_of_pos]) (by norm_num)
+
+/-- The hypotheses of `abs_hornerComputed_sub_le` hold together: unit roundoff `u = 1/10`, every
+rounding error `ε k` and `δ k` equal to `1/20`, so at most `u` in size, and degree `n = 2`, where
+`2 n u = 2/5 < 1`; the coefficients are `a i = i + 1` at the point `x = 3`. -/
+example := ClassicalLean.Analysis.RoundingError.abs_hornerComputed_sub_le (u := 1 / 10) (x := 3)
+  (a := fun i ↦ i + 1) (ε := fun _ ↦ 1 / 20) (δ := fun _ ↦ 1 / 20) (n := 2)
+  (fun _ _ ↦ by norm_num [abs_of_pos]) (fun _ _ ↦ by norm_num [abs_of_pos]) (by norm_num)

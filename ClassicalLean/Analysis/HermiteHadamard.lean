@@ -175,3 +175,25 @@ theorem integral_le_trapezoidal_integral {f : ℝ → ℝ} {a b : ℝ} (hab : a 
   linarith
 
 end ClassicalLean.Analysis
+
+open Set in
+/-- The hypotheses of `convexOn_midpoint_le_average` hold together: on `[0, 1]`, with `0 < 1`, the
+function `x ↦ x ^ 2` is convex (an even power) and continuous. -/
+example := ClassicalLean.Analysis.convexOn_midpoint_le_average (f := fun x ↦ x ^ 2) (a := 0)
+  (b := 1) (by norm_num) ((Even.convexOn_pow even_two).subset (subset_univ _) (convex_Icc 0 1))
+  (continuous_pow 2).continuousOn
+
+open Set in
+/-- The hypotheses of `average_le_convexOn_endpoints` hold together: on `[0, 1]`, with `0 < 1`, the
+function `x ↦ x ^ 2` is convex (an even power) and continuous. -/
+example := ClassicalLean.Analysis.average_le_convexOn_endpoints (f := fun x ↦ x ^ 2) (a := 0)
+  (b := 1) (by norm_num) ((Even.convexOn_pow even_two).subset (subset_univ _) (convex_Icc 0 1))
+  (continuous_pow 2).continuousOn
+
+open Set in
+/-- The hypotheses of `integral_le_trapezoidal_integral` hold together: on `[0, 1]`, with
+`0 ≤ 1` and not an equality, the function `x ↦ x ^ 2` is convex (an even power) and continuous,
+and the rule takes `N = 2` steps. -/
+example := ClassicalLean.Analysis.integral_le_trapezoidal_integral (f := fun x ↦ x ^ 2) (a := 0)
+  (b := 1) (by norm_num) ((Even.convexOn_pow even_two).subset (subset_univ _) (convex_Icc 0 1))
+  (continuous_pow 2).continuousOn (N := 2) (by norm_num)

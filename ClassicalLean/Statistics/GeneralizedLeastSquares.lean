@@ -214,3 +214,13 @@ example : glsMatrix (1 : Matrix (Fin 2) (Fin 2) ℝ) (of fun _ _ ↦ (1 : ℝ) :
   glsMatrix_ones_eq_minWeights (transpose_one) ()
 
 end ClassicalLean.Statistics
+
+open Matrix in
+/-- The hypotheses of `posSemidef_mul_mul_transpose_sub_inv` hold together: the noise covariance
+`V = diag (1, 2, 3)`, positive definite, so invertible and positive semidefinite; the design `X`,
+whose columns are the first two unit vectors of `ℝ³`; and `C`, the `2 × 3` matrix that keeps the
+first two coordinates, a left inverse of `X`. -/
+example := ClassicalLean.Statistics.posSemidef_mul_mul_transpose_sub_inv (ι := Fin 3) (κ := Fin 2)
+  (V := diagonal ![1, 2, 3]) (posSemidef_diagonal_iff.mpr fun i ↦ by fin_cases i <;> norm_num)
+  (X := !![1, 0; 0, 1; 0, 0]) (C := !![1, 0, 0; 0, 1, 0])
+  (by ext i j; fin_cases i <;> fin_cases j <;> simp [mul_apply, Fin.sum_univ_three])
