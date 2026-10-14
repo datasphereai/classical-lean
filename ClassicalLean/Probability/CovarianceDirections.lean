@@ -503,3 +503,36 @@ square integrable; `A` is the `2 × 2` identity. -/
 example := ClassicalLean.Probability.CovarianceDirections.integral_dotProduct_mulVec
   (ι := Fin 2) (Ω := Fin 4) (μ := uniformOn Set.univ)
   (X := ![![1, 1, -1, -1], ![1, -1, 2, 0]]) (fun _ ↦ MemLp.of_discrete) (A := 1)
+
+open MeasureTheory ProbabilityTheory in
+/-- The hypotheses of `integral_trace_sq_sampleCov` hold together: a `2 × 2` table of independent
+fair signs, the entry `X i k = ±1` read from coin `(i, k)` under the product of four uniform laws on
+`Bool` (Mathlib's `iIndepFun_pi`); each entry is bounded, so in `L⁴`, of mean `0`, mean square `1`
+and fourth moment `μ₄ = 1`. -/
+example := ClassicalLean.Probability.CovarianceDirections.integral_trace_sq_sampleCov (ι := Fin 2)
+  (κ := Fin 2) (Ω := Fin 2 × Fin 2 → Bool) (μ := Measure.pi fun _ ↦ uniformOn Set.univ)
+  (X := fun i k ω ↦ if ω (i, k) then 1 else -1) (μ₄ := 1)
+  (iIndepFun_pi (X := fun _ (c : Bool) ↦ if c then (1 : ℝ) else -1)
+    fun _ ↦ (measurable_of_countable _).aemeasurable)
+  (fun _ _ ↦ MemLp.of_discrete)
+  (fun i k ↦ by
+    refine (integral_comp_eval (μ := fun _ : Fin 2 × Fin 2 ↦ uniformOn (Set.univ : Set Bool))
+      (i := (i, k)) (f := fun c : Bool ↦ if c then (1 : ℝ) else -1)
+      (measurable_of_countable _).aestronglyMeasurable).trans ?_
+    rw [integral_fintype Integrable.of_finite]
+    simp only [Measure.real, uniformOn_univ]
+    simp)
+  (fun i k ↦ by
+    refine (integral_comp_eval (μ := fun _ : Fin 2 × Fin 2 ↦ uniformOn (Set.univ : Set Bool))
+      (i := (i, k)) (f := fun c : Bool ↦ (if c then (1 : ℝ) else -1) ^ 2)
+      (measurable_of_countable _).aestronglyMeasurable).trans ?_
+    rw [integral_fintype Integrable.of_finite]
+    simp only [Measure.real, uniformOn_univ]
+    simp)
+  (fun i k ↦ by
+    refine (integral_comp_eval (μ := fun _ : Fin 2 × Fin 2 ↦ uniformOn (Set.univ : Set Bool))
+      (i := (i, k)) (f := fun c : Bool ↦ (if c then (1 : ℝ) else -1) ^ 4)
+      (measurable_of_countable _).aestronglyMeasurable).trans ?_
+    rw [integral_fintype Integrable.of_finite]
+    simp only [Measure.real, uniformOn_univ]
+    norm_num)

@@ -206,3 +206,8 @@ theorem mean_le_integral_gapLength (hL : ∀ i < k, 0 ≤ L i) :
   exact sum_sq_div_sum_ge_mean L k (sum_nonneg fun i hi ↦ hL i (mem_range.mp hi))
 
 end ClassicalLean.Probability.InspectionParadox
+
+/-- The hypotheses of `sum_sq_div_sum_ge_mean` hold together: the gaps `L i = i + 1`, so `1, 2, 3`
+for `k = 3`, of total `6 ≥ 0`, and not all equal. -/
+example := ClassicalLean.Probability.InspectionParadox.sum_sq_div_sum_ge_mean
+  (L := fun i ↦ i + 1) (k := 3) (by simp [Finset.sum_range_succ]; norm_num)
