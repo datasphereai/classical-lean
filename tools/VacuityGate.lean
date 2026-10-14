@@ -278,13 +278,15 @@ def followsFromHyp (xs : Array Expr) (concl : Expr) : MetaM (Option Expr) := do
     ruling of 2026-10-12: nothing is computed when every branch is `True`). So `PairT x` for
     `PairT (_, _) := True` is `True` (test `vac_pair_true`), while `Small2 0`, with a `True` and a
     `False` branch, is not. Where the reading is used (`vacuousProof`, `gluedProof`), `confirmTrue`
-    asks whether `True.intro` proves it: yes for a structure outside `Prop` (eta) or a
-    constructor; no for a variable of `ℕ`, `Bool` or another inductive. When it cannot, a
-    hypothesis that closes the part is tried (test `vac_hyp_and_nat_true`, flagged), and failing
-    that the theorem is UNCHECKED, which fails the gate, never a pass (`unconfirmedMsg`; Dustin's
-    ruling of 2026-10-13; tests `vac_unchecked_nat_true`, `vac_unchecked_hyp_and_nat_true`). A
-    part with content still makes the glue fail first (`real_nat_true_and_work` passes). A match
-    with no branch stays stuck. -/
+    asks whether `True.intro` proves it: yes for a match on a constructor, or on a variable that
+    `isDefEq` sees through (`PairT`'s pair, by eta); no for a variable of `ℕ`, `Bool` or another
+    inductive, nor for `Fin 2`, a structure whose all-`True` match is not confirmed (test
+    `vac_unchecked_fin_true`). When it
+    cannot, a hypothesis that closes the part is tried (test `vac_hyp_and_nat_true`, flagged),
+    and failing that the theorem is UNCHECKED, which fails the gate, never a pass
+    (`unconfirmedMsg`; Dustin's ruling of 2026-10-13; tests `vac_unchecked_nat_true`,
+    `vac_unchecked_hyp_and_nat_true`). A part with content still makes the glue fail first
+    (`real_nat_true_and_work` passes). A match with no branch stays stuck. -/
 partial def unfoldNamed (e : Expr) (fuel : Nat := 32) (depth : Nat := 0) : MetaM Expr := do
   let e ← withConfig (fun c => { c with iota := false }) <| whnfCore e
   if fuel == 0 then return e
@@ -306,9 +308,12 @@ partial def unfoldNamed (e : Expr) (fuel : Nat := 32) (depth : Nat := 0) : MetaM
   | none => return e
 
 /-- Is `e`, which `unfoldNamed` reads as `True`, `True` for Lean's `isDefEq` at `.all`, so that
-    `True.intro` is a proof the kernel accepts? Yes for a match on a variable of a structure type
-    outside `Prop` (eta) or on a constructor; no for an all-`True` match on a variable of `ℕ`,
-    `Bool` or another inductive type without eta (job 0's review of `f70aa50`). -/
+    `True.intro` is a proof the kernel accepts? Yes for a match on a constructor, and for a match
+    on a variable when `isDefEq` can see through it, as for `PairT`'s pair by eta (test
+    `vac_pair_true`); no for an all-`True` match on a variable of `ℕ`, `Bool` or another
+    inductive type without eta (job 0's review of `f70aa50`). Being a structure is not enough:
+    `Fin 2`'s all-`True` match on a variable is not confirmed (the confirming review of `5344c16`;
+    test `vac_unchecked_fin_true`, order VACUITY-3's ruling 1), so such a theorem fails closed. -/
 def confirmTrue (e : Expr) : MetaM Bool :=
   withTransparency .all (isDefEq e (mkConst ``True))
 
@@ -325,11 +330,13 @@ def unconfirmedMsg : String := "every case is True; kernel could not confirm the
     `True` only when `unfoldNamed` reaches `True`, without computing. Returns the proof, the
     structure's constructor applied to the parts. A part that itself needs `rfl`, `decide`, an
     instance, computation or any other step makes it fail, so a computed fact such as
-    `fib 10 = 55` or `Small 3` is never flagged (tests `real_hyp_and_computed`,
-    `real_hyp_and_small`). A part under a binder (`∀ x, Q x ∧ R x`, `Q a → Q a`) is not opened.
-    At most `maxLevels` levels deep, so a structure that contains itself (`Loop p` with a field
-    of type `Loop p`) ends (cold review r3, finding 1; test `real_loop_wrap`). `top`: the whole
-    conclusion, which `vacuousProof` has already tried as one part. -/
+    `fib 10 = 55` or `Small 3` is not flagged (tests `real_hyp_and_computed`,
+    `real_hyp_and_small`); but a definition by structural recursion such as `Small3` is read as
+    `True` through smart unfolding (`unfoldNamed`), so `P a ∧ Small3 0` is flagged (test
+    `real_hyp_and_small3`, listed). A part under a binder (`∀ x, Q x ∧ R x`, `Q a → Q a`) is
+    not opened. At most `maxLevels` levels deep, so a structure that contains itself (`Loop p`
+    with a field of type `Loop p`) ends (cold review r3, finding 1; test `real_loop_wrap`).
+    `top`: the whole conclusion, which `vacuousProof` has already tried as one part. -/
 partial def gluedProof (xs : Array Expr) (concl : Expr) (unconf : IO.Ref Bool)
     (top : Bool := true) (depth : Nat := 0) : MetaM (Option Expr) := do
   if depth ≥ maxLevels then return none
@@ -381,7 +388,8 @@ partial def gluedProof (xs : Array Expr) (concl : Expr) (unconf : IO.Ref Bool)
        2 and 3 (`gluedProof`; Dustin's ruling of 2026-10-11).
 
     Known limitations of the whole gate (the fixed test, the old case 3 and rule 5), stated
-    rather than hidden; they have to be caught in review. As order VACUITY-2 leaves it:
+    rather than hidden; they have to be caught in review. As they stand after order LEAN-27's
+    job 0 (order VACUITY-3 corrected this text and changed no verdict):
 
     * a statement that is true but carries no information about its subject — `0 ≤ f x` for
       `f` valued in `Nat`, say — is not detected: being uninformative is not a syntactic
@@ -404,8 +412,11 @@ partial def gluedProof (xs : Array Expr) (concl : Expr) (unconf : IO.Ref Bool)
     * (cold review r2, narrowed by case 5) a conclusion glued from hypotheses is detected only
       when it is an `∧`, an `↔` or another structure whose type is a proposition, and every part
       is `True` or closed by one hypothesis; a part that itself needs `rfl`, `decide`, an
-      instance, computation or any other step makes the theorem pass, so computed facts are
-      never flagged (`(h : P a) : P a ∧ 2 + 2 = 4`, test `real_hyp_and_computed`); a part under
+      instance, computation or any other step makes the theorem pass, so a computed fact is
+      not flagged (`(h : P a) : P a ∧ 2 + 2 = 4`, test `real_hyp_and_computed`), except a
+      definition by structural recursion, which `unfoldNamed` reads as `True` through smart
+      unfolding, so that `P a ∧ Small3 0` is flagged (the strict side; test
+      `real_hyp_and_small3`, listed; order LEAN-27, job 0); a part under
       a binder is not opened (`P a ∧ ∀ x, Q x ∧ R x` with each piece a hypothesis, or
       `P a ↔ Q a` from `P a` and `Q a`, pass; cold review r3, finding 3); and a conclusion
       glued with `∨` or `∃` (`Or.inl hp`, `⟨a, hp⟩`) is not detected;
@@ -416,7 +427,19 @@ partial def gluedProof (xs : Array Expr) (concl : Expr) (unconf : IO.Ref Bool)
       definition (`PredicateStack.admits_nil`) is not read;
     * (cold review r2) the scan selects theorems by the namespace `ClassicalLean`, not by module,
       so a theorem a library module declares in another namespace is not tested; measured at
-      VACUITY-2: 5 such theorems, all generated equation lemmas (`harmonic.eq_1` and the like).
+      VACUITY-2: 5 such theorems, all generated equation lemmas (`harmonic.eq_1` and the like);
+    * (order LEAN-27, job 0) an all-`True` `match` is read as `True` (`unfoldNamed`), but where
+      `True.intro` cannot be confirmed as its proof (`confirmTrue`: a match on a variable of `ℕ`,
+      `Bool` or another inductive without eta, and `Fin 2`'s match too), the theorem is UNCHECKED
+      unless a hypothesis closes that part (it fails closed; tests `vac_unchecked_nat_true`,
+      `vac_unchecked_hyp_and_nat_true`, and `vac_unchecked_fin_true` for `Fin 2`); a chain of
+      all-`True` matches costs about `kᵈ` calls,
+      bounded by the heartbeat budget (worst case UNCHECKED);
+    * (the confirming review of `5344c16`) a **recursive** all-`True` predicate
+      (`NatT2 | 0 => True | n + 1 => NatT2 n`) is not read as `True`, so `∀ n, NatT2 n` passes
+      silently; catching it needs induction and its own ruling. `tools/UninformativeReport.lean`
+      lists every recursive Prop-valued definition of the library for a human (its section C;
+      none at order VACUITY-3).
 
     Flagged on purpose, not a limit: a lemma that is a projection, the identity, or (case 5) a
     pairing of its hypotheses once its definitions and instances are unfolded (`S ∩ T ⊆ S`,
@@ -468,7 +491,9 @@ def isVacuousType (type : Expr) : MetaM Bool := return (← vacuousProof type).i
 /-- What the kernel said about the proof behind a flag. -/
 inductive KernelCheck
   | accepted
-  /-- the kernel rejected the proof: `Meta.check` accepted a bad term -/
+  /-- the kernel refused the proof, a term the elaborator had accepted (for the fixed test,
+      `Meta.check` in `finish`; for rule 5, the tactic that built it); a resource limit is
+      `notChecked`, below, not this -/
   | rejected (msg : String)
   /-- the kernel stopped on a resource limit (its heartbeats, memory, recursion depth) or was
       interrupted: the proof was not checked, which says nothing against it -/
@@ -647,21 +672,35 @@ inductive Verdict
   /-- flagged and not on the list (or on it under another statement) -/
   | flag (hash : String) (listedUnder : Option String) (why : String)
   | listed (e : Entry) (why : String)
-  /-- the test did not finish within the heartbeat budget -/
+  /-- the fixed test gave no answer and the old case 3 did not fire; fails the gate, never a
+      pass. `msg` is the first line of the reason. Every path to it (order VACUITY-3): the fixed
+      test runs out of its heartbeat budget; it reads an all-`True` match whose `True.intro`
+      proof it cannot confirm (`unconfirmedMsg`); the kernel stops on a resource limit while it
+      checks the fixed test's proof (`KernelCheck.notChecked`, re-thrown in `judge`); any other
+      exception from the fixed test; and, in `scan`, any exception that `judge` throws outside
+      its own `try`, such as the old case 3 running out. When the old case 3 fired, the first
+      four give a flag labelled `old case 3 only (fixed test UNCHECKED: …)` instead. Rule 5
+      running out never gives it: that is counted apart. -/
   | unchecked (msg : String)
-  /-- the kernel rejected the proof behind a flag: `Meta.check` accepted a bad term; fails the
-      gate (order VACUITY-2) -/
+  /-- the kernel refused the proof behind a flag, a term the elaborator had accepted (for the
+      fixed test, `Meta.check` in `finish`; for rule 5, the tactic that built it); fails the gate
+      (order VACUITY-2). A kernel that stops on a resource limit is not this verdict but
+      `KernelCheck.notChecked`, which `judge` treats as the test not finishing. -/
   | kernelRejected (why : String) (msg : String)
 
-/-- Flagged when the old case 3, the fixed test (cases 1 to 4, `vacuousProof`) **or** rule 5
+/-- Flagged when the old case 3, the fixed test (cases 1 to 5, `vacuousProof`) **or** rule 5
     (`rule5`) flags it; `why` says which fired. A flag of the fixed test or of rule 5 stands only
     once the kernel accepts its proof (`kernelCheck`); a rejection is its own verdict, and a
     kernel that stops on a resource limit counts as the test running out. The old
     case 3 builds no proof, so its flags carry the label `old case 3 only` where no other test
     fired. Each test runs in its own `liftTermElabM` (its own heartbeat count); rule 5's budget
     is `rule5Heartbeats`. At this level `try` also catches running out of heartbeats: if the
-    fixed test runs out, the theorem is still flagged when the old case 3 fired, and is
-    UNCHECKED otherwise. If rule 5 runs out, that is returned beside the verdict (the second
+    fixed test does not finish (it runs out, cannot confirm an all-`True` reading, or throws; see
+    `Verdict.unchecked`), the theorem is still flagged when the old case 3 fired, and is
+    UNCHECKED otherwise. Such a flag is labelled `old case 3 only (fixed test UNCHECKED: …)`, and
+    that label can sit on an empty theorem: the fixed test, which might have proved the theorem
+    empty, did not finish, so `old case 3 only` does not mean that only the old case 3 would have
+    fired (order VACUITY-3). If rule 5 runs out, that is returned beside the verdict (the second
     part): the gate prints it and counts it, and does not fail on it, since rule 5 is an
     incomplete search and running out tells no more than finding nothing. -/
 def judge (list : Array Entry) (n : Name) (type : Expr) :

@@ -430,4 +430,11 @@ mk_scoped_vac
 -- exist (renamed or deleted): the runner reports it as `STALE`, and the gate fails on such an
 -- entry.
 
+/-- Every branch `True`, on `Fin 2`, a structure: empty, and expected to fail closed. -/
+def FinT : Fin 2 → Prop
+  | 0 => True
+  | 1 => True
+
+theorem vac_unchecked_fin_true : ∀ i, FinT i := fun i ↦ by fin_cases i <;> trivial
+
 end VacuityGateTests
