@@ -51,6 +51,7 @@ lake env lean tools/VacuityGate.lean        # no theorem asserts nothing
 python3 tools/check_sorry.py ClassicalLean  # no sorry / admit / native_decide / bare axiom
 python3 tools/banned_vocab_scan.py ClassicalLean
 python3 tools/check_records.py             # every shipped module is named in the records
+lake env lean tools/UninformativeReport.lean  # a report, not a gate (§4; order VACUITY-3)
 ```
 
 As of this handoff (2026-09-25 UTC, order G-10's close, the six commands run on a clean tree at
@@ -665,8 +666,9 @@ Five gates, in `tools/`. Each was fail-tested; if you change one, fail-test it a
   premises ignored; labelled `old case 3 only` when nothing else fired); and **rule 5**
   (`contradiction`, `linarith`, `omega`, `norm_num`, `decide` prove `False` from the written
   hypotheses, 400000 heartbeats per theorem; running out is counted on the summary line, not a
-  failure). Every flag of the fixed test and rule 5 is a proof term checked by `Meta.check` and
-  by the kernel; a kernel rejection is KERNEL-REJECTED and fails the gate. Flagged theorems may
+  failure). Every flag of the fixed test and rule 5 stands for a proof term checked by the kernel
+  (`kernelCheck`; not every one passes `Meta.check` first); a kernel rejection, a term the
+  elaborator had accepted, is KERNEL-REJECTED and fails the gate. Flagged theorems may
   pass through `tools/vacuity_reviewed.txt` (name and statement hash). Tests:
   `tools/VacuityGateTests.lean`, run by `tools/run_vacuity_tests.py`. **Stated limits** (the
   docstring of `isVacuousType`, after the cold review of VACUITY-2): a true-but-contentless
@@ -678,9 +680,11 @@ Five gates, in `tools/`. Each was fail-tested; if you change one, fail-test it a
   closed by `rfl` or `decide` are caught only in a plain `∀`; a `_proof_` helper with no source
   position that some declaration uses is skipped; a conclusion glued from hypotheses is caught
   only as an `∧`, `↔` or Prop structure whose parts are each `True` or one hypothesis (a part
-  needing `rfl`, `decide` or computation passes, so computed facts are never flagged; a part
-  under a binder is not opened; `∨` and `∃` are not caught); rule 5 reads the statement as written (`p → False` and
-  `¬ p` are read differently; `∀ x ∈ [], F x` written out is flagged and listed, the same inside
+  needing `rfl`, `decide` or computation passes, except a definition by structural recursion
+  applied to a literal or a constructor, which smart unfolding reduces and which is then read as
+  `True` and flagged, `real_hyp_and_small3`, listed; a part under a binder is not opened; `∨`
+  and `∃` are not caught); rule 5 reads the statement as written (`p → False` and `¬ p` are read
+  differently; `∀ x ∈ [], F x` written out is flagged and listed, the same inside
   a definition is not); theorems are selected by the namespace `ClassicalLean`, not by module (5
   generated equation lemmas fall outside). Flagged on purpose: lemmas that are a projection, the
   identity or a pairing of hypotheses once definitions and instances are unfolded
@@ -693,9 +697,13 @@ Five gates, in `tools/`. Each was fail-tested; if you change one, fail-test it a
   otherwise it stays stuck. So `P a ∧ Small2 0` passes (one branch `True`, one `False`:
   computing), and `∀ x, PairT x` with `PairT (_, _) := True` is flagged (one branch, `True`:
   nothing computed). Where the `True` reading is used, `confirmTrue` (`isDefEq` at `.all`) asks
-  whether `True.intro` proves it: yes for a structure outside `Prop` (eta) or a constructor, no
-  for a variable of `ℕ`, `Bool` or another inductive (`NatT`). Then a hypothesis that closes the
-  part is tried (`vac_hyp_and_nat_true`, flagged), and failing that the theorem is **UNCHECKED**,
+  whether `True.intro` proves it, measured, not a general rule: yes for a match on a constructor,
+  and for a match on a variable of a structure whose patterns are only the constructor with
+  variable fields, which eta reduces (`PairT`); no for a variable of `ℕ`, `Bool` or another
+  inductive without eta (`NatT`), and no for `Fin 2`, whose literal patterns split the natural
+  number inside (`vac_unchecked_fin_true`, order VACUITY-3's ruling 1, below). Then a hypothesis
+  that closes the part is tried (`vac_hyp_and_nat_true`, flagged), and failing that the theorem
+  is **UNCHECKED**,
   "every case is True; kernel could not confirm the proof", which fails the gate and is never a
   pass (`vac_unchecked_nat_true`, `vac_unchecked_hyp_and_nat_true`; the runner expects UNCHECKED
   for names starting `vac_unchecked_`); a part with content still makes the glue fail first
@@ -703,21 +711,71 @@ Five gates, in `tools/`. Each was fail-tested; if you change one, fail-test it a
   recursion (`Small3`) is still read as `True` through `unfoldDefinition?`'s smart unfolding,
   which runs with `iota` on (strict side; `real_hyp_and_small3`, listed); a chain of all-`True`
   matches on constructors or literals costs about `kᵈ` calls, bounded by the heartbeat budget
-  (worst case UNCHECKED). Stale text left for a later gate order, line numbers at `5344c16`:
-  `gluedProof`'s docstring line 328 and `vacuousProof`'s limits list line 407 say computed facts
-  are "never flagged" (a structural recursion such as `Small3` is); its heading line 384 still
-  reads "As order VACUITY-2 leaves it"; the `KernelCheck.rejected` and `Verdict.kernelRejected`
-  docstrings (lines 471, 652) name `Meta.check` as the cause, and `Verdict.unchecked`'s says only
-  "did not finish within the heartbeat budget", where an unconfirmed `True` reading now also gives
-  it. The tests are 88 verdicts, 47 flagged, 2 UNCHECKED as expected, 0 mismatches.
-  From the confirming review of `5344c16` (PASS WITH FINDINGS, 7 MINOR, stated here, not changed,
-  for a later gate order): a **recursive** all-`True` predicate (`NatT2 | 0 => True | n + 1 =>
+  (worst case UNCHECKED).
+  **Dated 2026-10-14 UTC (order VACUITY-3, job 2):** the gate's own stale text that the confirming
+  review of `5344c16` found is corrected in `tools/VacuityGate.lean` (docstrings and comments
+  only, no verdict changes): the two sentences on computed facts, the heading of the limits list,
+  `KernelCheck.rejected` and `Verdict.kernelRejected` (the kernel refused a term the elaborator
+  had accepted), `Verdict.unchecked` (every path that gives it), `unfoldNamed` and `confirmTrue`
+  (what is confirmed, as above), and `judge` ("old case 3 only (fixed test UNCHECKED: …)" can label
+  an empty theorem). The runner now compares each `vac_unchecked_` test's message with a literal
+  kept in it, the gate's `unconfirmedMsg` (a different message is a MISMATCH; fail-tested), and
+  its verdict column fits every verdict; it reads the message from its own verdict line, which
+  prints the message `judge` returns. A new test, `vac_unchecked_fin_true` (the `Fin 2` case), was
+  added by Dustin's ruling 1 of order VACUITY-3 (lane `lean/VACUITY-3-ruling-1.md`, sha256
+  `f825cd36215ab62de3977030617e3c1bd580056c4a5361b9bca942b977ca4860`). **The tests are now 89
+  verdicts, 47 flagged, 3 UNCHECKED as expected, 0 mismatches.**
+  **Stated limit, kept:** a **recursive** all-`True` predicate (`NatT2 | 0 => True | n + 1 =>
   NatT2 n`) is not read as `True`, so `∀ n, NatT2 n` passes silently (a gap older than LEAN-27;
-  catching it means induction, which needs its own ruling); `confirmTrue`'s docstring claims too
-  much ("a structure outside `Prop`": `Fin 2` is one, and its all-`True` match is not confirmed,
-  failing closed); `judge`'s docstring should say that "old case 3 only (fixed test UNCHECKED: …)"
-  can label an empty theorem; the runner checks the UNCHECKED verdict but not its message, prints
-  it with a 7-wide column, and its message regex fits its own line format, not the gate's.
+  catching it means induction, which needs its own ruling). Measured at order VACUITY-3 by the
+  report tool's section C (below): 33 Prop-valued definitions under `ClassicalLean`, **0 of them
+  recursive**, so no theorem of the library can fall into this gap today.
+  **Left for a later gate order** (cold review of VACUITY-3's job 2, finding 5(c), older than that
+  job): the gate's FAIL text lists the cases but omits case 5 (a glued conclusion), and does not
+  say what UNCHECKED or KERNEL-REJECTED mean, so a FAIL caused by an UNCHECKED theorem explains
+  nothing to the reader.
+- **`UninformativeReport.lean`** (order VACUITY-3, item 90) — **a report, not a gate and not a
+  check**: nothing it lists fails anything; only its own self-test and count check give rc 1. It
+  narrows the gate's first stated limit (a true statement that carries no information) for a
+  human reader. Section A: every written theorem under `ClassicalLean` with a hypothesis whose
+  conclusion closes with the hypotheses cleared, by `simp`, `norm_num` or `positivity`
+  (`DEPENDENT` when the conclusion needs a hypothesis). Section B: the theorems with no hypothesis
+  that close the same way. Each `CLOSES` line names the library constants its proof uses, and says
+  `USES-ITSELF` when the proof uses the theorem; the theorem itself is erased from the simp set
+  first. Section C: Prop-valued definitions defined by recursion (the `NatT2` gap above). Run from
+  the repository root: `lake env lean tools/UninformativeReport.lean` (about 40 s, 4.2 GB). At
+  order VACUITY-3: 1785 written theorems; A 1027 (0 close, 988 open, 39 dependent); B 758 (16
+  close: 15 by `simp`, 1 by `positivity`); C 33 Prop-valued, 0 recursive. A `CLOSES` line is a
+  statement for a human to read, not a finding (a value lemma that `simp` closes is still a useful
+  theorem). Limits, in its docstring: binders are read as written; a proposition in an instance
+  binder stays in the context; only three tactics are tried; `USES-ITSELF` cannot see an `rfl`
+  simp lemma (21 such value lemmas in section B close only because they were erased from the
+  simp set first); section C reads one level below a definition. **Standing rule (round 58):**
+  every later gate order re-runs it and reports its summary lines.
+- **Satisfiability witnesses** (order VACUITY-3, item 89). For a theorem with hypotheses, a
+  witness is an `example` at the end of the theorem's module that applies the theorem itself at
+  concrete arguments, with a proof of each hypothesis, so that Lean checks that the theorem's own
+  hypotheses can all hold at once. The form (rule 2): `example := Full.name (x := …) h₁ h₂ …`,
+  every chosen argument given by name, an optional `open … in` line of its own (it relies on no
+  other `open` than its module's top-level ones), the docstring "The hypotheses of `name` hold
+  together: …", and no `sorry`, `native_decide` or `set_option`. **Standing rule (round 58):** a
+  satisfiability example applies the theorem itself, not an `∃` restatement. Not degenerate
+  (rule 3): no hypothesis is met only because something is empty, zero, a single point or a sum
+  over nothing, through one of Lean's junk values, or at a boundary where a constant of the
+  theorem vanishes; families and matrices have size at least 2 unless the theorem fixes it. The
+  83 targets (items 1 to 71) are the rows of the lane's `lean/VACUITY-3-targets.tsv`; each witness
+  sits after its module's last line, and each group of at most 8 rows had a cold review and a
+  confirming pass. **Not witnessed, 5 rows:** `variance_average_eq_of_steady` and
+  `variance_average_le_of_steady` (`Probability/EffectiveSampleSize`) and
+  `tendsto_sup_abs_empiricalCDF_sub` (`Probability/GlivenkoCantelli`) need an infinite family of
+  independent random variables, which nothing in their modules' imports builds
+  (`Measure.infinitePi` is outside them; a countable product of Bernoulli laws on `Finset ℕ`, or
+  binary digits under Lebesgue measure, would do, as a longer proof); `covariance_eq_sum` and
+  `isSolution_autocovariance` (`Probability/YuleWalker`) need a stationary process with noise,
+  which a finite space cannot carry: a stationary AR(1) model on `ℕ` with weights `2^-(n+1)` meets
+  every hypothesis of both (checked outside the library), but rule 3 asks for an AR(2) model, and
+  written without helper declarations each witness would run to about 350 lines. Left for a
+  ruling.
 - **`check_sorry.py`** — text-level, so it sees modules nobody wired into the aggregator. Scoped
   to `ClassicalLean/`; skips `.lake/` and `tools/`, and the reason is written in the file
   (it does not parse string literals, and the gates quote the words they detect).
