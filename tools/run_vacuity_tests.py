@@ -98,7 +98,7 @@ run_cmd do
       | .listed e w =>
         hit := hit.push u
         Lean.logInfo s!"{{if e.pending then "PENDING" else "LISTED"}} {{u}} [{{w}}]"
-      | .unchecked m => Lean.logInfo s!"UNCHECKED {{u}}: {{m}}"  -- the fixed test ran out or could not confirm, and nothing else fired
+      | .unchecked m => Lean.logInfo s!"UNCHECKED {{u}}: {{m}}"  -- every path: see VacuityGate.Verdict.unchecked
       {kernel_case}
     catch e =>
       Lean.logInfo m!"ERROR {{u}}: {{e.toMessageData}}"
