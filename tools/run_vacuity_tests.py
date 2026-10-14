@@ -12,8 +12,9 @@ for every theorem in the namespace `VacuityGateTests`, into a scratch file, and 
 
 Names are printed with the private prefix dropped and macro scopes erased (a theorem written by a
 hygienic macro), and the expectation is read from that name. The first word of each test's name is
-its expectation: `vac_` must be flagged, `vac_unchecked_` must come out UNCHECKED (fail closed);
-`real_` and `lim_` must pass. Exit 0 when every test meets its expectation (or with --report-only, when every test
+its expectation: `vac_` must be flagged, `vac_unchecked_` must come out UNCHECKED (fail closed)
+with the message `UNCONFIRMED_MSG` below, the gate's `unconfirmedMsg` (a different message is a
+MISMATCH, order VACUITY-3); `real_` and `lim_` must pass. Exit 0 when every test meets its expectation (or with --report-only, when every test
 got a verdict), 1 otherwise. `--gate FILE` tests another version of the gate, e.g. one written out
 by `git show <commit>:tools/VacuityGate.lean`; `--tests` and `--list` replace the test file and
 its reviewed list (theorems in another file must also sit in the namespace `VacuityGateTests`).
@@ -27,6 +28,13 @@ import tempfile
 ROOT = os.getcwd()
 TESTS = os.path.join(ROOT, "tools", "VacuityGateTests.lean")
 LIST = os.path.join(ROOT, "tools", "vacuity_reviewed_tests.txt")
+# The message a `vac_unchecked_` test must carry on its UNCHECKED line: the gate's `unconfirmedMsg`
+# (order LEAN-27, job 0), kept here as a literal so that a change to the gate's message is caught
+# (order VACUITY-3).
+UNCONFIRMED_MSG = "every case is True; kernel could not confirm the proof"
+# Width of the verdict columns: the longest verdict, KERNEL-REJECTED.
+W = max(len(v) for v in ("FLAG", "PASS", "LISTED", "PENDING", "STALE", "SKIP", "ERROR",
+                         "KERNEL-REJECTED", "UNCHECKED"))
 
 
 def gate_section(text):
@@ -165,6 +173,9 @@ def main(argv):
         for l in open(lst, encoding="utf-8"):
             if l.strip() and not l.startswith("#"):
                 listed.add(l.split()[0])
+    # the message on each UNCHECKED line, as the runner's own report prints it
+    messages = {m.group(1): m.group(2).strip()
+                for m in re.finditer(r"UNCHECKED (VacuityGateTests\.\S+?): (.*)", out)}
     bad = 0
     for n, v in sorted(verdicts.items()):
         # the test's own name: the component after `VacuityGateTests`
@@ -182,12 +193,20 @@ def main(argv):
         if want == "PASS" and v == "SKIP" and "._proof_" in short:
             want = "SKIP"
         ok = v == want
+        # an expected UNCHECKED must also carry the gate's message (order VACUITY-3)
+        if ok and want == "UNCHECKED" and short.startswith("vac_unchecked_"):
+            ok = messages.get(n) == UNCONFIRMED_MSG
         bad += (not ok) if not report_only else (v == "ERROR")
-        print(f"{v:7} {short:36} expected {want:7} {'ok' if ok else 'MISMATCH'} {hashes[n]}")
+        print(f"{v:{W}} {short:36} expected {want:{W}} {'ok' if ok else 'MISMATCH'} {hashes[n]}")
     for m in re.finditer(r"KERNEL-REJECTED (VacuityGateTests\.\S+) \[([^\]]*)\]: (.*)", out):
         print(f"kernel rejected {m.group(1).split('.', 1)[1]} [{m.group(2)}]: {m.group(3)}")
-    for m in re.finditer(r"UNCHECKED (VacuityGateTests\.\S+): (.*)", out):
-        print(f"unchecked {m.group(1).split('.', 1)[1]}: {m.group(2)}")
+    for n, msg in sorted(messages.items()):
+        short = n.split('.', 1)[1]
+        check = ""
+        if short.startswith("vac_unchecked_"):
+            check = (" (message as expected)" if msg == UNCONFIRMED_MSG
+                     else f" (WRONG MESSAGE: expected {UNCONFIRMED_MSG!r})")
+        print(f"unchecked {short}: {msg}{check}")
     ranout = re.findall(r"RULE5-RANOUT (VacuityGateTests\.\S+?):", out)
     for n in sorted(ranout):
         print(f"rule 5 ran out: {n.split('.', 1)[1]}")
