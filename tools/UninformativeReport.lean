@@ -33,8 +33,9 @@ not an instance binder and whose type is a proposition.
 * **Section C**, the gap HANDOFF.md §4 leaves for a later gate order: every definition under
   `ClassicalLean` with a declaration range whose type ends in `Prop` (after
   `forallTelescopeReducing`) and whose value names a `brecOn`, a recursor `rec` or a well-founded
-  fixpoint (`WellFounded.fix`, `WellFounded.fixF`, `WellFounded.Nat.fix`), also one level down, in the constants the value names that have no
-  declaration range (a well-founded recursion on two arguments goes through `<name>._unary`).
+  fixpoint (`WellFounded.fix`, `WellFounded.fixF`, `WellFounded.Nat.fix`), also one level down,
+  in the constants the value names that have no declaration range (a well-founded recursion on
+  two arguments goes through `<name>._unary`).
   These are listed for a human: the vacuity gate does not read a recursive all-`True` predicate
   (`NatT2 | 0 => True | n + 1 => NatT2 n`) as `True`.
 
@@ -48,8 +49,10 @@ holds `sorryAx` or an unassigned metavariable is an `ERROR` too.
 
 Output: the self-test's lines (`SELFTEST …`), then sections A, B and C, then `SUMMARY` lines with
 every category, zeros included. The tool checks that section A's and section B's counts add up to
-the number of written theorems and raises an error if they do not. Wall time and peak memory are
-taken outside it (`/usr/bin/time -v`).
+the number of written theorems, and that each section's verdict counts add up to its theorems, and
+raises an error if they do not. Wall time and peak memory are taken outside it
+(`/usr/bin/time -v`). A try that throws leaves the state as it was before it (the simp set
+included), so one theorem cannot change how the next is judged.
 
 Limits, stated:
 * a proposition in an instance binder (`[Fact p.Prime]`) is not counted as a hypothesis, so it
@@ -59,8 +62,16 @@ Limits, stated:
 * three tactics with their default settings; a conclusion that `decide`, `rfl`, `omega` or
   `linarith` would close with no hypotheses is not tried;
 * a `CLOSES` line is a statement for a human to read, not a finding: a value lemma such as
-  `lucas_zero` closes by `simp` and is still a useful theorem;
-* section C reads one level below a definition's value, and only the three markers above.
+  `lucasCompanion_pow_det` closes by `simp` and is still a useful theorem;
+* `USES-ITSELF` reads names in the proof term, and an rfl simp lemma (`@[simp] theorem … := rfl`)
+  that `simp` uses leaves no name there; the erasure, not `USES-ITSELF`, keeps such a lemma from
+  closing itself (21 value lemmas such as `lucas_zero` close only so, measured at order
+  VACUITY-3; the self-test's `plain_three`);
+* every non-runtime exception from a tactic, an internal error included, reads as "did not
+  close", like a tactic that fails; only exceptions outside the tactics are `ERROR`;
+* section C reads one level below a definition's value, and only the markers above; any constant
+  whose last part is `rec` counts, so a definition that only uses `▸` (`Eq.rec`) would be listed
+  too (none at order VACUITY-3).
 
 Order VACUITY-3, job 1. Started from claude-ai's prototype (the order's appendix A1, with A2 for
 section C).
@@ -92,6 +103,15 @@ theorem slow (x : ℕ) (_h : x = 5) : Nat.Prime 1000003 := by norm_num
 /-- Section B, expected `OPEN` once it is erased from the simp set, for `simp` and `norm_num`
 alike; and `CLOSES simp USES-ITSELF` with the erasure switched off (the control). -/
 @[simp] theorem selfDef_three : selfDef 3 = 5 := by unfold selfDef; rfl
+/-- Section B, expected `TIMEOUT` under `selfTestBudget`; then, with the erasure switched off and
+the library's budget, `CLOSES simp USES-ITSELF`, which shows that the timed-out try left the
+simp set as it was (cold review r90, finding 1). -/
+@[simp] theorem selfDef_four : selfDef 4 = 6 := by unfold selfDef; rfl
+/-- A definition that its rfl simp lemma unfolds. -/
+def plain (n : ℕ) : ℕ := n + 2
+/-- Section B, expected `OPEN` once erased; and `CLOSES simp` with no `USES-ITSELF` with the
+erasure off: an rfl simp lemma leaves no name in the proof term (cold review r90, finding 2). -/
+@[simp] theorem plain_three : plain 3 = 5 := rfl
 /-- Section B, expected `CLOSES simp`. -/
 theorem noHypCloses : (2 : ℕ) + 2 = 4 := rfl
 /-- Section C, expected: structural recursion, all branches `True`. -/
@@ -193,19 +213,33 @@ of heartbeats can be caught: `TIMEOUT` for that, `ERROR` for any other exception
 hypotheses for a theorem that did not finish is counted again without the tactics. -/
 def judge (n : Name) (ty : Expr) (budget : Nat := libraryBudget) (erase : Bool := true) :
     CommandElabM (Outcome × Nat) := do
+  -- the whole command state, restored when the try throws: a runtime exception (heartbeats,
+  -- recursion depth) passes `tryClose`'s `catch`, so its own restore does not run, and the
+  -- erasure from the simp set and any logged message would otherwise stay for every later theorem
+  -- (order VACUITY-3's cold review r90, finding 1)
+  let saved ← get
   try
     withScope (fun s => { s with opts := maxHeartbeats.set s.opts budget }) <|
       liftTermElabM (analyze n ty erase)
   catch e =>
-    let k ← liftTermElabM <| forallTelescope ty fun xs _ => do
-      let mut k := 0
-      for x in xs do
-        let d ← x.fvarId!.getDecl
-        if d.binderInfo.isInstImplicit then continue
-        if ← isProp d.type then k := k + 1
-      return k
+    set saved
+    let k ← try
+        liftTermElabM <| forallTelescope ty fun xs _ => do
+          let mut k := 0
+          for x in xs do
+            let d ← x.fvarId!.getDecl
+            if d.binderInfo.isInstImplicit then continue
+            if ← isProp d.type then k := k + 1
+          return k
+      catch _ => pure 0
     if e.isMaxHeartbeat then return ({ verdict := "TIMEOUT" }, k)
-    let m := (← e.toMessageData.toString).splitOn "\n" |>.head!
+    -- the first line of the message, or of the nested error under a "failed with a nested
+    -- error" header (cold review r90, finding 4)
+    let ls := (← e.toMessageData.toString).splitOn "\n" |>.filter (!·.trimAscii.isEmpty)
+    let m := match ls with
+      | l :: r :: _ => if l.endsWith "nested error:" then s!"{l} {r.trimAscii}" else l
+      | [l] => l
+      | [] => ""
     return ({ verdict := "ERROR", msg := m }, k)
 
 /-- The line for one theorem, without its section letter. -/
@@ -276,11 +310,25 @@ def selfTest : CommandElabM Nat := do
     ("slow", libraryBudget, true, "A", "CLOSES norm_num"),
     ("selfDef_three", libraryBudget, true, "B", "OPEN"),
     ("selfDef_three", libraryBudget, false, "B", "CLOSES simp USES-ITSELF"),
-    ("noHypCloses", libraryBudget, true, "B", "CLOSES simp")]
+    ("selfDef_four", selfTestBudget, true, "B", "TIMEOUT"),
+    ("selfDef_four", libraryBudget, false, "B", "CLOSES simp USES-ITSELF"),
+    ("plain_three", libraryBudget, true, "B", "OPEN"),
+    ("plain_three", libraryBudget, false, "B", "CLOSES simp"),
+    ("noHypCloses", libraryBudget, true, "B", "CLOSES simp"),
+    -- two statements built here, not declared (cold review r90, finding 3): a goal holding
+    -- `sorryAx` that `simp` closes, so its proof holds `sorryAx` (ERROR); and a binder whose type
+    -- is a constant that does not exist, so reading the binders throws an ordinary exception
+    -- (ERROR)
+    ("withSorry", libraryBudget, true, "B", "ERROR"),
+    ("brokenType", libraryBudget, true, "B", "ERROR")]
   let mut bad := 0
   for (s, budget, erase, sec, want) in cases do
     let n := p s
-    let ty := (← getConstInfo n).type
+    let ty ← match s with
+      | "withSorry" => liftTermElabM do
+          mkAppM ``Or #[← mkEq (mkNatLit 0) (mkNatLit 0), ← mkSorry (mkSort .zero) true]
+      | "brokenType" => pure (.forallE `x (mkConst (p "noSuchConstant")) (mkConst ``True) .default)
+      | _ => pure (← getConstInfo n).type
     let (o, k) ← judge n ty budget erase
     let gotSec := if k ≥ 1 then "A" else "B"
     let got := o.verdict ++ (if o.usesItself then " USES-ITSELF" else "")
@@ -341,6 +389,14 @@ run_cmd do
   IO.println s!"SUMMARY C recursive {nC}"
   IO.println s!"SUMMARY self-test mismatches {bad}"
   unless nA + nB == thms.size do
-    throwError s!"count check failed: section A {nA} + section B {nB} ≠ written theorems {thms.size}"
+    throwError s!"count check failed: section A {nA} + section B {nB} ≠ written theorems \
+      {thms.size}"
+  -- each section's verdict counts must add up to its theorems, so a verdict that the SUMMARY lines
+  -- do not name cannot go unseen (cold review r90, finding 5)
+  for (sec, total) in [("A", nA), ("B", nB)] do
+    let sum := ["CLOSES simp", "CLOSES norm_num", "CLOSES positivity", "OPEN", "DEPENDENT",
+      "TIMEOUT", "ERROR"].foldl (fun acc v => acc + counts.getD s!"{sec} {v}" 0) 0
+    unless sum == total do
+      throwError s!"count check failed: section {sec}'s verdict counts add up to {sum}, not {total}"
   unless bad == 0 do
     throwError s!"self-test failed: {bad} mismatch(es)"
