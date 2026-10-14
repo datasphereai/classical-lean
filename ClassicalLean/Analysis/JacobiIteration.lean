@@ -172,4 +172,4 @@ example := ClassicalLean.Analysis.norm_jacobiIterate_sub_le (n := Fin 2) (A := !
   (b := ![6, 9]) (x₀ := 0) (y := ![1, 2]) (ρ := 1 / 4)
   (fun i ↦ by fin_cases i <;> simp)
   (fun i ↦ by fin_cases i <;> simp [Finset.sum_erase_eq_sub, Fin.sum_univ_two])
-  (by ext i; fin_cases i <;> simp [mulVec, dotProduct, Fin.sum_univ_two] <;> norm_num) 3
+  (by ext i; fin_cases i <;> simp [mulVec, dotProduct, Fin.sum_univ_two] <;> norm_num) (k := 3)

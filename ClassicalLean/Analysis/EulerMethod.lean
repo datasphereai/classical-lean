@@ -153,4 +153,4 @@ example := ClassicalLean.Analysis.abs_sub_eulerIterate_le
   (fun t ↦ by simpa using (hasDerivAt_pow 2 t).div_const 2)
   (LipschitzWith.of_dist_le_mul fun a b ↦ by simp)
   (fun t ↦ LipschitzWith.of_dist_le_mul fun a b ↦ by simp [Real.dist_eq])
-  (by norm_num) (by norm_num) 3
+  (by norm_num) (by norm_num) (k := 3)

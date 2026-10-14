@@ -225,4 +225,4 @@ example := ClassicalLean.Probability.sum_abs_vecMul_pow_sub_le (n := Fin 2)
   (fun i ↦ by fin_cases i <;> norm_num [Fin.sum_univ_two])
   (fun i j ↦ by fin_cases i <;> fin_cases j <;> norm_num) (μ := ![1, 0]) (π := ![1 / 2, 1 / 2])
   (by norm_num [Fin.sum_univ_two])
-  (by ext j; fin_cases j <;> simp [vecMul, dotProduct, Fin.sum_univ_two] <;> norm_num) 3
+  (by ext j; fin_cases j <;> simp [vecMul, dotProduct, Fin.sum_univ_two] <;> norm_num) (t := 3)
