@@ -70,7 +70,7 @@ Limits, stated:
 * every non-runtime exception from a tactic, an internal error included, reads as "did not
   close", like a tactic that fails; a runtime exception from a tactic ends the theorem's try
   (`TIMEOUT` for heartbeats, `ERROR` for recursion depth), as does any exception outside the
-  tactics (`ERROR`);
+  tactics (`TIMEOUT` for heartbeats, `ERROR` otherwise);
 * section C reads one level below a definition's value, and only the markers above; any constant
   whose last part is `rec` counts, so a definition that only uses `▸` (`Eq.rec`) would be listed
   too (none at order VACUITY-3).
