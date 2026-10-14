@@ -142,3 +142,15 @@ theorem abs_sub_eulerIterate_le {f : ℝ → ℝ → ℝ} {y : ℝ → ℝ} {t�
   linarith
 
 end ClassicalLean.Analysis
+
+/-- The hypotheses of `abs_sub_eulerIterate_le` hold together: the equation `y' = f t y` with
+`f t y = t + (y − t ^ 2 / 2)`, which depends on `y` with Lipschitz constant `L = 1 > 0`; its
+solution `y t = t ^ 2 / 2`, along which `f t (y t) = t` is Lipschitz with `M = 1`; start
+`t₀ = 0`, step `h = 1/10 ≥ 0`, `k = 3` steps. -/
+example := ClassicalLean.Analysis.abs_sub_eulerIterate_le
+  (f := fun t y ↦ t + (y - t ^ 2 / 2)) (y := fun t ↦ t ^ 2 / 2) (t₀ := 0) (h := 1 / 10)
+  (L := 1) (M := 1)
+  (fun t ↦ by simpa using (hasDerivAt_pow 2 t).div_const 2)
+  (LipschitzWith.of_dist_le_mul fun a b ↦ by simp)
+  (fun t ↦ LipschitzWith.of_dist_le_mul fun a b ↦ by simp [Real.dist_eq])
+  (by norm_num) (by norm_num) 3

@@ -204,3 +204,25 @@ theorem existsUnique_vecMul_eq_self [Nonempty n] {P : Matrix n n ℝ} {δ : ℝ}
   exact ⟨π, ⟨hπS, hπfix⟩, fun π' h' ↦ huniq π' h'.1 h'.2 π hπS hπfix⟩
 
 end ClassicalLean.Probability
+
+open Matrix in
+/-- The hypotheses of `existsUnique_vecMul_eq_self` hold together: the `2 × 2` matrix with rows
+`(3/4, 1/4)` and `(1/4, 3/4)`, each row summing to `1`, every entry at least `δ = 1/4 > 0`; the
+theorem's constant `1 - 2 δ` is `1/2`, not `0`. -/
+example := ClassicalLean.Probability.existsUnique_vecMul_eq_self (n := Fin 2)
+  (P := !![3 / 4, 1 / 4; 1 / 4, 3 / 4]) (δ := 1 / 4)
+  (fun i => by fin_cases i <;> norm_num [Fin.sum_univ_two])
+  (by norm_num)
+  (fun i j => by fin_cases i <;> fin_cases j <;> norm_num)
+
+open Matrix in
+/-- The hypotheses of `sum_abs_vecMul_pow_sub_le` hold together: the `2 × 2` matrix with rows
+`(3/4, 1/4)` and `(1/4, 3/4)`, each row summing to `1`, every entry at least `δ = 1/4`, so the
+rate `1 − 2 δ = 1/2` is not `0`; the start `μ = (1, 0)` and the stationary `π = (1/2, 1/2)` both
+sum to `1`, and `π P = π`; `t = 3`. -/
+example := ClassicalLean.Probability.sum_abs_vecMul_pow_sub_le (n := Fin 2)
+  (P := !![3 / 4, 1 / 4; 1 / 4, 3 / 4]) (δ := 1 / 4)
+  (fun i ↦ by fin_cases i <;> norm_num [Fin.sum_univ_two])
+  (fun i j ↦ by fin_cases i <;> fin_cases j <;> norm_num) (μ := ![1, 0]) (π := ![1 / 2, 1 / 2])
+  (by norm_num [Fin.sum_univ_two])
+  (by ext j; fin_cases j <;> simp [vecMul, dotProduct, Fin.sum_univ_two] <;> norm_num) 3

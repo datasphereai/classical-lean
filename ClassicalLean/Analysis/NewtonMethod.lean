@@ -244,3 +244,17 @@ theorem tendsto_newtonIterate {f f' : ℝ → ℝ} {M m r δ x₀ : ℝ}
   simpa using (tendsto_pow_atTop_nhds_zero_of_lt_one hq0 hq1).mul_const δ
 
 end ClassicalLean.Analysis
+
+open Set in
+/-- The hypotheses of `abs_newtonStep_sub_le` hold together: `f t = t ^ 2 − 2` with derivative
+`f' t = 2 t` on the convex set `[1, 2]`, where `|f' t − f' u| = 2 |t − u|` (`M = 2`); the start
+`x = 2` and the root `r = √2` lie in it, `f r = 0`, and `|f' x| = 4 ≥ m = 2 > 0`. -/
+example := ClassicalLean.Analysis.abs_newtonStep_sub_le (f := fun t ↦ t ^ 2 - 2)
+  (f' := fun t ↦ 2 * t) (s := Icc 1 2) (M := 2) (m := 2) (x := 2) (r := Real.sqrt 2)
+  (convex_Icc 1 2)
+  (fun t _ ↦ by simpa using (hasDerivAt_pow 2 t).sub_const 2)
+  (fun t _ u _ ↦ by rw [← mul_sub, abs_mul]; norm_num)
+  (by norm_num)
+  ⟨by rw [Real.le_sqrt (by norm_num) (by norm_num)]; norm_num,
+    by rw [Real.sqrt_le_left (by norm_num)]; norm_num⟩
+  (by simp) (by norm_num) (by norm_num)

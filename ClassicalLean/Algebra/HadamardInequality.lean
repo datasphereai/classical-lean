@@ -118,3 +118,9 @@ theorem sq_det_le_prod_sum_sq (M : Matrix n n ℝ) : M.det ^ 2 ≤ ∏ i, ∑ j,
   simpa [sq, mul_apply] using h
 
 end ClassicalLean
+
+open Matrix in
+/-- The hypotheses of `det_le_prod_diag` hold together: the `2 × 2` identity matrix is positive
+semidefinite. -/
+example := ClassicalLean.det_le_prod_diag (n := Fin 2) (A := (1 : Matrix (Fin 2) (Fin 2) ℝ))
+  PosSemidef.one

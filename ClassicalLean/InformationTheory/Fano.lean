@@ -172,3 +172,10 @@ theorem condEntropy_le_log_two_add [DecidableEq α] {P : β × α → ℝ} (hP :
   linarith [binEntropy_le_log_two (p := errorChance P g)]
 
 end ClassicalLean.Simplex
+
+/-- The hypotheses of `condEntropy_le_binEntropy_add` hold together: the joint law of an
+observation `y` among two and a symbol `x` among three, uniform with weight `1/6` each, is
+nonnegative and sums to `1`; the guess `g` reads `y = 0` as the symbol `0` and `y = 1` as `1`.
+Three symbols, so `log (3 − 1) = log 2` is not `0`. -/
+example := ClassicalLean.Simplex.condEntropy_le_binEntropy_add (α := Fin 3) (β := Fin 2)
+  (P := fun _ ↦ 1 / 6) (fun _ ↦ by norm_num) (by simp) (g := ![0, 1])

@@ -163,3 +163,13 @@ theorem tendsto_jacobiIterate {A : Matrix n n ℝ}
   simpa using (tendsto_pow_atTop_nhds_zero_of_lt_one hρ0 hρ1).mul_const ‖x₀ - A⁻¹ *ᵥ b‖
 
 end ClassicalLean.Analysis
+
+open Finset Matrix in
+/-- The hypotheses of `norm_jacobiIterate_sub_le` hold together: the `2 × 2` matrix with rows
+`(4, 1)` and `(1, 4)` has nonzero diagonal and each row's off-diagonal entry `1` at most
+`ρ = 1/4` times its diagonal `4`; `b = (6, 9) = A y` for `y = (1, 2)`; start `x₀ = 0`, `k = 3`. -/
+example := ClassicalLean.Analysis.norm_jacobiIterate_sub_le (n := Fin 2) (A := !![4, 1; 1, 4])
+  (b := ![6, 9]) (x₀ := 0) (y := ![1, 2]) (ρ := 1 / 4)
+  (fun i ↦ by fin_cases i <;> simp)
+  (fun i ↦ by fin_cases i <;> simp [Finset.sum_erase_eq_sub, Fin.sum_univ_two])
+  (by ext i; fin_cases i <;> simp [mulVec, dotProduct, Fin.sum_univ_two] <;> norm_num) 3

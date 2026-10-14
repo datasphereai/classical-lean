@@ -136,3 +136,43 @@ theorem integral_stoppedValue_sum_eq [IsProbabilityMeasure μ] {X : ℕ → Ω �
     rwa [hmean n] at this
 
 end ClassicalLean.Probability.FairGame
+
+open MeasureTheory ProbabilityTheory in
+/-- The hypotheses of `integral_stoppedValue_sum_eq` hold together: under the uniform probability
+on two points, the filtration that knows nothing at time `0` and everything from time `1` on; the
+first step `X 0 = (0, 2)`, of mean `m = 1`, known at time `1` and independent of what time `0`
+knows (nothing), and the later steps `X n = 1`, constants, so of mean `1` and independent of
+everything; the stopping time `τ = 1` at the point `0` and `2` at the point `1`, which time `0`
+does not need to know (no point stops at `0`) and time `1` knows, bounded by `N = 2`. -/
+example := ClassicalLean.Probability.FairGame.integral_stoppedValue_sum_eq (Ω := Fin 2)
+  (μ := uniformOn Set.univ)
+  (𝒢 := ⟨fun n ↦ if n = 0 then ⊥ else (inferInstance : MeasurableSpace (Fin 2)),
+    fun i j hij ↦ by
+      rcases i with _ | i
+      · exact bot_le
+      · rcases j with _ | j
+        · omega
+        · exact le_rfl,
+    fun i ↦ by rcases i with _ | i; exacts [bot_le, le_rfl]⟩)
+  (X := fun n ω ↦ if n = 0 then ![0, 2] ω else 1) (m := 1)
+  (fun n ↦ (StronglyMeasurable.of_discrete :
+    StronglyMeasurable[(inferInstance : MeasurableSpace (Fin 2))] (_ : Fin 2 → ℝ)))
+  (fun _ ↦ Integrable.of_finite)
+  (fun n ↦ by
+    rw [integral_fintype Integrable.of_finite]
+    rcases n with _ | n <;> simp [uniformOn_univ, Measure.real, Fin.sum_univ_two])
+  (fun n ↦ by
+    rcases n with _ | n
+    · exact indep_bot_right _
+    · change Indep (MeasurableSpace.comap (fun _ : Fin 2 ↦ (1 : ℝ)) _) _ _
+      rw [MeasurableSpace.comap_const]
+      exact indep_bot_left _)
+  (τ := fun ω ↦ if ω = 0 then 1 else 2)
+  (fun i ↦ by
+    rcases i with _ | i
+    · change MeasurableSet[⊥] _
+      convert @MeasurableSet.empty (Fin 2) ⊥
+      ext ω; fin_cases ω <;> simp
+    · exact (MeasurableSet.of_discrete :
+        MeasurableSet[(inferInstance : MeasurableSpace (Fin 2))] _))
+  (N := 2) (fun ω ↦ by fin_cases ω <;> simp)
