@@ -1019,7 +1019,7 @@ example := ClassicalLean.Statistics.IsSufficient.raoBlackwell
   (m := MeasurableSpace.comap (numHeads (n := 2)) ⊤) (isSufficient_numHeads 2)
   (T := fun ω ↦ if ω 0 then 1 else 0) (measurable_of_countable _).stronglyMeasurable
   (fun _ ↦ MemLp.of_bound (measurable_of_countable _).aestronglyMeasurable 1
-    (Eventually.of_forall fun ω ↦ by split_ifs <;> simp))
+    (Filter.Eventually.of_forall fun ω ↦ by split_ifs <;> simp))
 
 open MeasureTheory ClassicalLean.Statistics in
 /-- The hypotheses of `isSufficient_iff_factorization` hold together: two flips of a coin with
@@ -1068,3 +1068,91 @@ example := ClassicalLean.Statistics.variance_le_of_isSufficient_of_isComplete
     ring)
   (θ := ⟨⟨1 / 2, by norm_num, by norm_num⟩, by
     constructor <;> norm_num [← Subtype.coe_lt_coe]⟩)
+
+open MeasureTheory ProbabilityTheory ClassicalLean.Statistics in
+/-- The hypotheses of `indepFun_of_isComplete_of_ancillary` hold together: a coin with chance `p`
+of heads, for every `p` strictly between `0` and `1`, flipped beside a fair coin, so every one of
+the four outcomes has positive chance; the first coin `S`, sufficient (the chance of an outcome is
+the first coin's chance times the second's) and complete (a mean of `0` at `p = 1/2` and `p = 1/4`
+forces a function of `S` to be `0`); the second coin `A`, measurable, not constant, its law the
+fair coin's for every `p`; `θ = 1/2`. (The model is the group 9 reviewer's.) -/
+example := ClassicalLean.Statistics.indepFun_of_isComplete_of_ancillary
+  (P := fun p : Set.Ioo (0 : unitInterval) 1 ↦ (bernoulliMeasure true false (p : unitInterval)).prod
+    (bernoulliMeasure true false (⟨1 / 2, by norm_num, by norm_num⟩ : unitInterval)))
+  (S := Prod.fst)
+  (by
+    have ber : ∀ (q : unitInterval) (x : Bool),
+        (bernoulliMeasure true false q).real {x} = if x then (q : ℝ) else 1 - q := by
+      intro q x
+      rw [bernoulliMeasure_real_apply q (measurableSet_singleton x)]
+      cases x <;> simp [unitInterval.coe_symm_eq]
+    have Qreal : ∀ (p : Set.Ioo (0 : unitInterval) 1) (ω : Bool × Bool),
+        ((bernoulliMeasure true false (p : unitInterval)).prod (bernoulliMeasure true false
+          (⟨1 / 2, by norm_num, by norm_num⟩ : unitInterval))).real {ω} =
+        (bernoulliMeasure true false (p : unitInterval)).real {ω.1} *
+          (bernoulliMeasure true false (⟨1 / 2, by norm_num, by norm_num⟩ : unitInterval)).real
+            {ω.2} := by
+      rintro p ⟨a, b⟩
+      rw [← Set.singleton_prod_singleton, measureReal_def, Measure.prod_prod, ENNReal.toReal_mul]
+      rfl
+    refine (isSufficient_iff_factorization (fun p ω ↦ ?_) (S := Prod.fst)).mpr
+      ⟨fun p x ↦ (bernoulliMeasure true false (p : unitInterval)).real {x},
+        fun ω ↦ (bernoulliMeasure true false
+          (⟨1 / 2, by norm_num, by norm_num⟩ : unitInterval)).real {ω.2}, fun p ω ↦ Qreal p ω⟩
+    have h0 : (0 : ℝ) < (p : unitInterval) := p.2.1
+    have h1 : ((p : unitInterval) : ℝ) < 1 := p.2.2
+    obtain ⟨a, b⟩ := ω
+    rw [Qreal, ber, ber]
+    change 0 < (if a then _ else _) * (if b then (1 / 2 : ℝ) else 1 - 1 / 2)
+    cases a <;> cases b <;> simp only [↓reduceIte, Bool.false_eq_true] <;> nlinarith)
+  (by
+    have ber : ∀ (q : unitInterval) (x : Bool),
+        (bernoulliMeasure true false q).real {x} = if x then (q : ℝ) else 1 - q := by
+      intro q x
+      rw [bernoulliMeasure_real_apply q (measurableSet_singleton x)]
+      cases x <;> simp [unitInterval.coe_symm_eq]
+    have Qreal : ∀ (p : Set.Ioo (0 : unitInterval) 1) (ω : Bool × Bool),
+        ((bernoulliMeasure true false (p : unitInterval)).prod (bernoulliMeasure true false
+          (⟨1 / 2, by norm_num, by norm_num⟩ : unitInterval))).real {ω} =
+        (bernoulliMeasure true false (p : unitInterval)).real {ω.1} *
+          (bernoulliMeasure true false (⟨1 / 2, by norm_num, by norm_num⟩ : unitInterval)).real
+            {ω.2} := by
+      rintro p ⟨a, b⟩
+      rw [← Set.singleton_prod_singleton, measureReal_def, Measure.prod_prod, ENNReal.toReal_mul]
+      rfl
+    intro f hf _ hmean θ
+    have hconst : ∀ ω ω' : Bool × Bool, ω'.1 = ω.1 → f ω' = f ω := by
+      intro ω ω' h
+      obtain ⟨B, -, hB⟩ := hf.measurable (measurableSet_singleton (f ω))
+      have hω : ω ∈ Prod.fst ⁻¹' B := by rw [hB]; rfl
+      have hω' : ω' ∈ Prod.fst ⁻¹' B := by simpa [Set.mem_preimage, h] using hω
+      rw [hB] at hω'
+      exact hω'
+    have hform : ∀ p : Set.Ioo (0 : unitInterval) 1,
+        ∫ ω, f ω ∂((bernoulliMeasure true false (p : unitInterval)).prod
+          (bernoulliMeasure true false (⟨1 / 2, by norm_num, by norm_num⟩ : unitInterval))) =
+        ((p : unitInterval) : ℝ) * f (true, true) + (1 - (p : unitInterval)) * f (false, true) := by
+      intro p
+      rw [integral_fintype Integrable.of_finite]
+      simp only [Fintype.sum_prod_type, Fintype.sum_bool, smul_eq_mul, Qreal, ber,
+        ↓reduceIte, Bool.false_eq_true, hconst (true, true) (true, false) rfl,
+        hconst (false, true) (false, false) rfl]
+      change (p : ℝ) * (1 / 2) * f (true, true) + (p : ℝ) * (1 - 1 / 2) * f (true, true) +
+        ((1 - p) * (1 / 2) * f (false, true) + (1 - p) * (1 - 1 / 2) * f (false, true)) = _
+      ring
+    have e1 := (hform ⟨⟨1 / 2, by norm_num, by norm_num⟩, by
+      constructor <;> norm_num [← Subtype.coe_lt_coe]⟩).symm.trans (hmean _)
+    have e2 := (hform ⟨⟨1 / 4, by norm_num, by norm_num⟩, by
+      constructor <;> norm_num [← Subtype.coe_lt_coe]⟩).symm.trans (hmean _)
+    change (1 / 2 : ℝ) * f (true, true) + (1 - 1 / 2) * f (false, true) = 0 at e1
+    change (1 / 4 : ℝ) * f (true, true) + (1 - 1 / 4) * f (false, true) = 0 at e2
+    have ht : f (true, true) = 0 := by linarith
+    have hf' : f (false, true) = 0 := by linarith
+    refine ae_of_all _ fun ω ↦ ?_
+    obtain ⟨a, b⟩ := ω
+    cases a
+    · rw [hconst (false, true) (false, b) rfl, hf']; rfl
+    · rw [hconst (true, true) (true, b) rfl, ht]; rfl)
+  (A := Prod.snd) measurable_snd
+  (fun θ θ' ↦ by simp only [Measure.map_snd_prod, measure_univ, one_smul])
+  (θ := ⟨⟨1 / 2, by norm_num, by norm_num⟩, by constructor <;> norm_num [← Subtype.coe_lt_coe]⟩)

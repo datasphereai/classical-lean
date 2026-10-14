@@ -464,7 +464,8 @@ open MeasureTheory Set in
 parameters `0 < 1`; on two points with the counting measure, the densities `f 0 = (3/4, 1/4)` and
 `f 1 = (1/4, 3/4)`, integrable, nonnegative and summing to `1`; the statistic `S ω = ω`,
 measurable, in which the ratio `f 1 / f 0` is `1/3` at `S = 0` and `3` at `S = 1`, nondecreasing;
-the null boundary `θ₀ = 0`, the cut `c = 1/2` and the tie chance `γ = 1/2 ∈ [0, 1]`. -/
+the null boundary `θ₀ = 0`; the cut `c = 1`, a value of `S` (at the second point), so that the tie
+chance `γ = 1/2 ∈ [0, 1]` is used there. -/
 example := ClassicalLean.Statistics.isUniformlyMostPowerful_of_monotoneLikelihoodRatio
   (Ω := Fin 2) (Θ := Fin 2) (ν := Measure.count) (f := ![![3 / 4, 1 / 4], ![1 / 4, 3 / 4]])
   (S := fun ω ↦ (ω : ℝ)) (measurable_of_finite _) (fun _ ↦ Integrable.of_finite)
@@ -480,4 +481,4 @@ example := ClassicalLean.Statistics.isUniformlyMostPowerful_of_monotoneLikelihoo
           split_ifs <;> linarith
         · dsimp only
           split_ifs <;> norm_num)
-  (θ₀ := 0) (c := 1 / 2) (γ := 1 / 2) ⟨by norm_num, by norm_num⟩
+  (θ₀ := 0) (c := 1) (γ := 1 / 2) ⟨by norm_num, by norm_num⟩
