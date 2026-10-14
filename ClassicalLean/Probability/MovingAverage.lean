@@ -105,3 +105,123 @@ theorem covariance_movingAverage_eq_zero_of_lt {q : ℕ} {θ : ℕ → ℝ} {e :
     Finset.sum_empty, mul_zero]
 
 end ClassicalLean.Probability
+
+open MeasureTheory ProbabilityTheory in
+open scoped ENNReal in
+/-- The hypotheses of `covariance_movingAverage` hold together: the points `n = 0, 1, 2, …` with
+chance `2^-(n+1)` (Lean's finite-measure instance comes from conditioning on the whole space, which
+changes nothing, as the chances sum to `1`); the noise `e t = √(2^t) · h t`, where `h t n` is `1` at
+`n = t`, `-1` for `n > t` and `0` below `t`; each `e t` is bounded, so in `L²`, has mean `0` (the
+point `t` and the points above it carry the same chance), variance `v = 1`, and is uncorrelated
+with every other (for `s < t`, `h s` is `-1` wherever `h t` is not `0`); `q = 2`, the weights
+`θ j = j + 1`, the times `t = 3` and lag `k = 1`. -/
+example := ClassicalLean.Probability.covariance_movingAverage
+  (μ := (Measure.sum fun n : ℕ ↦ ((2 : ℝ≥0∞)⁻¹) ^ (n + 1) • Measure.dirac n)[|Set.univ])
+  (q := 2) (θ := fun j ↦ (j : ℝ) + 1)
+  (e := fun t n ↦ Real.sqrt (2 ^ t) * if n = t then 1 else if t < n then -1 else 0) (v := 1)
+  (fun t ↦ MemLp.of_bound (measurable_of_countable _).aestronglyMeasurable (Real.sqrt (2 ^ t))
+    (ae_of_all _ fun n ↦ by
+      rw [Real.norm_eq_abs, abs_mul, abs_of_nonneg (Real.sqrt_nonneg _)]
+      exact mul_le_of_le_one_right (Real.sqrt_nonneg _) (by split_ifs <;> norm_num)))
+  (by
+    obtain ⟨M, hM⟩ : ∃ M : Measure ℕ,
+        M = Measure.sum fun n : ℕ ↦ ((2 : ℝ≥0∞)⁻¹) ^ (n + 1) • Measure.dirac n := ⟨_, rfl⟩
+    obtain ⟨h, hh⟩ : ∃ h : ℕ → ℕ → ℝ,
+        h = fun t n ↦ if n = t then 1 else if t < n then -1 else 0 := ⟨_, rfl⟩
+    have M_single : ∀ m : ℕ, M {m} = (2⁻¹ : ℝ≥0∞) ^ (m + 1) := by
+      intro m
+      rw [hM, Measure.sum_apply _ (measurableSet_singleton m)]
+      simp only [Measure.smul_apply, Measure.dirac_apply' _ (measurableSet_singleton m),
+        smul_eq_mul]
+      rw [tsum_eq_single m]
+      · simp
+      · intro n hn; simp [Set.indicator, hn]
+    have cond_eq : M[|Set.univ] = M := by
+      have M_univ : M Set.univ = 1 := by
+        rw [hM, Measure.sum_apply _ MeasurableSet.univ]
+        simp only [Measure.smul_apply, measure_univ, smul_eq_mul, mul_one, pow_succ]
+        rw [ENNReal.tsum_mul_right, ENNReal.tsum_geometric, ENNReal.one_sub_inv_two, inv_inv,
+          ENNReal.mul_inv_cancel (by simp) (by simp)]
+      rw [ProbabilityTheory.cond, Measure.restrict_univ, M_univ, inv_one, one_smul]
+    have integral_eq : ∀ f : ℕ → ℝ, Integrable f M →
+        ∫ n, f n ∂M = ∑' n, ((2 : ℝ)⁻¹) ^ (n + 1) * f n := by
+      intro f hf
+      rw [integral_countable hf]
+      congr 1; ext n
+      rw [measureReal_def, M_single]; simp
+    have bdd : ∀ (f : ℕ → ℝ) (C : ℝ), (∀ n, |f n| ≤ C) → Integrable f M := by
+      intro f C hC
+      rw [← cond_eq]
+      exact Integrable.of_bound (measurable_of_countable _).aestronglyMeasurable C
+        (ae_of_all _ fun n ↦ by simpa using hC n)
+    have summ_tail : ∀ t : ℕ, Summable fun n : ℕ ↦ if t + 1 ≤ n then (2 : ℝ)⁻¹ ^ n else 0 :=
+      fun t ↦ (summable_geometric_of_lt_one (r := (2 : ℝ)⁻¹) (by norm_num) (by norm_num)
+        ).of_nonneg_of_le
+        (fun n ↦ by split_ifs <;> positivity)
+        (fun n ↦ by split_ifs <;> first | exact le_rfl | positivity)
+    have sum_h : ∀ t : ℕ, ∑' n, (2 : ℝ)⁻¹ ^ (n + 1) * h t n = 0 := by
+      intro t
+      have r : ∀ n, (2 : ℝ)⁻¹ ^ (n + 1) * h t n = (if n = t then (2 : ℝ)⁻¹ ^ (t + 1) else 0) -
+          2⁻¹ * (if t + 1 ≤ n then (2 : ℝ)⁻¹ ^ n else 0) := by
+        intro n; rw [hh]; dsimp only
+        split_ifs <;> subst_vars <;> first | (exfalso; omega) | ring1
+      simp_rw [r]
+      rw [Summable.tsum_sub (hasSum_ite_eq t _).summable ((summ_tail t).mul_left _), tsum_ite_eq,
+        tsum_mul_left, tsum_geometric_inv_two_ge]
+      ring
+    have sum_h_sq : ∀ t : ℕ, ∑' n, (2 : ℝ)⁻¹ ^ (n + 1) * (h t n * h t n) = (2 : ℝ)⁻¹ ^ t := by
+      intro t
+      have r : ∀ n, (2 : ℝ)⁻¹ ^ (n + 1) * (h t n * h t n) =
+          (if n = t then (2 : ℝ)⁻¹ ^ (t + 1) else 0) +
+            2⁻¹ * (if t + 1 ≤ n then (2 : ℝ)⁻¹ ^ n else 0) := by
+        intro n; rw [hh]; dsimp only
+        split_ifs <;> subst_vars <;> first | (exfalso; omega) | ring1
+      simp_rw [r]
+      rw [Summable.tsum_add (hasSum_ite_eq t _).summable ((summ_tail t).mul_left _), tsum_ite_eq,
+        tsum_mul_left, tsum_geometric_inv_two_ge]
+      ring
+    have h_mul_lt : ∀ {s t : ℕ}, s < t → ∀ n, h s n * h t n = - h t n := by
+      intro s t hst n; rw [hh]; dsimp only
+      split_ifs <;> first | (exfalso; omega) | norm_num
+    have h_abs : ∀ t n, |h t n| ≤ 1 := by
+      intro t n; rw [hh]; dsimp only; split_ifs <;> norm_num
+    have key : ∀ s t, cov[fun n ↦ Real.sqrt (2 ^ s) * h s n, fun n ↦ Real.sqrt (2 ^ t) * h t n;
+        M[|Set.univ]] = if s = t then 1 else 0 := by
+      intro s t
+      have mean : ∀ t, ∫ n, Real.sqrt (2 ^ t) * h t n ∂M = 0 := by
+        intro t
+        rw [integral_eq _ (bdd _ (Real.sqrt (2 ^ t)) fun n ↦ by
+          rw [abs_mul, abs_of_nonneg (Real.sqrt_nonneg _)]
+          exact mul_le_of_le_one_right (Real.sqrt_nonneg _) (h_abs t n))]
+        simp_rw [mul_left_comm _ (Real.sqrt _)]
+        rw [tsum_mul_left, sum_h, mul_zero]
+      rw [covariance, cond_eq]
+      rw [mean, mean]
+      simp only [sub_zero]
+      rw [integral_eq _ (bdd _ (Real.sqrt (2 ^ s) * Real.sqrt (2 ^ t)) fun n ↦ by
+        rw [abs_mul, abs_mul, abs_mul, abs_of_nonneg (Real.sqrt_nonneg _),
+          abs_of_nonneg (Real.sqrt_nonneg _)]
+        have := h_abs s n; have := h_abs t n
+        have := Real.sqrt_nonneg (2 ^ s); have := Real.sqrt_nonneg (2 ^ t)
+        calc _ = Real.sqrt (2 ^ s) * Real.sqrt (2 ^ t) * (|h s n| * |h t n|) := by ring
+          _ ≤ Real.sqrt (2 ^ s) * Real.sqrt (2 ^ t) * (1 * 1) := by gcongr
+          _ = _ := by ring)]
+      have r : ∀ n,
+          (2 : ℝ)⁻¹ ^ (n + 1) * (Real.sqrt (2 ^ s) * h s n * (Real.sqrt (2 ^ t) * h t n)) =
+          Real.sqrt (2 ^ s) * Real.sqrt (2 ^ t) * ((2 : ℝ)⁻¹ ^ (n + 1) * (h s n * h t n)) := by
+        intro n; ring
+      simp_rw [r]
+      rw [tsum_mul_left]
+      rcases lt_trichotomy s t with hst | rfl | hst
+      · simp_rw [h_mul_lt hst, mul_neg]
+        rw [tsum_neg, sum_h, neg_zero, mul_zero]
+        simp [hst.ne]
+      · rw [sum_h_sq, ← Real.sqrt_mul (by positivity), Real.sqrt_mul_self (by positivity),
+          ← mul_pow, mul_inv_cancel₀ (by norm_num), one_pow]
+        simp
+      · simp_rw [mul_comm (h s _), h_mul_lt hst, mul_neg]
+        rw [tsum_neg, sum_h, neg_zero, mul_zero]
+        simp [hst.ne']
+    subst hM hh
+    exact key)
+  (t := 3) (k := 1)
