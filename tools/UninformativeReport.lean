@@ -68,7 +68,9 @@ Limits, stated:
   closing itself (21 value lemmas such as `lucas_zero` close only so, measured at order
   VACUITY-3; the self-test's `plain_three`);
 * every non-runtime exception from a tactic, an internal error included, reads as "did not
-  close", like a tactic that fails; only exceptions outside the tactics are `ERROR`;
+  close", like a tactic that fails; a runtime exception from a tactic ends the theorem's try
+  (`TIMEOUT` for heartbeats, `ERROR` for recursion depth), as does any exception outside the
+  tactics (`ERROR`);
 * section C reads one level below a definition's value, and only the markers above; any constant
   whose last part is `rec` counts, so a definition that only uses `▸` (`Eq.rec`) would be listed
   too (none at order VACUITY-3).
@@ -210,7 +212,9 @@ def analyze (n : Name) (ty : Expr) (erase : Bool := true) : TermElabM (Outcome �
 
 /-- Run `analyze` under its own heartbeat count `budget`, at the command level, where running out
 of heartbeats can be caught: `TIMEOUT` for that, `ERROR` for any other exception. The number of
-hypotheses for a theorem that did not finish is counted again without the tactics. -/
+hypotheses for a theorem that did not finish is counted again without the tactics; if the binders
+cannot be read at all, the count is `0` and the theorem is listed as `B ERROR`, its section then
+unknown. -/
 def judge (n : Name) (ty : Expr) (budget : Nat := libraryBudget) (erase : Bool := true) :
     CommandElabM (Outcome × Nat) := do
   -- the whole command state, restored when the try throws: a runtime exception (heartbeats,
