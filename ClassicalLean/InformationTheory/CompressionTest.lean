@@ -346,14 +346,20 @@ end ClassicalLean.InformationTheory.CompressionTest
 
 open InformationTheory in
 /-- The hypotheses of `measureReal_len_add_le_le` hold together: on strings of `n = 2` win–loss
-outcomes, the code that writes each string out as it is, `[x 0, x 1]`, which is injective and
-prefix-free (all its words have length `2`); `k = 1` bit of compression asked for. -/
+outcomes, the code `(true, true) ↦ [false]`, `(true, false) ↦ [true, false]`,
+`(false, b) ↦ [true, true, b]`, with words of lengths `1, 2, 3, 3` (Kraft sum `1`), injective and
+prefix-free; `k = 1` bit of compression asked for, which only the string `(true, true)` gets, with
+chance `1/4`. (The model is the group 11 reviewer's.) -/
 example := ClassicalLean.InformationTheory.CompressionTest.measureReal_len_add_le_le (n := 2)
-  (c := fun x ↦ [x 0, x 1])
-  (fun x y h ↦ by funext i; fin_cases i <;> simp_all)
+  (c := fun x ↦ if x 0 then (if x 1 then [false] else [true, false]) else [true, true, x 1])
+  (fun x y h ↦ by
+    funext i
+    fin_cases i <;> cases hx0 : x 0 <;> cases hx1 : x 1 <;> cases hy0 : y 0 <;>
+      cases hy1 : y 1 <;> simp_all)
   (by
     rintro _ ⟨x, rfl⟩ _ ⟨y, rfl⟩ h
-    exact (List.IsPrefix.eq_of_length h (by simp)))
+    cases hx0 : x 0 <;> cases hx1 : x 1 <;> cases hy0 : y 0 <;> cases hy1 : y 1 <;>
+      simp_all)
   (k := 1)
 
 open InformationTheory in

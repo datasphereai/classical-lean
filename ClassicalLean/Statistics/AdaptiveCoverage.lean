@@ -142,26 +142,33 @@ end ClassicalLean.Statistics.AdaptiveCoverage
 
 open ClassicalLean.Statistics.AdaptiveCoverage in
 /-- The hypotheses of `abs_mean_err_sub_le` hold together: the target miss rate `α = 1/2` in
-`[0, 1]`, the step `γ = 2 > 0`, the first level `a₁ = 1/2`, and the misses `err t = 0` on even
-rounds and `1` on odd ones; the level then alternates between `1/2` and `3/2`, so on odd rounds it
-is at least `1` and the rule that a miss must then be `1` is met for a reason of its own; `T = 4`
-rounds. -/
+`[0, 1]`, the step `γ = 2 > 0`, the first level `a₁ = 0`, and the misses `err t = 0` on even
+rounds and `1` on odd ones; the level then alternates between `0` and `1`, so on even rounds it is
+at most `0` and the rule that the round must then be a hit applies, and on odd rounds it is at
+least `1` and the rule that the round must then be a miss applies; `T = 4` rounds. (The model is
+the group 11 reviewer's.) -/
 example := ClassicalLean.Statistics.AdaptiveCoverage.abs_mean_err_sub_le (α := 1 / 2) (γ := 2)
-  (a₁ := 1 / 2) (err := fun t ↦ if t % 2 = 0 then 0 else 1) (by norm_num) (by norm_num)
+  (a₁ := 0) (err := fun t ↦ if t % 2 = 0 then 0 else 1) (by norm_num) (by norm_num)
   (by norm_num)
   (by
-    have key : ∀ t, alphaSeq (1 / 2) 2 (1 / 2) (fun t ↦ if t % 2 = 0 then 0 else 1) t =
-        if t % 2 = 0 then 1 / 2 else 3 / 2 := by
+    have key : ∀ t, alphaSeq (1 / 2) 2 0 (fun t ↦ if t % 2 = 0 then 0 else 1) t =
+        if t % 2 = 0 then 0 else 1 := by
       intro t
       induction t with
       | zero => simp [alphaSeq]
       | succ t ih =>
         rw [alphaSeq, ih]
         rcases Nat.mod_two_eq_zero_or_one t with h | h
-        · simp [h, Nat.succ_mod_two_eq_one_iff.mpr h]; norm_num
+        · simp [h, Nat.succ_mod_two_eq_one_iff.mpr h]
         · simp [h, Nat.succ_mod_two_eq_zero_iff.mpr h]; norm_num
     refine ⟨fun t ↦ by split_ifs <;> norm_num, fun t ↦ by split_ifs <;> norm_num,
       fun t ht ↦ ?_, fun t ht ↦ ?_⟩
-    · rw [key] at ht; split_ifs at ht <;> norm_num at ht
-    · rw [key] at ht; split_ifs at ht with h <;> simp [h] at ht ⊢; norm_num at ht)
+    · rw [key] at ht
+      split_ifs at ht with h
+      · simp [h]
+      · linarith
+    · rw [key] at ht
+      split_ifs at ht with h
+      · linarith
+      · simp [h])
   (T := 4) (by norm_num)
