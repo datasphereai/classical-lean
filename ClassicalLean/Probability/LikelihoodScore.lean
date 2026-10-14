@@ -328,44 +328,74 @@ end ClassicalLean.Probability.LikelihoodScore
 
 open MeasureTheory ProbabilityTheory Filter in
 /-- The hypotheses of `measureReal_sum_ge_le_exp_neg_relEntropy` hold together: under the uniform
-probability on two points, with the filtration in which every time knows the outcome (each `𝒢 n`
-is the whole σ-algebra, so the conditional mean of `W (n + 1)` is `W (n + 1)` itself), the
-outcomes `W n`, `1/2` at the point `0` and `0` at the point `1`, lie in `[0, 1]` and are at most
-`p₀ = 1/2`; and `p₀ = 1/2 ≤ q = 3/4 < 1`, with `N = 4`. -/
+probability on two points, the filtration that knows nothing at time `0` and everything from time
+`1` on, and the outcomes `W 1 = 1` at the point `0` and `0` at the point `1`, `W n = 0` otherwise:
+all in `[0, 1]`, adapted (`W 0` is a constant); given time `0`, the mean of `W 1` is `1/2`, at most
+`p₀ = 1/2`, and later outcomes are `0`; `p₀ = 1/2 ≤ q = 3/4 < 1`, with `N = 1`, where the event
+`3/4 ≤ W 1` is the point `0`, of chance `1/2`, not empty. -/
 example := ClassicalLean.Probability.LikelihoodScore.measureReal_sum_ge_le_exp_neg_relEntropy
   (p₀ := 1 / 2) (q := 3 / 4) (Ω := Fin 2) (μ := uniformOn Set.univ)
-  (𝒢 := Filtration.const ℕ (inferInstance : MeasurableSpace (Fin 2)) le_rfl)
-  (W := fun _ ω ↦ if ω = 0 then 1 / 2 else 0)
-  (fun _ ↦ (StronglyMeasurable.of_discrete :
-    StronglyMeasurable[(inferInstance : MeasurableSpace (Fin 2))] _))
-  (fun _ ω ↦ by fin_cases ω <;> norm_num) (fun _ ω ↦ by fin_cases ω <;> norm_num)
+  (𝒢 := ⟨fun n ↦ if n = 0 then ⊥ else (inferInstance : MeasurableSpace (Fin 2)),
+    fun i j hij ↦ by
+      rcases i with _ | i
+      · exact bot_le
+      · rcases j with _ | j
+        · omega
+        · exact le_rfl,
+    fun i ↦ by rcases i with _ | i; exacts [bot_le, le_rfl]⟩)
+  (W := fun n ω ↦ if n = 1 ∧ ω = 0 then 1 else 0)
   (fun n ↦ by
-    rw [condExp_of_stronglyMeasurable
-      ((Filtration.const ℕ (inferInstance : MeasurableSpace (Fin 2)) le_rfl).le n)
-      (StronglyMeasurable.of_discrete :
-        StronglyMeasurable[(inferInstance : MeasurableSpace (Fin 2))] _)
-      Integrable.of_finite]
-    exact Eventually.of_forall fun ω ↦ by fin_cases ω <;> norm_num)
-  (by norm_num) (by norm_num) (by norm_num) (by norm_num) (N := 4)
+    rcases n with _ | n
+    · exact (stronglyMeasurable_const : StronglyMeasurable[⊥] fun _ : Fin 2 ↦ (0 : ℝ))
+    · exact (StronglyMeasurable.of_discrete :
+        StronglyMeasurable[(inferInstance : MeasurableSpace (Fin 2))] (_ : Fin 2 → ℝ)))
+  (fun _ _ ↦ by split_ifs <;> norm_num) (fun _ _ ↦ by split_ifs <;> norm_num)
+  (fun n ↦ by
+    rcases n with _ | n
+    · change condExp ⊥ (uniformOn Set.univ) _ ≤ᵐ[uniformOn Set.univ] _
+      rw [condExp_bot]
+      refine Eventually.of_forall fun ω ↦ ?_
+      rw [integral_fintype Integrable.of_finite]
+      simp [uniformOn_univ, Measure.real]
+    · change condExp (inferInstance : MeasurableSpace (Fin 2)) (uniformOn Set.univ) _ ≤ᵐ[_] _
+      rw [condExp_of_stronglyMeasurable le_rfl StronglyMeasurable.of_discrete
+        Integrable.of_finite]
+      exact Eventually.of_forall fun ω ↦ by simp)
+  (by norm_num) (by norm_num) (by norm_num) (by norm_num) (N := 1)
 
 open MeasureTheory ProbabilityTheory Filter in
 /-- The hypotheses of `measureReal_sum_ge_le_exp_neg_sq` hold together: under the uniform
-probability on two points, with the filtration in which every time knows the outcome (each `𝒢 n`
-is the whole σ-algebra, so the conditional mean of `W (n + 1)` is `W (n + 1)` itself), the
-outcomes `W n`, `1/2` at the point `0` and `0` at the point `1`, lie in `[0, 1]` and are at most
-`p₀ = 1/2`; and `p₀ = 1/2 ≤ q = 3/4 < 1`, with `N = 4`. -/
+probability on two points, the filtration that knows nothing at time `0` and everything from time
+`1` on, and the outcomes `W 1 = 1` at the point `0` and `0` at the point `1`, `W n = 0` otherwise:
+all in `[0, 1]`, adapted (`W 0` is a constant); given time `0`, the mean of `W 1` is `1/2`, at most
+`p₀ = 1/2`, and later outcomes are `0`; `p₀ = 1/2 ≤ q = 3/4 < 1`, with `N = 1`, where the event
+`3/4 ≤ W 1` is the point `0`, of chance `1/2`, not empty. -/
 example := ClassicalLean.Probability.LikelihoodScore.measureReal_sum_ge_le_exp_neg_sq
   (p₀ := 1 / 2) (q := 3 / 4) (Ω := Fin 2) (μ := uniformOn Set.univ)
-  (𝒢 := Filtration.const ℕ (inferInstance : MeasurableSpace (Fin 2)) le_rfl)
-  (W := fun _ ω ↦ if ω = 0 then 1 / 2 else 0)
-  (fun _ ↦ (StronglyMeasurable.of_discrete :
-    StronglyMeasurable[(inferInstance : MeasurableSpace (Fin 2))] _))
-  (fun _ ω ↦ by fin_cases ω <;> norm_num) (fun _ ω ↦ by fin_cases ω <;> norm_num)
+  (𝒢 := ⟨fun n ↦ if n = 0 then ⊥ else (inferInstance : MeasurableSpace (Fin 2)),
+    fun i j hij ↦ by
+      rcases i with _ | i
+      · exact bot_le
+      · rcases j with _ | j
+        · omega
+        · exact le_rfl,
+    fun i ↦ by rcases i with _ | i; exacts [bot_le, le_rfl]⟩)
+  (W := fun n ω ↦ if n = 1 ∧ ω = 0 then 1 else 0)
   (fun n ↦ by
-    rw [condExp_of_stronglyMeasurable
-      ((Filtration.const ℕ (inferInstance : MeasurableSpace (Fin 2)) le_rfl).le n)
-      (StronglyMeasurable.of_discrete :
-        StronglyMeasurable[(inferInstance : MeasurableSpace (Fin 2))] _)
-      Integrable.of_finite]
-    exact Eventually.of_forall fun ω ↦ by fin_cases ω <;> norm_num)
-  (by norm_num) (by norm_num) (by norm_num) (by norm_num) (N := 4)
+    rcases n with _ | n
+    · exact (stronglyMeasurable_const : StronglyMeasurable[⊥] fun _ : Fin 2 ↦ (0 : ℝ))
+    · exact (StronglyMeasurable.of_discrete :
+        StronglyMeasurable[(inferInstance : MeasurableSpace (Fin 2))] (_ : Fin 2 → ℝ)))
+  (fun _ _ ↦ by split_ifs <;> norm_num) (fun _ _ ↦ by split_ifs <;> norm_num)
+  (fun n ↦ by
+    rcases n with _ | n
+    · change condExp ⊥ (uniformOn Set.univ) _ ≤ᵐ[uniformOn Set.univ] _
+      rw [condExp_bot]
+      refine Eventually.of_forall fun ω ↦ ?_
+      rw [integral_fintype Integrable.of_finite]
+      simp [uniformOn_univ, Measure.real]
+    · change condExp (inferInstance : MeasurableSpace (Fin 2)) (uniformOn Set.univ) _ ≤ᵐ[_] _
+      rw [condExp_of_stronglyMeasurable le_rfl StronglyMeasurable.of_discrete
+        Integrable.of_finite]
+      exact Eventually.of_forall fun ω ↦ by simp)
+  (by norm_num) (by norm_num) (by norm_num) (by norm_num) (N := 1)
