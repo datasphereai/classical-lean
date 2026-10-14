@@ -339,8 +339,9 @@ def unconfirmedMsg : String := "every case is True; kernel could not confirm the
     `real_hyp_and_small`); but where a definition by structural recursion, applied to a literal or
     a constructor, reduces through smart unfolding all the way to `True` (`unfoldNamed`), the part
     is read as `True`, so `P a ∧ Small3 0` is flagged (test `real_hyp_and_small3`, listed). A
-    part under a binder (`∀ x, Q x ∧ R x`, `Q a → Q a`) is not opened. At most `maxLevels` levels deep, so a structure that contains itself (`Loop p`
-    with a field of type `Loop p`) ends (cold review r3, finding 1; test `real_loop_wrap`).
+    part under a binder (`∀ x, Q x ∧ R x`, `Q a → Q a`) is not opened. At most `maxLevels`
+    levels deep, so a structure that contains itself (`Loop p` with a field of type `Loop p`)
+    ends (cold review r3, finding 1; test `real_loop_wrap`).
     `top`: the whole conclusion, which `vacuousProof` has already tried as one part. -/
 partial def gluedProof (xs : Array Expr) (concl : Expr) (unconf : IO.Ref Bool)
     (top : Bool := true) (depth : Nat := 0) : MetaM (Option Expr) := do
@@ -681,14 +682,14 @@ inductive Verdict
   /-- the fixed test, or `judge` itself, did not finish, and the old case 3 did not flag the
       theorem (rule 5 is then not run); fails the gate, never a pass. `msg` is the first line of
       the reason. Every path to it (order VACUITY-3): the fixed test runs out of its heartbeat
-      budget; it reads an all-`True` match whose `True.intro`
-      proof it cannot confirm (`unconfirmedMsg`); the kernel stops on a resource limit while it
-      checks the fixed test's proof (`KernelCheck.notChecked`, re-thrown in `judge`); any other
-      exception from the fixed test; and, in `scan`, any exception that `judge` throws outside
-      its own `try`, such as the old case 3 running out. When the old case 3 fired, the first
-      four give a flag instead, labelled `old case 3 only (fixed test UNCHECKED: …)` unless rule 5
-      also fired (then `old case 3 + rule 5`, and the fixed test's message is dropped; a kernel
-      rejection of rule 5's proof gives KERNEL-REJECTED). Rule 5 running out never gives it:
+      budget; it reads an all-`True` match whose `True.intro` proof it cannot confirm
+      (`unconfirmedMsg`); the kernel stops on a resource limit while it checks the fixed test's
+      proof (`KernelCheck.notChecked`, re-thrown in `judge`); any other exception from the fixed
+      test; and, in `scan`, any exception that `judge` throws outside its own `try`, such as the
+      old case 3 running out. When the old case 3 fired, the first four give a flag instead,
+      labelled `old case 3 only (fixed test UNCHECKED: …)` unless rule 5 also fired (then
+      `old case 3 + rule 5`, and the fixed test's message is dropped; a kernel rejection of rule
+      5's proof gives KERNEL-REJECTED). Rule 5 running out never gives it:
       that is counted apart. -/
   | unchecked (msg : String)
   /-- the kernel refused the proof behind a flag, a term the gate built and believed correct
@@ -708,8 +709,9 @@ inductive Verdict
     `Verdict.unchecked`), the theorem is still flagged when the old case 3 fired, and is
     UNCHECKED otherwise. Such a flag is labelled `old case 3 only (fixed test UNCHECKED: …)`
     (`old case 3 + rule 5` when rule 5 fired too), and that label can sit on an empty theorem:
-    the fixed test, which might have proved the theorem empty, did not finish, so `old case 3 only` does not mean that only the old case 3 would have
-    fired (order VACUITY-3). If rule 5 runs out, that is returned beside the verdict (the second
+    the fixed test, which might have proved the theorem empty, did not finish, so
+    `old case 3 only` does not mean that only the old case 3 would have fired (order VACUITY-3).
+    If rule 5 runs out, that is returned beside the verdict (the second
     part): the gate prints it and counts it, and does not fail on it, since rule 5 is an
     incomplete search and running out tells no more than finding nothing. -/
 def judge (list : Array Entry) (n : Name) (type : Expr) :
