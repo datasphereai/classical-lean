@@ -343,3 +343,26 @@ example : ∃ (μ : Measure (Fin 1 → Bool)) (_ : IsProbabilityMeasure μ)
     exact hxy.eq_of_length (by simp)
 
 end ClassicalLean.InformationTheory.CompressionTest
+
+open InformationTheory in
+/-- The hypotheses of `measureReal_len_add_le_le` hold together: on strings of `n = 2` win–loss
+outcomes, the code that writes each string out as it is, `[x 0, x 1]`, which is injective and
+prefix-free (all its words have length `2`); `k = 1` bit of compression asked for. -/
+example := ClassicalLean.InformationTheory.CompressionTest.measureReal_len_add_le_le (n := 2)
+  (c := fun x ↦ [x 0, x 1])
+  (fun x y h ↦ by funext i; fin_cases i <;> simp_all)
+  (by
+    rintro _ ⟨x, rfl⟩ _ ⟨y, rfl⟩ h
+    exact (List.IsPrefix.eq_of_length h (by simp)))
+  (k := 1)
+
+open InformationTheory in
+/-- The hypotheses of `sum_inv_two_pow_length_le_one` hold together: on strings of `n = 2` win–loss
+outcomes, the code that writes each string out as it is, `[x 0, x 1]`, which is injective and
+prefix-free (all its words have length `2`). -/
+example := ClassicalLean.InformationTheory.CompressionTest.sum_inv_two_pow_length_le_one (n := 2)
+  (c := fun x ↦ [x 0, x 1])
+  (fun x y h ↦ by funext i; fin_cases i <;> simp_all)
+  (by
+    rintro _ ⟨x, rfl⟩ _ ⟨y, rfl⟩ h
+    exact (List.IsPrefix.eq_of_length h (by simp)))

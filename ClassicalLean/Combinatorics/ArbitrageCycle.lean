@@ -527,3 +527,13 @@ example : NoNegativeCycle (![![0, -1, 5], ![5, 0, -1], ![5, 5, 0]] : Fin 3 → F
   · simpa using bellmanFord_stable_of_short (w := w) fun c hc _ ↦ hneg c hc
 
 end ClassicalLean.Combinatorics
+
+/-- The hypotheses of `bellmanFord_stable_iff` hold together: three assets, the rate `1` from an
+asset to itself and `1/2` between two different ones, all positive. -/
+example := ClassicalLean.Combinatorics.bellmanFord_stable_iff (ι := Fin 3)
+  (r := fun i j ↦ if i = j then 1 else 1 / 2) (fun i j ↦ by split_ifs <;> norm_num)
+
+/-- The hypotheses of `forall_cycle_prod_le_one_iff_exists_prices` hold together: three assets, the
+rate `1` from an asset to itself and `1/2` between two different ones, all positive. -/
+example := ClassicalLean.Combinatorics.forall_cycle_prod_le_one_iff_exists_prices (ι := Fin 3)
+  (r := fun i j ↦ if i = j then 1 else 1 / 2) (fun i j ↦ by split_ifs <;> norm_num)

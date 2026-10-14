@@ -858,3 +858,10 @@ example := ClassicalLean.Analysis.iSup_bayesRisk_eq_minimaxRisk_of_finite (Θ :=
   (𝓧 := Fin 2) (𝓨 := Fin 2) (ℓ := fun θ y ↦ if θ = y then 0 else 1)
   (fun θ y ↦ by split_ifs <;> simp)
   (P := Kernel.const (Fin 2) (Measure.dirac (0 : Fin 2)))
+
+/-- The hypotheses of `abs_value_sub_le_of_exponentialWeights` hold together: the `2 × 2` game with
+payoffs `1` on the diagonal and `0` off it, all in `[0, 1]`; the learning rate `η = 1 > 0`; `T = 4`
+rounds. -/
+example := ClassicalLean.Analysis.abs_value_sub_le_of_exponentialWeights (ι := Fin 2) (κ := Fin 2)
+  (A := !![1, 0; 0, 1]) (fun i j ↦ by fin_cases i <;> fin_cases j <;> simp) (η := 1) (by norm_num)
+  (T := 4) (by norm_num)

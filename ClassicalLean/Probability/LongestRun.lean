@@ -317,3 +317,151 @@ example : ∃ (P : Measure Bool) (A : ℕ → Set Bool), iIndepSet (fun i : Fin 
     norm_num
 
 end ClassicalLean.Probability.LongestRun
+
+open MeasureTheory ProbabilityTheory in
+open scoped ENNReal in
+/-- The hypotheses of `measureReal_exists_run_le` hold together: two fair coin flips, the uniform
+probability `(1/4) · count` on the four sequences `Fin 2 → Bool`; the events `A i`, flip `i` comes
+up heads (a loss), for `i < 2`, which are independent (the chance of both is `1/4 = 1/2 · 1/2`);
+each has chance `q = 1/2`; `n = 2` trials and runs of `r = 2` losses. -/
+example := ClassicalLean.Probability.LongestRun.measureReal_exists_run_le (Ω := Fin 2 → Bool)
+  (P := (4⁻¹ : ℝ≥0∞) • Measure.count)
+  (A := fun i ↦ {ω | ∃ h : i < 2, ω ⟨i, h⟩ = true}) (n := 2) (r := 2) (q := 1 / 2)
+  (by
+    have c0 : Measure.count {ω : Fin 2 → Bool | ω 0 = true} = 2 := by
+      rw [Measure.count_apply_finite _ (Set.toFinite _)]
+      simp only [Set.Finite.toFinset_ofPred]
+      norm_cast
+    have c1 : Measure.count {ω : Fin 2 → Bool | ω 1 = true} = 2 := by
+      rw [Measure.count_apply_finite _ (Set.toFinite _)]
+      simp only [Set.Finite.toFinset_ofPred]
+      norm_cast
+    have c01 : Measure.count ({ω : Fin 2 → Bool | ω 0 = true} ∩ {ω | ω 1 = true}) = 1 := by
+      rw [Measure.count_apply_finite _ (Set.toFinite _)]
+      simp only [Set.toFinite_toFinset, Set.toFinset_inter, Set.toFinset_ofPred]
+      norm_cast
+    have h2 : (4⁻¹ : ℝ≥0∞) * 2 = 2⁻¹ := by
+      rw [show (4 : ℝ≥0∞) = 2 * 2 by norm_num, ENNReal.mul_inv (by simp) (by simp), mul_assoc,
+        ENNReal.inv_mul_cancel (by simp) (by simp), mul_one]
+    have h4 : (4⁻¹ : ℝ≥0∞) = 2⁻¹ * 2⁻¹ := by
+      rw [show (4 : ℝ≥0∞) = 2 * 2 by norm_num, ENNReal.mul_inv (by simp) (by simp)]
+    rw [iIndepSet_iff_meas_biInter fun _ ↦ MeasurableSet.of_discrete]
+    intro s
+    have e : ∀ (S : Set (Fin 2 → Bool)) (j : Fin 2), S = {ω | ω j = true} →
+        Measure.count {ω : Fin 2 → Bool | ω j = true} = 2 → (4⁻¹ : ℝ≥0∞) * Measure.count S = 2⁻¹ :=
+      fun S j hS hc ↦ by rw [hS, hc, h2]
+    fin_cases s
+    · simp only [Multiset.coe_nil, mk_zero, notMem_empty, Fin.eta, Order.lt_two_iff, exists_prop,
+        isEmpty_Prop, not_false_eq_true, Set.iInter_of_empty, Set.iInter_univ, Measure.smul_apply,
+        Measure.count_univ, ENat.card_eq_coe_fintype_card, Fintype.card_pi, Fintype.card_bool,
+        prod_const, card_univ, Fintype.card_fin, Nat.reducePow, Nat.cast_ofNat,
+        ENat.toENNReal_ofNat, smul_eq_mul, prod_empty]
+      exact ENNReal.inv_mul_cancel (by simp) (by simp)
+    · simp only [Fin.zero_eta, Fin.isValue, Multiset.coe_singleton, mem_mk, Multiset.mem_singleton,
+        Fin.eta, Order.lt_two_iff, exists_prop, Measure.smul_apply, smul_eq_mul, prod_mk,
+        Multiset.map_singleton, Fin.coe_ofNat_eq_mod, Nat.zero_mod, zero_le, true_and,
+        Multiset.prod_singleton]
+      rw [e _ 0 (by ext ω; simp [Finset.mem_def]) c0, ← h2, c0]
+    · simp only [Fin.mk_one, Fin.isValue, Multiset.coe_singleton, mem_mk, Multiset.mem_singleton,
+        Fin.eta, Order.lt_two_iff, exists_prop, Measure.smul_apply, smul_eq_mul, prod_mk,
+        Multiset.map_singleton, Fin.coe_ofNat_eq_mod, Nat.mod_succ, Std.le_refl, true_and,
+        Multiset.prod_singleton]
+      rw [e _ 1 (by ext ω; simp [Finset.mem_def]) c1, ← h2, c1]
+    · simp only [Fin.zero_eta, Fin.isValue, Fin.mk_one, mem_mk, Multiset.mem_coe, List.mem_cons,
+        List.not_mem_nil, or_false, Fin.eta, Order.lt_two_iff, exists_prop,
+        Set.iInter_iInter_eq_or_left, Fin.coe_ofNat_eq_mod, Nat.zero_mod, zero_le, true_and,
+        Set.iInter_iInter_eq_left, Nat.mod_succ, Std.le_refl, Measure.smul_apply, smul_eq_mul,
+        prod_mk, Multiset.map_coe, List.map_cons, List.map_nil, Multiset.prod_coe, List.prod_cons,
+        List.prod_nil, mul_one]
+      rw [c01, c0, c1, h2, mul_one, h4])
+  (fun i hi ↦ by
+    have c0 : Measure.count {ω : Fin 2 → Bool | ω 0 = true} = 2 := by
+      rw [Measure.count_apply_finite _ (Set.toFinite _)]
+      simp only [Set.Finite.toFinset_ofPred]
+      norm_cast
+    have c1 : Measure.count {ω : Fin 2 → Bool | ω 1 = true} = 2 := by
+      rw [Measure.count_apply_finite _ (Set.toFinite _)]
+      simp only [Set.Finite.toFinset_ofPred]
+      norm_cast
+    have h2 : (4⁻¹ : ℝ≥0∞) * 2 = 2⁻¹ := by
+      rw [show (4 : ℝ≥0∞) = 2 * 2 by norm_num, ENNReal.mul_inv (by simp) (by simp), mul_assoc,
+        ENNReal.inv_mul_cancel (by simp) (by simp), mul_one]
+    rcases i with _ | _ | i
+    · simp [Measure.real, c0, h2]
+    · simp [Measure.real, c1, h2]
+    · omega)
+
+open MeasureTheory ProbabilityTheory in
+open scoped ENNReal in
+/-- The hypotheses of `measureReal_no_run_le` hold together: two fair coin flips, the uniform
+probability `(1/4) · count` on the four sequences `Fin 2 → Bool`; the events `A i`, flip `i` comes
+up heads (a loss), for `i < 2`, which are independent (the chance of both is `1/4 = 1/2 · 1/2`);
+each is measurable (every set of the four sequences is) and has chance `q = 1/2`; `n = 2` trials and
+runs of `r = 2` losses. -/
+example := ClassicalLean.Probability.LongestRun.measureReal_no_run_le (Ω := Fin 2 → Bool)
+  (P := (4⁻¹ : ℝ≥0∞) • Measure.count)
+  (A := fun i ↦ {ω | ∃ h : i < 2, ω ⟨i, h⟩ = true}) (n := 2) (r := 2) (q := 1 / 2)
+  (fun _ _ ↦ MeasurableSet.of_discrete)
+  (by
+    have c0 : Measure.count {ω : Fin 2 → Bool | ω 0 = true} = 2 := by
+      rw [Measure.count_apply_finite _ (Set.toFinite _)]
+      simp only [Set.Finite.toFinset_ofPred]
+      norm_cast
+    have c1 : Measure.count {ω : Fin 2 → Bool | ω 1 = true} = 2 := by
+      rw [Measure.count_apply_finite _ (Set.toFinite _)]
+      simp only [Set.Finite.toFinset_ofPred]
+      norm_cast
+    have c01 : Measure.count ({ω : Fin 2 → Bool | ω 0 = true} ∩ {ω | ω 1 = true}) = 1 := by
+      rw [Measure.count_apply_finite _ (Set.toFinite _)]
+      simp only [Set.toFinite_toFinset, Set.toFinset_inter, Set.toFinset_ofPred]
+      norm_cast
+    have h2 : (4⁻¹ : ℝ≥0∞) * 2 = 2⁻¹ := by
+      rw [show (4 : ℝ≥0∞) = 2 * 2 by norm_num, ENNReal.mul_inv (by simp) (by simp), mul_assoc,
+        ENNReal.inv_mul_cancel (by simp) (by simp), mul_one]
+    have h4 : (4⁻¹ : ℝ≥0∞) = 2⁻¹ * 2⁻¹ := by
+      rw [show (4 : ℝ≥0∞) = 2 * 2 by norm_num, ENNReal.mul_inv (by simp) (by simp)]
+    rw [iIndepSet_iff_meas_biInter fun _ ↦ MeasurableSet.of_discrete]
+    intro s
+    have e : ∀ (S : Set (Fin 2 → Bool)) (j : Fin 2), S = {ω | ω j = true} →
+        Measure.count {ω : Fin 2 → Bool | ω j = true} = 2 → (4⁻¹ : ℝ≥0∞) * Measure.count S = 2⁻¹ :=
+      fun S j hS hc ↦ by rw [hS, hc, h2]
+    fin_cases s
+    · simp only [Multiset.coe_nil, mk_zero, notMem_empty, Fin.eta, Order.lt_two_iff, exists_prop,
+        isEmpty_Prop, not_false_eq_true, Set.iInter_of_empty, Set.iInter_univ, Measure.smul_apply,
+        Measure.count_univ, ENat.card_eq_coe_fintype_card, Fintype.card_pi, Fintype.card_bool,
+        prod_const, card_univ, Fintype.card_fin, Nat.reducePow, Nat.cast_ofNat,
+        ENat.toENNReal_ofNat, smul_eq_mul, prod_empty]
+      exact ENNReal.inv_mul_cancel (by simp) (by simp)
+    · simp only [Fin.zero_eta, Fin.isValue, Multiset.coe_singleton, mem_mk, Multiset.mem_singleton,
+        Fin.eta, Order.lt_two_iff, exists_prop, Measure.smul_apply, smul_eq_mul, prod_mk,
+        Multiset.map_singleton, Fin.coe_ofNat_eq_mod, Nat.zero_mod, zero_le, true_and,
+        Multiset.prod_singleton]
+      rw [e _ 0 (by ext ω; simp [Finset.mem_def]) c0, ← h2, c0]
+    · simp only [Fin.mk_one, Fin.isValue, Multiset.coe_singleton, mem_mk, Multiset.mem_singleton,
+        Fin.eta, Order.lt_two_iff, exists_prop, Measure.smul_apply, smul_eq_mul, prod_mk,
+        Multiset.map_singleton, Fin.coe_ofNat_eq_mod, Nat.mod_succ, Std.le_refl, true_and,
+        Multiset.prod_singleton]
+      rw [e _ 1 (by ext ω; simp [Finset.mem_def]) c1, ← h2, c1]
+    · simp only [Fin.zero_eta, Fin.isValue, Fin.mk_one, mem_mk, Multiset.mem_coe, List.mem_cons,
+        List.not_mem_nil, or_false, Fin.eta, Order.lt_two_iff, exists_prop,
+        Set.iInter_iInter_eq_or_left, Fin.coe_ofNat_eq_mod, Nat.zero_mod, zero_le, true_and,
+        Set.iInter_iInter_eq_left, Nat.mod_succ, Std.le_refl, Measure.smul_apply, smul_eq_mul,
+        prod_mk, Multiset.map_coe, List.map_cons, List.map_nil, Multiset.prod_coe, List.prod_cons,
+        List.prod_nil, mul_one]
+      rw [c01, c0, c1, h2, mul_one, h4])
+  (fun i hi ↦ by
+    have c0 : Measure.count {ω : Fin 2 → Bool | ω 0 = true} = 2 := by
+      rw [Measure.count_apply_finite _ (Set.toFinite _)]
+      simp only [Set.Finite.toFinset_ofPred]
+      norm_cast
+    have c1 : Measure.count {ω : Fin 2 → Bool | ω 1 = true} = 2 := by
+      rw [Measure.count_apply_finite _ (Set.toFinite _)]
+      simp only [Set.Finite.toFinset_ofPred]
+      norm_cast
+    have h2 : (4⁻¹ : ℝ≥0∞) * 2 = 2⁻¹ := by
+      rw [show (4 : ℝ≥0∞) = 2 * 2 by norm_num, ENNReal.mul_inv (by simp) (by simp), mul_assoc,
+        ENNReal.inv_mul_cancel (by simp) (by simp), mul_one]
+    rcases i with _ | _ | i
+    · simp [Measure.real, c0, h2]
+    · simp [Measure.real, c1, h2]
+    · omega)
