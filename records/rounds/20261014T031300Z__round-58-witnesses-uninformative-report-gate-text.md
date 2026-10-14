@@ -152,7 +152,22 @@ does not list what the gate checks. This fragment, `records/orders/INDEX.md` and
 
 ### End checks (job 5)
 
-Filled in after the gates, in a commit that touches nothing outside `records/`.
+On the clean tree at `bca952e` (the documents commit), in the order's order, each predicted first
+(`~/lean/vacuity3-checks/job5.sh`):
+
+* 5a, the bridge search against `records/bridges/LEAN-28/`: rc 0, 0 new, 0 gone (2393 pairs, 535
+  shape candidates); no new baseline. Round 57's "reasoned, not measured" line about `c58db94` is
+  now measured.
+* 5b, the report tool: rc 0, self-test PASS; 1785 written; A 1027 (0 close, 988 open, 39
+  dependent); B 758 (15 `simp`, 1 `positivity`, 742 open); C 33 Prop-valued, 0 recursive; 38.05 s,
+  4153776 KB. As predicted.
+* 5c: build rc 0, 4170 jobs, 0 warnings; AxiomGate PASS 3228; VacuityGate PASS, its output equal to
+  the run before the order apart from times (2:53.74, 5050136 KB); the gate's tests 89, 47
+  flagged, 3 UNCHECKED with the expected message, 0 mismatches; check_sorry PASS 122;
+  check_records PASS 122; gate 7: rc 0, ALL PASSED for `bca952e`, 4170 jobs, 122 modules 0
+  failed, 90615 declarations with no errors, the three standard axioms, 3228 theorems under
+  `ClassicalLean`, the planted fault named (`mean_log_one_add_le`); 21:21.56, 4749940 KB. The tree
+  was clean after job 5.
 
 ### Lapses, logged in `evidence.log`
 
@@ -165,3 +180,22 @@ Filled in after the gates, in a commit that touches nothing outside `records/`.
   was redone from the right parent before the confirming pass.
 * The reason given for rows 9 and 10 was corrected twice after reviews (`g2-correction`,
   `g2-correction-2`), and the reason for rows 31 and 32 once (group 5's second pass: AR(2)).
+
+### Ruling 2: a fresh reviewer for the witnesses a reviewer wrote
+
+claude-ai's ruling 2 of this order (lane `lean/VACUITY-3-ruling-2.md`, sha256
+`f1e2bcfb82a2376bd419668106093430644e0504ceb85844158951ff7fd0b691`, Dustin may veto): where a
+fix copies a model that the group's own reviewer proposed, that reviewer's confirming pass checked
+its own work, so one fresh agent reviews those rows, read-only, with no Lean. Found by reading
+every group's review files: rows 7 and 8 (group 1), 21 (group 3), 33 (group 5), 46 and 47 (group
+7), 63 and 65 (group 9), 70 (group 10), 77 and 78 (group 11), whose final witness copies or builds
+a reviewer's model, and row 83 (group 12), whose docstring wording is its reviewer's. The other
+fixes changed form (arguments by name) or wording only. Result: PASS WITH FINDINGS 0/0/2
+(`~/lean/vacuity3-checks/reviews/ruling2/review.md`, sha256 `246bcdb9…944d`, read only, no Lean):
+rows 21, 33, 46, 47, 63, 65, 77, 78 and 83 OK; **open findings, not fixed** (ruling 2, item 4):
+rows 7 and 8 (`N = 1`, and the outcomes after time 1 are `0`, so the later rounds meet the
+condition only by being `0`) and row 70 (the kernel tells nothing, so the observation plays no
+part); the reviewer would accept all three as they are. The push waits for claude-ai's ruling on
+them.
+**Standing, for later orders:** a fix that a reviewer proposed is confirmed by a fresh agent,
+never by its proposer.
