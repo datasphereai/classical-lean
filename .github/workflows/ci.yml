@@ -1,0 +1,37 @@
+name: CI
+
+on:
+  push:
+    branches: [master, "cloud-*"]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6.1.0
+      - id: lean
+        uses: leanprover/lean-action@24581d74d674803a25a81b10b059c5c0cdd344c6 # v1.6.2
+        with:
+          build: "true"
+          test: "false"
+          lint: "false"
+          use-mathlib-cache: "true"
+          use-github-cache: "false"
+      - name: Axiom gate
+        if: ${{ !cancelled() && steps.lean.outcome == 'success' }}
+        run: lake env lean tools/AxiomGate.lean
+      - name: check_sorry
+        if: ${{ !cancelled() && steps.lean.outcome == 'success' }}
+        run: python3 -I tools/check_sorry.py
+      - name: Vacuity gate
+        if: ${{ !cancelled() && steps.lean.outcome == 'success' }}
+        run: lake env lean tools/VacuityGate.lean
