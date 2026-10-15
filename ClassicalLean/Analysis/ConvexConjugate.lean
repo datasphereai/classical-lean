@@ -33,8 +33,9 @@ wider than the row, not narrower.
 
 The junk values below are checked by the seven `example`s at the end of this file (moved there by
 order LEAN-29 from order LEAN-27's scratch file), against this module's own `convexConjugate`
-except the real supremum, which cannot use it. The examples take `f` constant on `ℝ¹` and `y = 0`;
-the general cases below, the remark on a single value `⊤` and the fourth bullet are by hand:
+except the real supremum, which cannot use it. The six examples on `convexConjugate` take `f`
+constant on `ℝ¹` and `y = 0`, and the real supremum takes `f = 0` and `y = 1`; the general cases
+below, the remark on a single value `⊤` and the fourth bullet are by hand:
 
 * Fenchel–Young needs `f` real-valued. Over `EReal` it fails in two ways (cold review r79 found
   the second): if `f x = ⊥` at some `x`, then `f* y = (y ⬝ x) − ⊥ = ⊤` and the right side is

@@ -75,7 +75,8 @@ tested triples with `p ∣ a` and `n ≥ 1`, both sides of the iff were false in
 `exists_isPrimitiveDivisor_of_forall_prime_dvd` states the stronger `2 ≤ a`; `0 < a` suffices
 (the `example` at the end of this file, order LEAN-29), since `a = 1` is already excluded by the
 hypothesis itself once `1 < n`. Some hypothesis excluding `a = 0` is needed: `a = 0` satisfies the
-hypothesis vacuously (every prime divides `0`) while `Φₙ(0) = 1` has no prime factor.
+hypothesis trivially (every prime divides `0`), but for `n ≥ 2` no prime is primitive there, since
+`0 ^ 1 - 1` truncates to `0`, which every prime divides (in `ℤ`, `Φₙ(0) = 1` has no prime factor).
 
 ## What is not here
 
@@ -289,7 +290,7 @@ removable — but it *is* weakenable to `0 < a` by a case split, since the radic
 itself false at `a = 1` once `1 < n`; the stronger form is the `example` at the end of this file
 (order LEAN-29), and `2 ≤ a` is kept because it matches what `sub_one_lt_natAbs_cyclotomic_eval`
 wants and the case split buys one vacuous value of `a`.  What removal costs: `a = 0` satisfies the
-hypothesis vacuously while `Φₙ(0) = 1`.  (`a = 1` needs no separate exclusion — with `1 < n` some
+hypothesis trivially while `Φₙ(0) = 1`.  (`a = 1` needs no separate exclusion — with `1 < n` some
 prime divides `n`, and no prime divides `1`.)
 
 For how much of the ground this covers — 13.30% of a 5940-pair grid, and no odd `n` at `a = 2` —
