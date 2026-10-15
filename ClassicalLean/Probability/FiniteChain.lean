@@ -101,10 +101,10 @@ A chain is primitive when some power `P ^ k` has every entry positive, though `P
   is `π*`.
 * `sum_abs_vecMul_pow_sub_le_of_pow`: if `P ≥ 0`, every row sums to `1`, every entry of `P ^ k` is
   at least `δ`, `π P = π` and `μ` has `π`'s total, then
-  `∑ j, |(μ P ^ t) j − π j| ≤ (1 − n δ) ^ (t / k) ∑ j, |μ j − π j|`. The route: `t = k (t / k) +
-  t % k`; first `sum_abs_vecMul_pow_sub_le` for `P ^ k` over the `t / k` steps, then
-  `sum_abs_vecMul_pow_le` with `δ = 0` (factor `1`) over the remaining `t % k` steps of `P`, so no
-  sign of `1 − n δ` is needed.
+  `∑ j, |(μ P ^ t) j − π j| ≤ (1 − n δ) ^ (t / k) ∑ j, |μ j − π j|`. The route:
+  `t = k (t / k) + t % k`; first `sum_abs_vecMul_pow_sub_le` for `P ^ k` over the `t / k` steps,
+  then `sum_abs_vecMul_pow_le` with `δ = 0` (factor `1`) over the remaining `t % k` steps of `P`,
+  so no sign of `1 − n δ` is needed.
 
 **Wider than the plan's reading:** the plan states the hypothesis with Mathlib's
 `Matrix.IsPrimitive` "where it fits". It does not fit here: `Matrix.IsPrimitive` is not in this
@@ -112,12 +112,11 @@ module's imports, and it carries two conditions the uniqueness theorem does not 
 (`100.unique.neg`, and the BY HAND line `100.unique`) and `k > 0` (at `k = 0`, `P ^ 0 = 1` has every
 entry positive only with one state, where `P = (1)`; the same BY HAND line `100.unique`). Nor does
 the rate theorem need `k > 0`: Lean's `t / 0 = 0` makes the factor `1` (`100.k0`). A primitive
-matrix in Mathlib's sense
-(`Matrix.IsPrimitive`, `LinearAlgebra/Matrix/Irreducible/Defs.lean`) meets `hpos` through its
-field `exists_pos_pow` (named here, not imported). **Also, as written in the order's statement, not
-a new change:** the rate theorem asks no `δ > 0` (any real `δ`; for `δ ≤ 0` the factor is at least
-`1`), lets `μ` have any sign, and lets `π` be any stationary vector with `μ`'s total, exactly as
-`sum_abs_vecMul_pow_sub_le` above.
+matrix in Mathlib's sense (`Matrix.IsPrimitive`, `LinearAlgebra/Matrix/Irreducible/Defs.lean`)
+meets `hpos` through its field `exists_pos_pow` (named here, not imported). **Also, as written in
+the order's statement, not a new change:** the rate theorem asks no `δ > 0` (any real `δ`; for
+`δ ≤ 0` the factor is at least `1`), lets `μ` have any sign, and lets `π` be any stationary vector
+with `μ`'s total, exactly as `sum_abs_vecMul_pow_sub_le` above.
 
 Each hypothesis is needed (order LEAN-30's exact checks, each case keeping the other hypotheses):
 
