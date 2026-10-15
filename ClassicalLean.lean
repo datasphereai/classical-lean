@@ -127,6 +127,11 @@ import ClassicalLean.Statistics.JamesStein
 import ClassicalLean.Analysis.ConvexConjugate
 import ClassicalLean.Algebra.Kantorovich
 import ClassicalLean.Analysis.Gruss
+import ClassicalLean.Probability.Reflection
+import ClassicalLean.Analysis.StatePrices
+import ClassicalLean.InformationTheory.HanInequality
+import ClassicalLean.Probability.PolyaUrn
+import ClassicalLean.Analysis.FrankWolfe
 
 /-!
 # ClassicalLean

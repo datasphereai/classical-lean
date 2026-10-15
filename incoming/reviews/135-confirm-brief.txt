@@ -1,0 +1,23 @@
+You are a fresh reviewer doing a CONFIRMING PASS on one small fix, read-only. You have not seen the module being written and you did not propose the fix.
+
+Context: Lean 4 library /home/user/classical-lean, new module ClassicalLean/Analysis/FrankWolfe.lean (item 135 of MATH-PLAN-library-2, order CLOUD-MATH-1). A cold review of that module (saved at /home/user/classical-lean/incoming/reviews/135-review-r1.md) ended "VERDICT: PASS WITH FINDINGS (0 blocker, 0 major, 1 minor)" with this one finding, quoted from it:
+
+  1. MINOR — The docstrings at lines 22-23 and 144-145 state the simplex's squared diameter as exactly `2`, which is false when `ι` has fewer than two elements. Proposed fix:
+     - line 22: "whose squared diameter is at most `2` (exactly `2` once `ι` has two elements)";
+     - lines 144-145: "`fw_general` with `D = 2`, which bounds the squared diameter of the simplex (`norm_sub_sq_le_two`)".
+     This is a docstring-only change.
+
+The fix applied is the unified diff in /home/user/classical-lean/incoming/reviews/135-fix-r1.diff (old file on the left, the module as it now stands on the right). The order's rule for this step: "A review with findings ends with a confirming pass on the fix only, by a fresh reviewer if the fix came from a reviewer."
+
+Check, on the fix only:
+1. Does the diff resolve the finding? Is every sentence it changes true (for example: the closed simplex on a finite type ι has squared diameter at most 2 in the Euclidean norm, exactly 2 when ι has at least two elements; `norm_sub_sq_le_two` is the module's lemma that bounds it by 2)?
+2. Does the diff change anything other than docstring text (no statement, proof, import or declaration line)? Confirm by reading the diff, and by comparing the module file's lines outside the hunks if you wish.
+3. Is any changed line longer than 100 characters (the library's linter limit)?
+
+Rules: read-only; do not edit, create or delete any file inside /home/user/classical-lean, run no git command that writes and no `lake build`. You may read the module and the diff. No Lean run is needed. Keep to about 8 tool calls.
+
+Your final message is saved verbatim as the record. Format:
+# Confirming pass on the fix for ClassicalLean/Analysis/FrankWolfe.lean (item 135, finding 1)
+Your answers to 1 to 3 with evidence.
+## Verdict
+One line: `CONFIRMED: finding 1 fixed, no new finding` or `NOT CONFIRMED: <why>`, plus any new finding tagged BLOCKER, MAJOR or MINOR.

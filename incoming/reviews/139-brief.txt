@@ -1,0 +1,66 @@
+You are a cold reviewer for the Lean 4 library in /home/user/classical-lean (Lean and Mathlib v4.34.0; the toolchain is at ~/.elan/bin, put it on PATH). You have not seen how the file under review was written. Review ONE new module, read-only.
+
+FILE UNDER REVIEW: `ClassicalLean/Probability/Reflection.lean` (item 139 of the library's plan MATH-PLAN-library-2, order CLOUD-MATH-1).
+ITS SOURCE DRAFT (the proof as it was before landing; compare statements with it): `incoming/d139-r2-s1.lean`.
+PLAN ROW for item 139 (the statement the plan asks for): The reflection principle for the fair `±1` walk: `P(max_{k ≤ n} S_k ≥ a) = P(S_n ≥ a) + P(S_n > a)` for `a ≥ 1`.
+MAIN THEOREMS (the names the order lists): `measureReal_max_ge_eq`
+The order also says: 'For 139, also replace `import Mathlib` by the Mathlib files it needs.' Deprecated lemma names were renamed (if_pos to ite_eq_left, if_neg to ite_eq_right, dif_pos to dite_eq_left, push_neg to push Not), as Lean's deprecation warnings asked.
+
+THE ORDER'S RULES YOU CHECK AGAINST (verbatim):
+1. **Statements as reviewed.** Each main theorem keeps its draft's statement, apart from the changes in the table and moving it into the namespace. Never weaken, restate or add a hypothesis to make anything easier. A statement you find false is reported with its counterexample and narrowed, said plainly in its docstring, round 60 and the report; never dropped silently.
+2. **Namespaces and imports.** Every declaration, private ones included, sits inside its module's namespace (`ClassicalLean.InformationTheory.HanInequality` and so on; follow HANDOFF §5 where it says more). The axiom gate checks only constants under `ClassicalLean`, so a declaration outside it escapes the gate. Imports are targeted: no `import Mathlib`. Each main theorem's docstring names its item ("Item 131 of MATH-PLAN-library-2"); each module docstring lists its results.
+4. **Witnesses.** Every main theorem with a hypothesis gets a witness in HANDOFF §4's form (an `example` after the module's last line that applies the theorem itself, every chosen argument by name, an optional `open … in` line of its own, the docstring "The hypotheses of `name` hold together: …", no `sorry`, `admit`, `native_decide`, `implemented_by`, `axiom` or `set_option`, one inline block with no helper declarations). Not degenerate, as §4 says, and also: no hypothesis met only because a function is identically 0 past some point, and no kernel or observation that does not depend on the parameter it is about. Note the time with `date` when you start a witness; one still missing 30 minutes later makes the item not closed.
+7. **Reviews.** Each module, once its statements are final, gets a cold review by a fresh subagent that has not seen your work. It checks the statement against its plan row (FAITHFUL, GENERALIZED or WEAKER; WEAKER is a finding: restore the draft's statement or report it as a narrowing under rule 1), every hypothesis used, each witness against rule 4, every declaration in the namespace, imports targeted, and no main theorem whose conclusion is a recursive predicate that is `True` everywhere. A review with findings ends with a confirming pass on the fix only, by a fresh reviewer if the fix came from a reviewer; a review with no findings needs none. At most two fix-and-confirm rounds; an item not clean after two is not closed. Save each reviewer's output in `incoming/reviews/`.
+
+HANDOFF.md §4's paragraph on satisfiability witnesses, which rule 4 cites (verbatim):
+- **Satisfiability witnesses** (order VACUITY-3, item 89). For a theorem with hypotheses, a
+  witness is an `example` at the end of the theorem's module that applies the theorem itself at
+  concrete arguments, with a proof of each hypothesis, so that Lean checks that the theorem's own
+  hypotheses can all hold at once. The form (rule 2): `example := Full.name (x := …) h₁ h₂ …`,
+  every chosen argument given by name, an optional `open … in` line of its own (it relies on no
+  other `open` than its module's top-level ones), the docstring "The hypotheses of `name` hold
+  together: …", and no `sorry`, `native_decide` or `set_option`. **Standing rule (round 58):** a
+  satisfiability example applies the theorem itself, not an `∃` restatement. Not degenerate
+  (rule 3): no hypothesis is met only because something is empty, zero, a single point or a sum
+  over nothing, through one of Lean's junk values, or at a boundary where a constant of the
+  theorem vanishes; families and matrices have size at least 2 unless the theorem fixes it. The
+  83 targets (items 1 to 71) are the rows of the lane's `lean/VACUITY-3-targets.tsv`; each witness
+  sits after its module's last line, and each group of at most 8 rows had a cold review and a
+  confirming pass. **Not witnessed, 5 rows:** `variance_average_eq_of_steady` and
+  `variance_average_le_of_steady` (`Probability/EffectiveSampleSize`) and
+  `tendsto_sup_abs_empiricalCDF_sub` (`Probability/GlivenkoCantelli`) need an infinite family of
+  independent random variables, which nothing in their modules' imports builds
+  (`Measure.infinitePi` is outside them; a countable product of Bernoulli laws on `Finset ℕ`, or
+  binary digits under Lebesgue measure, would do, as a longer proof); `covariance_eq_sum` and
+  `isSolution_autocovariance` (`Probability/YuleWalker`) need a stationary process with noise,
+  which a finite space cannot carry: a stationary AR(1) model on `ℕ` with weights `2^-(n+1)` meets
+  every hypothesis of both (checked outside the library), but rule 3 asks for an AR(2) model, and
+  written without helper declarations each witness would run to about 350 lines. Left for a
+  ruling.
+
+WHAT TO CHECK, each with a clear answer:
+A. Each main theorem's statement against the plan row: FAITHFUL, GENERALIZED or WEAKER (WEAKER is a finding). Also: is each main theorem's statement the draft's statement, apart from moving it into the namespace and the changes the order's table names? Say if any statement changed in meaning.
+B. Every hypothesis of every main theorem is used (read the proof; a hypothesis that is never used is a finding). Lean's linter does not catch unused hypotheses of theorems.
+C. Each witness (the `example`s after the module's last `end`) against rule 4 and the HANDOFF paragraph: applies the theorem itself; every chosen argument by name; docstring form; forbidden words; no helper declarations; NOT DEGENERATE (go hypothesis by hypothesis: is any met only because something is empty, zero, a single point, a sum over nothing, a Lean junk value such as x / 0 = 0, a boundary where a constant of the theorem vanishes, a function identically 0 past some point, or a kernel/observation that does not depend on the parameter it is about?). Is every main theorem with a hypothesis witnessed? Is what the witness docstring says true?
+D. Every declaration of the file, private ones included, sits inside the namespace that the module name gives (e.g. `ClassicalLean.Probability.Reflection` for `ClassicalLean/Probability/Reflection.lean`). Witness `example`s after the last `end` are not declarations.
+E. Imports are targeted: no `import Mathlib`; each import is a specific file.
+F. No main theorem's conclusion is a recursive predicate that is `True` everywhere (e.g. `NatT2 | 0 => True | n + 1 => NatT2 n`).
+G. Docstrings: each main theorem's docstring names its item ("item 139 of MATH-PLAN-library-2"); the module docstring lists the results; every mathematical claim made in a docstring is true (check them).
+H. Anything else wrong that you can see (a false claim, a misleading name, a statement that does not say what its docstring says).
+
+HOW TO WORK:
+- Read the file in full and the draft. You may read anything in the repository and in .lake/packages/mathlib.
+- Do NOT edit, create or delete any file inside /home/user/classical-lean (no `lake build`, no git commands that write). Scratch files go only in /tmp/claude-0/-home-user-classical-lean/19408406-f39d-5a72-8f6f-124d894b525a/scratchpad/review/ (create a subfolder named after yourself). Run Python with `PYTHONDONTWRITEBYTECODE=1`.
+- You may elaborate at most two small Lean files, each importing at most the module under review (never `import ClassicalLean`, never the gates in tools/), from the repository root:
+  `cd /home/user/classical-lean && PATH=$HOME/.elan/bin:$PATH lake env lean -Dpp.unicode.fun=true -DrelaxedAutoImplicit=false -Dweak.linter.mathlibStandardSet=true -DmaxSynthPendingDepth=3 <your scratch file>`
+  (For example, to test whether a hypothesis is needed, or that a witness is not degenerate.) Memory is limited; never run two Lean processes at once.
+- Keep to about 25 tool calls.
+
+YOUR FINAL MESSAGE is your review, saved verbatim as the record. Format:
+# Review of ClassicalLean/Probability/Reflection.lean (item 139)
+For A to H: a heading, your finding(s), and the evidence (file:line, quotes, or a Lean run with its output).
+## Findings
+A numbered list, each tagged BLOCKER, MAJOR or MINOR, with the fix you propose (or "none").
+## Verdict
+One line: `VERDICT: PASS` (no findings) or `VERDICT: PASS WITH FINDINGS (B blocker, M major, m minor)` or `VERDICT: FAIL`, and one line per main theorem: `<name>: FAITHFUL | GENERALIZED | WEAKER`.
+
