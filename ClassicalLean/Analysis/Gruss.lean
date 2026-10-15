@@ -25,10 +25,11 @@ of MATH-PLAN-library-2.
 **The route.** For every real `t`, the variance of `t X + Y` is not negative:
 `t² Var X + 2 t cov[X, Y] + Var Y ≥ 0`. A quadratic in `t` that is never negative has
 discriminant at most `0` (Mathlib's `discrim_le_zero`), so `cov[X, Y]² ≤ Var X · Var Y`: the
-Cauchy–Schwarz inequality for the covariance, by the textbook discriminant argument, written out
+Cauchy–Schwarz inequality for the covariance, by the standard discriminant argument, written out
 here (Mathlib v4.34.0 has no such bound for `covariance`, below). Popoviciu's inequality, Mathlib's
-`variance_le_sq_of_bounded`, bounds `Var X ≤ ((M − m)/2)²` and `Var Y ≤ ((N − n)/2)²`. This is the
-discriminant form of route (b) of the order (no square roots, and no case split on `M = m` or
+`variance_le_sq_of_bounded`, bounds `Var X ≤ ((M − m)/2)²` and `Var Y ≤ ((N − n)/2)²`. The order
+derived route (b), `2 |u v| ≤ t u² + v² / t` with a chosen `t`; this discriminant form of it is the
+variant the order's approved plan names (no square roots, and no case split on `M = m` or
 `N = n`). The second theorem is the first for the uniform probability on `[a, b]`,
 `volume[|Icc a b] = (volume (Icc a b))⁻¹ • volume.restrict (Icc a b)`, where the covariance is
 `E[f g] − E f · E g` (`covariance_eq_sub`) and each mean is an average (`integral_smul_measure`).
@@ -37,7 +38,8 @@ brackets would read as one integral of the whole difference.
 
 ## Hypotheses, and Lean's junk values
 
-Each hypothesis is needed (order LEAN-29's exact checks, lane `lean/LEAN-29-checks.py`, by the
+Each hypothesis is needed, except that the two measurability hypotheses of the first theorem are
+needed only together (below) (order LEAN-29's exact checks, lane `lean/LEAN-29-checks.py`, by the
 label of each line; or by hand, as said). For `abs_covariance_le_mul_div_four`:
 
 * a probability measure (`92.drop.prob`): one point, `X = Y = 1`. With mass `0` the bound
@@ -83,10 +85,10 @@ For order LEAN-29 (row C2 of MATH-PLAN-library-2, run by the plan's check script
 `MATH-PLAN-library-2-checks.py`, lines `row.C2`, at 2026-10-15 02:19 UTC, before this module was
 written): `gr[üu]ss` and `abs_covariance_le|covariance_le_sqrt|covariance.*sqrt.*variance` each
 gave 0 lines in pinned Mathlib, 0 in Mathlib master at `2da3ab0a`, and 0 in the library; the
-library's matches now are this module's own text. Used: `variance_le_sq_of_bounded`,
-`variance_add`, `variance_smul`, `covariance_smul_left`, `discrim_le_zero`, `covariance_eq_sub`,
-`memLp_of_bounded`, `cond_isProbabilityMeasure_of_finite`, `ae_cond_of_forall_mem`,
-`integral_smul_measure`, `integral_Icc_eq_integral_Ioc`.
+library's matches now are this module's own text. The main Mathlib results used:
+`variance_le_sq_of_bounded`, `variance_add`, `variance_smul`, `covariance_smul_left`,
+`discrim_le_zero`, `covariance_eq_sub`, `memLp_of_bounded`, `cond_isProbabilityMeasure_of_finite`,
+`ae_cond_of_forall_mem`, `integral_smul_measure`, `integral_Icc_eq_integral_Ioc`.
 -/
 
 open MeasureTheory ProbabilityTheory
