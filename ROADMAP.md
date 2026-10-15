@@ -676,8 +676,9 @@ total.
   `(1ᵀ V 1)(1ᵀ V⁻¹ 1)/n² ≤ (m + M)²/(4 m M)` (`onesQuad_mul_onesInvOnes_le`).
 * `InformationTheory/CompressionTest` (item 99, item 68's plug-in argument in Lean): the plug-in
   score, with the string's own win rate `winRate` in the null law, is at most every fixed-rate
-  score (`score_plugIn_le`), so its false-alarm rate stays at most `α` under every Bernoulli law
-  (`measureReal_score_plugIn_ge_le`); by the weighted arithmetic–geometric mean inequality.
+  score wherever the fixed rate gives the string positive mass (`score_plugIn_le`), and its
+  false-alarm rate stays at most `α` under every Bernoulli law (`measureReal_score_plugIn_ge_le`;
+  the strings of mass `0` are handled apart); by the weighted arithmetic–geometric mean inequality.
 * `Probability/FiniteChain` (item 100): Perron–Frobenius for a primitive chain, `P ^ k` positive
   though `P` may have zeros: one stationary distribution (`existsUnique_vecMul_eq_self_of_pow`) and
   the rate `(1 − n δ) ^ (t / k)` (`sum_abs_vecMul_pow_sub_le_of_pow`). Mathlib's

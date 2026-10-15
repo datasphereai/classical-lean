@@ -275,19 +275,21 @@ theorem constants (3246 + 89, round 60's per-module table), `lake build` 4176 jo
 MATH-PLAN-library-2, items 96 to 100, and job 0; no new module, four extended:
 `Probability/CovarianceDirections` (item 96, Hadamard's inequality for a covariance matrix,
 `det S ≤ ∏ Var`, for any finite measure; it now imports `Algebra/HadamardInequality`),
-`Statistics/GeneralizedLeastSquares` (item 98, Bloomfield and Watson's bound on ordinary against
-generalised least squares for a common mean, the Kantorovich inequality at the vector of ones; it
-now imports `Algebra/Kantorovich`), `Probability/FiniteChain` (item 97, relative entropy to a
-stationary vector never increases along the chain, `π` need not be a law; item 100,
+`Statistics/GeneralizedLeastSquares` (item 98, the Kantorovich inequality at the vector of ones,
+`(1ᵀ V 1)(1ᵀ V⁻¹ 1)/n² ≤ (m + M)²/(4 m M)`, read as Bloomfield and Watson's bound on ordinary
+against generalised least squares for a common mean; it now imports `Algebra/Kantorovich`),
+`Probability/FiniteChain` (item 97, relative entropy to a stationary vector never increases along
+the chain, `π` need not be a law; item 100,
 Perron–Frobenius for a primitive chain, one stationary law with no `P ≥ 0` and no `k > 0`, and the
 rate `(1 − n δ) ^ (t / k)` with no `k > 0`) and `InformationTheory/CompressionTest` (item 99, the
 plug-in score is at most every fixed-rate score where the fixed rate gives the string positive
 mass, and its false-alarm rate stays at most `α` under every Bernoulli law; no new import).
 Narrowing: none. Job 0 reworded five older docstring lines of `NumberTheory/PrimitiveDivisor` and
-`Analysis/Gruss` (and appended one `example` to PrimitiveDivisor). Counts measured by this order's
-development runs and censuses, to be re-measured by its gates on the clean tree (round 62's
-fragment): **128 modules, 3345 theorem constants (3335 + 10), `lake build` 4176 jobs, 0 warnings**
-(no Mathlib module more).
+`Analysis/Gruss` (and appended one `example` to PrimitiveDivisor). Counts, all to be re-measured by
+its gates on the clean tree (round 62's fragment): **128 modules and 3345 theorem constants
+(3335 + 10)** from the censuses of the changed modules; **`lake build` 4176 jobs** carried over
+from the base build (no module and no Mathlib module added, by the import closure); 0 warnings in
+the changed modules' own builds.
 
 ---
 
@@ -844,7 +846,8 @@ Five gates, in `tools/`. Each was fail-tested; if you change one, fail-test it a
   LEAN-29 asked (lane `lean/LEAN-29-ruling-2.md`, note 2): order VACUITY-3's witnesses in
   `49bcd41` and LEAN-29's item 91 witness stand behind two such lines and passed their reviews.
   Order LEAN-30's seven witnesses (items 96, 97, 98, 99 twice and 100 twice) were written and
-  reviewed under the form as it now reads.
+  reviewed before this change, under the earlier wording; each has at most one `open … in` line,
+  so it meets both.
 - **`check_sorry.py`** — text-level, so it sees modules nobody wired into the aggregator. Scoped
   to `ClassicalLean/`; skips `.lake/` and `tools/`, and the reason is written in the file
   (it does not parse string literals, and the gates quote the words they detect).
@@ -1017,8 +1020,9 @@ failure mode, and it is the one this library was built in reaction to.
   dated 2026-09-25 UTC; source: order G-10 §1, which cites order G-9's run (its §0 rows 14 and 15,
   round 27, and round 28's addendum items 11, 17, 20 and 23); lead-in extended 2026-09-25 UTC,
   order G-10, records. Rule 35 is dated 2026-10-15 UTC; source: order LEAN-30's rule 8, which
-  cites order LEAN-29's run (reviews r92 and r92c of its item 92) and claude-ai's push review of it
-  (lane `lean/LEAN-29-ruling-2.md`, note 1); lead-in extended 2026-10-15 UTC, order LEAN-30, job 3.
+  cites order LEAN-29's `2bba7b6` and `54c3624` and its reviews r92 (finding 4) and r92c (findings
+  A and B); see also claude-ai's push review of LEAN-29 (lane `lean/LEAN-29-ruling-2.md`, note 1);
+  lead-in extended 2026-10-15 UTC, order LEAN-30, job 3.
   The next order
   cites these instead of repeating them:
   1. *Check the invariant, not a proxy* — §0 applied to a gate: the cache check tested all of
