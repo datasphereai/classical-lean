@@ -608,6 +608,30 @@ Items 84 to 88 of MATH-PLAN-library-2 and item 80b, all in existing modules:
 * `Probability/EffectiveSampleSize` (item 80b): the variance-ratio identity in the plan's product
   form, `variance_sum_eq_mul_one_add`, with no extra hypothesis (closes LEAN-27's narrowing in form).
 
+### 1.20 Batch 3 of the second plan (order LEAN-29, round 59)
+
+Items 91 to 95 of MATH-PLAN-library-2, one new module and four extended; narrowing: none; item 95
+is wider than item 84 (no `p ≠ 1/2`):
+
+* `Probability/LongestRun` (item 91, the lower side of item 69's `log₂ n` reading): no run of `r`
+  losses has chance at most `exp (−⌊n / r⌋ q^r)` (`measureReal_no_run_le_exp`), from the
+  `(1 − q^r)^⌊n / r⌋` bound and `1 − x ≤ e^(−x)`.
+* `Analysis/Gruss` (new, item 92): Grüss's inequality, `|cov[X, Y]| ≤ (M − m)(N − n)/4` for
+  bounded random variables, and its form for averages of functions on `[a, b]`; the covariance's
+  Cauchy–Schwarz inequality is proved inside, by the discriminant argument (Mathlib v4.34.0 has
+  none).
+* `Analysis/Simpson` (item 93): Richardson's identity, exactly: the library's Simpson rule is
+  `(4 T(2N) − T(N))/3` with Mathlib's trapezoidal rule `T`, for every `f`, `a`, `b`, `N`.
+* `Analysis/EulerMethod` (item 94): for `y' = −c y`, `c > 0`, implicit Euler decays to `0` for
+  every step `h > 0`, and explicit Euler from `y₀ ≠ 0` decays exactly when `h c < 2`.
+* `Probability/GamblersRuin` (item 95, a bridge to `NumberTheory/LucasSequence`, which it now
+  imports): the ruin chance is `U b / U (a + b)` with `U = lucasU (1 + r) r`, `r = (1 − p)/p`, for
+  every `0 < p < 1`, the fair walk included (at `p = 1/2`, `U n = n`).
+
+Also job 0: the convex conjugate's junk-value checks and the stronger form of
+`exists_isPrimitiveDivisor_of_forall_prime_dvd` (`0 < a`) are now `example`s in their modules
+(`Analysis/ConvexConjugate`, `NumberTheory/PrimitiveDivisor`).
+
 ## 2. Categories to add
 
 Tiered by how much work they do inside the system that already exists, not by how interesting

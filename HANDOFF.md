@@ -236,6 +236,23 @@ re-measured by its gates on the clean tree (round 57's fragment): **122 modules,
 constants (3197 + 31), `lake build` 4170 jobs, 0 warnings** (two Mathlib modules more, from
 `HasLawExists`).
 
+**Dated 2026-10-15 UTC (order LEAN-29, round 59; branch `lean-29`, DSMain):** batch 3 of
+MATH-PLAN-library-2, items 91 to 95, and job 0; one new module, `Analysis/Gruss` (Grüss's
+inequality for bounded random variables and for averages on `[a, b]`, with the covariance's
+Cauchy–Schwarz inequality by the discriminant argument), and four extended:
+`Probability/LongestRun` (no run of `r` losses has chance at most `exp (−⌊n / r⌋ q^r)`; it now
+imports Mathlib's `Analysis/Complex/Exponential`), `Analysis/Simpson` (Simpson's rule is
+`(4 T(2N) − T(N))/3` with Mathlib's trapezoidal rule, exactly; it now imports Mathlib's
+`TrapezoidalRule`), `Analysis/EulerMethod` (for `y' = −c y`: implicit Euler decays for every step,
+explicit Euler exactly when `h c < 2`) and `Probability/GamblersRuin` (the ruin chance is
+`U b / U (a + b)` with `U = lucasU (1 + r) r`, the fair walk included, so wider than item 84; it
+now imports `NumberTheory/LucasSequence`). Narrowing: none. Job 0 moved order LEAN-27's junk-value
+checks into `Analysis/ConvexConjugate` as `example`s and stated the `0 < a` form of
+`exists_isPrimitiveDivisor_of_forall_prime_dvd` as an `example` in `NumberTheory/PrimitiveDivisor`.
+Counts measured by this order's development runs, to be re-measured by its gates on the clean tree
+(round 59's fragment): **123 modules, 3246 theorem constants (3228 + 18), `lake build` 4171 jobs,
+0 warnings** (no Mathlib module more).
+
 ---
 
 ## 2. What I claimed, and what I actually checked
@@ -776,6 +793,16 @@ Five gates, in `tools/`. Each was fail-tested; if you change one, fail-test it a
   every hypothesis of both (checked outside the library), but rule 3 asks for an AR(2) model, and
   written without helper declarations each witness would run to about 350 lines. Left for a
   ruling.
+  **Dated 2026-10-15 UTC (order LEAN-29, rule 2; claude-ai's ruling, Dustin's veto open):** order
+  VACUITY-3's ruling 3 (lane `lean/VACUITY-3-ruling-3.md`) gave rule 3 two more cases, and order
+  LEAN-29 files them here in place of the next gate order, because it is the first order to write
+  witnesses under them: no hypothesis may be met only because a function is identically `0` past
+  some point, and no kernel or observation may fail to depend on the parameter it is about. Rule
+  2's form stays one inline block with no helper declarations (ruling 3, item 2), and its
+  forbidden words are `sorry`, `admit`, `native_decide`, `implemented_by`, `axiom` and
+  `set_option`. The next gate order keeps only their use on the older rows 7, 8 and 70. Order
+  LEAN-29's six witnesses (items 91, 92 twice, 94 twice and 95) were written and reviewed under
+  them.
 - **`check_sorry.py`** — text-level, so it sees modules nobody wired into the aggregator. Scoped
   to `ClassicalLean/`; skips `.lake/` and `tools/`, and the reason is written in the file
   (it does not parse string literals, and the gates quote the words they detect).
