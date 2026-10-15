@@ -110,8 +110,9 @@ A chain is primitive when some power `P ^ k` has every entry positive, though `P
 `Matrix.IsPrimitive` "where it fits". It does not fit here: `Matrix.IsPrimitive` is not in this
 module's imports, and it carries two conditions the uniqueness theorem does not need, `P ≥ 0`
 (`100.unique.neg`, and the BY HAND line `100.unique`) and `k > 0` (at `k = 0`, `P ^ 0 = 1` has every
-entry positive only with one state, where `P = (1)`). Nor does the rate theorem need `k > 0`: Lean's
-`t / 0 = 0` makes the factor `1` (`100.k0`). A primitive matrix in Mathlib's sense
+entry positive only with one state, where `P = (1)`; the same BY HAND line `100.unique`). Nor does
+the rate theorem need `k > 0`: Lean's `t / 0 = 0` makes the factor `1` (`100.k0`). A primitive
+matrix in Mathlib's sense
 (`Matrix.IsPrimitive`, `LinearAlgebra/Matrix/Irreducible/Defs.lean`) meets `hpos` through its
 field `exists_pos_pow` (named here, not imported). **Also, as written in the order's statement, not
 a new change:** the rate theorem asks no `δ > 0` (any real `δ`; for `δ ≤ 0` the factor is at least
@@ -149,11 +150,17 @@ matrix` 4 lines, docstrings of `Kernel.Irreducible` and of irreducible matrices.
 `cauchySeq_of_le_geometric`, `cauchySeq_tendsto_of_complete`, `Continuous.matrix_vecMul`; from the
 library, `sum_vecMul_eq_sum` and `vecMul_nonneg` (InformationTheory.Channel).
 
-Order LEAN-30 (item 100), the plan's search (`MATH-PLAN-library-2-checks.py`, lines `row.L7`):
-`perron` 6 lines in 6 files of pinned Mathlib and of Mathlib master at `2da3ab0a`, the Perron
-integral (`BoxIntegral`) and its citations, none about matrices; `stationary distribution|invariant
-distribution` 0 in both; Mathlib defines primitive matrices, `Matrix.IsPrimitive`, with no theorem
-of this kind. Item 97 uses `relEntropy_vecMul_le` (InformationTheory.Channel); item 100 uses this
+Order LEAN-30 (item 100), the plan's search (`MATH-PLAN-library-2-checks.py`, lines `row.L7`), in
+order LEAN-30's run of it before this module changed: `perron` 6 lines in 6 files of pinned
+Mathlib and of Mathlib master at `2da3ab0a`; by hand, reading the six lines of pinned Mathlib:
+the generalised Perron integral (`BoxIntegral`) and two citations of a book on it, two citations
+of Moss and Perrone (ergodic decomposition), and the keyword line of
+`LinearAlgebra/Matrix/Irreducible/Defs.lean` ("primitive, perron-frobenius"), with no theorem
+about matrices among them; `stationary distribution|invariant distribution` 0 in both. Mathlib
+defines primitive matrices, `Matrix.IsPrimitive`, in that file, whose only theorem about them is
+that a primitive matrix is irreducible (by hand, reading the file). A primitive matrix in
+Mathlib's sense meets this module's `hpos` through its field `exists_pos_pow` (named here, not
+imported). Item 97 uses `relEntropy_vecMul_le` (InformationTheory.Channel); item 100 uses this
 module's own `existsUnique_vecMul_eq_self`, `sum_abs_vecMul_le`, `sum_abs_vecMul_pow_le` and
 `sum_abs_vecMul_pow_sub_le`.
 -/
