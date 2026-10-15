@@ -44,8 +44,9 @@ of the ruling sent during that order.
   compresses by `k` bits or more, `L x + k ≤ n`, is at most `2^(−k)`.
 * `winRate`, `score_plugIn_le`, `measureReal_score_plugIn_ge_le` (order LEAN-30, item 99): the
   plug-in score, with the string's own win rate put into the null law, is at most every
-  fixed-rate score, and its false-alarm rate stays at most `α` under every Bernoulli law. See
-  "Estimating `p` from the same trades" below.
+  fixed-rate score wherever the fixed rate gives the string positive mass, and its false-alarm
+  rate stays at most `α` under every Bernoulli law. See "Estimating `p` from the same trades"
+  below.
 
 **The Lean statements.** Strings of length `n` are `Fin n → Bool`. A prefix-free code on them is
 `c : (Fin n → Bool) → List Bool` with `Function.Injective c` (different strings get different
@@ -79,8 +80,9 @@ estimate into the null law does not:
   it, so this score is at most the score for every fixed `p`, and its rejections are among the
   fixed-`p` test's rejections: the false-alarm rate stays at most `α` under every Bernoulli law
   (since `P_{p̂(x)} {x} = 2^(−n H₂(p̂(x)))`, it rejects when `L x + k ≤ n H₂(p̂(x))`). Order
-  LEAN-30 (item 99) proves both steps: `score_plugIn_le` and `measureReal_score_plugIn_ge_le`,
-  with the plug-in rate `winRate`, by the weighted arithmetic–geometric mean inequality; as a
+  LEAN-30 (item 99) proves both steps, the first where the fixed rate gives `x` positive mass:
+  `score_plugIn_le` and `measureReal_score_plugIn_ge_le`, with the plug-in rate `winRate`, by the
+  weighted arithmetic–geometric mean inequality; as a
   cross-check, every string up to `n = 8`, true
   `p ∈ {1/2, 1/3, 3/5}` and `α ∈ {1/2, 1/4, 1/8}` gave a false-alarm rate of at most `α`.
 
@@ -137,8 +139,10 @@ estimate into the null law does not:
   the rate theorem needs no such hypothesis (those strings have mass `0` under `p`).
 * the code injective (`99.drop.hc`): every string of length `2` sent to `[]` (prefix-free, not
   injective), fair coin, `α = 1/4`: chance `1/2`.
-* the code prefix-free (`99.drop.hpf`): `n = 3`, the injective words `[]`, `[0]`, `[1]` on three
-  strings with both a win and a loss (Kraft sum `25/8`), fair coin, `α = 1/3`: chance `3/8`.
+* the code prefix-free (`99.drop.hpf`): `n = 3`, writing `0` for a loss and `1` for a win, the
+  strings `001`, `010`, `011` get the words `[]`, `[0]`, `[1]`, and `000`, `100`, `101`, `110`,
+  `111` get `[0, 0]`, `[0, 1]`, `[1, 0]`, `[1, 1]`, `[0, 0, 0]` (injective, not prefix-free, Kraft
+  sum `25/8`); fair coin, `α = 1/3`: chance `3/8`.
 * `α > 0` (`99.drop.halpha`): the code writing each string of length `2` out as it is, `α = 0`:
   Lean's `1 / 0 = 0` is at most every score, chance `1`.
 
@@ -146,8 +150,9 @@ Lean's `0 / 0 = 0` makes the plug-in rate `0` at `n = 0`; there is one empty str
 under every rate, so it decides nothing. Also measured exactly: the maximum-likelihood step for
 `n ≤ 10` (`99.ml`), the scores for `n ≤ 6` (`99.score`) and the rate for `n ≤ 8`, five levels `α`
 and two codes (`99.rate`). The plan's search (`MATH-PLAN-library-2-checks.py`, line `row.L3`:
-`maximum.likelihood|plug-in estimate`) found 0 lines in pinned Mathlib and in Mathlib master at
-`2da3ab0a`, and 1 line in the library (this module's paragraph above) when order LEAN-30 began.
+`maximum.likelihood|plug-in estimate`), in order LEAN-30's run of it before this module changed,
+found 0 lines in pinned Mathlib and in Mathlib master at `2da3ab0a`, and 1 line in the library
+(by hand: this module's paragraph "Estimating `p` from the same trades").
 
 ## What Mathlib provides
 
@@ -505,7 +510,7 @@ code writing each string out as it is, the fixed win rate `p = 1/3` and the stri
 fixed rate gives it mass `2/9 ≠ 0`, below the plug-in mass `1/4` (`winRate` is `1/2`), so the
 inequality is strict here (order LEAN-30's check `99.witness`). -/
 example := ClassicalLean.InformationTheory.CompressionTest.score_plugIn_le (n := 2)
-  (fun x ↦ [x 0, x 1]) ⟨1 / 3, by norm_num, by norm_num⟩ ![true, false]
+  (c := fun x ↦ [x 0, x 1]) (p := ⟨1 / 3, by norm_num, by norm_num⟩) (x := ![true, false])
   (by
     rw [ClassicalLean.InformationTheory.CompressionTest.bernProd_real_singleton]
     norm_num [Fin.prod_univ_two])
@@ -513,11 +518,13 @@ example := ClassicalLean.InformationTheory.CompressionTest.score_plugIn_le (n :=
 open InformationTheory in
 /-- The hypotheses of `measureReal_score_plugIn_ge_le` hold together: strings of `n = 2` win–loss
 outcomes, the code writing each string out as it is (injective, and prefix-free since all its words
-have length `2`), the win rate `p = 1/3` (neither `0`, `1` nor `1/2`) and `α = 1/2`. -/
+have length `2`), the win rate `p = 1/3` (neither `0`, `1` nor `1/2`) and `α = 1/2`. At this `α`
+no string's plug-in score reaches `2` (by hand: the largest is `1`), so the set is empty and the
+conclusion is `0 ≤ 1/2`; the example shows that the hypotheses hold together. -/
 example := ClassicalLean.InformationTheory.CompressionTest.measureReal_score_plugIn_ge_le (n := 2)
   (c := fun x ↦ [x 0, x 1])
   (fun x y h ↦ by funext i; fin_cases i <;> simp_all)
   (by
     rintro _ ⟨x, rfl⟩ _ ⟨y, rfl⟩ h
     exact (List.IsPrefix.eq_of_length h (by simp)))
-  ⟨1 / 3, by norm_num, by norm_num⟩ (α := 1 / 2) (by norm_num)
+  (p := ⟨1 / 3, by norm_num, by norm_num⟩) (α := 1 / 2) (by norm_num)
