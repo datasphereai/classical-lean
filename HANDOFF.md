@@ -271,6 +271,24 @@ re-measured by this order's gates on the clean tree (round 61's fragment): **128
 theorem constants (3246 + 89, round 60's per-module table), `lake build` 4176 jobs, 0 warnings**
 (no Mathlib module more).
 
+**Dated 2026-10-15 UTC (order LEAN-30, round 62; branch `lean-30`, DSMain):** batch 4 of
+MATH-PLAN-library-2, items 96 to 100, and job 0; no new module, four extended:
+`Probability/CovarianceDirections` (item 96, Hadamard's inequality for a covariance matrix,
+`det S ≤ ∏ Var`, for any finite measure; it now imports `Algebra/HadamardInequality`),
+`Statistics/GeneralizedLeastSquares` (item 98, Bloomfield and Watson's bound on ordinary against
+generalised least squares for a common mean, the Kantorovich inequality at the vector of ones; it
+now imports `Algebra/Kantorovich`), `Probability/FiniteChain` (item 97, relative entropy to a
+stationary vector never increases along the chain, `π` need not be a law; item 100,
+Perron–Frobenius for a primitive chain, one stationary law with no `P ≥ 0` and no `k > 0`, and the
+rate `(1 − n δ) ^ (t / k)` with no `k > 0`) and `InformationTheory/CompressionTest` (item 99, the
+plug-in score is at most every fixed-rate score where the fixed rate gives the string positive
+mass, and its false-alarm rate stays at most `α` under every Bernoulli law; no new import).
+Narrowing: none. Job 0 reworded five older docstring lines of `NumberTheory/PrimitiveDivisor` and
+`Analysis/Gruss` (and appended one `example` to PrimitiveDivisor). Counts measured by this order's
+development runs and censuses, to be re-measured by its gates on the clean tree (round 62's
+fragment): **128 modules, 3345 theorem constants (3335 + 10), `lake build` 4176 jobs, 0 warnings**
+(no Mathlib module more).
+
 ---
 
 ## 2. What I claimed, and what I actually checked
@@ -791,7 +809,7 @@ Five gates, in `tools/`. Each was fail-tested; if you change one, fail-test it a
   witness is an `example` at the end of the theorem's module that applies the theorem itself at
   concrete arguments, with a proof of each hypothesis, so that Lean checks that the theorem's own
   hypotheses can all hold at once. The form (rule 2): `example := Full.name (x := …) h₁ h₂ …`,
-  every chosen argument given by name, an optional `open … in` line of its own (it relies on no
+  every chosen argument given by name, optional `open … in` lines of their own (it relies on no
   other `open` than its module's top-level ones), the docstring "The hypotheses of `name` hold
   together: …", and no `sorry`, `native_decide` or `set_option`. **Standing rule (round 58):** a
   satisfiability example applies the theorem itself, not an `∃` restatement. Not degenerate
@@ -821,6 +839,12 @@ Five gates, in `tools/`. Each was fail-tested; if you change one, fail-test it a
   `set_option`. The next gate order keeps only their use on the older rows 7, 8 and 70. Order
   LEAN-29's six witnesses (items 91, 92 twice, 94 twice and 95) were written and reviewed under
   them.
+  **Dated 2026-10-15 UTC (order LEAN-30, job 3):** "an optional `open … in` line of its own"
+  above now reads "optional `open … in` lines of their own", as claude-ai's push review of order
+  LEAN-29 asked (lane `lean/LEAN-29-ruling-2.md`, note 2): order VACUITY-3's witnesses in
+  `49bcd41` and LEAN-29's item 91 witness stand behind two such lines and passed their reviews.
+  Order LEAN-30's seven witnesses (items 96, 97, 98, 99 twice and 100 twice) were written and
+  reviewed under the form as it now reads.
 - **`check_sorry.py`** — text-level, so it sees modules nobody wired into the aggregator. Scoped
   to `ClassicalLean/`; skips `.lake/` and `tools/`, and the reason is written in the file
   (it does not parse string literals, and the gates quote the words they detect).
@@ -977,7 +1001,8 @@ failure mode, and it is the one this library was built in reaction to.
   `master`, on both remotes, still moves only from DSMain, after claude-ai's check and on Dustin's
   push.
 - **Rules learned in the runs of order 0923 (rules 1–7), order G-5 (rules 8–15), order G-6
-  (rules 16–19), order G-7 (rules 20–25), order G-8 (rules 26–30) and order G-9 (rules 31–34).**
+  (rules 16–19), order G-7 (rules 20–25), order G-8 (rules 26–30), order G-9 (rules 31–34) and
+  order LEAN-29 (rule 35).**
   Rules 1–7
   are dated 2026-09-23; source: order G-5 §1, which cites round 17's dated amendment, Findings 1
   and 3 and "Options and linters", round 18's Findings 1 and 2 and closing addendum, and order
@@ -991,7 +1016,10 @@ failure mode, and it is the one this library was built in reaction to.
   records; the rules' text is order G-9's, with "§0 row" qualified as order G-9's). Rules 31–34 are
   dated 2026-09-25 UTC; source: order G-10 §1, which cites order G-9's run (its §0 rows 14 and 15,
   round 27, and round 28's addendum items 11, 17, 20 and 23); lead-in extended 2026-09-25 UTC,
-  order G-10, records. The next order
+  order G-10, records. Rule 35 is dated 2026-10-15 UTC; source: order LEAN-30's rule 8, which
+  cites order LEAN-29's run (reviews r92 and r92c of its item 92) and claude-ai's push review of it
+  (lane `lean/LEAN-29-ruling-2.md`, note 1); lead-in extended 2026-10-15 UTC, order LEAN-30, job 3.
+  The next order
   cites these instead of repeating them:
   1. *Check the invariant, not a proxy* — §0 applied to a gate: the cache check tested all of
      Mathlib, and so it stopped the toolchain move over a module this library never imports.
@@ -1109,6 +1137,14 @@ failure mode, and it is the one this library was built in reaction to.
       planted misquote as the negative control (`inlinecheck.py`; round 28's addendum items 11 and
       23: three inline quotes cut or paraphrased their sources and the block-quote check never saw
       them).
+  35. *A commit message says only what the evidence log shows.* Every Mathlib or library name a
+      proof uses that the order's own probes do not cover gets a logged `#check` probe before the
+      first draft that uses it, and a commit message that cites a run names its evidence label and
+      claims only what that run's output shows (order LEAN-29's `2bba7b6` said item 92's names
+      "were probed first (el.sh p92-1)", when that probe had failed on three names and two of the
+      names used were never probed by `#check`, review r92, finding 4; the fix commit `54c3624`
+      restated it with a quotation cut without a mark and left out the run that confirmed the
+      names, review r92c, findings A and B).
 - **Standing answers** (dated 2026-09-23; source: order G-5 §2):
   - A Mathlib cache gap outside this library's import closure: use the import-closure check plus
     the `.olean` sha256 manifest taken before and after `lake build` (ruled for order 0923's J3).

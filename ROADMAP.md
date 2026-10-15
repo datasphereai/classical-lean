@@ -655,6 +655,38 @@ cold review, and order MERGE-1 merged that branch into `master` on DSMain. Narro
 * `Probability/Reflection` (item 139): the reflection principle for the fair `±1` walk,
   `P(max_{k ≤ n} S_k ≥ a) = P(S_n ≥ a) + P(S_n > a)` for `a ≥ 1` (`measureReal_max_ge_eq`).
 
+### 1.22 Batch 4 of the second plan (order LEAN-30, round 62)
+
+Items 96 to 100 of MATH-PLAN-library-2, no new module, four extended. Narrowing: none. Wider than
+the plan's reading, five conditions: item 96 for any finite measure; item 97 with a stationary `π`
+that need not be a law; item 100's uniqueness with no `P ≥ 0` and no `k > 0`, and its rate with no
+`k > 0`. Also, as written in the order's statements, not a new change: item 97's `μ` need not sum
+to `1`, and item 100's rate takes any real `δ`, `μ` of any sign and any stationary `π` with `μ`'s
+total.
+
+* `Probability/CovarianceDirections` (item 96, a bridge to `Algebra/HadamardInequality`, which it
+  now imports): Hadamard's inequality for a covariance matrix, `det S ≤ ∏ i, Var(X i)`
+  (`det_covMatrix_le_prod_variance`): the generalised variance is at most the product of the
+  variances.
+* `Probability/FiniteChain` (item 97, a bridge to `InformationTheory/Channel`): relative entropy to
+  a stationary vector never increases along the chain (`relEntropy_vecMul_le_of_stationary`),
+  through `|π|` and the data-processing inequality.
+* `Statistics/GeneralizedLeastSquares` (item 98, a bridge to `Algebra/Kantorovich`, which it now
+  imports): Bloomfield and Watson's bound for a common mean,
+  `(1ᵀ V 1)(1ᵀ V⁻¹ 1)/n² ≤ (m + M)²/(4 m M)` (`onesQuad_mul_onesInvOnes_le`).
+* `InformationTheory/CompressionTest` (item 99, item 68's plug-in argument in Lean): the plug-in
+  score, with the string's own win rate `winRate` in the null law, is at most every fixed-rate
+  score (`score_plugIn_le`), so its false-alarm rate stays at most `α` under every Bernoulli law
+  (`measureReal_score_plugIn_ge_le`); by the weighted arithmetic–geometric mean inequality.
+* `Probability/FiniteChain` (item 100): Perron–Frobenius for a primitive chain, `P ^ k` positive
+  though `P` may have zeros: one stationary distribution (`existsUnique_vecMul_eq_self_of_pow`) and
+  the rate `(1 − n δ) ^ (t / k)` (`sum_abs_vecMul_pow_sub_le_of_pow`). Mathlib's
+  `Matrix.IsPrimitive` meets the hypothesis through `exists_pos_pow`; it is not imported.
+
+Also job 0: five older docstring lines of `NumberTheory/PrimitiveDivisor` and `Analysis/Gruss`
+are checkable from the library or say they report past runs, and PrimitiveDivisor gains one
+`example` naming the two Lifting the Exponent lemmas it cites.
+
 ## 2. Categories to add
 
 Tiered by how much work they do inside the system that already exists, not by how interesting
