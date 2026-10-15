@@ -6,6 +6,7 @@ Authors: Dustin Watkins, Claude (Anthropic)
 
 import ClassicalLean.Statistics.GaussMarkov
 import ClassicalLean.Analysis.MinimumQuadraticForm
+import ClassicalLean.Algebra.Kantorovich
 
 /-!
 # Generalised least squares and Aitken's theorem
@@ -48,6 +49,33 @@ columns of ones (`κ = Fin 2`, `V = 1`), `Xᵀ V⁻¹ X` is the singular all-`2`
 inverse and the GLS row are `0`, against `minWeights 1 = (1/2, 1/2)` and a variance factor `1/2`.
 This file now imports `Analysis/MinimumQuadraticForm` (which imports only Mathlib,
 so no cycle).
+
+**What ordinary least squares loses, for a common mean** (order LEAN-30, item 98 of
+MATH-PLAN-library-2). With noise covariance `σ² V`, the plain average of `n` observations has
+variance `σ² (1ᵀ V 1) / n²` and generalised least squares has `σ² / (1ᵀ V⁻¹ 1)` (above); their ratio
+is `(1ᵀ V 1)(1ᵀ V⁻¹ 1) / n²` (the variance reading is the standard one, not a theorem of this file).
+`onesQuad_mul_onesInvOnes_le` bounds it: when `m ≤ V ≤ M` in the Loewner order (`V − m I` and
+`M I − V` positive semidefinite) and `0 < m`, the ratio is at most `(m + M)² / (4 m M)`, Bloomfield
+and Watson's efficiency bound in this case. It is the Kantorovich inequality
+(`ClassicalLean.Algebra.Kantorovich.dotProduct_mulVec_mul_inv_le`, imported here; that module
+imports only Mathlib, so no cycle) at the vector of ones, with `1 ⬝ 1 = n`. The bound is reached at
+`V = diag(m, M)`, `n = 2`, the equal mix of the two eigenvectors (order LEAN-30's check
+`98.equal`). Each hypothesis is needed (order LEAN-30's exact checks, lane `lean/LEAN-30-checks.py`,
+each case keeping the other hypotheses):
+
+* `0 < m` (`98.drop.hm`): `V = (1)`, `m = 0`, `M = 1`: the left side is `1`, the bound Lean's
+  `1 / 0 = 0`.
+* `V − m I ≥ 0` (`98.drop.hmV`): `V = diag(1, 4)`, `m = 2`, `M = 4`: `25/16` against `9/8`.
+* `M I − V ≥ 0` (`98.drop.hVM`): `V = diag(1, 4)`, `m = 1`, `M = 2`: `25/16` against `9/8`.
+* at least one index (`98.drop.nonempty`): with none, the left side is Lean's `0 / 0 = 0`, while
+  `m = 1`, `M = −2` meet both Loewner hypotheses (a matrix with no entries is positive
+  semidefinite) and the bound is `−1/8`.
+
+The junk value `x / 0 = 0` decides two rows, in the bound (`0 < m`) and on the left (no index).
+Also measured exactly: 200 cases `V = H D H` (`98.random`). The plan's search
+(`MATH-PLAN-library-2-checks.py`, line `row.X16`: `bloomfield`) found 0 lines in pinned Mathlib, in
+Mathlib master at `2da3ab0a` and in the library when order LEAN-30 began; the library's matches now
+are this module's own text. The hypotheses hold together: the witness at the end of this file.
 
 ## Hypotheses
 
@@ -208,6 +236,21 @@ theorem glsMatrix_ones_mul_mul_transpose [Unique κ] (V : Matrix ι ι ℝ) :
       (of fun _ _ ↦ (onesInvOnes V)⁻¹ : Matrix κ κ ℝ) := by
   rw [glsMatrix_mul_mul_transpose, inv_transpose_mul_ones_eq]
 
+/-! ### What ordinary least squares loses, for a common mean (order LEAN-30, item 98) -/
+
+/-- **Bloomfield and Watson's bound for a common mean** (order LEAN-30, item 98 of
+MATH-PLAN-library-2). When `m ≤ V ≤ M` in the Loewner order and `0 < m`, the ratio of the variance
+of the plain average to that of generalised least squares, `(1ᵀ V 1)(1ᵀ V⁻¹ 1) / n²`, is at most
+`(m + M)² / (4 m M)`: the Kantorovich inequality at the vector of ones. -/
+theorem onesQuad_mul_onesInvOnes_le [Nonempty ι] {V : Matrix ι ι ℝ} {m M : ℝ} (hm : 0 < m)
+    (hmV : (V - m • 1).PosSemidef) (hVM : (M • 1 - V).PosSemidef) :
+    (1 ⬝ᵥ (V *ᵥ 1)) * onesInvOnes V / (Fintype.card ι : ℝ) ^ 2 ≤ (m + M) ^ 2 / (4 * m * M) := by
+  have h := ClassicalLean.Algebra.Kantorovich.dotProduct_mulVec_mul_inv_le hm hmV hVM 1
+  rw [one_dotProduct_one] at h
+  have hc : (0 : ℝ) < Fintype.card ι := by exact_mod_cast Fintype.card_pos
+  rw [div_le_iff₀ (by positivity)]
+  exact h
+
 /-- The hypothesis of `glsMatrix_ones_eq_minWeights` can be met: `V = 1` on `ℝ²`. -/
 example : glsMatrix (1 : Matrix (Fin 2) (Fin 2) ℝ) (of fun _ _ ↦ (1 : ℝ) : Matrix (Fin 2) Unit ℝ)
     () = minWeights 1 :=
@@ -225,3 +268,27 @@ example := ClassicalLean.Statistics.posSemidef_mul_mul_transpose_sub_inv (ι := 
   (V := diagonal ![1, 2, 3]) (posSemidef_diagonal_iff.mpr fun i ↦ by fin_cases i <;> norm_num)
   (X := !![1, 0; 0, 1; 0, 0]) (C := !![1, 0, 1; 0, 1, 0])
   (by ext i j; fin_cases i <;> fin_cases j <;> simp [mul_apply, Fin.sum_univ_three])
+
+open Matrix in
+/-- The hypotheses of `onesQuad_mul_onesInvOnes_le` hold together: `V = [[2, 1], [1, 3]]`, `m = 1`,
+`M = 4`. `V − I = [[1, 1], [1, 2]] = Bᵀ B` with `B = [[1, 1], [0, 1]]`, and
+`4 I − V = [[2, −1], [−1, 1]] = Cᵀ C` with `C = [[1, −1], [1, 0]]`, so both are positive
+semidefinite. The vector of ones is not an eigenvector of `V`, and the left side, `21/20`, lies
+strictly between `1` and the bound `25/16` (order LEAN-30's check `98.witness`): ordinary least
+squares loses something here, though less than the bound allows. -/
+example := ClassicalLean.Statistics.onesQuad_mul_onesInvOnes_le (ι := Fin 2)
+  (V := !![2, 1; 1, 3]) (m := 1) (M := 4) one_pos
+  (by
+    rw [show (!![2, 1; 1, 3] : Matrix (Fin 2) (Fin 2) ℝ) - (1 : ℝ) • 1 =
+        (!![1, 1; 0, 1] : Matrix (Fin 2) (Fin 2) ℝ)ᴴ * !![1, 1; 0, 1] by
+      ext i j; fin_cases i <;> fin_cases j <;>
+        simp [conjTranspose_eq_transpose_of_trivial, mul_apply, Fin.sum_univ_two, one_fin_two] <;>
+        norm_num]
+    exact posSemidef_conjTranspose_mul_self _)
+  (by
+    rw [show (4 : ℝ) • (1 : Matrix (Fin 2) (Fin 2) ℝ) - !![2, 1; 1, 3] =
+        (!![1, -1; 1, 0] : Matrix (Fin 2) (Fin 2) ℝ)ᴴ * !![1, -1; 1, 0] by
+      ext i j; fin_cases i <;> fin_cases j <;>
+        simp [conjTranspose_eq_transpose_of_trivial, mul_apply, Fin.sum_univ_two, one_fin_two] <;>
+        norm_num]
+    exact posSemidef_conjTranspose_mul_self _)
