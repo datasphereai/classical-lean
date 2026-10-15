@@ -632,6 +632,29 @@ Also job 0: the convex conjugate's junk-value checks and the stronger form of
 `exists_isPrimitiveDivisor_of_forall_prime_dvd` (`0 < a`) are now `example`s in their modules
 (`Analysis/ConvexConjugate`, `NumberTheory/PrimitiveDivisor`).
 
+### 1.21 Five items from below the plan's cut (order CLOUD-MATH-1, round 60; merged by MERGE-1, round 61)
+
+Items 131, 135, 136, 137 and 139 of MATH-PLAN-library-2 sit below the plan's cut. Their proofs
+were drafted and reviewed outside the library (`~/api-credit`); order CLOUD-MATH-1 landed them as
+five new modules in a cloud session on the GitHub branch `cloud-math-1`, each with witnesses and a
+cold review, and order MERGE-1 merged that branch into `master` on DSMain. Narrowing: none;
+`fw_general` and `ae_mem_Icc_of_tendsto_urnShare` are wider than their plan rows:
+
+* `InformationTheory/HanInequality` (item 131): Han's inequality,
+  `(n − 1) H(X) ≤ ∑ᵢ H(X without coordinate i)` for a joint law of `n` coordinates
+  (`mul_shannonEntropy_le_sum`), from strong subadditivity.
+* `Analysis/FrankWolfe` (item 135): Frank–Wolfe with step `2/(k + 2)` on the closed simplex gives
+  `f (x k) − f z ≤ 4 L / (k + 2)` (`sub_le_of_frankWolfe`); `fw_general` gives
+  `2 L D / (k + 3)` on any convex set of squared diameter at most `D` in a real Hilbert space.
+* `Analysis/StatePrices` (item 136): one-period asset pricing, finite form: no arbitrage exactly
+  when there are strictly positive state prices `ψ` with `Dᵀ ψ = π`
+  (`exists_pos_statePrices_iff`), from the library's Farkas lemma.
+* `Probability/PolyaUrn` (item 137): the red share of Pólya's urn is a martingale
+  (`martingale_urnShare`), converges almost surely (`ae_tendsto_urnShare`), and any almost-sure
+  limit of it lies in `[0, 1]` (`ae_mem_Icc_of_tendsto_urnShare`).
+* `Probability/Reflection` (item 139): the reflection principle for the fair `±1` walk,
+  `P(max_{k ≤ n} S_k ≥ a) = P(S_n ≥ a) + P(S_n > a)` for `a ≥ 1` (`measureReal_max_ge_eq`).
+
 ## 2. Categories to add
 
 Tiered by how much work they do inside the system that already exists, not by how interesting

@@ -253,6 +253,24 @@ Counts measured by this order's development runs, to be re-measured by its gates
 (round 59's fragment): **123 modules, 3246 theorem constants (3228 + 18), `lake build` 4171 jobs,
 0 warnings** (no Mathlib module more).
 
+**Dated 2026-10-15 UTC (order MERGE-1, round 61; branch `merge-1`, DSMain):** one merge lands CI
+(`.github/workflows/ci.yml`, §4) and order CLOUD-MATH-1 (round 60, written in a cloud session on
+the GitHub branch `cloud-math-1`) on top of LEAN-29. Five new modules, each unchanged by the
+merge: `InformationTheory/HanInequality` (item 131, Han's inequality,
+`(n − 1) H(X) ≤ ∑ᵢ H(X without coordinate i)`), `Analysis/FrankWolfe` (item 135, Frank–Wolfe on
+the closed simplex, `f (x k) − f z ≤ 4 L / (k + 2)`, and `fw_general` for any convex set of squared
+diameter at most `D`), `Analysis/StatePrices` (item 136, no arbitrage exactly when strictly
+positive state prices exist, finite form), `Probability/PolyaUrn` (item 137, Pólya's urn: the red
+share is a martingale, converges almost surely, and any almost-sure limit lies in `[0, 1]`) and
+`Probability/Reflection` (item 139, the reflection principle for the fair `±1` walk). The merge
+conflicted only on lines both sides added (`ClassicalLean.lean`, `records/CLAIMS.md`,
+`records/orders/INDEX.md`) and kept every one of them; `incoming/` (the cloud session's report,
+predictions and reviews) went to the lane and left the tree. This section names no other list of
+modules, so the five are named here. Counts predicted from both sides' measured gates, to be
+re-measured by this order's gates on the clean tree (round 61's fragment): **128 modules, 3335
+theorem constants (3246 + 89, round 60's per-module table), `lake build` 4176 jobs, 0 warnings**
+(no Mathlib module more).
+
 ---
 
 ## 2. What I claimed, and what I actually checked
@@ -843,6 +861,18 @@ Five gates, in `tools/`. Each was fail-tested; if you change one, fail-test it a
 private declaration in the library was exempt from the axiom gate (89 of 625 constants at the
 time). If you write a new gate that filters by namespace, this is the trap.
 
+**CI (dated 2026-10-15 UTC, order MERGE-1).** `.github/workflows/ci.yml` (sha256
+`0d7508432a867a9f44caca6b498e9d33b0b42230a73f240c74734070ff00283e`, from order CLOUD-1) runs on
+GitHub on every push to `master` and to any `cloud-*` branch. It builds the library with
+`leanprover/lean-action` (pinned v1.6.2, with Mathlib's cache) and then runs the axiom gate,
+`check_sorry.py` and the vacuity gate. It does not run `check_records.py`, `banned_vocab_scan.py`
+or the report tool, and it is not gate 7: the independent recheck reached about 28 GB of memory
+uncapped and runs only on DSMain, under a 12 GB cap. A newer push cancels an older run on the same
+branch (`concurrency`, `cancel-in-progress: true`). A run takes about 11 minutes; GitHub's free
+plan gives 2,000 minutes a month for private repositories. Its planted-fault test (a `sorry`
+theorem on a scratch branch, `cloud-ci-fault`: the axiom gate and `check_sorry` failed, the clean
+tree passed) is lane `CLOUD-1-CI-result.md`.
+
 ---
 
 ## 5. Naming
@@ -941,6 +971,11 @@ failure mode, and it is the one this library was built in reaction to.
   fast-forward from `299cc09` (`package-nightly` → `master`), landing order LEAN-4 (round 32). Measured
   on DSMain: the clone's `origin/master` reflog shows `update by push` at 2026-10-07 16:04:34 -0400,
   and `git ls-remote origin master` gives `2e79a0c…`.
+  **Dated 2026-10-15 UTC (order MERGE-1):** the repository also has the remote `github`
+  (`datasphereai/classical-lean`). Cloud sessions push only their own `cloud-*` branches to it
+  (orders CLOUD-1 and CLOUD-MATH-1; CLOUD-MATH-1 overrode "never push to GitHub" for its branch);
+  `master`, on both remotes, still moves only from DSMain, after claude-ai's check and on Dustin's
+  push.
 - **Rules learned in the runs of order 0923 (rules 1–7), order G-5 (rules 8–15), order G-6
   (rules 16–19), order G-7 (rules 20–25), order G-8 (rules 26–30) and order G-9 (rules 31–34).**
   Rules 1–7
