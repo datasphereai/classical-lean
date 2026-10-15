@@ -126,16 +126,20 @@ case keeps the others):
   there is no `p ≠ 1/2`. At `p = 1/2`, `r = 1`, `lucasU 2 1 n = n`, and the formula is the fair
   walk's `b / (a + b)`; for `p ≠ 1/2` it is item 84's `(r ^ b - 1) / (r ^ (a + b) - 1)` with both
   terms divided by `r - 1` (`lucasU_of_roots`). One formula covers the fair and the biased walk.
+  At `a = b = 0` both sides are `0`: the event is empty, and `U 0 / U 0` is Lean's `0 / 0`.
 
 Which hypotheses are needed, each case keeping the others (order LEAN-29's exact checks, lane
-`lean/LEAN-29-checks.py`, and the order's own script `checks95.py` in its evidence folder outside
-the repository, each by the label of its line; or by hand, as said):
+`lean/LEAN-29-checks.py`, and the order's own script `checks95.py`, kept with the order's evidence
+in `~/lean/lean29-checks/` on DSMain, outside the repository; each by the label of its line, which
+computes the chance; or by hand, as said). Which hypothesis a row's model breaks, and that it keeps
+the others, is by hand in every row.
 
 * `p > 0` (`95.drop.hp0`): at `p = 0` Lean's `r = 1 / 0 = 0`, so `U = lucasU 1 0` and
   `U 1 / U 2 = 1` at `a = b = 1`, while the walk falls to `-1` first: chance `0`.
-* `p < 1`: not needed (`95.p1`: at `p = 1` the formula is right in every cell of the grid; `p > 1`
-  cannot occur, since `hp` makes `p` a chance); kept because the route goes through item 84's
-  theorem, which asks for it.
+* `p < 1`: not needed (`95.p1`: at `p = 1` the formula is right in every cell of the grid; by
+  hand, `r = 0` and `U = lucasU 1 0` is `0, 1, 1, 1, …`, which gives the true chance for every `a`
+  and `b`; and, by hand, `p > 1` cannot occur, since `hp` makes `p` a chance); kept because the
+  route goes through item 84's theorem, which asks for it.
 * no `p ≠ 1/2` is asked: the cells with `p = 1/2` of `95.grid` hold.
 * each step known by the next time (`95.mine.copy`): the filtration that knows nothing, with every
   step equal to the first, up with chance `1/3` (`r = 2`, `U = lucasU 3 2`): independence holds,
@@ -1156,7 +1160,7 @@ example := ClassicalLean.Probability.GamblersRuin.measureReal_hit_eq (Ω := ℕ 
   (a := 2) (b := 1)
 
 open MeasureTheory ProbabilityTheory in
-/-- The hypotheses of `measureReal_hit_eq_lucasU` hold together, for a biased walk: on the space of
+/-- The hypotheses of `measureReal_hit_eq_lucasU` hold together: a biased walk, on the space of
 sequences `ℕ → Fin 3` of independent coins with three equally likely faces (Mathlib's
 `Measure.infinitePi` of the uniform law on `Fin 3`), the step `X n` is `+1` when coin `n + 1`
 shows `0` and `-1` otherwise, so each step is `1` with chance `p = 1/3` (`r = 2`); the filtration
