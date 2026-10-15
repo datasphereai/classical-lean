@@ -84,8 +84,9 @@ hypothesis is needed:
 * measurability (`91.drop.hA`, by hand, order LEAN-28's case for the second bound): on `Bool` with
   only `∅` and the whole space measurable, the point mass at `true`, `A 0 = {true}`, `n = r = 1`,
   `q = 1`, Lean's chance of no run (an outer measure) is `1`, against `exp (−1) < 0.37`. The second
-  `example` at the end of this file states that this model meets the other hypotheses and that the
-  chance is above `0`; that it is `1`, above `exp (−1)`, is by hand.
+  `example` at the end of this file states that a model of this shape (`Bool` with this σ-algebra,
+  `n = r = 1`, `q = 1`) meets the other hypotheses with the chance above `0`; its proof takes this
+  model. That this model's chance is `1`, above `exp (−1)`, is by hand.
 * independence (`91.drop.hind`): every trial the same event of chance `q`; the first failing cell is
   `(n, r, q) = (2, 1, 1/10)`: chance `9/10`, against `exp (−1/5) < 0.82`.
 * each trial losing with chance `q` (`91.drop.hq`): every event empty while `q` is stated; the first
