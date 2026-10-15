@@ -89,11 +89,13 @@ geometric sum (and `Nat.emultiplicity_pow_sub_pow` is at `NumberTheory/Multiplic
 v4.34.0, not `:218`); the bound needed is `Φₙ(a) > P(n)`, the largest prime factor of `n`, not
 `Φₙ(a) > n`; and at `a = 2` that bound follows from Mathlib's existing bounds through the
 cyclotomic expansion identities, so it was not the blocker described below.
-**Dated 2026-10-15 (order LEAN-30, job 0):** order LEAN-30 reworded only this file's claims of
-what was checked, in four passages (the Lifting the Exponent lemmas below, the instance note of
+**Dated 2026-10-15 (order LEAN-30, job 0):** order LEAN-30 reworded this file's claims of what
+was checked, in four passages (the Lifting the Exponent lemmas below, the instance note of
 `orderOf_eq_of_isRoot_cyclotomic`, and the two runs behind the real-work test): each is now
-checkable from this file or says that it reports a past run with no file kept; and it appended
-one `example` after the file's last line naming the two Lifting the Exponent lemmas.
+checkable from this file or says that it reports a past run with no file kept. It appended one
+`example` after the file's last line naming the two Lifting the Exponent lemmas, and changed
+the list of results and the two pointers to order LEAN-29's `example` to match. Nothing else
+in this file changed.
 
 **Zsigmondy's theorem is not here, and no part of this file should be read as a step toward it
 that only needs finishing.**  The missing case is `p ∣ n`: there `p` can divide `Φₙ(a)` without
