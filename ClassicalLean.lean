@@ -128,6 +128,7 @@ import ClassicalLean.Analysis.ConvexConjugate
 import ClassicalLean.Algebra.Kantorovich
 import ClassicalLean.Probability.Reflection
 import ClassicalLean.Analysis.StatePrices
+import ClassicalLean.InformationTheory.HanInequality
 
 /-!
 # ClassicalLean

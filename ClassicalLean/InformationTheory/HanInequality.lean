@@ -1,16 +1,32 @@
+/-
+Copyright (c) 2026 Dustin Watkins. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Dustin Watkins, Claude (Anthropic)
+-/
+
 import ClassicalLean.InformationTheory.MutualInformation
 
 /-!
 # Han's inequality
 
-For a joint law `P` of the coordinates of `x : ι → α`, `(n - 1) H(X) ≤ ∑ᵢ H(X without coordinate i)`,
-with `n` the number of coordinates. The proof orders the coordinates, applies strong
-subadditivity `H(C, A, B) + H(C) ≤ H(C, A) + H(C, B)` with `C` the coordinates before `i`, `A` the
-coordinate `i` and `B` the coordinates after it, and sums the resulting inequalities, whose prefix
-terms telescope.
+A joint law of `n` coordinates is a probability vector `P` on the families `x : ι → α`
+(`ι` and `α` finite, `n` the number of elements of `ι`); `shannonEntropy` is the library's
+`ClassicalLean.Simplex.shannonEntropy`. Order CLOUD-MATH-1, item 131 of MATH-PLAN-library-2.
+
+* `mul_shannonEntropy_le_sum` — **Han's inequality**: `(n - 1) H(X) ≤ ∑ᵢ H(X without coordinate i)`,
+  where the law of `X` without coordinate `i` is the marginal of `P` on `{j // j ≠ i} → α`.
+
+The proof orders the coordinates, applies strong subadditivity
+`H(C, A, B) + H(C) ≤ H(C, A) + H(C, B)` with `C` the coordinates before `i`, `A` the coordinate
+`i` and `B` the coordinates after it, and sums the resulting inequalities, whose prefix terms
+telescope. Strong subadditivity (`ssa_sum`) comes from the library's chain rule
+(`shannonEntropy_eq_add_condEntropy`) and subadditivity
+(`shannonEntropy_le_shannonEntropy_add_shannonEntropy`) applied row by row.
 -/
 
 open ClassicalLean.Simplex
+
+namespace ClassicalLean.InformationTheory.HanInequality
 
 /-- The pushforward of a weight vector along a map. -/
 private noncomputable def marg {X Y : Type*} [Fintype X] [DecidableEq Y] (f : X → Y)
@@ -38,8 +54,8 @@ private theorem shannonEntropy_marg {X Y : Type*} [Fintype X] [Fintype Y] [Decid
   rw [Finset.sum_comm]
   refine Finset.sum_congr rfl fun x _ => ?_
   simp only [ite_mul, zero_mul]
-  first | rw [Finset.sum_ite_eq] | rw [Finset.sum_ite_eq']
-  rw [if_pos (Finset.mem_univ _)]
+  rw [Finset.sum_ite_eq]
+  rw [ite_eq_left (Finset.mem_univ _)]
 
 private theorem shannonEntropy_marg_congr {X Y Z : Type*} [Fintype X] [Fintype Y] [Fintype Z]
     [DecidableEq Y] [DecidableEq Z] (f : X → Y) (g : X → Z) {P : X → ℝ}
@@ -51,8 +67,8 @@ private theorem shannonEntropy_marg_congr {X Y Z : Type*} [Fintype X] [Fintype Y
   congr 2
   refine Finset.sum_congr rfl fun x' _ => ?_
   by_cases hx : f x' = f x
-  · rw [if_pos hx, if_pos ((h x x').mp hx)]
-  · rw [if_neg hx, if_neg fun h' => hx ((h x x').mpr h')]
+  · rw [ite_eq_left hx, ite_eq_left ((h x x').mp hx)]
+  · rw [ite_eq_right hx, ite_eq_right fun h' => hx ((h x x').mpr h')]
 
 private theorem shannonEntropy_marg_of_injective {X Y : Type*} [Fintype X] [Fintype Y]
     [DecidableEq Y] {f : X → Y} (hf : Function.Injective f) (P : X → ℝ) :
@@ -60,9 +76,9 @@ private theorem shannonEntropy_marg_of_injective {X Y : Type*} [Fintype X] [Fint
   rw [shannonEntropy_marg, shannonEntropy]
   congr 1
   refine Finset.sum_congr rfl fun x _ => ?_
-  rw [Finset.sum_eq_single x, if_pos rfl]
+  rw [Finset.sum_eq_single x, ite_eq_left rfl]
   · intro x' _ hx'
-    exact if_neg fun h => hx' (hf h)
+    exact ite_eq_right fun h => hx' (hf h)
   · intro hx
     exact absurd (Finset.mem_univ x) hx
 
@@ -75,22 +91,22 @@ private theorem marg_comp {X Y Z : Type*} [Fintype X] [Fintype Y] [DecidableEq Y
       = ∑ y, ∑ x, (if f x = y then (if g (f x) = z then P x else 0) else 0) := by
         refine Finset.sum_congr rfl fun y _ => ?_
         by_cases h : g y = z
-        · rw [if_pos h]
+        · rw [ite_eq_left h]
           refine Finset.sum_congr rfl fun x _ => ?_
           by_cases h1 : f x = y
-          · rw [if_pos h1, if_pos h1, if_pos (by rw [h1]; exact h)]
-          · rw [if_neg h1, if_neg h1]
-        · rw [if_neg h]
+          · rw [ite_eq_left h1, ite_eq_left h1, ite_eq_left (by rw [h1]; exact h)]
+          · rw [ite_eq_right h1, ite_eq_right h1]
+        · rw [ite_eq_right h]
           symm
           refine Finset.sum_eq_zero fun x _ => ?_
           by_cases h1 : f x = y
-          · rw [if_pos h1, if_neg (fun h2 => h (by rw [h1] at h2; exact h2))]
-          · rw [if_neg h1]
+          · rw [ite_eq_left h1, ite_eq_right (fun h2 => h (by rw [h1] at h2; exact h2))]
+          · rw [ite_eq_right h1]
     _ = ∑ x, ∑ y, (if f x = y then (if g (f x) = z then P x else 0) else 0) := Finset.sum_comm
     _ = ∑ x, (if g (f x) = z then P x else 0) := by
         refine Finset.sum_congr rfl fun x _ => ?_
-        first | rw [Finset.sum_ite_eq] | rw [Finset.sum_ite_eq']
-        rw [if_pos (Finset.mem_univ _)]
+        rw [Finset.sum_ite_eq]
+        rw [ite_eq_left (Finset.mem_univ _)]
 
 private theorem marg_equiv {Y Z : Type*} [Fintype Y] [DecidableEq Z] (e : Y ≃ Z) (R : Y → ℝ) :
     marg e R = fun z => R (e.symm z) := by
@@ -99,7 +115,7 @@ private theorem marg_equiv {Y Z : Type*} [Fintype Y] [DecidableEq Z] (e : Y ≃ 
   rw [Finset.sum_eq_single (e.symm z)]
   · simp
   · intro y _ hy
-    rw [if_neg]
+    rw [ite_eq_right]
     intro h
     exact hy (by rw [← h, Equiv.symm_apply_apply])
   · intro h
@@ -112,14 +128,16 @@ private theorem marg_fst {α β : Type*} [Fintype α] [Fintype β] [DecidableEq 
   rw [Fintype.sum_prod_type, Finset.sum_eq_single a]
   · simp
   · intro a' _ ha'
-    exact Finset.sum_eq_zero fun b _ => if_neg ha'
+    exact Finset.sum_eq_zero fun b _ => ite_eq_right ha'
   · intro h
     exact absurd (Finset.mem_univ _) h
 
-private theorem marg_via_equiv {Y Z W : Type*} [Fintype Y] [Fintype Z] [Fintype W]
-    [DecidableEq Z] [DecidableEq W] (e : Y ≃ Z × W) (R : Y → ℝ) :
-    marg (fun y => (e y).1) R = fun z => ∑ w, R (e.symm (z, w)) :=
-  calc marg (fun y => (e y).1) R = marg Prod.fst (marg e R) := (marg_comp e Prod.fst R).symm
+private theorem marg_via_equiv {Y Z W : Type*} [Fintype Y] [Finite Z] [Fintype W]
+    [DecidableEq Z] (e : Y ≃ Z × W) (R : Y → ℝ) :
+    marg (fun y => (e y).1) R = fun z => ∑ w, R (e.symm (z, w)) := by
+  classical
+  have := Fintype.ofFinite Z
+  exact calc marg (fun y => (e y).1) R = marg Prod.fst (marg e R) := (marg_comp e Prod.fst R).symm
     _ = marg Prod.fst (fun p => R (e.symm p)) := by rw [marg_equiv]
     _ = fun z => ∑ w, R (e.symm (z, w)) := marg_fst (fun p => R (e.symm p))
 
@@ -157,7 +175,7 @@ private theorem ssa_sum {A B C : Type*} [Fintype A] [Fintype B] [Fintype C]
     rw [condEntropy_eq_sum_mul_shannonEntropy, condEntropy_eq_sum_mul_shannonEntropy,
       condEntropy_eq_sum_mul_shannonEntropy, ← Finset.sum_add_distrib]
     refine Finset.sum_le_sum fun c _ => ?_
-    show (∑ ab, Q (c, ab)) * shannonEntropy (fun ab => Q (c, ab) / ∑ ab', Q (c, ab'))
+    change (∑ ab, Q (c, ab)) * shannonEntropy (fun ab => Q (c, ab) / ∑ ab', Q (c, ab'))
       ≤ (∑ a, ∑ b, Q (c, (a, b)))
           * shannonEntropy (fun a => (∑ b, Q (c, (a, b))) / ∑ a', ∑ b, Q (c, (a', b)))
         + (∑ b, ∑ a, Q (c, (a, b)))
@@ -207,9 +225,10 @@ private theorem ssa_marg {X A B C : Type*} [Fintype X] [Fintype A] [Fintype B] [
   rw [e1, e2, e3]
   exact h
 
-/-- **Han's inequality.** For a joint probability law `P` of the coordinates of `x : ι → α`,
-`(n - 1) H(X) ≤ ∑ᵢ H(X without coordinate i)`, where `n` is the number of coordinates and the
-law of `X` without coordinate `i` is the marginal of `P` on `{j // j ≠ i} → α`. -/
+/-- **Han's inequality** (item 131 of MATH-PLAN-library-2). For a joint probability law `P` of
+the coordinates of `x : ι → α`, `(n - 1) H(X) ≤ ∑ᵢ H(X without coordinate i)`, where `n` is the
+number of coordinates and the law of `X` without coordinate `i` is the marginal of `P` on
+`{j // j ≠ i} → α`. -/
 theorem mul_shannonEntropy_le_sum {ι α : Type*} [Fintype ι] [DecidableEq ι] [Fintype α]
     [DecidableEq α] {P : (ι → α) → ℝ} (hP0 : ∀ x, 0 ≤ P x) (hP1 : ∑ x, P x = 1) :
     ((Fintype.card ι : ℝ) - 1) * shannonEntropy P
@@ -220,7 +239,7 @@ theorem mul_shannonEntropy_le_sum {ι α : Type*} [Fintype ι] [DecidableEq ι] 
   have hA : ∀ i, shannonEntropy P + F (e i).val
       ≤ F ((e i).val + 1) + shannonEntropy (marg (restr (fun j => j ≠ i)) P) := by
     intro i
-    show shannonEntropy P + shannonEntropy (marg (restr (fun j => (e j).val < (e i).val)) P)
+    change shannonEntropy P + shannonEntropy (marg (restr (fun j => (e j).val < (e i).val)) P)
       ≤ shannonEntropy (marg (restr (fun j => (e j).val < (e i).val + 1)) P)
         + shannonEntropy (marg (restr (fun j => j ≠ i)) P)
     have h : shannonEntropy (marg (fun x : ι → α => (restr (fun j => (e j).val < (e i).val) x,
@@ -274,14 +293,14 @@ theorem mul_shannonEntropy_le_sum {ι α : Type*} [Fintype ι] [DecidableEq ι] 
     shannonEntropy_marg_of_injective (f := restr (fun j => (e j).val < Fintype.card ι))
       (fun x y hxy => funext fun j => restr_eq_iff.mp hxy j (e j).isLt) P
   have hF0 : F 0 = 0 := by
-    show shannonEntropy (marg (restr (fun j => (e j).val < 0)) P) = 0
+    change shannonEntropy (marg (restr (fun j => (e j).val < 0)) P) = 0
     rw [shannonEntropy_marg]
     have hall : ∀ x : ι → α, (∑ x', if restr (fun j => (e j).val < 0) x'
         = restr (fun j => (e j).val < 0) x then P x' else 0) = 1 := by
       intro x
       rw [← hP1]
       exact Finset.sum_congr rfl fun x' _ =>
-        if_pos (funext fun j => absurd j.2 (Nat.not_lt_zero _))
+        ite_eq_left (funext fun j => absurd j.2 (Nat.not_lt_zero _))
     simp only [hall, Real.log_one, mul_zero, Finset.sum_const_zero, neg_zero]
   have htel : ∑ i, (F ((e i).val + 1) - F (e i).val) = F (Fintype.card ι) - F 0 :=
     calc ∑ i, (F ((e i).val + 1) - F (e i).val)
@@ -299,3 +318,19 @@ theorem mul_shannonEntropy_le_sum {ι α : Type*} [Fintype ι] [DecidableEq ι] 
       = ∑ i, shannonEntropy (marg (restr (fun j => j ≠ i)) P) := rfl
   rw [hD]
   linarith
+
+end ClassicalLean.InformationTheory.HanInequality
+
+/-- The hypotheses of `mul_shannonEntropy_le_sum` hold together: two coordinates (`ι = Fin 2`),
+each with two values (`α = Fin 2`), and the joint law that gives `3/8` to each of the two families
+whose coordinates agree and `1/8` to each of the two whose coordinates differ; its weights are
+nonnegative and add up to `1`. -/
+example := ClassicalLean.InformationTheory.HanInequality.mul_shannonEntropy_le_sum (ι := Fin 2)
+  (α := Fin 2) (P := fun x ↦ if x 0 = x 1 then 3 / 8 else 1 / 8)
+  (fun x ↦ by split_ifs <;> norm_num)
+  (by
+    rw [← (Fin.consEquiv fun _ : Fin 2 ↦ Fin 2).sum_comp, Fintype.sum_prod_type]
+    simp only [Fin.consEquiv, Equiv.coe_fn_mk]
+    rw [Fin.sum_univ_two]
+    simp only [← (Equiv.funUnique (Fin 1) (Fin 2)).symm.sum_comp, Fin.sum_univ_two]
+    norm_num [Equiv.funUnique])
