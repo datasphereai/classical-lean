@@ -19,6 +19,10 @@ For the equation `y' = f (t, y)`, Euler's method with step `h` from `(t₀, y₀
   `t ↦ f (t, y t)` `M`-Lipschitz (so `|y''| ≤ M` where `y''` exists), `f (t, ·)` is `L`-Lipschitz
   with `L > 0`, `h ≥ 0`, and Euler's method starts at `y t₀`, then after `k` steps
   `|y (t₀ + k h) − u_k| ≤ (h M / (2 L)) (exp (L k h) − 1)`.
+* `tendsto_implicitEuler` — order LEAN-29, item 94: for `y' = −c y` with `c > 0`, implicit Euler,
+  `u (k + 1) = u k / (1 + h c)`, tends to `0` for every step `h > 0`.
+* `tendsto_explicitEuler_iff` — order LEAN-29, item 94: explicit Euler for the same equation
+  (`eulerIterate` with `f t y = −c y`), from `y₀ ≠ 0`, tends to `0` exactly when `h c < 2`.
 
 This matches the bound in numerical-analysis textbooks; checked for this order by web search,
 it is Theorem 5.9 of Burden and Faires, Numerical Analysis, as numbered in lecture notes that
@@ -50,6 +54,32 @@ Lipschitz bound, `y = t³`, `F = 3 t²` with `M = 0` claimed give `1 > 0`.
 The plan's row names the theorem `abs_sub_eulerStep_le`; it bounds `k` steps, so it is named
 `abs_sub_eulerIterate_le` here.
 
+## Stability for `y' = −c y` (order LEAN-29, item 94)
+
+The plan writes the rate as `λ`, which is not a Lean name; here it is `c > 0`. Implicit Euler
+gives `u k = u 0 (1 + h c)⁻ᵏ`, and `0 < (1 + h c)⁻¹ < 1`. Explicit Euler gives
+`(1 − h c)ᵏ y₀`; a geometric sequence tends to `0` exactly when its ratio has size below `1`
+(Mathlib's `tendsto_pow_atTop_nhds_zero_iff`; the ratio `1 − h c` is negative once `h c > 1`), and
+`|1 − h c| < 1` is `0 < h c < 2`. Each hypothesis is needed (order LEAN-29's exact checks, lane
+`lean/LEAN-29-checks.py`, by the label of each line, the first failing cell of its grid):
+
+* explicit, `c > 0` (`94.drop.ehc`): `c = −1`, `h = 1/2`, `y₀ = 1`: each step multiplies by
+  `3/2`, so the iterates grow, while `h c = −1/2 < 2`.
+* explicit, `h > 0` (`94.drop.ehh`): `c = 1/2`, `h = −1`, `y₀ = 1`: the same factor `3/2`, while
+  `h c = −1/2 < 2`.
+* explicit, `y₀ ≠ 0` (`94.drop.ey0`): `c = 1`, `h = 3`, `y₀ = 0`: every iterate is `0` and tends
+  to `0`, while `h c = 3`.
+* implicit, `c > 0` (`94.drop.ihc`): `c = −1`, `h = 1/2`: `1 + h c = 1/2`, so each step doubles,
+  and from `u 0 = 1` the sequence grows.
+* implicit, `h > 0` (`94.drop.ihh`): `h = −1`, `c = 1/2`: the same doubling.
+* implicit, the recursion (by hand): `u k = 1` for every `k`, with `c = h = 1`, tends to `1`.
+
+Lean's junk value in both implicit rows: when `1 + h c = 0` (the cells `(c, h) = (−1, 1)` of
+`94.drop.ihc` and `(h, c) = (−1, 1)` of `94.drop.ihh`), Lean's `x / 0 = 0` makes `u 1 = 0`, and the
+sequence then tends to `0`: with a hypothesis dropped, those cells still satisfy the conclusion.
+The hypotheses of each theorem hold together: the two `example`s at the end of this file (explicit
+Euler at `h = 1/2`, where the factor is `1/2`, not `0`).
+
 ## Mathlib at v4.34.0
 
 Searched before this file was written (order LEAN-20, `grep -rniE` over Mathlib):
@@ -58,6 +88,10 @@ Searched before this file was written (order LEAN-20, `grep -rniE` over Mathlib)
 error comes from order LEAN-19's descent lemma, and the recursion `e_{k+1} ≤ (1 + h L) e_k + M h²/2`
 is solved by induction, with `1 + h L ≤ exp (h L)`. `discrete_gronwall` would give only
 `k (M h²/2) exp (L k h)`, a weaker bound (review r31).
+
+For order LEAN-29 (item 94, row F5 of MATH-PLAN-library-2, re-run by its check script on
+2026-10-15 UTC): `implicit euler|backward euler|a-stable|a-stability` gives 0 lines in pinned
+Mathlib, 0 in Mathlib master at `2da3ab0a`, and 0 in the library.
 -/
 
 open scoped NNReal
@@ -141,6 +175,54 @@ theorem abs_sub_eulerIterate_le {f : ℝ → ℝ → ℝ} {y : ℝ → ℝ} {t�
       _ = Real.exp (L * (k * h)) := by rw [← Real.exp_nat_mul]; ring_nf
   linarith
 
+open Filter Topology in
+/-- **Implicit Euler is stable for every step** (order LEAN-29, item 94 of MATH-PLAN-library-2).
+For `y' = −c y` with `c > 0` and a step `h > 0`, the implicit (backward) Euler iterates
+`u (k + 1) = u k / (1 + h c)` tend to `0`, whatever the size of `h`: `u k = u 0 (1 + h c)⁻ᵏ` and
+`0 < (1 + h c)⁻¹ < 1`. -/
+theorem tendsto_implicitEuler {c h : ℝ} {u : ℕ → ℝ} (hc : 0 < c) (hh : 0 < h)
+    (hu : ∀ k, u (k + 1) = u k / (1 + h * c)) : Tendsto u atTop (𝓝 0) := by
+  have hpos : 1 < 1 + h * c := by linarith [mul_pos hh hc]
+  have hclosed : ∀ k, u k = u 0 * ((1 + h * c)⁻¹) ^ k := by
+    intro k
+    induction k with
+    | zero => simp
+    | succ k ih => rw [hu, ih, pow_succ, div_eq_mul_inv, mul_assoc]
+  have hlim := (tendsto_pow_atTop_nhds_zero_of_lt_one (inv_nonneg.mpr (by linarith))
+    (inv_lt_one_of_one_lt₀ hpos)).const_mul (u 0)
+  rw [mul_zero] at hlim
+  exact hlim.congr fun k ↦ (hclosed k).symm
+
+open Filter Topology in
+/-- **Explicit Euler is stable exactly when `h c < 2`** (order LEAN-29, item 94 of
+MATH-PLAN-library-2). For `y' = −c y` with `c > 0`, a step `h > 0` and a start `y₀ ≠ 0`, the
+library's explicit Euler iterates (`eulerIterate` with `f t y = −c y`) tend to `0` if and only if
+`h c < 2`. The iterates are `(1 − h c)ᵏ y₀`, and `|1 − h c| < 1` is `0 < h c < 2`; past `h c = 1`
+the factor is negative and the iterates alternate in sign. -/
+theorem tendsto_explicitEuler_iff {c h t₀ y₀ : ℝ} (hc : 0 < c) (hh : 0 < h) (hy₀ : y₀ ≠ 0) :
+    Tendsto (eulerIterate (fun _ y ↦ -c * y) t₀ h y₀) atTop (𝓝 0) ↔ h * c < 2 := by
+  have hclosed : ∀ k, eulerIterate (fun _ y ↦ -c * y) t₀ h y₀ k = (1 - h * c) ^ k * y₀ := by
+    intro k
+    induction k with
+    | zero => simp [eulerIterate]
+    | succ k ih => rw [eulerIterate, ih, pow_succ]; ring
+  rw [show eulerIterate (fun _ y ↦ -c * y) t₀ h y₀ = fun k ↦ (1 - h * c) ^ k * y₀ from
+    funext hclosed]
+  have hpow : Tendsto (fun k : ℕ ↦ (1 - h * c) ^ k * y₀) atTop (𝓝 0) ↔
+      Tendsto (fun k : ℕ ↦ (1 - h * c) ^ k) atTop (𝓝 0) := by
+    constructor
+    · intro hl
+      have := hl.div_const y₀
+      simpa [mul_div_cancel_right₀ _ hy₀] using this
+    · intro hl
+      simpa using hl.mul_const y₀
+  rw [hpow, tendsto_pow_atTop_nhds_zero_iff, abs_sub_lt_iff]
+  constructor
+  · rintro ⟨-, h2⟩
+    linarith
+  · intro h2
+    exact ⟨by linarith [mul_pos hh hc], by linarith⟩
+
 end ClassicalLean.Analysis
 
 /-- The hypotheses of `abs_sub_eulerIterate_le` hold together: the equation `y' = f t y` with
@@ -154,3 +236,15 @@ example := ClassicalLean.Analysis.abs_sub_eulerIterate_le
   (LipschitzWith.of_dist_le_mul fun a b ↦ by simp)
   (fun t ↦ LipschitzWith.of_dist_le_mul fun a b ↦ by simp [Real.dist_eq])
   (by norm_num) (by norm_num) (k := 3)
+
+/-- The hypotheses of `tendsto_implicitEuler` hold together: the equation `y' = −y` (`c = 1 > 0`),
+step `h = 1 > 0`, and the implicit iterates `u k = (1/2)^k`, each the one before divided by
+`1 + h c = 2`. -/
+example := ClassicalLean.Analysis.tendsto_implicitEuler (c := 1) (h := 1)
+  (u := fun k ↦ (1 / 2 : ℝ) ^ k) (by norm_num) (by norm_num) (fun k ↦ by rw [pow_succ]; ring)
+
+/-- The hypotheses of `tendsto_explicitEuler_iff` hold together: the equation `y' = −y`
+(`c = 1 > 0`), step `h = 1/2 > 0`, so that each step multiplies by `1 − h c = 1/2` (with `h = 1`
+the factor would be `0` and every iterate after the first `0`), from `y₀ = 1 ≠ 0` at `t₀ = 0`. -/
+example := ClassicalLean.Analysis.tendsto_explicitEuler_iff (c := 1) (h := 1 / 2) (t₀ := 0)
+  (y₀ := 1) (by norm_num) (by norm_num) (by norm_num)
