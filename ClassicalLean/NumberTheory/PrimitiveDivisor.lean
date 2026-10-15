@@ -88,6 +88,10 @@ geometric sum (and `Nat.emultiplicity_pow_sub_pow` is at `NumberTheory/Multiplic
 v4.34.0, not `:218`); the bound needed is `Φₙ(a) > P(n)`, the largest prime factor of `n`, not
 `Φₙ(a) > n`; and at `a = 2` that bound follows from Mathlib's existing bounds through the
 cyclotomic expansion identities, so it was not the blocker described below.
+**Dated 2026-10-15 (order LEAN-30, job 0):** order LEAN-30 reworded only this file's claims of
+what was checked, in four passages (the Lifting the Exponent lemmas below, the instance note of
+`orderOf_eq_of_isRoot_cyclotomic`, and the two runs behind the real-work test): each is now
+checkable from this file or says that it reports a past run with no file kept.
 
 **Zsigmondy's theorem is not here, and no part of this file should be read as a step toward it
 that only needs finishing.**  The missing case is `p ∣ n`: there `p` can divide `Φₙ(a)` without
@@ -95,7 +99,8 @@ being primitive.  The standard proof handles that in two steps, and **Mathlib ha
 one already in scope from this file's own imports**: Lifting the Exponent bounds the
 non-primitive part of `Φₙ(a)` to a single prime to the first power, as
 `Nat.emultiplicity_pow_sub_pow` (`NumberTheory/Multiplicity.lean:218`) and its `Int` twin —
-`#check` resolves both against the import block below, rc 0, and nothing here uses them.
+both resolve against the import block below (the last `example` of this file names them, order
+LEAN-30), and nothing here uses them.
 
 The second step is the blocker: producing a *further* prime needs a lower bound `Φₙ(a) > n`, and
 the sharpest bound Mathlib has, `sub_one_pow_totient_lt_cyclotomic_eval`, gives only
@@ -262,7 +267,8 @@ a cast that a caller has to discharge at the instance level.  Note `¬ p ∣ n` 
 
 `[Fact p.Prime]` is **proof-route, not statement** — the same category `LucasApparition.lean`
 records for its `p ≠ 2`.  It is needed only to synthesize `IsDomain (ZMod p)` for
-`isRoot_cyclotomic_iff`; dropping it fails with exactly that instance error.  The arithmetic
+`isRoot_cyclotomic_iff` (by hand: `isRoot_cyclotomic_iff` asks `IsDomain (ZMod p)`, which Mathlib
+supplies from `Fact p.Prime`).  The arithmetic
 holds without it: swept over composite moduli `m < 301` and `n ≤ 30`, the 846 cells with
 `m ∣ Φₙ(a)` and `¬ m ∣ n` gave 0 counterexamples to `ord_m(a) = n`, against 26 counterexamples
 for the same sweep with the `¬ m ∣ n` hypothesis dropped.
@@ -343,11 +349,12 @@ what makes the hypothesis
 `n < p` step.
 
 The test cannot be passed by accident: `Mathlib.NumberTheory.PrimesCongruentOne` is **not**
-imported here, and is not reachable transitively either — elaborating this file's import block
-followed by `#check @Nat.exists_prime_gt_modEq_one` fails with
-`Unknown constant 'Nat.exists_prime_gt_modEq_one'`.  The statement below was separately checked
-to be Mathlib's, by elaborating `fun N hk0 => Nat.exists_prime_gt_modEq_one N hk0` against it in
-a file that does import that module. -/
+imported here, and is not reachable transitively either.  Two past runs, made when this text was
+first written (commit `333b69a`, the earliest in this repository's history), with no file kept:
+elaborating this file's import block followed by `#check @Nat.exists_prime_gt_modEq_one` failed
+with `Unknown constant 'Nat.exists_prime_gt_modEq_one'`; and the statement below was checked to be
+Mathlib's by elaborating `fun N hk0 => Nat.exists_prime_gt_modEq_one N hk0` against it in a file
+that does import that module. -/
 example {k : ℕ} (N : ℕ) (hk0 : k ≠ 0) :
     ∃ p : ℕ, Nat.Prime p ∧ N < p ∧ p ≡ 1 [MOD k] := by
   rcases (Nat.one_le_iff_ne_zero.2 hk0).eq_or_lt with (rfl | hk1)
@@ -404,3 +411,8 @@ example {a n : ℕ} (ha : 0 < a) (hn : 1 < n) (hrad : ∀ q : ℕ, q.Prime → q
     have hq := Nat.minFac_prime (show n ≠ 1 by omega)
     exact absurd (hrad _ hq (Nat.minFac_dvd n)) hq.not_dvd_one
   · exact ClassicalLean.exists_isPrimitiveDivisor_of_forall_prime_dvd h hn hrad
+
+/-- Lifting the Exponent, as the module docstring cites it: Mathlib's
+`Nat.emultiplicity_pow_sub_pow` and its `Int` twin resolve against this module's imports (order
+LEAN-30, job 0); nothing in this module uses them. -/
+example := And.intro @Nat.emultiplicity_pow_sub_pow @Int.emultiplicity_pow_sub_pow

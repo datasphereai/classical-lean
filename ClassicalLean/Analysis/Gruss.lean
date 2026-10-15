@@ -39,7 +39,7 @@ brackets would read as one integral of the whole difference.
 ## Hypotheses, and Lean's junk values
 
 Each hypothesis is needed, except that the two measurability hypotheses of the first theorem are
-needed only together (below) (order LEAN-29's exact checks, lane `lean/LEAN-29-checks.py`, by the
+needed only together, below (order LEAN-29's exact checks, lane `lean/LEAN-29-checks.py`, by the
 label of each line; or by hand, as said). For `abs_covariance_le_mul_div_four`:
 
 * a probability measure (`92.drop.prob`): one point, `X = Y = 1`. With mass `0` the bound
