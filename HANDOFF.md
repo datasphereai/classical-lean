@@ -286,10 +286,10 @@ plug-in score is at most every fixed-rate score where the fixed rate gives the s
 mass, and its false-alarm rate stays at most `α` under every Bernoulli law; no new import).
 Narrowing: none. Job 0 reworded five older docstring lines of `NumberTheory/PrimitiveDivisor` and
 `Analysis/Gruss` (and appended one `example` to PrimitiveDivisor). Counts, all to be re-measured by
-its gates on the clean tree (round 62's fragment): **128 modules and 3345 theorem constants
-(3335 + 10)** from the censuses of the changed modules; **`lake build` 4176 jobs** carried over
-from the base build (no module and no Mathlib module added, by the import closure); 0 warnings in
-the changed modules' own builds.
+its gates on the clean tree (round 62's fragment): **3345 theorem constants**, 3335 from the base
+axiom gate plus 10 from the censuses of the changed modules; **128 modules** and **`lake build`
+4176 jobs** carried over from the base (no module and no Mathlib module added, by the import
+closure); 0 warnings in the changed modules' own builds.
 
 ---
 
@@ -845,9 +845,9 @@ Five gates, in `tools/`. Each was fail-tested; if you change one, fail-test it a
   above now reads "optional `open … in` lines of their own", as claude-ai's push review of order
   LEAN-29 asked (lane `lean/LEAN-29-ruling-2.md`, note 2): order VACUITY-3's witnesses in
   `49bcd41` and LEAN-29's item 91 witness stand behind two such lines and passed their reviews.
-  Order LEAN-30's seven witnesses (items 96, 97, 98, 99 twice and 100 twice) were written and
-  reviewed before this change, under the earlier wording; each has at most one `open … in` line,
-  so it meets both.
+  Order LEAN-30's seven witnesses (items 96, 97, 98, 99 twice and 100 twice) were written before
+  this change, under the earlier wording (item 99's confirming pass returned just after it); each
+  has at most one `open … in` line, so it meets both.
 - **`check_sorry.py`** — text-level, so it sees modules nobody wired into the aggregator. Scoped
   to `ClassicalLean/`; skips `.lake/` and `tools/`, and the reason is written in the file
   (it does not parse string literals, and the gates quote the words they detect).
