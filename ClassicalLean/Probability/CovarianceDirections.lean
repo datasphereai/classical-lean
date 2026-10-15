@@ -76,9 +76,9 @@ The junk values that decide both rows: the Bochner integral of a function that i
 is `0`, and `variance` is `(evariance …).toReal`, which is `0` at `∞`. Also measured exactly: the
 inequality on 200 Gram matrices (`96.hadamard`) and on 150 finite laws with total mass `1/2`, `1`
 or `3` (`96.cov`). The plan's search (`MATH-PLAN-library-2-checks.py`, line `row.X6`:
-`det.*covMatrix|covMatrix.*det|generali[sz]ed variance`) found 0 lines in pinned Mathlib, in
-Mathlib master at `2da3ab0a` and in the library when order LEAN-30 began; the library's matches
-now are this module's own text. The hypotheses hold together: the witness at the end of this file.
+`det.*covMatrix|covMatrix.*det|generali[sz]ed variance`), in order LEAN-30's run of it before
+this module changed, found 0 lines in pinned Mathlib, in Mathlib master at `2da3ab0a` and in the
+library. The hypotheses hold together: the witness at the end of this file.
 
 ## Noise spreads the eigenvalues (order LEAN-26, item 70 of the plan)
 
@@ -591,9 +591,10 @@ example := ClassicalLean.Probability.CovarianceDirections.integral_trace_sq_samp
 open MeasureTheory ProbabilityTheory in
 /-- The hypotheses of `det_covMatrix_le_prod_variance` hold together: under the uniform probability
 on three points (a finite measure), `X 0` and `X 1` are the indicators of the points `0` and `1`,
-bounded on a finite space, so square integrable. They are not proportional, so the covariance
-matrix `[[2/9, −1/9], [−1/9, 2/9]]` is not singular: its determinant `1/27` is below the product of
-the variances, `4/81`. -/
+bounded on a finite space, so square integrable. No nonzero mix `a X 0 + b X 1` is constant: it is
+`0` at the point `2`, so it would be `0` everywhere, which forces `a = b = 0`. So the covariance
+matrix is not singular: by hand it is `[[2/9, −1/9], [−1/9, 2/9]]`, with determinant `1/27`, below
+the product of the variances, `4/81`. -/
 example := ClassicalLean.Probability.CovarianceDirections.det_covMatrix_le_prod_variance
   (ι := Fin 2) (Ω := Fin 3) (μ := uniformOn Set.univ)
   (X := ![fun ω ↦ if ω = 0 then 1 else 0, fun ω ↦ if ω = 1 then 1 else 0])
