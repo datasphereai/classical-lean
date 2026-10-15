@@ -42,6 +42,10 @@ of the ruling sent during that order.
   above for this null law.
 * `measureReal_len_add_le_le`: for the fair coin (`p = 1/2`, `fairCoin`), the chance that a string
   compresses by `k` bits or more, `L x + k ≤ n`, is at most `2^(−k)`.
+* `winRate`, `score_plugIn_le`, `measureReal_score_plugIn_ge_le` (order LEAN-30, item 99): the
+  plug-in score, with the string's own win rate put into the null law, is at most every
+  fixed-rate score, and its false-alarm rate stays at most `α` under every Bernoulli law. See
+  "Estimating `p` from the same trades" below.
 
 **The Lean statements.** Strings of length `n` are `Fin n → Bool`. A prefix-free code on them is
 `c : (Fin n → Bool) → List Bool` with `Function.Injective c` (different strings get different
@@ -74,8 +78,10 @@ estimate into the null law does not:
   maximum-likelihood rate `p̂(x)` gives the observed string at least the mass any fixed `p` gives
   it, so this score is at most the score for every fixed `p`, and its rejections are among the
   fixed-`p` test's rejections: the false-alarm rate stays at most `α` under every Bernoulli law
-  (since `P_{p̂(x)} {x} = 2^(−n H₂(p̂(x)))`, it rejects when `L x + k ≤ n H₂(p̂(x))`). This
-  argument is by hand, not proved in Lean; as a cross-check, every string up to `n = 8`, true
+  (since `P_{p̂(x)} {x} = 2^(−n H₂(p̂(x)))`, it rejects when `L x + k ≤ n H₂(p̂(x))`). Order
+  LEAN-30 (item 99) proves both steps: `score_plugIn_le` and `measureReal_score_plugIn_ge_le`,
+  with the plug-in rate `winRate`, by the weighted arithmetic–geometric mean inequality; as a
+  cross-check, every string up to `n = 8`, true
   `p ∈ {1/2, 1/3, 3/5}` and `α ∈ {1/2, 1/4, 1/8}` gave a false-alarm rate of at most `α`.
 
 **Hypotheses** (order LEAN-26's checks, lines C1 to C5, exact):
@@ -121,6 +127,27 @@ estimate into the null law does not:
   is not almost everywhere measurable (a test outside `H` may read a string that is not measurable),
   Lean's integral of it is `0`. The bound holds all the same: at every outcome the share is at most
   `q / m` times a sum of integrable functions, one per true null, each with integral at most `1`.
+
+**Hypotheses of the plug-in statements** (order LEAN-30, item 99; its exact checks, lane
+`lean/LEAN-30-checks.py`, each case keeping the other hypotheses, codes written out by their words):
+
+* `score_plugIn_le`, the fixed rate gives `x` positive mass (`99.drop.hx`): `n = 1`, `p = 0`, the
+  string "win" with a word of length `1`: plug-in score `1/2` against Lean's fixed score
+  `2⁻¹ / 0 = 0`. Not a narrowing: the plan's sentence is false there under Lean's junk value, and
+  the rate theorem needs no such hypothesis (those strings have mass `0` under `p`).
+* the code injective (`99.drop.hc`): every string of length `2` sent to `[]` (prefix-free, not
+  injective), fair coin, `α = 1/4`: chance `1/2`.
+* the code prefix-free (`99.drop.hpf`): `n = 3`, the injective words `[]`, `[0]`, `[1]` on three
+  strings with both a win and a loss (Kraft sum `25/8`), fair coin, `α = 1/3`: chance `3/8`.
+* `α > 0` (`99.drop.halpha`): the code writing each string of length `2` out as it is, `α = 0`:
+  Lean's `1 / 0 = 0` is at most every score, chance `1`.
+
+Lean's `0 / 0 = 0` makes the plug-in rate `0` at `n = 0`; there is one empty string, of mass `1`
+under every rate, so it decides nothing. Also measured exactly: the maximum-likelihood step for
+`n ≤ 10` (`99.ml`), the scores for `n ≤ 6` (`99.score`) and the rate for `n ≤ 8`, five levels `α`
+and two codes (`99.rate`). The plan's search (`MATH-PLAN-library-2-checks.py`, line `row.L3`:
+`maximum.likelihood|plug-in estimate`) found 0 lines in pinned Mathlib and in Mathlib master at
+`2da3ab0a`, and 1 line in the library (this module's paragraph above) when order LEAN-30 began.
 
 ## What Mathlib provides
 
@@ -239,6 +266,105 @@ theorem measureReal_len_add_le_le {c : (Fin n → Bool) → List Bool}
   calc (2 : ℝ) ^ k * 2⁻¹ ^ n ≤ 2 ^ k * 2⁻¹ ^ ((c x).length + k) := by gcongr
     _ = 2⁻¹ ^ (c x).length := by
       rw [pow_add, mul_comm, mul_assoc, ← mul_pow, inv_mul_cancel₀ two_ne_zero, one_pow, mul_one]
+
+/-! ### The estimated rate put into the null law (order LEAN-30, item 99) -/
+
+/-- The share of wins in a string, `k / n` with `k` the number of wins (Lean's `0` at `n = 0`); as a
+`unitInterval`, a win rate (order LEAN-30, item 99). -/
+noncomputable def winRate (x : Fin n → Bool) : unitInterval :=
+  ⟨((univ.filter fun i ↦ x i = true).card : ℝ) / n, by positivity,
+    div_le_one_of_le₀ (by exact_mod_cast (card_filter_le _ _).trans (by simp)) (by positivity)⟩
+
+/-- The maximum-likelihood step: `p ^ K (1 − p) ^ M ≤ q ^ K (1 − q) ^ M` for `q = K / (K + M)`, by
+the weighted arithmetic–geometric mean inequality at the points `p / q`, `(1 − p) / (1 − q)` with
+weights `q`, `1 − q`, raised to the power `K + M` (`0 ^ 0 = 1`; at `K = 0` or `M = 0` the right side
+is `1`). -/
+private theorem pow_mul_pow_le_winRate (K M : ℕ) {p : ℝ} (hp0 : 0 ≤ p) (hp1 : p ≤ 1) :
+    p ^ K * (1 - p) ^ M ≤ ((K : ℝ) / (K + M)) ^ K * (1 - (K : ℝ) / (K + M)) ^ M := by
+  rcases Nat.eq_zero_or_pos K with rfl | hK
+  · simpa using pow_le_one₀ (sub_nonneg.2 hp1) (by linarith)
+  rcases Nat.eq_zero_or_pos M with rfl | hM
+  · have hK0 : (K : ℝ) ≠ 0 := by exact_mod_cast hK.ne'
+    simpa [div_self hK0] using pow_le_one₀ hp0 hp1
+  have hKr : (0 : ℝ) < K := by exact_mod_cast hK
+  have hMr : (0 : ℝ) < M := by exact_mod_cast hM
+  have hN : (0 : ℝ) < K + M := by positivity
+  have h1q : 1 - (K : ℝ) / (K + M) = M / (K + M) := by field_simp; ring
+  rw [h1q]
+  set q := (K : ℝ) / (K + M) with hqdef
+  set r := (M : ℝ) / (K + M) with hrdef
+  have hq : 0 < q := div_pos hKr hN
+  have hr : 0 < r := div_pos hMr hN
+  have hqr : q + r = 1 := by rw [hqdef, hrdef]; field_simp
+  -- weighted AM–GM at the points `p / q` and `(1 − p) / r`, weights `q` and `r`
+  have h := Real.geom_mean_le_arith_mean2_weighted hq.le hr.le (div_nonneg hp0 hq.le)
+    (div_nonneg (sub_nonneg.2 hp1) hr.le) hqr
+  have hsum : q * (p / q) + r * ((1 - p) / r) = 1 := by
+    rw [mul_div_cancel₀ _ hq.ne', mul_div_cancel₀ _ hr.ne']; ring
+  rw [hsum] at h
+  have hqK : q * (K + M) = K := by rw [hqdef]; field_simp
+  have hrM : r * (K + M) = M := by rw [hrdef]; field_simp
+  clear_value q r
+  -- raised to the power `K + M`
+  have key : ∀ x : ℝ, 0 ≤ x → ∀ (w : ℝ) (j : ℕ), w * (K + M) = j → (x ^ w) ^ (K + M) = x ^ j := by
+    intro x hx w j hw
+    rw [← Real.rpow_natCast, ← Real.rpow_mul hx, Nat.cast_add, hw, Real.rpow_natCast]
+  have hG := pow_le_one₀ (n := K + M)
+    (mul_nonneg (Real.rpow_nonneg (div_nonneg hp0 hq.le) _)
+      (Real.rpow_nonneg (div_nonneg (sub_nonneg.2 hp1) hr.le) _)) h
+  rw [mul_pow, key _ (div_nonneg hp0 hq.le) q K hqK,
+    key _ (div_nonneg (sub_nonneg.2 hp1) hr.le) r M hrM, div_pow, div_pow,
+    div_mul_div_comm, div_le_one (by positivity)] at hG
+  exact hG
+
+/-- The plug-in rate gives a string at least the mass any fixed rate gives it. -/
+private theorem measureReal_singleton_le_winRate (p : unitInterval) (x : Fin n → Bool) :
+    (bernProd n p).real {x} ≤ (bernProd n (winRate x)).real {x} := by
+  rw [bernProd_real_singleton, bernProd_real_singleton, prod_ite, prod_ite, prod_const, prod_const,
+    prod_const, prod_const]
+  have hw : ((winRate x : unitInterval) : ℝ) =
+      ((univ.filter fun i ↦ x i = true).card : ℝ) /
+        ((univ.filter fun i ↦ x i = true).card + (univ.filter fun i ↦ ¬ x i = true).card) := by
+    rw [← Nat.cast_add, card_filter_add_card_filter_not, card_univ, Fintype.card_fin]
+    rfl
+  rw [hw]
+  exact pow_mul_pow_le_winRate _ _ (unitInterval.nonneg p) (unitInterval.le_one p)
+
+/-- **The plug-in score is at most every fixed-rate score** (order LEAN-30, item 99 of
+MATH-PLAN-library-2): putting the string's own win rate `winRate x` into the null law gives `x` at
+least the mass a fixed rate `p` gives it, so with the same code the score is no larger, wherever the
+fixed rate gives `x` positive mass (`hx`; Lean's `2^(−L) / 0 = 0` otherwise). -/
+theorem score_plugIn_le (c : (Fin n → Bool) → List Bool) (p : unitInterval) (x : Fin n → Bool)
+    (hx : (bernProd n p).real {x} ≠ 0) :
+    score c (bernProd n (winRate x)) x ≤ score c (bernProd n p) x :=
+  div_le_div_of_nonneg_left (by positivity) (measureReal_nonneg.lt_of_ne (Ne.symm hx))
+    (measureReal_singleton_le_winRate p x)
+
+/-- **The plug-in test keeps its false-alarm rate** (order LEAN-30, item 99 of MATH-PLAN-library-2):
+under every Bernoulli law `bernProd n p`, the chance that the plug-in score reaches `1 / α` is at
+most `α`. Its rejections are among the fixed-`p` test's (`score_plugIn_le`), apart from strings of
+mass `0` under `p`. -/
+theorem measureReal_score_plugIn_ge_le {c : (Fin n → Bool) → List Bool}
+    (hc : Function.Injective c) (hpf : InformationTheory.IsPrefixFree (Set.range c))
+    (p : unitInterval) {α : ℝ} (hα : 0 < α) :
+    (bernProd n p).real {x | 1 / α ≤ score c (bernProd n (winRate x)) x} ≤ α := by
+  have hsub : {x | 1 / α ≤ score c (bernProd n (winRate x)) x} ⊆
+      {x | 1 / α ≤ score c (bernProd n p) x} ∪ {x | (bernProd n p).real {x} = 0} := by
+    intro x hx
+    by_cases h0 : (bernProd n p).real {x} = 0
+    · exact Or.inr h0
+    · exact Or.inl (le_trans hx (score_plugIn_le c p x h0))
+  have hnull : (bernProd n p).real {x | (bernProd n p).real {x} = 0} = 0 := by
+    rw [measureReal_eq_zero_iff, ← Set.biUnion_of_singleton {x | (bernProd n p).real {x} = 0}]
+    exact (measure_biUnion_null_iff (Set.toFinite _).countable).mpr
+      fun x hx ↦ (measureReal_eq_zero_iff).mp hx
+  calc (bernProd n p).real {x | 1 / α ≤ score c (bernProd n (winRate x)) x}
+      ≤ (bernProd n p).real
+          ({x | 1 / α ≤ score c (bernProd n p) x} ∪ {x | (bernProd n p).real {x} = 0}) :=
+        measureReal_mono hsub
+    _ ≤ (bernProd n p).real {x | 1 / α ≤ score c (bernProd n p) x} +
+          (bernProd n p).real {x | (bernProd n p).real {x} = 0} := measureReal_union_le _ _
+    _ ≤ α := by rw [hnull, add_zero]; exact measureReal_score_bernProd_ge_le hc hpf p hα
 
 /-! ### Many compression tests at once, by e-BH (order LEAN-28, item 88) -/
 
@@ -372,3 +498,26 @@ example := ClassicalLean.InformationTheory.CompressionTest.sum_inv_two_pow_lengt
   (by
     rintro _ ⟨x, rfl⟩ _ ⟨y, rfl⟩ h
     exact (List.IsPrefix.eq_of_length h (by simp)))
+
+open InformationTheory in
+/-- The hypotheses of `score_plugIn_le` hold together: strings of `n = 2` win–loss outcomes, the
+code writing each string out as it is, the fixed win rate `p = 1/3` and the string (win, loss). The
+fixed rate gives it mass `2/9 ≠ 0`, below the plug-in mass `1/4` (`winRate` is `1/2`), so the
+inequality is strict here (order LEAN-30's check `99.witness`). -/
+example := ClassicalLean.InformationTheory.CompressionTest.score_plugIn_le (n := 2)
+  (fun x ↦ [x 0, x 1]) ⟨1 / 3, by norm_num, by norm_num⟩ ![true, false]
+  (by
+    rw [ClassicalLean.InformationTheory.CompressionTest.bernProd_real_singleton]
+    norm_num [Fin.prod_univ_two])
+
+open InformationTheory in
+/-- The hypotheses of `measureReal_score_plugIn_ge_le` hold together: strings of `n = 2` win–loss
+outcomes, the code writing each string out as it is (injective, and prefix-free since all its words
+have length `2`), the win rate `p = 1/3` (neither `0`, `1` nor `1/2`) and `α = 1/2`. -/
+example := ClassicalLean.InformationTheory.CompressionTest.measureReal_score_plugIn_ge_le (n := 2)
+  (c := fun x ↦ [x 0, x 1])
+  (fun x y h ↦ by funext i; fin_cases i <;> simp_all)
+  (by
+    rintro _ ⟨x, rfl⟩ _ ⟨y, rfl⟩ h
+    exact (List.IsPrefix.eq_of_length h (by simp)))
+  ⟨1 / 3, by norm_num, by norm_num⟩ (α := 1 / 2) (by norm_num)
