@@ -33,12 +33,14 @@ wider than the row, not narrower.
 
 The junk values below are checked by the seven `example`s at the end of this file (moved there by
 order LEAN-29 from order LEAN-27's scratch file), against this module's own `convexConjugate`
-except the real supremum, which cannot use it:
+except the real supremum, which cannot use it. The examples take `f` constant on `ℝ¹` and `y = 0`;
+the general cases below, the remark on a single value `⊤` and the fourth bullet are by hand:
 
 * Fenchel–Young needs `f` real-valued. Over `EReal` it fails in two ways (cold review r79 found
   the second): if `f x = ⊥` at some `x`, then `f* y = (y ⬝ x) − ⊥ = ⊤` and the right side is
   `⊥ + ⊤ = ⊥` (Mathlib's convention); and if `f` is `⊤` everywhere, then `f* = ⊥` everywhere and
-  the right side is `⊤ + ⊥ = ⊥`. A single value `⊤` is harmless. A real-valued `f` avoids both.
+  the right side is `⊤ + ⊥ = ⊥`. A single value `⊤` is harmless when `ι` is nonempty (with `ι`
+  empty the space is one point, and a single value is every value). A real-valued `f` avoids both.
 * The conjugate is valued in `EReal`, not `ℝ`: in `ℝ`, Lean's supremum of an unbounded family is
   `0` (`⨆ x : ℝ, x = 0`), so for `f = 0` on `ℝ¹` and `y = 1` a real-valued conjugate would be `0`
   and Fenchel–Young at `x = 1` would read `1 ≤ 0 + 0`.
@@ -111,7 +113,7 @@ theorem convexConjugate_convexConjugate_le (f : (ι → ℝ) → EReal) :
 
 /-- The hypothesis of `convexConjugate_anti` can be met with the order really reversing:
 `f = 0 ≤ g = 1` on `ℝ²`, where `g* 0 = −1 < 0 = f* 0` (the same values on `ℝ¹` are the last two
-`example`s at the end of this file). -/
+`example`s at the end of this file, which name the two functions the other way round). -/
 example : ∃ f g : (Fin 2 → ℝ) → EReal, f ≤ g := ⟨0, 1, fun _ ↦ zero_le_one⟩
 
 end ClassicalLean.Analysis.ConvexConjugate
@@ -151,5 +153,5 @@ open ClassicalLean.Analysis.ConvexConjugate in
 example : convexConjugate (fun _ : Fin 1 → ℝ ↦ (0 : EReal)) 0 = 0 := by simp [convexConjugate]
 
 open ClassicalLean.Analysis.ConvexConjugate in
-/-- `f = 1 ≰ g = 0`: `f* 0 = −1 < 0 = g* 0`, so `convexConjugate_anti` needs `f ≤ g`. -/
+/-- `f = 1`: `f* 0 = −1 < 0 = g* 0` for `g = 0` above, so `convexConjugate_anti` needs `f ≤ g`. -/
 example : convexConjugate (fun _ : Fin 1 → ℝ ↦ (1 : EReal)) 0 = -1 := by simp [convexConjugate]

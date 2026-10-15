@@ -72,9 +72,10 @@ the row `0 < n ∧ ¬ p ∣ a` (21210 triples, 0 mismatches) covers every `a = 1
 own: it removes none of the 707 `n = 0` failures, and for `n ≥ 1` it is redundant — of the 2040
 tested triples with `p ∣ a` and `n ≥ 1`, both sides of the iff were false in all 2040.
 
-`exists_isPrimitiveDivisor_of_forall_prime_dvd` needs the stronger `2 ≤ a`, and that is not
-padding: `a = 0` satisfies its hypothesis vacuously (every prime divides `0`) while `Φₙ(0) = 1`
-has no prime factor, and `a = 1` is already excluded by the hypothesis itself once `1 < n`.
+`exists_isPrimitiveDivisor_of_forall_prime_dvd` states the stronger `2 ≤ a`; `0 < a` suffices
+(the `example` at the end of this file, order LEAN-29), since `a = 1` is already excluded by the
+hypothesis itself once `1 < n`. Some hypothesis excluding `a = 0` is needed: `a = 0` satisfies the
+hypothesis vacuously (every prime divides `0`) while `Φₙ(0) = 1` has no prime factor.
 
 ## What is not here
 
