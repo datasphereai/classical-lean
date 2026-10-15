@@ -10,6 +10,7 @@ import Mathlib.Analysis.CStarAlgebra.Matrix
 import Mathlib.LinearAlgebra.Matrix.PosDef
 import Mathlib.Probability.Independence.Integration
 import Mathlib.Analysis.Matrix.Spectrum
+import ClassicalLean.Algebra.HadamardInequality
 
 /-!
 # The covariance matrix of several quantities, and the directions of largest and least variance
@@ -25,6 +26,9 @@ matrix of covariances `cov[X i, X j]`, and `mix X w = ∑ i, w i · X i` is the 
   `μ` twice a point mass, `X = 1` and `A = [[1]]`, the left side is `2` and the right side `6`.
 * `posSemidef_covMatrix`: `S` is positive semidefinite (Mathlib's form of this is
   `isPosSemidef_covarianceBilin`).
+* `det_covMatrix_le_prod_variance` (order LEAN-30, item 96): Hadamard's inequality for a
+  covariance matrix, `det S ≤ ∏ i, Var(X i)`: the "generalised variance" is at most the product of
+  the variances. See the section below.
 * `posDef_covMatrix_iff`: `S` is positive definite exactly when no nonzero mix is almost surely
   constant. This is the condition under which `MinimumQuadraticForm` gives the least-variance
   weights.
@@ -39,6 +43,42 @@ The weights live in `EuclideanSpace ℝ ι`. On plain `ι → ℝ`, Mathlib's no
 then `w = (1, 1, -1)` has norm `1` and, for one covariance matrix, variance `6.5` against a
 largest eigenvalue `2.26`. Length `1` is needed: `w = 10 v`, for a unit eigenvector `v`, has `100`
 times the variance.
+
+## Hadamard's inequality for a covariance matrix (order LEAN-30, item 96 of MATH-PLAN-library-2)
+
+`det_covMatrix_le_prod_variance`: for square-integrable `X i` under a finite measure,
+`det (covMatrix X μ) ≤ ∏ i, Var(X i)`. The determinant of the covariance matrix, the "generalised
+variance", is at most the product of the variances. The route: `S` is positive semidefinite
+(`posSemidef_covMatrix`), so Hadamard's inequality `det_le_prod_diag`
+(`ClassicalLean.Algebra.HadamardInequality`, imported here, which imports only Mathlib) gives
+`det S ≤ ∏ S i i`, and each diagonal entry `cov[X i, X i]` is `Var(X i)` (Mathlib's
+`covariance_self`).
+
+**Wider than a probability-space reading:** any finite measure, as `posSemidef_covMatrix` asks; the
+plan's row names no measure.
+
+Each hypothesis is needed (order LEAN-30's exact checks, lane `lean/LEAN-30-checks.py`, by label;
+the measures themselves by hand):
+
+* square integrability (`96.drop.L2`, the determinant as exact algebra; the variables by hand): on
+  `[0, 1]` with Lebesgue measure take three variables, each integrable but not square-integrable,
+  whose pairwise products are integrable with positive covariances. Lean's `cov[X k, X k]` is the
+  integral of a function that is not integrable, `0`, and so is `variance` (`evariance` is `∞`, and
+  `∞.toReal = 0`). So the covariance matrix has zero diagonal and `det = 2 c₁₂ c₁₃ c₂₃ > 0 = ∏ Var`
+  (at `c = 1` the determinant is `2`).
+* a finite measure (`96.drop.fin`, the matrix exact; the measure by hand): Lebesgue measure on `ℝ`,
+  `X₁ = 1_[0,1]`, `X₂ = 1_[1,2]`, `X₃ = 1_[0,1] − 1_[2,3]`, `X₄ = 1_[1,2] − 1_[3,4]`, all in `L²`.
+  `X₁` and `X₂` have mean `1`, so `(X − 1)²` is not integrable on `ℝ`; their covariances with
+  themselves and with each other are Lean's `0`, and so are their variances. The covariance matrix
+  is `[[0,0,1,0],[0,0,0,1],[1,0,2,0],[0,1,0,2]]`, with `det = 1 > 0 = ∏ Var`.
+
+The junk values that decide both rows: the Bochner integral of a function that is not integrable
+is `0`, and `variance` is `(evariance …).toReal`, which is `0` at `∞`. Also measured exactly: the
+inequality on 200 Gram matrices (`96.hadamard`) and on 150 finite laws with total mass `1/2`, `1`
+or `3` (`96.cov`). The plan's search (`MATH-PLAN-library-2-checks.py`, line `row.X6`:
+`det.*covMatrix|covMatrix.*det|generali[sz]ed variance`) found 0 lines in pinned Mathlib, in
+Mathlib master at `2da3ab0a` and in the library when order LEAN-30 began; the library's matches
+now are this module's own text. The hypotheses hold together: the witness at the end of this file.
 
 ## Noise spreads the eigenvalues (order LEAN-26, item 70 of the plan)
 
@@ -141,6 +181,17 @@ theorem posSemidef_covMatrix [Finite ι] [IsFiniteMeasure μ] (hX : ∀ i, MemLp
   refine ⟨isHermitian_covMatrix, fun w ↦ ?_⟩
   rw [star_trivial, ← variance_mix hX]
   exact variance_nonneg _ _
+
+/-- **Hadamard's inequality for a covariance matrix** (order LEAN-30, item 96 of
+MATH-PLAN-library-2). For square-integrable `X i` under a finite measure,
+`det (covMatrix X μ) ≤ ∏ i, Var(X i)`: the "generalised variance" is at most the product of the
+variances. `det_le_prod_diag` on the positive semidefinite `covMatrix X μ`, whose diagonal entries
+are the variances (`covariance_self`). -/
+theorem det_covMatrix_le_prod_variance [DecidableEq ι] [IsFiniteMeasure μ]
+    (hX : ∀ i, MemLp (X i) 2 μ) :
+    (covMatrix X μ).det ≤ ∏ i, variance (X i) μ :=
+  (ClassicalLean.det_le_prod_diag (posSemidef_covMatrix hX)).trans_eq
+    (Finset.prod_congr rfl fun i _ ↦ covariance_self (hX i).aemeasurable)
 
 /-- **When the covariance matrix is positive definite.** `S` is positive definite exactly when no
 nonzero mix is almost surely constant. -/
@@ -536,3 +587,14 @@ example := ClassicalLean.Probability.CovarianceDirections.integral_trace_sq_samp
     rw [integral_fintype Integrable.of_finite]
     simp only [Measure.real, uniformOn_univ]
     norm_num)
+
+open MeasureTheory ProbabilityTheory in
+/-- The hypotheses of `det_covMatrix_le_prod_variance` hold together: under the uniform probability
+on three points (a finite measure), `X 0` and `X 1` are the indicators of the points `0` and `1`,
+bounded on a finite space, so square integrable. They are not proportional, so the covariance
+matrix `[[2/9, −1/9], [−1/9, 2/9]]` is not singular: its determinant `1/27` is below the product of
+the variances, `4/81`. -/
+example := ClassicalLean.Probability.CovarianceDirections.det_covMatrix_le_prod_variance
+  (ι := Fin 2) (Ω := Fin 3) (μ := uniformOn Set.univ)
+  (X := ![fun ω ↦ if ω = 0 then 1 else 0, fun ω ↦ if ω = 1 then 1 else 0])
+  (fun _ ↦ MemLp.of_discrete)
