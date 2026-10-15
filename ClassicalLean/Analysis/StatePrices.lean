@@ -1,19 +1,34 @@
+/-
+Copyright (c) 2026 Dustin Watkins. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Dustin Watkins, Claude (Anthropic)
+-/
+
 import ClassicalLean.Analysis.LinearProgram
 
 /-!
 # State prices in a one-period market
 
 A payoff matrix `D` (rows are states, columns are assets) and a price vector `π` are given.
-A portfolio `θ` costs `π ⬝ᵥ θ` and pays `D *ᵥ θ` across the states. No portfolio costs at most
-`0`, pays at least `0` in every state, and either costs less than `0` or pays more than `0` in
-some state, exactly when there are strictly positive state prices `ψ` with `Dᵀ ψ = π`.
+A portfolio `θ` costs `π ⬝ᵥ θ` and pays `D *ᵥ θ` across the states. Order CLOUD-MATH-1, item 136 of
+MATH-PLAN-library-2 (one-period asset pricing, finite form).
 
-The proof applies Farkas' lemma to the system `Dᵀ u − s π = π − Dᵀ 1` in `u ≥ 0`, `s ≥ 0`.
+* `exists_pos_statePrices_iff` — no portfolio costs at most `0`, pays at least `0` in every state,
+  and either costs less than `0` or pays more than `0` in some state (no arbitrage), exactly when
+  there are strictly positive state prices `ψ` with `Dᵀ ψ = π`.
+
+The proof. If such `ψ` exist, every portfolio's cost is `ψ ⬝ᵥ D θ`, a positive weighting of its
+payoffs, so a portfolio that pays at least `0` everywhere costs at least `0`, and more than `0` if
+it pays more somewhere. Conversely, the library's Farkas' lemma
+(`ClassicalLean.LinearProgram.farkas`) is applied to the system `Dᵀ u − s π = π − Dᵀ 1` in
+`u ≥ 0`, `s ≥ 0`, written as two inequalities by the linear map `sysMap D π`. A solution gives
+the state prices `ψ = (u + 1) / (s + 1)`; a certificate that there is none gives a portfolio `θ`
+that is an arbitrage.
 -/
 
 open Matrix Finset ClassicalLean.LinearProgram
 
-namespace ClassicalLean.StatePrices
+namespace ClassicalLean.Analysis.StatePrices
 
 /-- The map `(u, s) ↦ (Dᵀ u − s π, −(Dᵀ u − s π))`. -/
 private def sysMap {m n : Type*} [Fintype m] (D : Matrix m n ℝ) (π : n → ℝ) :
@@ -35,13 +50,10 @@ private theorem sysMap_apply {m n : Type*} [Fintype m] (D : Matrix m n ℝ) (π 
     sysMap D π z = Sum.elim (Dᵀ *ᵥ (fun i ↦ z (Sum.inl i)) - z (Sum.inr ()) • π)
       (-(Dᵀ *ᵥ (fun i ↦ z (Sum.inl i)) - z (Sum.inr ()) • π)) := rfl
 
-end ClassicalLean.StatePrices
-
-open ClassicalLean.StatePrices
-
-/-- **State prices.** No portfolio costs at most nothing, never pays less than nothing, and
-either costs less than nothing or sometimes pays more, exactly when there are strictly positive
-state prices `ψ` with `Dᵀ ψ = π`. -/
+/-- **State prices** (item 136 of MATH-PLAN-library-2). For a payoff matrix `D` (rows are states,
+columns are assets) and prices `π`: no portfolio `θ` costs at most nothing (`π ⬝ᵥ θ ≤ 0`), never
+pays less than nothing (`0 ≤ D *ᵥ θ`), and either costs less than nothing or sometimes pays more,
+exactly when there are strictly positive state prices `ψ` with `Dᵀ ψ = π`. -/
 theorem exists_pos_statePrices_iff {m n : Type*} [Fintype m] [Fintype n]
     (D : Matrix m n ℝ) (π : n → ℝ) :
     (¬∃ θ : n → ℝ, π ⬝ᵥ θ ≤ 0 ∧ 0 ≤ D *ᵥ θ ∧ (π ⬝ᵥ θ < 0 ∨ ∃ i, 0 < (D *ᵥ θ) i)) ↔
@@ -117,7 +129,9 @@ theorem exists_pos_statePrices_iff {m n : Type*} [Fintype m] [Fintype n]
     rcases hor with h | ⟨i, hi⟩
     · linarith
     · have hpos : 0 < ψ ⬝ᵥ D *ᵥ θ := by
-        show 0 < ∑ j, ψ j * (D *ᵥ θ) j
+        change 0 < ∑ j, ψ j * (D *ᵥ θ) j
         exact Finset.sum_pos' (fun j _ ↦ mul_nonneg (hψ j).le (hp j))
           ⟨i, Finset.mem_univ _, mul_pos (hψ i) hi⟩
       linarith
+
+end ClassicalLean.Analysis.StatePrices
