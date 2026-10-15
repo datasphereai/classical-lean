@@ -59,10 +59,11 @@ adapted here, starting from `0`, as `abs_le_of_abs_deriv_le`. The plan's row nam
 theorem; it is not used. Also used: `integral_hasDerivWithinAt_right`,
 `Convex.norm_image_sub_le_of_norm_hasDerivWithin_le`, `integral_eq_sub_of_hasDerivAt`.
 
-For order LEAN-29 (item 93, row F4 of MATH-PLAN-library-2, re-run by its check script on
-2026-10-15 UTC): `richardson|extrapolat` gives 0 lines in pinned Mathlib, 0 in Mathlib master at
-`2da3ab0a`, and 0 in the library. `simpson_eq_trapezoidal` uses Mathlib's `trapezoidal_integral`
-only through its definition.
+For order LEAN-29 (item 93, row F4 of MATH-PLAN-library-2, run by its check script at
+2026-10-15 02:19 UTC, before `simpson_eq_trapezoidal` was written): `richardson|extrapolat` gave 0
+lines in pinned Mathlib, 0 in Mathlib master at `2da3ab0a`, and 0 in the library; the library's
+matches now are this module's own text. `simpson_eq_trapezoidal` uses Mathlib's
+`trapezoidal_integral` only through its definition.
 -/
 
 open Set Finset intervalIntegral
@@ -274,8 +275,9 @@ theorem abs_simpson_error_pow_four_eq_bound :
 /-- **Richardson extrapolation, exactly** (order LEAN-29, item 93 of MATH-PLAN-library-2). The
 library's composite Simpson rule with `N` panels, each two steps wide, is `(4 T(2N) − T(N))/3`,
 where `T(m)` is Mathlib's trapezoidal rule with `m` steps (`trapezoidal_integral`). So Simpson's
-rule is the Richardson extrapolation of the trapezoidal rule: the trapezoidal error is `c h² + …`
-in the step `h`, and the combination `(4 T(h/2) − T(h))/3` removes the `h²` term. The identity
+rule is the Richardson extrapolation of the trapezoidal rule: for smooth `f`, the trapezoidal rule
+with step `H` has error `c H² + O(H⁴)` (Euler–Maclaurin; not proved here); `T(N)` has step
+`(b − a)/N` and `T(2N)` half of it, so `(4 T(2N) − T(N))/3` cancels the `H²` term. The identity
 holds for every `f`, `a` and `b` (`a > b` and `a = b` included); at `N = 0` both sides are Lean's
 `0`, since `(b − a) / 0 = 0` in both definitions. With `h = (b − a)/(2N)` and nodes `a + j h`,
 `T(2N)` uses every node, `T(N)` the even ones, and `4 T(2N) − T(N)` weights the ends `h`, the odd
