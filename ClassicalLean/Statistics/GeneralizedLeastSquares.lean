@@ -56,7 +56,8 @@ variance `σ² (1ᵀ V 1) / n²` and generalised least squares has `σ² / (1ᵀ
 is `(1ᵀ V 1)(1ᵀ V⁻¹ 1) / n²` (the variance reading is the standard one, not a theorem of this file).
 `onesQuad_mul_onesInvOnes_le` bounds it: when `m ≤ V ≤ M` in the Loewner order (`V − m I` and
 `M I − V` positive semidefinite) and `0 < m`, the ratio is at most `(m + M)² / (4 m M)`, Bloomfield
-and Watson's efficiency bound in this case. It is the Kantorovich inequality
+and Watson's efficiency bound in this case (P. Bloomfield and G. S. Watson, "The inefficiency of
+least squares", Biometrika 62 (1975)). It is the Kantorovich inequality
 (`ClassicalLean.Algebra.Kantorovich.dotProduct_mulVec_mul_inv_le`, imported here; that module
 imports only Mathlib, so no cycle) at the vector of ones, with `1 ⬝ 1 = n`. The bound is reached at
 `V = diag(m, M)`, `n = 2`, the equal mix of the two eigenvectors (order LEAN-30's check
@@ -73,9 +74,9 @@ each case keeping the other hypotheses):
 
 The junk value `x / 0 = 0` decides two rows, in the bound (`0 < m`) and on the left (no index).
 Also measured exactly: 200 cases `V = H D H` (`98.random`). The plan's search
-(`MATH-PLAN-library-2-checks.py`, line `row.X16`: `bloomfield`) found 0 lines in pinned Mathlib, in
-Mathlib master at `2da3ab0a` and in the library when order LEAN-30 began; the library's matches now
-are this module's own text. The hypotheses hold together: the witness at the end of this file.
+(`MATH-PLAN-library-2-checks.py`, line `row.X16`: `bloomfield`), in order LEAN-30's run of it
+before this module changed, found 0 lines in pinned Mathlib, in Mathlib master at `2da3ab0a` and in
+the library. The hypotheses hold together: the witness at the end of this file.
 
 ## Hypotheses
 
@@ -239,9 +240,10 @@ theorem glsMatrix_ones_mul_mul_transpose [Unique κ] (V : Matrix ι ι ℝ) :
 /-! ### What ordinary least squares loses, for a common mean (order LEAN-30, item 98) -/
 
 /-- **Bloomfield and Watson's bound for a common mean** (order LEAN-30, item 98 of
-MATH-PLAN-library-2). When `m ≤ V ≤ M` in the Loewner order and `0 < m`, the ratio of the variance
-of the plain average to that of generalised least squares, `(1ᵀ V 1)(1ᵀ V⁻¹ 1) / n²`, is at most
-`(m + M)² / (4 m M)`: the Kantorovich inequality at the vector of ones. -/
+MATH-PLAN-library-2). When `m ≤ V ≤ M` in the Loewner order and `0 < m`, the ratio
+`(1ᵀ V 1)(1ᵀ V⁻¹ 1) / n²` (read as the variance of the plain average over that of generalised
+least squares; a reading, not a theorem) is at most `(m + M)² / (4 m M)`: the Kantorovich
+inequality at the vector of ones. -/
 theorem onesQuad_mul_onesInvOnes_le [Nonempty ι] {V : Matrix ι ι ℝ} {m M : ℝ} (hm : 0 < m)
     (hmV : (V - m • 1).PosSemidef) (hVM : (M • 1 - V).PosSemidef) :
     (1 ⬝ᵥ (V *ᵥ 1)) * onesInvOnes V / (Fintype.card ι : ℝ) ^ 2 ≤ (m + M) ^ 2 / (4 * m * M) := by
@@ -273,9 +275,9 @@ open Matrix in
 /-- The hypotheses of `onesQuad_mul_onesInvOnes_le` hold together: `V = [[2, 1], [1, 3]]`, `m = 1`,
 `M = 4`. `V − I = [[1, 1], [1, 2]] = Bᵀ B` with `B = [[1, 1], [0, 1]]`, and
 `4 I − V = [[2, −1], [−1, 1]] = Cᵀ C` with `C = [[1, −1], [1, 0]]`, so both are positive
-semidefinite. The vector of ones is not an eigenvector of `V`, and the left side, `21/20`, lies
-strictly between `1` and the bound `25/16` (order LEAN-30's check `98.witness`): ordinary least
-squares loses something here, though less than the bound allows. -/
+semidefinite. The vector of ones is not an eigenvector of `V` (by hand: `V *ᵥ 1 = (3, 4)`), and the
+left side, `21/20`, lies strictly between `1` and the bound `25/16` (order LEAN-30's check
+`98.witness`): ordinary least squares loses something here, though less than the bound allows. -/
 example := ClassicalLean.Statistics.onesQuad_mul_onesInvOnes_le (ι := Fin 2)
   (V := !![2, 1; 1, 3]) (m := 1) (M := 4) one_pos
   (by
