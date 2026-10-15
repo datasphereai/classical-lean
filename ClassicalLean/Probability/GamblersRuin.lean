@@ -9,6 +9,7 @@ import ClassicalLean.Probability.MaximalInequality
 import Mathlib.Probability.Process.HittingTime
 import Mathlib.MeasureTheory.Integral.DominatedConvergence
 import Mathlib.Probability.HasLawExists
+import ClassicalLean.NumberTheory.LucasSequence
 
 /-!
 # Gambler's ruin for the fair and the biased `±1` walk
@@ -116,6 +117,40 @@ case keeps the others):
   against `p > 0`. (The mass is then `0` or `∞`, as the whole space, in both σ-algebras, gives
   `μ univ = μ univ · μ univ`.)
 
+## The ruin chance as Lucas numbers (order LEAN-29, item 95)
+
+* `measureReal_hit_eq_lucasU`: for `0 < p < 1` the walk reaches `a` before `-b` with chance
+  `U b / U (a + b)`, where `U = lucasU (1 + r) r` is the Lucas sequence
+  (`NumberTheory/LucasSequence`) whose characteristic roots are `1` and `r = (1 - p) / p`; the
+  shared object is the recurrence `h x = p h (x + 1) + (1 - p) h (x - 1)`. **Wider than item 84**:
+  there is no `p ≠ 1/2`. At `p = 1/2`, `r = 1`, `lucasU 2 1 n = n`, and the formula is the fair
+  walk's `b / (a + b)`; for `p ≠ 1/2` it is item 84's `(r ^ b - 1) / (r ^ (a + b) - 1)` with both
+  terms divided by `r - 1` (`lucasU_of_roots`). One formula covers the fair and the biased walk.
+
+Which hypotheses are needed, each case keeping the others (order LEAN-29's exact checks, lane
+`lean/LEAN-29-checks.py`, and the order's own script `checks95.py` in its evidence folder outside
+the repository, each by the label of its line; or by hand, as said):
+
+* `p > 0` (`95.drop.hp0`): at `p = 0` Lean's `r = 1 / 0 = 0`, so `U = lucasU 1 0` and
+  `U 1 / U 2 = 1` at `a = b = 1`, while the walk falls to `-1` first: chance `0`.
+* `p < 1`: not needed (`95.p1`: at `p = 1` the formula is right in every cell of the grid; `p > 1`
+  cannot occur, since `hp` makes `p` a chance); kept because the route goes through item 84's
+  theorem, which asks for it.
+* no `p ≠ 1/2` is asked: the cells with `p = 1/2` of `95.grid` hold.
+* each step known by the next time (`95.mine.copy`): the filtration that knows nothing, with every
+  step equal to the first, up with chance `1/3` (`r = 2`, `U = lucasU 3 2`): independence holds,
+  this hypothesis fails; at `(a, b) = (1, 2)` the chance is `1/3`, against `U 2 / U 3 = 3/7`.
+* independence (`95.mine.copy`): the steps' own filtration, with every step equal to the first:
+  `1/3` against `3/7`.
+* steps `±1` (`95.mine.hpm`): independent steps `+1` with chance `1/3` and `-2` otherwise,
+  `(a, b) = (1, 2)`: `1/3` against `3/7`.
+* the steps' single law (`95.mine.hp`): fair steps with `p = 1/3` stated, `(a, b) = (1, 1)`: `1/2`
+  against `U 1 / U 2 = 1/3`.
+* a probability measure (an instance of the section): follows from the others, by hand, as for
+  item 84's second theorem above.
+* The hypotheses hold together: the last `example` at the end of the file (coins with three equally
+  likely faces, a step up when the coin shows `0`, so `p = 1/3`; `a = 1`, `b = 2`).
+
 ## What Mathlib provides
 
 Hitting times as stopping times (`hittingAfter`, `Adapted.isStoppingTime_hittingAfter`),
@@ -126,6 +161,12 @@ none in Mathlib v4.34.0 (order LEAN-22's search), and `biased.*walk|asymmetric.*
 and on master (order LEAN-28's search). The biased part also uses
 `martingale_of_condExp_sub_eq_zero_nat`, `ProbabilityTheory.exists_iid`,
 `iIndepFun.indep_comap_natural_of_lt` and `Monotone.measure_iUnion`.
+
+For order LEAN-29 (item 95, row X4 of MATH-PLAN-library-2, run by the plan's check script
+`MATH-PLAN-library-2-checks.py`, line `row.X4`, at 2026-10-15 02:19 UTC, before item 95's text was
+written): `lucas.*(ruin|walk)|ruin.*lucas` gave 0 lines in pinned Mathlib, 0 in Mathlib master at
+`2da3ab0a`, and 0 in the library; the library's matches now are this module's own text. Item 95
+uses the library's `lucasU`, `lucasU_add_two` and `lucasU_of_roots`.
 -/
 
 open MeasureTheory ProbabilityTheory Finset Filter Topology
@@ -945,6 +986,53 @@ theorem measureReal_exists_ge_le_of_biased (hX : ∀ n, StronglyMeasurable[𝒢 
   rw [← ENNReal.ofReal_toReal (measure_ne_top μ _)]
   exact ENNReal.ofReal_le_ofReal (hN N)
 
+/-- **The ruin chance as a ratio of Lucas numbers** (order LEAN-29, item 95 of
+MATH-PLAN-library-2). For the `±1` walk with independent steps that are `1` with chance `p`,
+`0 < p < 1`, the chance of reaching `a` before `-b` is `U b / U (a + b)`, where `U` is the Lucas
+sequence `lucasU (1 + r) r` (`NumberTheory/LucasSequence`), `r = (1 - p) / p`, whose
+characteristic roots are `1` and `r`. **Wider than item 84** (`measureReal_hit_eq_of_biased`):
+there is no `p ≠ 1/2`. For `p ≠ 1/2` this is item 84's `(r ^ b - 1) / (r ^ (a + b) - 1)` with
+both terms divided by `r - 1` (`lucasU_of_roots` at the roots `r` and `1`); at `p = 1/2`, `r = 1`,
+`lucasU 2 1 n = n` and the formula is the fair walk's `b / (a + b)` (`measureReal_hit_eq`), so one
+formula covers the fair and the biased walk. -/
+theorem measureReal_hit_eq_lucasU (hX : ∀ n, StronglyMeasurable[𝒢 (n + 1)] (X n))
+    (hind : ∀ n, Indep (MeasurableSpace.comap (X n) inferInstance) (𝒢 n) μ)
+    (hpm : ∀ n ω, X n ω = 1 ∨ X n ω = -1) {p : ℝ} (hp0 : 0 < p) (hp1 : p < 1)
+    (hp : ∀ n, μ.real {ω | X n ω = 1} = p) (a b : ℕ) :
+    μ.real {ω | ∃ n, walk X n ω = a ∧ ∀ k ≤ n, -(b : ℝ) < walk X k ω} =
+      lucasU (1 + (1 - p) / p) ((1 - p) / p) b /
+        lucasU (1 + (1 - p) / p) ((1 - p) / p) (a + b) := by
+  set r := (1 - p) / p with hr
+  by_cases hp2 : p = 1 / 2
+  · -- the fair walk: `r = 1` and `lucasU 2 1 n = n`
+    have hr1 : r = 1 := by rw [hr, hp2]; norm_num
+    have hU : ∀ n : ℕ, lucasU (1 + r) r n = n := by
+      intro n
+      rw [hr1]
+      induction n using Nat.twoStepInduction with
+      | zero => simp
+      | one => simp
+      | more n ih1 ih2 => rw [lucasU_add_two, ih1, ih2]; push_cast; ring
+    have hmean : ∀ n, ∫ ω, X n ω ∂μ = 0 := fun n ↦ by
+      have h := integral_comp_step hX hpm hp n id
+      simp only [id_eq] at h
+      rw [h, hp2]
+      ring
+    rw [measureReal_hit_eq hX hind hpm hmean a b, hU, hU]
+    push_cast
+    ring
+  · -- the biased walk: item 84's formula, divided through by `r - 1`
+    have hr1 : r - 1 ≠ 0 := by
+      intro h
+      have h1 : (1 - p) / p = 1 := by rw [← hr]; linarith
+      rw [div_eq_one_iff_eq hp0.ne'] at h1
+      exact hp2 (by linarith)
+    have key : ∀ n : ℕ, (r - 1) * lucasU (1 + r) r n = r ^ n - 1 := fun n ↦ by
+      have h := lucasU_of_roots r 1 n
+      rwa [mul_one, one_pow, add_comm r 1] at h
+    rw [measureReal_hit_eq_of_biased hX hind hpm hp0 hp1 hp2 hp a b, ← key b, ← key (a + b),
+      mul_div_mul_left _ _ hr1]
+
 end Biased
 
 /-- The hypotheses of `ae_exitTime_ne_top_of_biased`, `measureReal_hit_eq_of_biased` and
@@ -1066,3 +1154,34 @@ example := ClassicalLean.Probability.GamblersRuin.measureReal_hit_eq (Ω := ℕ 
     simp only [Measure.real, uniformOn_univ]
     simp)
   (a := 2) (b := 1)
+
+open MeasureTheory ProbabilityTheory in
+/-- The hypotheses of `measureReal_hit_eq_lucasU` hold together, for a biased walk: on the space of
+sequences `ℕ → Fin 3` of independent coins with three equally likely faces (Mathlib's
+`Measure.infinitePi` of the uniform law on `Fin 3`), the step `X n` is `+1` when coin `n + 1`
+shows `0` and `-1` otherwise, so each step is `1` with chance `p = 1/3` (`r = 2`); the filtration
+is the one the coins' values generate (read as `±1`), so step `n` is known at time `n + 1` and
+independent of what time `n` knows; `0 < 1/3 < 1`; the targets `a = 1` and `b = 2`. -/
+example := ClassicalLean.Probability.GamblersRuin.measureReal_hit_eq_lucasU (Ω := ℕ → Fin 3)
+  (μ := Measure.infinitePi fun _ ↦ uniformOn Set.univ)
+  (𝒢 := Filtration.natural (fun i (ω : ℕ → Fin 3) ↦ if ω i = 0 then (1 : ℝ) else -1)
+    fun i ↦ ((measurable_of_countable fun c : Fin 3 ↦ if c = 0 then (1 : ℝ) else -1).comp
+      (measurable_pi_apply i)).stronglyMeasurable)
+  (X := fun n ω ↦ if ω (n + 1) = 0 then 1 else -1)
+  (fun n ↦ Filtration.stronglyAdapted_natural
+    (u := fun i (ω : ℕ → Fin 3) ↦ if ω i = 0 then (1 : ℝ) else -1) _ (n + 1))
+  (fun n ↦ (iIndepFun_infinitePi (P := fun _ : ℕ ↦ (uniformOn Set.univ : Measure (Fin 3)))
+    (X := fun _ (c : Fin 3) ↦ if c = 0 then (1 : ℝ) else -1)
+    fun _ ↦ measurable_of_countable _).indep_comap_natural_of_lt _ (Nat.lt_succ_self n))
+  (fun n ω ↦ by split_ifs <;> simp) (p := 1 / 3) (by norm_num) (by norm_num)
+  (fun n ↦ by
+    have hset : {ω : ℕ → Fin 3 | (if ω (n + 1) = 0 then (1 : ℝ) else -1) = 1} =
+        (fun ω : ℕ → Fin 3 ↦ ω (n + 1)) ⁻¹' {0} := by
+      ext ω
+      by_cases h : ω (n + 1) = 0
+      · simp [h]
+      · norm_num [h]
+    rw [hset, measureReal_def, ← Measure.map_apply (measurable_pi_apply (n + 1))
+      (measurableSet_singleton 0), Measure.infinitePi_map_eval, uniformOn_univ]
+    simp)
+  (a := 1) (b := 2)
