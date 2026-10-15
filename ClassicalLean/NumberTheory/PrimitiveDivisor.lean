@@ -35,7 +35,8 @@ already in Mathlib then produces such a `p`.
 * an `example` closing Mathlib's `Nat.exists_prime_gt_modEq_one` from that existence theorem, and
   an `example` tying `IsPrimitiveDivisor p 2 n` to `LucasApparition`.
 * after the namespace, an `example` stating the existence theorem with `0 < a` in place of
-  `2 ≤ a` (order LEAN-29).
+  `2 ≤ a` (order LEAN-29), and, last, an `example` naming the two Lifting the Exponent lemmas
+  cited under "What is not here" (order LEAN-30).
 
 ## Why `ℕ`, and why `2 ≤ a` / `0 < a`
 
@@ -73,7 +74,7 @@ own: it removes none of the 707 `n = 0` failures, and for `n ≥ 1` it is redund
 tested triples with `p ∣ a` and `n ≥ 1`, both sides of the iff were false in all 2040.
 
 `exists_isPrimitiveDivisor_of_forall_prime_dvd` states the stronger `2 ≤ a`; `0 < a` suffices
-(the `example` at the end of this file, order LEAN-29), since `a = 1` is already excluded by the
+(the first `example` after the namespace, order LEAN-29), since `a = 1` is already excluded by the
 hypothesis itself once `1 < n`. Some hypothesis excluding `a = 0` is needed: `a = 0` satisfies the
 hypothesis trivially (every prime divides `0`), but for `n ≥ 2` no prime is primitive there, since
 `0 ^ 1 - 1` truncates to `0`, which every prime divides (in `ℤ`, `Φₙ(0) = 1` has no prime factor).
@@ -91,7 +92,8 @@ cyclotomic expansion identities, so it was not the blocker described below.
 **Dated 2026-10-15 (order LEAN-30, job 0):** order LEAN-30 reworded only this file's claims of
 what was checked, in four passages (the Lifting the Exponent lemmas below, the instance note of
 `orderOf_eq_of_isRoot_cyclotomic`, and the two runs behind the real-work test): each is now
-checkable from this file or says that it reports a past run with no file kept.
+checkable from this file or says that it reports a past run with no file kept; and it appended
+one `example` after the file's last line naming the two Lifting the Exponent lemmas.
 
 **Zsigmondy's theorem is not here, and no part of this file should be read as a step toward it
 that only needs finishing.**  The missing case is `p ∣ n`: there `p` can divide `Φₙ(a)` without
@@ -99,8 +101,8 @@ being primitive.  The standard proof handles that in two steps, and **Mathlib ha
 one already in scope from this file's own imports**: Lifting the Exponent bounds the
 non-primitive part of `Φₙ(a)` to a single prime to the first power, as
 `Nat.emultiplicity_pow_sub_pow` (`NumberTheory/Multiplicity.lean:218`) and its `Int` twin —
-both resolve against the import block below (the last `example` of this file names them, order
-LEAN-30), and nothing here uses them.
+both resolve against this file's imports (lines 7 to 13; the last `example` of this file names
+them, order LEAN-30), and no theorem or proof here uses them.
 
 The second step is the blocker: producing a *further* prime needs a lower bound `Φₙ(a) > n`, and
 the sharpest bound Mathlib has, `sub_one_pow_totient_lt_cyclotomic_eval`, gives only
@@ -266,7 +268,7 @@ a cast that a caller has to discharge at the instance level.  Note `¬ p ∣ n` 
 `n ≠ 0`, so no positivity hypothesis is stated: adding one would leave it unused.
 
 `[Fact p.Prime]` is **proof-route, not statement** — the same category `LucasApparition.lean`
-records for its `p ≠ 2`.  It is needed only to synthesize `IsDomain (ZMod p)` for
+records for its `p ≠ 2`.  It is needed to synthesize `IsDomain (ZMod p)` for
 `isRoot_cyclotomic_iff` (by hand: `isRoot_cyclotomic_iff` asks `IsDomain (ZMod p)`, which Mathlib
 supplies from `Fact p.Prime`).  The arithmetic
 holds without it: swept over composite moduli `m < 301` and `n ≤ 30`, the 846 cells with
@@ -293,7 +295,7 @@ something checkable from `(a, n)` alone.
 `1 < n` is not removable: `(a, n) = (2, 1)` is a genuine exceptional pair, since at `n = 1` a
 primitive divisor is a prime factor of `a - 1` and `2 - 1 = 1` has none.  `2 ≤ a` is not
 removable — but it *is* weakenable to `0 < a` by a case split, since the radical hypothesis is
-itself false at `a = 1` once `1 < n`; the stronger form is the `example` at the end of this file
+itself false at `a = 1` once `1 < n`; the stronger form is the first `example` after the namespace
 (order LEAN-29), and `2 ≤ a` is kept because it matches what `sub_one_lt_natAbs_cyclotomic_eval`
 wants and the case split buys one vacuous value of `a`.  What removal costs: `a = 0` satisfies the
 hypothesis trivially while `Φₙ(0) = 1`.  (`a = 1` needs no separate exclusion — with `1 < n` some
@@ -349,10 +351,11 @@ what makes the hypothesis
 `n < p` step.
 
 The test cannot be passed by accident: `Mathlib.NumberTheory.PrimesCongruentOne` is **not**
-imported here, and is not reachable transitively either.  Two past runs, made when this text was
-first written (commit `333b69a`, the earliest in this repository's history), with no file kept:
-elaborating this file's import block followed by `#check @Nat.exists_prime_gt_modEq_one` failed
-with `Unknown constant 'Nat.exists_prime_gt_modEq_one'`; and the statement below was checked to be
+imported here, and is not reachable transitively either.  Two past runs, reported in this text
+since it was first written in commit `333b69a` (the earliest in this repository's history), with
+no file kept: elaborating this file's import block followed by
+`#check @Nat.exists_prime_gt_modEq_one` failed with
+`Unknown constant 'Nat.exists_prime_gt_modEq_one'`; and the statement below was checked to be
 Mathlib's by elaborating `fun N hk0 => Nat.exists_prime_gt_modEq_one N hk0` against it in a file
 that does import that module. -/
 example {k : ℕ} (N : ℕ) (hk0 : k ≠ 0) :
@@ -414,5 +417,5 @@ example {a n : ℕ} (ha : 0 < a) (hn : 1 < n) (hrad : ∀ q : ℕ, q.Prime → q
 
 /-- Lifting the Exponent, as the module docstring cites it: Mathlib's
 `Nat.emultiplicity_pow_sub_pow` and its `Int` twin resolve against this module's imports (order
-LEAN-30, job 0); nothing in this module uses them. -/
+LEAN-30, job 0); no theorem or proof in this module uses them. -/
 example := And.intro @Nat.emultiplicity_pow_sub_pow @Int.emultiplicity_pow_sub_pow
