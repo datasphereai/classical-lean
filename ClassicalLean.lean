@@ -126,6 +126,7 @@ import ClassicalLean.Probability.GlivenkoCantelli
 import ClassicalLean.Statistics.JamesStein
 import ClassicalLean.Analysis.ConvexConjugate
 import ClassicalLean.Algebra.Kantorovich
+import ClassicalLean.Probability.Reflection
 
 /-!
 # ClassicalLean
