@@ -6,6 +6,7 @@ Authors: Dustin Watkins, Claude (Anthropic)
 
 import Mathlib.Probability.Independence.Basic
 import Mathlib.MeasureTheory.Measure.Real
+import Mathlib.Analysis.Complex.Exponential
 
 /-!
 # Streaks under chance
@@ -17,6 +18,8 @@ a row? Order LEAN-26, item 69 of the plan.
   `(n − r + 1) q^r` (a union bound over the `n − r + 1` places a run can start).
 * `measureReal_no_run_le`: the chance of no such run is at most `(1 − q^r)^⌊n / r⌋` (the `⌊n / r⌋`
   disjoint blocks of `r` trials are independent, and none of them may be all losses).
+* `measureReal_no_run_le_exp` (order LEAN-29, item 91): the same chance is at most
+  `exp (−⌊n / r⌋ q^r)`, from the second bound and `1 − x ≤ e^(−x)`.
 
 **The setting.** `A i` is the event "trial `i` is a loss", for the trials `i = 0, …, n − 1`. The
 trials are independent: `iIndepSet (fun i : Fin n ↦ A i) P` (Mathlib's mutual independence of the
@@ -65,11 +68,31 @@ Measured in the same checks (exact dynamic programming, not proved in Lean): bot
 `q ∈ {1/2, 1/3, 3/5, 9/10}`, `n ≤ 40`, every `r ≤ n + 3` (line R1); for fair trials the mean
 longest run in `100` trials is `5.99` and a run of `7` or more in `200` trials has chance `0.544`
 (line R2, the plan's numbers). For fair trials the first bound is small once `2^r` is large
-against `n`, that is `r` past about `log₂ n`. The second bound gives the other side, by hand
-(`1 − x ≤ e^(−x)`, not proved here): no run of `r` has chance at most `exp (−⌊n / r⌋ / 2^r)`, which
-is small once `r` is below about `log₂ n − log₂ log₂ n`. So for fair trials the longest run is
-near `log₂ n`, and a streak counts as evidence only past these numbers.
+against `n`, that is `r` past about `log₂ n`. The second bound gives the other side:
+`measureReal_no_run_le_exp` (order LEAN-29) turns it into `exp (−⌊n / r⌋ q^r)`, so for fair trials
+(`q = 1/2`) no run of `r` has chance at most `exp (−⌊n / r⌋ / 2^r)`, which is small once `n / r` is
+large compared with `2^r`, that is once `r` is below about `log₂ n − log₂ log₂ n` (this reading of
+the theorem at `q = 1/2` is by hand). So for fair trials the longest run is near `log₂ n`, and a
+streak counts as evidence only past these numbers.
 The first bound is exact when `n = r` (line R7).
+
+For `measureReal_no_run_le_exp` (order LEAN-29's exact checks, lane `lean/LEAN-29-checks.py`, by
+the label of each line): on a grid of `n ≤ 10`, `r ≤ 4` and six values of `q`, the exact chance,
+`(1 − q^r)^⌊n / r⌋` and the exponential bound come in that order in all 330 cells (`91.grid`). Each
+hypothesis is needed:
+
+* measurability (`91.drop.hA`, by hand, order LEAN-28's case for the second bound, the second
+  `example` at the end of this file): on `Bool` with only `∅` and the whole space measurable, the
+  point mass at `true`, `A 0 = {true}`, `n = r = 1`, `q = 1`, Lean's chance of no run (an outer
+  measure) is `1`, against `exp (−1) < 0.37`.
+* independence (`91.drop.hind`): every trial the same event of chance `q`; the first failing cell is
+  `(n, r, q) = (2, 1, 1/10)`: chance `9/10`, against `exp (−1/5) < 0.82`.
+* each trial losing with chance `q` (`91.drop.hq`): every event empty while `q` is stated; the first
+  failing cell is `(1, 1, 1/10)`: chance `1`, against `exp (−1/10) < 1`.
+
+Lean's junk values here decide nothing but are named: `n / r` is division in `ℕ`, so `n / 0 = 0`
+and the bound is then `exp 0 = 1`; and `q ^ 0 = 1`. The hypotheses hold together: the last
+`example` at the end of this file (two fair flips, `n = 2`, runs of `r = 1`).
 
 ## What Mathlib provides
 
@@ -205,6 +228,37 @@ theorem measureReal_no_run_le {P : Measure Ω} {A : ℕ → Set Ω}
   refine ⟨j * r, ?_, fun i hi ↦ ?_⟩
   · have := Nat.mul_le_mul_right r (Nat.succ_le_of_lt hj); rw [Nat.succ_mul] at this; omega
   · exact Set.mem_iInter₂.mp hall i hi
+
+/-- **No streak is unlikely when `exp (−⌊n / r⌋ q^r)` is small** (order LEAN-29, item 91 of
+MATH-PLAN-library-2, the lower side of item 69's `log₂ n` reading). In `n` independent trials that
+each lose with chance `q`, the chance of no run of `r` losses is at most `exp (−⌊n / r⌋ q^r)`:
+`measureReal_no_run_le` and `1 − x ≤ e^(−x)`. For fair trials (`q = 1/2`) this reads: no run of `r`
+losses has chance at most `exp (−⌊n / r⌋ / 2^r)`, so a run of `r` losses is all but certain once
+`n / r` is large compared with `2^r`. When `n / r = 0` (no whole block, or Lean's `n / 0 = 0`) the
+bound is `1`. -/
+theorem measureReal_no_run_le_exp {P : Measure Ω} {A : ℕ → Set Ω}
+    {n r : ℕ} {q : ℝ} (hA : ∀ i < n, MeasurableSet (A i))
+    (hind : iIndepSet (fun i : Fin n ↦ A i) P) (hq : ∀ i < n, P.real (A i) = q) :
+    P.real (runEvent A n r)ᶜ ≤ Real.exp (-(((n / r : ℕ) : ℝ) * q ^ r)) := by
+  have := hind.isProbabilityMeasure
+  rcases Nat.eq_zero_or_pos (n / r) with hm | hm
+  · rw [hm, Nat.cast_zero, zero_mul, neg_zero, Real.exp_zero]
+    exact measureReal_le_one
+  -- at least one block: `1 ≤ r ≤ n`, so trial `0` exists and `q` is a chance
+  have hrn : r ≤ n := by
+    by_contra h
+    rw [Nat.div_eq_of_lt (Nat.lt_of_not_le h)] at hm
+    exact lt_irrefl 0 hm
+  have hr : 0 < r := Nat.pos_of_ne_zero fun h ↦ by simp [h] at hm
+  have hq0 : P.real (A 0) = q := hq 0 (by omega)
+  have hq1 : q ^ r ≤ 1 :=
+    pow_le_one₀ (hq0 ▸ measureReal_nonneg) (hq0 ▸ measureReal_le_one)
+  calc P.real (runEvent A n r)ᶜ ≤ (1 - q ^ r) ^ (n / r) := measureReal_no_run_le hA hind hq
+    _ ≤ Real.exp (-(q ^ r)) ^ (n / r) :=
+        pow_le_pow_left₀ (sub_nonneg.mpr hq1) (Real.one_sub_le_exp_neg _) _
+    _ = Real.exp (-(((n / r : ℕ) : ℝ) * q ^ r)) := by
+        rw [← Real.exp_nat_mul]
+        ring_nf
 
 /-- The hypotheses of `measureReal_no_run_le` hold together (order LEAN-28, item 87, cold review
 r87): `Bool` with all its subsets measurable, the point mass at `true`, every trial's event
@@ -401,6 +455,81 @@ runs of `r = 2` losses. -/
 example := ClassicalLean.Probability.LongestRun.measureReal_no_run_le (Ω := Fin 2 → Bool)
   (P := (4⁻¹ : ℝ≥0∞) • Measure.count)
   (A := fun i ↦ {ω | ∃ h : i < 2, ω ⟨i, h⟩ = true}) (n := 2) (r := 2) (q := 1 / 2)
+  (fun _ _ ↦ MeasurableSet.of_discrete)
+  (by
+    have c0 : Measure.count {ω : Fin 2 → Bool | ω 0 = true} = 2 := by
+      rw [Measure.count_apply_finite _ (Set.toFinite _)]
+      simp only [Set.Finite.toFinset_ofPred]
+      norm_cast
+    have c1 : Measure.count {ω : Fin 2 → Bool | ω 1 = true} = 2 := by
+      rw [Measure.count_apply_finite _ (Set.toFinite _)]
+      simp only [Set.Finite.toFinset_ofPred]
+      norm_cast
+    have c01 : Measure.count ({ω : Fin 2 → Bool | ω 0 = true} ∩ {ω | ω 1 = true}) = 1 := by
+      rw [Measure.count_apply_finite _ (Set.toFinite _)]
+      simp only [Set.toFinite_toFinset, Set.toFinset_inter, Set.toFinset_ofPred]
+      norm_cast
+    have h2 : (4⁻¹ : ℝ≥0∞) * 2 = 2⁻¹ := by
+      rw [show (4 : ℝ≥0∞) = 2 * 2 by norm_num, ENNReal.mul_inv (by simp) (by simp), mul_assoc,
+        ENNReal.inv_mul_cancel (by simp) (by simp), mul_one]
+    have h4 : (4⁻¹ : ℝ≥0∞) = 2⁻¹ * 2⁻¹ := by
+      rw [show (4 : ℝ≥0∞) = 2 * 2 by norm_num, ENNReal.mul_inv (by simp) (by simp)]
+    rw [iIndepSet_iff_meas_biInter fun _ ↦ MeasurableSet.of_discrete]
+    intro s
+    have e : ∀ (S : Set (Fin 2 → Bool)) (j : Fin 2), S = {ω | ω j = true} →
+        Measure.count {ω : Fin 2 → Bool | ω j = true} = 2 → (4⁻¹ : ℝ≥0∞) * Measure.count S = 2⁻¹ :=
+      fun S j hS hc ↦ by rw [hS, hc, h2]
+    fin_cases s
+    · simp only [Multiset.coe_nil, mk_zero, notMem_empty, Fin.eta, Order.lt_two_iff, exists_prop,
+        isEmpty_Prop, not_false_eq_true, Set.iInter_of_empty, Set.iInter_univ, Measure.smul_apply,
+        Measure.count_univ, ENat.card_eq_coe_fintype_card, Fintype.card_pi, Fintype.card_bool,
+        prod_const, card_univ, Fintype.card_fin, Nat.reducePow, Nat.cast_ofNat,
+        ENat.toENNReal_ofNat, smul_eq_mul, prod_empty]
+      exact ENNReal.inv_mul_cancel (by simp) (by simp)
+    · simp only [Fin.zero_eta, Fin.isValue, Multiset.coe_singleton, mem_mk, Multiset.mem_singleton,
+        Fin.eta, Order.lt_two_iff, exists_prop, Measure.smul_apply, smul_eq_mul, prod_mk,
+        Multiset.map_singleton, Fin.coe_ofNat_eq_mod, Nat.zero_mod, zero_le, true_and,
+        Multiset.prod_singleton]
+      rw [e _ 0 (by ext ω; simp [Finset.mem_def]) c0, ← h2, c0]
+    · simp only [Fin.mk_one, Fin.isValue, Multiset.coe_singleton, mem_mk, Multiset.mem_singleton,
+        Fin.eta, Order.lt_two_iff, exists_prop, Measure.smul_apply, smul_eq_mul, prod_mk,
+        Multiset.map_singleton, Fin.coe_ofNat_eq_mod, Nat.mod_succ, Std.le_refl, true_and,
+        Multiset.prod_singleton]
+      rw [e _ 1 (by ext ω; simp [Finset.mem_def]) c1, ← h2, c1]
+    · simp only [Fin.zero_eta, Fin.isValue, Fin.mk_one, mem_mk, Multiset.mem_coe, List.mem_cons,
+        List.not_mem_nil, or_false, Fin.eta, Order.lt_two_iff, exists_prop,
+        Set.iInter_iInter_eq_or_left, Fin.coe_ofNat_eq_mod, Nat.zero_mod, zero_le, true_and,
+        Set.iInter_iInter_eq_left, Nat.mod_succ, Std.le_refl, Measure.smul_apply, smul_eq_mul,
+        prod_mk, Multiset.map_coe, List.map_cons, List.map_nil, Multiset.prod_coe, List.prod_cons,
+        List.prod_nil, mul_one]
+      rw [c01, c0, c1, h2, mul_one, h4])
+  (fun i hi ↦ by
+    have c0 : Measure.count {ω : Fin 2 → Bool | ω 0 = true} = 2 := by
+      rw [Measure.count_apply_finite _ (Set.toFinite _)]
+      simp only [Set.Finite.toFinset_ofPred]
+      norm_cast
+    have c1 : Measure.count {ω : Fin 2 → Bool | ω 1 = true} = 2 := by
+      rw [Measure.count_apply_finite _ (Set.toFinite _)]
+      simp only [Set.Finite.toFinset_ofPred]
+      norm_cast
+    have h2 : (4⁻¹ : ℝ≥0∞) * 2 = 2⁻¹ := by
+      rw [show (4 : ℝ≥0∞) = 2 * 2 by norm_num, ENNReal.mul_inv (by simp) (by simp), mul_assoc,
+        ENNReal.inv_mul_cancel (by simp) (by simp), mul_one]
+    rcases i with _ | _ | i
+    · simp [Measure.real, c0, h2]
+    · simp [Measure.real, c1, h2]
+    · omega)
+
+open MeasureTheory ProbabilityTheory in
+open scoped ENNReal in
+/-- The hypotheses of `measureReal_no_run_le_exp` hold together: two fair coin flips, the uniform
+probability `(1/4) · count` on the four sequences `Fin 2 → Bool`; the events `A i`, flip `i` comes
+up heads (a loss), for `i < 2`, which are independent (the chance of both is `1/4 = 1/2 · 1/2`);
+each is measurable (every set of the four sequences is) and has chance `q = 1/2`; `n = 2` trials and
+runs of `r = 1` loss, so that `n / r = 2` blocks count, not one. -/
+example := ClassicalLean.Probability.LongestRun.measureReal_no_run_le_exp (Ω := Fin 2 → Bool)
+  (P := (4⁻¹ : ℝ≥0∞) • Measure.count)
+  (A := fun i ↦ {ω | ∃ h : i < 2, ω ⟨i, h⟩ = true}) (n := 2) (r := 1) (q := 1 / 2)
   (fun _ _ ↦ MeasurableSet.of_discrete)
   (by
     have c0 : Measure.count {ω : Fin 2 → Bool | ω 0 = true} = 2 := by
