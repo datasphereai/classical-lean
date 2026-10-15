@@ -1,0 +1,609 @@
+# 607 shape candidates (469 unrelated)
+# shape	module x	module y	relation
+first-order recursion	Combinatorics.AlgebraicGeneratingFunction	Probability.EffectiveSampleSize	unrelated
+first-order recursion	Combinatorics.AlgebraicGeneratingFunction	Probability.FirstOrderRecursion	unrelated
+first-order recursion	Combinatorics.AlgebraicGeneratingFunction	Probability.KalmanVariance	unrelated
+first-order recursion	Combinatorics.AlgebraicGeneratingFunction	Probability.LinearPrediction	unrelated
+first-order recursion	Combinatorics.AlgebraicGeneratingFunction	Probability.MaximalInequality	unrelated
+first-order recursion	Probability.EffectiveSampleSize	Probability.FirstOrderRecursion	related
+first-order recursion	Probability.EffectiveSampleSize	Probability.KalmanVariance	unrelated
+first-order recursion	Probability.EffectiveSampleSize	Probability.LinearPrediction	related
+first-order recursion	Probability.EffectiveSampleSize	Probability.MaximalInequality	unrelated
+first-order recursion	Probability.FirstOrderRecursion	Probability.KalmanVariance	unrelated
+first-order recursion	Probability.FirstOrderRecursion	Probability.LinearPrediction	related
+first-order recursion	Probability.FirstOrderRecursion	Probability.MaximalInequality	unrelated
+first-order recursion	Probability.KalmanVariance	Probability.LinearPrediction	unrelated
+first-order recursion	Probability.KalmanVariance	Probability.MaximalInequality	unrelated
+first-order recursion	Probability.LinearPrediction	Probability.MaximalInequality	unrelated
+linear recurrence	Algebra.CompanionMatrix	Combinatorics.AlgebraicGeneratingFunction	unrelated
+linear recurrence	Algebra.CompanionMatrix	Combinatorics.RecurrenceGeneratingFunction	related
+linear recurrence	Algebra.CompanionMatrix	Geometry.Helix	unrelated
+linear recurrence	Algebra.CompanionMatrix	NumberTheory.Lucas	unrelated
+linear recurrence	Algebra.CompanionMatrix	NumberTheory.LucasApparition	unrelated
+linear recurrence	Algebra.CompanionMatrix	NumberTheory.LucasCompanion	unrelated
+linear recurrence	Algebra.CompanionMatrix	NumberTheory.LucasSequence	unrelated
+linear recurrence	Algebra.CompanionMatrix	NumberTheory.LucasSequenceCases	unrelated
+linear recurrence	Algebra.CompanionMatrix	NumberTheory.LucasSequenceGeneratingFunction	unrelated
+linear recurrence	Algebra.CompanionMatrix	NumberTheory.PowerSumCases	related
+linear recurrence	Algebra.CompanionMatrix	NumberTheory.Tribonacci	related
+linear recurrence	Algebra.CompanionMatrix	NumberTheory.ZsigmondyPowSubPow	unrelated
+linear recurrence	Algebra.CompanionMatrix	Probability.EffectiveSampleSize	unrelated
+linear recurrence	Algebra.CompanionMatrix	Probability.GamblersRuin	unrelated
+linear recurrence	Algebra.CompanionMatrix	Probability.YuleWalker	unrelated
+linear recurrence	Algebra.CompanionMatrix	Simplex.Hessian	unrelated
+linear recurrence	Combinatorics.AlgebraicGeneratingFunction	Combinatorics.RecurrenceGeneratingFunction	related
+linear recurrence	Combinatorics.AlgebraicGeneratingFunction	Geometry.Helix	unrelated
+linear recurrence	Combinatorics.AlgebraicGeneratingFunction	NumberTheory.Lucas	unrelated
+linear recurrence	Combinatorics.AlgebraicGeneratingFunction	NumberTheory.LucasApparition	unrelated
+linear recurrence	Combinatorics.AlgebraicGeneratingFunction	NumberTheory.LucasCompanion	unrelated
+linear recurrence	Combinatorics.AlgebraicGeneratingFunction	NumberTheory.LucasSequence	unrelated
+linear recurrence	Combinatorics.AlgebraicGeneratingFunction	NumberTheory.LucasSequenceCases	unrelated
+linear recurrence	Combinatorics.AlgebraicGeneratingFunction	NumberTheory.LucasSequenceGeneratingFunction	unrelated
+linear recurrence	Combinatorics.AlgebraicGeneratingFunction	NumberTheory.PowerSumCases	unrelated
+linear recurrence	Combinatorics.AlgebraicGeneratingFunction	NumberTheory.Tribonacci	unrelated
+linear recurrence	Combinatorics.AlgebraicGeneratingFunction	NumberTheory.ZsigmondyPowSubPow	unrelated
+linear recurrence	Combinatorics.AlgebraicGeneratingFunction	Probability.EffectiveSampleSize	unrelated
+linear recurrence	Combinatorics.AlgebraicGeneratingFunction	Probability.GamblersRuin	unrelated
+linear recurrence	Combinatorics.AlgebraicGeneratingFunction	Probability.YuleWalker	unrelated
+linear recurrence	Combinatorics.AlgebraicGeneratingFunction	Simplex.Hessian	unrelated
+linear recurrence	Combinatorics.RecurrenceGeneratingFunction	Geometry.Helix	unrelated
+linear recurrence	Combinatorics.RecurrenceGeneratingFunction	NumberTheory.Lucas	unrelated
+linear recurrence	Combinatorics.RecurrenceGeneratingFunction	NumberTheory.LucasApparition	unrelated
+linear recurrence	Combinatorics.RecurrenceGeneratingFunction	NumberTheory.LucasCompanion	unrelated
+linear recurrence	Combinatorics.RecurrenceGeneratingFunction	NumberTheory.LucasSequence	unrelated
+linear recurrence	Combinatorics.RecurrenceGeneratingFunction	NumberTheory.LucasSequenceCases	unrelated
+linear recurrence	Combinatorics.RecurrenceGeneratingFunction	NumberTheory.LucasSequenceGeneratingFunction	related
+linear recurrence	Combinatorics.RecurrenceGeneratingFunction	NumberTheory.PowerSumCases	related
+linear recurrence	Combinatorics.RecurrenceGeneratingFunction	NumberTheory.Tribonacci	related
+linear recurrence	Combinatorics.RecurrenceGeneratingFunction	NumberTheory.ZsigmondyPowSubPow	unrelated
+linear recurrence	Combinatorics.RecurrenceGeneratingFunction	Probability.EffectiveSampleSize	related
+linear recurrence	Combinatorics.RecurrenceGeneratingFunction	Probability.GamblersRuin	unrelated
+linear recurrence	Combinatorics.RecurrenceGeneratingFunction	Probability.YuleWalker	related
+linear recurrence	Combinatorics.RecurrenceGeneratingFunction	Simplex.Hessian	unrelated
+linear recurrence	Geometry.Helix	NumberTheory.Lucas	unrelated
+linear recurrence	Geometry.Helix	NumberTheory.LucasApparition	related
+linear recurrence	Geometry.Helix	NumberTheory.LucasCompanion	related
+linear recurrence	Geometry.Helix	NumberTheory.LucasSequence	unrelated
+linear recurrence	Geometry.Helix	NumberTheory.LucasSequenceCases	related
+linear recurrence	Geometry.Helix	NumberTheory.LucasSequenceGeneratingFunction	related
+linear recurrence	Geometry.Helix	NumberTheory.PowerSumCases	related
+linear recurrence	Geometry.Helix	NumberTheory.Tribonacci	unrelated
+linear recurrence	Geometry.Helix	NumberTheory.ZsigmondyPowSubPow	related
+linear recurrence	Geometry.Helix	Probability.EffectiveSampleSize	unrelated
+linear recurrence	Geometry.Helix	Probability.GamblersRuin	unrelated
+linear recurrence	Geometry.Helix	Probability.YuleWalker	unrelated
+linear recurrence	Geometry.Helix	Simplex.Hessian	unrelated
+linear recurrence	NumberTheory.Lucas	NumberTheory.LucasApparition	related
+linear recurrence	NumberTheory.Lucas	NumberTheory.LucasCompanion	related
+linear recurrence	NumberTheory.Lucas	NumberTheory.LucasSequence	unrelated
+linear recurrence	NumberTheory.Lucas	NumberTheory.LucasSequenceCases	related
+linear recurrence	NumberTheory.Lucas	NumberTheory.LucasSequenceGeneratingFunction	related
+linear recurrence	NumberTheory.Lucas	NumberTheory.PowerSumCases	related
+linear recurrence	NumberTheory.Lucas	NumberTheory.Tribonacci	unrelated
+linear recurrence	NumberTheory.Lucas	NumberTheory.ZsigmondyPowSubPow	related
+linear recurrence	NumberTheory.Lucas	Probability.EffectiveSampleSize	unrelated
+linear recurrence	NumberTheory.Lucas	Probability.GamblersRuin	unrelated
+linear recurrence	NumberTheory.Lucas	Probability.YuleWalker	unrelated
+linear recurrence	NumberTheory.Lucas	Simplex.Hessian	unrelated
+linear recurrence	NumberTheory.LucasApparition	NumberTheory.LucasCompanion	related
+linear recurrence	NumberTheory.LucasApparition	NumberTheory.LucasSequence	related
+linear recurrence	NumberTheory.LucasApparition	NumberTheory.LucasSequenceCases	related
+linear recurrence	NumberTheory.LucasApparition	NumberTheory.LucasSequenceGeneratingFunction	unrelated
+linear recurrence	NumberTheory.LucasApparition	NumberTheory.PowerSumCases	unrelated
+linear recurrence	NumberTheory.LucasApparition	NumberTheory.Tribonacci	unrelated
+linear recurrence	NumberTheory.LucasApparition	NumberTheory.ZsigmondyPowSubPow	related
+linear recurrence	NumberTheory.LucasApparition	Probability.EffectiveSampleSize	unrelated
+linear recurrence	NumberTheory.LucasApparition	Probability.GamblersRuin	unrelated
+linear recurrence	NumberTheory.LucasApparition	Probability.YuleWalker	unrelated
+linear recurrence	NumberTheory.LucasApparition	Simplex.Hessian	unrelated
+linear recurrence	NumberTheory.LucasCompanion	NumberTheory.LucasSequence	unrelated
+linear recurrence	NumberTheory.LucasCompanion	NumberTheory.LucasSequenceCases	related
+linear recurrence	NumberTheory.LucasCompanion	NumberTheory.LucasSequenceGeneratingFunction	related
+linear recurrence	NumberTheory.LucasCompanion	NumberTheory.PowerSumCases	related
+linear recurrence	NumberTheory.LucasCompanion	NumberTheory.Tribonacci	unrelated
+linear recurrence	NumberTheory.LucasCompanion	NumberTheory.ZsigmondyPowSubPow	related
+linear recurrence	NumberTheory.LucasCompanion	Probability.EffectiveSampleSize	unrelated
+linear recurrence	NumberTheory.LucasCompanion	Probability.GamblersRuin	unrelated
+linear recurrence	NumberTheory.LucasCompanion	Probability.YuleWalker	unrelated
+linear recurrence	NumberTheory.LucasCompanion	Simplex.Hessian	unrelated
+linear recurrence	NumberTheory.LucasSequence	NumberTheory.LucasSequenceCases	related
+linear recurrence	NumberTheory.LucasSequence	NumberTheory.LucasSequenceGeneratingFunction	related
+linear recurrence	NumberTheory.LucasSequence	NumberTheory.PowerSumCases	related
+linear recurrence	NumberTheory.LucasSequence	NumberTheory.Tribonacci	unrelated
+linear recurrence	NumberTheory.LucasSequence	NumberTheory.ZsigmondyPowSubPow	related
+linear recurrence	NumberTheory.LucasSequence	Probability.EffectiveSampleSize	unrelated
+linear recurrence	NumberTheory.LucasSequence	Probability.GamblersRuin	related
+linear recurrence	NumberTheory.LucasSequence	Probability.YuleWalker	unrelated
+linear recurrence	NumberTheory.LucasSequence	Simplex.Hessian	unrelated
+linear recurrence	NumberTheory.LucasSequenceCases	NumberTheory.LucasSequenceGeneratingFunction	related
+linear recurrence	NumberTheory.LucasSequenceCases	NumberTheory.PowerSumCases	unrelated
+linear recurrence	NumberTheory.LucasSequenceCases	NumberTheory.Tribonacci	unrelated
+linear recurrence	NumberTheory.LucasSequenceCases	NumberTheory.ZsigmondyPowSubPow	related
+linear recurrence	NumberTheory.LucasSequenceCases	Probability.EffectiveSampleSize	unrelated
+linear recurrence	NumberTheory.LucasSequenceCases	Probability.GamblersRuin	unrelated
+linear recurrence	NumberTheory.LucasSequenceCases	Probability.YuleWalker	unrelated
+linear recurrence	NumberTheory.LucasSequenceCases	Simplex.Hessian	unrelated
+linear recurrence	NumberTheory.LucasSequenceGeneratingFunction	NumberTheory.PowerSumCases	unrelated
+linear recurrence	NumberTheory.LucasSequenceGeneratingFunction	NumberTheory.Tribonacci	unrelated
+linear recurrence	NumberTheory.LucasSequenceGeneratingFunction	NumberTheory.ZsigmondyPowSubPow	unrelated
+linear recurrence	NumberTheory.LucasSequenceGeneratingFunction	Probability.EffectiveSampleSize	unrelated
+linear recurrence	NumberTheory.LucasSequenceGeneratingFunction	Probability.GamblersRuin	unrelated
+linear recurrence	NumberTheory.LucasSequenceGeneratingFunction	Probability.YuleWalker	unrelated
+linear recurrence	NumberTheory.LucasSequenceGeneratingFunction	Simplex.Hessian	unrelated
+linear recurrence	NumberTheory.PowerSumCases	NumberTheory.Tribonacci	unrelated
+linear recurrence	NumberTheory.PowerSumCases	NumberTheory.ZsigmondyPowSubPow	unrelated
+linear recurrence	NumberTheory.PowerSumCases	Probability.EffectiveSampleSize	unrelated
+linear recurrence	NumberTheory.PowerSumCases	Probability.GamblersRuin	unrelated
+linear recurrence	NumberTheory.PowerSumCases	Probability.YuleWalker	unrelated
+linear recurrence	NumberTheory.PowerSumCases	Simplex.Hessian	unrelated
+linear recurrence	NumberTheory.Tribonacci	NumberTheory.ZsigmondyPowSubPow	unrelated
+linear recurrence	NumberTheory.Tribonacci	Probability.EffectiveSampleSize	unrelated
+linear recurrence	NumberTheory.Tribonacci	Probability.GamblersRuin	unrelated
+linear recurrence	NumberTheory.Tribonacci	Probability.YuleWalker	unrelated
+linear recurrence	NumberTheory.Tribonacci	Simplex.Hessian	unrelated
+linear recurrence	NumberTheory.ZsigmondyPowSubPow	Probability.EffectiveSampleSize	unrelated
+linear recurrence	NumberTheory.ZsigmondyPowSubPow	Probability.GamblersRuin	unrelated
+linear recurrence	NumberTheory.ZsigmondyPowSubPow	Probability.YuleWalker	unrelated
+linear recurrence	NumberTheory.ZsigmondyPowSubPow	Simplex.Hessian	unrelated
+linear recurrence	Probability.EffectiveSampleSize	Probability.GamblersRuin	unrelated
+linear recurrence	Probability.EffectiveSampleSize	Probability.YuleWalker	unrelated
+linear recurrence	Probability.EffectiveSampleSize	Simplex.Hessian	unrelated
+linear recurrence	Probability.GamblersRuin	Probability.YuleWalker	unrelated
+linear recurrence	Probability.GamblersRuin	Simplex.Hessian	unrelated
+linear recurrence	Probability.YuleWalker	Simplex.Hessian	unrelated
+supermartingale	Probability.FairGame	Probability.GamblersRuin	related
+supermartingale	Probability.FairGame	Probability.LikelihoodScore	unrelated
+supermartingale	Probability.FairGame	Probability.MaximalInequality	unrelated
+supermartingale	Probability.FairGame	Probability.NoEdgeWealth	unrelated
+supermartingale	Probability.FairGame	Probability.PolyaUrn	unrelated
+supermartingale	Probability.GamblersRuin	Probability.LikelihoodScore	unrelated
+supermartingale	Probability.GamblersRuin	Probability.MaximalInequality	related
+supermartingale	Probability.GamblersRuin	Probability.NoEdgeWealth	unrelated
+supermartingale	Probability.GamblersRuin	Probability.PolyaUrn	unrelated
+supermartingale	Probability.LikelihoodScore	Probability.MaximalInequality	related
+supermartingale	Probability.LikelihoodScore	Probability.NoEdgeWealth	related
+supermartingale	Probability.LikelihoodScore	Probability.PolyaUrn	unrelated
+supermartingale	Probability.MaximalInequality	Probability.NoEdgeWealth	related
+supermartingale	Probability.MaximalInequality	Probability.PolyaUrn	unrelated
+supermartingale	Probability.NoEdgeWealth	Probability.PolyaUrn	unrelated
+Kraft-type sum	InformationTheory.CompressionTest	InformationTheory.SourceCoding	unrelated
+Kraft-type sum	InformationTheory.CompressionTest	Probability.MaximalInequality	unrelated
+Kraft-type sum	InformationTheory.CompressionTest	Probability.RuinBound	unrelated
+Kraft-type sum	InformationTheory.SourceCoding	Probability.MaximalInequality	unrelated
+Kraft-type sum	InformationTheory.SourceCoding	Probability.RuinBound	unrelated
+Kraft-type sum	Probability.MaximalInequality	Probability.RuinBound	related
+quadratic form	Algebra.Kantorovich	Analysis.FiniteGame	unrelated
+quadratic form	Algebra.Kantorovich	Analysis.LinearProgram	unrelated
+quadratic form	Algebra.Kantorovich	Analysis.MinimumQuadraticForm	unrelated
+quadratic form	Algebra.Kantorovich	Analysis.StatePrices	unrelated
+quadratic form	Algebra.Kantorovich	Probability.CovarianceDirections	unrelated
+quadratic form	Algebra.Kantorovich	Simplex.Hessian	unrelated
+quadratic form	Algebra.Kantorovich	Simplex.SecondOrder	unrelated
+quadratic form	Algebra.Kantorovich	Statistics.GaussMarkov	unrelated
+quadratic form	Algebra.Kantorovich	Statistics.GeneralizedLeastSquares	related
+quadratic form	Algebra.Kantorovich	Statistics.ResidualVariance	unrelated
+quadratic form	Analysis.FiniteGame	Analysis.LinearProgram	unrelated
+quadratic form	Analysis.FiniteGame	Analysis.MinimumQuadraticForm	unrelated
+quadratic form	Analysis.FiniteGame	Analysis.StatePrices	unrelated
+quadratic form	Analysis.FiniteGame	Probability.CovarianceDirections	unrelated
+quadratic form	Analysis.FiniteGame	Simplex.Hessian	unrelated
+quadratic form	Analysis.FiniteGame	Simplex.SecondOrder	unrelated
+quadratic form	Analysis.FiniteGame	Statistics.GaussMarkov	unrelated
+quadratic form	Analysis.FiniteGame	Statistics.GeneralizedLeastSquares	unrelated
+quadratic form	Analysis.FiniteGame	Statistics.ResidualVariance	unrelated
+quadratic form	Analysis.LinearProgram	Analysis.MinimumQuadraticForm	unrelated
+quadratic form	Analysis.LinearProgram	Analysis.StatePrices	related
+quadratic form	Analysis.LinearProgram	Probability.CovarianceDirections	unrelated
+quadratic form	Analysis.LinearProgram	Simplex.Hessian	unrelated
+quadratic form	Analysis.LinearProgram	Simplex.SecondOrder	unrelated
+quadratic form	Analysis.LinearProgram	Statistics.GaussMarkov	unrelated
+quadratic form	Analysis.LinearProgram	Statistics.GeneralizedLeastSquares	unrelated
+quadratic form	Analysis.LinearProgram	Statistics.ResidualVariance	unrelated
+quadratic form	Analysis.MinimumQuadraticForm	Analysis.StatePrices	unrelated
+quadratic form	Analysis.MinimumQuadraticForm	Probability.CovarianceDirections	unrelated
+quadratic form	Analysis.MinimumQuadraticForm	Simplex.Hessian	unrelated
+quadratic form	Analysis.MinimumQuadraticForm	Simplex.SecondOrder	unrelated
+quadratic form	Analysis.MinimumQuadraticForm	Statistics.GaussMarkov	unrelated
+quadratic form	Analysis.MinimumQuadraticForm	Statistics.GeneralizedLeastSquares	related
+quadratic form	Analysis.MinimumQuadraticForm	Statistics.ResidualVariance	unrelated
+quadratic form	Analysis.StatePrices	Probability.CovarianceDirections	unrelated
+quadratic form	Analysis.StatePrices	Simplex.Hessian	unrelated
+quadratic form	Analysis.StatePrices	Simplex.SecondOrder	unrelated
+quadratic form	Analysis.StatePrices	Statistics.GaussMarkov	unrelated
+quadratic form	Analysis.StatePrices	Statistics.GeneralizedLeastSquares	unrelated
+quadratic form	Analysis.StatePrices	Statistics.ResidualVariance	unrelated
+quadratic form	Probability.CovarianceDirections	Simplex.Hessian	unrelated
+quadratic form	Probability.CovarianceDirections	Simplex.SecondOrder	unrelated
+quadratic form	Probability.CovarianceDirections	Statistics.GaussMarkov	unrelated
+quadratic form	Probability.CovarianceDirections	Statistics.GeneralizedLeastSquares	unrelated
+quadratic form	Probability.CovarianceDirections	Statistics.ResidualVariance	related
+quadratic form	Simplex.Hessian	Simplex.SecondOrder	related
+quadratic form	Simplex.Hessian	Statistics.GaussMarkov	unrelated
+quadratic form	Simplex.Hessian	Statistics.GeneralizedLeastSquares	unrelated
+quadratic form	Simplex.Hessian	Statistics.ResidualVariance	unrelated
+quadratic form	Simplex.SecondOrder	Statistics.GaussMarkov	unrelated
+quadratic form	Simplex.SecondOrder	Statistics.GeneralizedLeastSquares	unrelated
+quadratic form	Simplex.SecondOrder	Statistics.ResidualVariance	unrelated
+quadratic form	Statistics.GaussMarkov	Statistics.GeneralizedLeastSquares	related
+quadratic form	Statistics.GaussMarkov	Statistics.ResidualVariance	related
+quadratic form	Statistics.GeneralizedLeastSquares	Statistics.ResidualVariance	unrelated
+covariance	Analysis.Gruss	Analysis.MinimumQuadraticForm	unrelated
+covariance	Analysis.Gruss	Probability.CovarianceDirections	unrelated
+covariance	Analysis.Gruss	Probability.EffectiveSampleSize	unrelated
+covariance	Analysis.Gruss	Probability.LinearPrediction	unrelated
+covariance	Analysis.Gruss	Probability.MovingAverage	unrelated
+covariance	Analysis.Gruss	Probability.TwoVariableMix	unrelated
+covariance	Analysis.Gruss	Probability.YuleWalker	unrelated
+covariance	Analysis.Gruss	Simplex.SecondOrder	unrelated
+covariance	Analysis.Gruss	Statistics.CramerRao	unrelated
+covariance	Analysis.Gruss	Statistics.GaussMarkov	unrelated
+covariance	Analysis.Gruss	Statistics.GeneralizedLeastSquares	unrelated
+covariance	Analysis.Gruss	Statistics.JamesStein	unrelated
+covariance	Analysis.Gruss	Statistics.ResidualVariance	unrelated
+covariance	Analysis.MinimumQuadraticForm	Probability.CovarianceDirections	unrelated
+covariance	Analysis.MinimumQuadraticForm	Probability.EffectiveSampleSize	unrelated
+covariance	Analysis.MinimumQuadraticForm	Probability.LinearPrediction	unrelated
+covariance	Analysis.MinimumQuadraticForm	Probability.MovingAverage	unrelated
+covariance	Analysis.MinimumQuadraticForm	Probability.TwoVariableMix	unrelated
+covariance	Analysis.MinimumQuadraticForm	Probability.YuleWalker	unrelated
+covariance	Analysis.MinimumQuadraticForm	Simplex.SecondOrder	unrelated
+covariance	Analysis.MinimumQuadraticForm	Statistics.CramerRao	unrelated
+covariance	Analysis.MinimumQuadraticForm	Statistics.GaussMarkov	unrelated
+covariance	Analysis.MinimumQuadraticForm	Statistics.GeneralizedLeastSquares	related
+covariance	Analysis.MinimumQuadraticForm	Statistics.JamesStein	unrelated
+covariance	Analysis.MinimumQuadraticForm	Statistics.ResidualVariance	unrelated
+covariance	Probability.CovarianceDirections	Probability.EffectiveSampleSize	unrelated
+covariance	Probability.CovarianceDirections	Probability.LinearPrediction	unrelated
+covariance	Probability.CovarianceDirections	Probability.MovingAverage	unrelated
+covariance	Probability.CovarianceDirections	Probability.TwoVariableMix	unrelated
+covariance	Probability.CovarianceDirections	Probability.YuleWalker	unrelated
+covariance	Probability.CovarianceDirections	Simplex.SecondOrder	unrelated
+covariance	Probability.CovarianceDirections	Statistics.CramerRao	unrelated
+covariance	Probability.CovarianceDirections	Statistics.GaussMarkov	unrelated
+covariance	Probability.CovarianceDirections	Statistics.GeneralizedLeastSquares	unrelated
+covariance	Probability.CovarianceDirections	Statistics.JamesStein	unrelated
+covariance	Probability.CovarianceDirections	Statistics.ResidualVariance	related
+covariance	Probability.EffectiveSampleSize	Probability.LinearPrediction	related
+covariance	Probability.EffectiveSampleSize	Probability.MovingAverage	unrelated
+covariance	Probability.EffectiveSampleSize	Probability.TwoVariableMix	unrelated
+covariance	Probability.EffectiveSampleSize	Probability.YuleWalker	unrelated
+covariance	Probability.EffectiveSampleSize	Simplex.SecondOrder	unrelated
+covariance	Probability.EffectiveSampleSize	Statistics.CramerRao	unrelated
+covariance	Probability.EffectiveSampleSize	Statistics.GaussMarkov	unrelated
+covariance	Probability.EffectiveSampleSize	Statistics.GeneralizedLeastSquares	unrelated
+covariance	Probability.EffectiveSampleSize	Statistics.JamesStein	unrelated
+covariance	Probability.EffectiveSampleSize	Statistics.ResidualVariance	unrelated
+covariance	Probability.LinearPrediction	Probability.MovingAverage	unrelated
+covariance	Probability.LinearPrediction	Probability.TwoVariableMix	unrelated
+covariance	Probability.LinearPrediction	Probability.YuleWalker	unrelated
+covariance	Probability.LinearPrediction	Simplex.SecondOrder	unrelated
+covariance	Probability.LinearPrediction	Statistics.CramerRao	unrelated
+covariance	Probability.LinearPrediction	Statistics.GaussMarkov	unrelated
+covariance	Probability.LinearPrediction	Statistics.GeneralizedLeastSquares	unrelated
+covariance	Probability.LinearPrediction	Statistics.JamesStein	unrelated
+covariance	Probability.LinearPrediction	Statistics.ResidualVariance	unrelated
+covariance	Probability.MovingAverage	Probability.TwoVariableMix	unrelated
+covariance	Probability.MovingAverage	Probability.YuleWalker	unrelated
+covariance	Probability.MovingAverage	Simplex.SecondOrder	unrelated
+covariance	Probability.MovingAverage	Statistics.CramerRao	unrelated
+covariance	Probability.MovingAverage	Statistics.GaussMarkov	unrelated
+covariance	Probability.MovingAverage	Statistics.GeneralizedLeastSquares	unrelated
+covariance	Probability.MovingAverage	Statistics.JamesStein	unrelated
+covariance	Probability.MovingAverage	Statistics.ResidualVariance	unrelated
+covariance	Probability.TwoVariableMix	Probability.YuleWalker	unrelated
+covariance	Probability.TwoVariableMix	Simplex.SecondOrder	unrelated
+covariance	Probability.TwoVariableMix	Statistics.CramerRao	unrelated
+covariance	Probability.TwoVariableMix	Statistics.GaussMarkov	unrelated
+covariance	Probability.TwoVariableMix	Statistics.GeneralizedLeastSquares	unrelated
+covariance	Probability.TwoVariableMix	Statistics.JamesStein	unrelated
+covariance	Probability.TwoVariableMix	Statistics.ResidualVariance	unrelated
+covariance	Probability.YuleWalker	Simplex.SecondOrder	unrelated
+covariance	Probability.YuleWalker	Statistics.CramerRao	unrelated
+covariance	Probability.YuleWalker	Statistics.GaussMarkov	unrelated
+covariance	Probability.YuleWalker	Statistics.GeneralizedLeastSquares	unrelated
+covariance	Probability.YuleWalker	Statistics.JamesStein	unrelated
+covariance	Probability.YuleWalker	Statistics.ResidualVariance	unrelated
+covariance	Simplex.SecondOrder	Statistics.CramerRao	related
+covariance	Simplex.SecondOrder	Statistics.GaussMarkov	unrelated
+covariance	Simplex.SecondOrder	Statistics.GeneralizedLeastSquares	unrelated
+covariance	Simplex.SecondOrder	Statistics.JamesStein	unrelated
+covariance	Simplex.SecondOrder	Statistics.ResidualVariance	unrelated
+covariance	Statistics.CramerRao	Statistics.GaussMarkov	related
+covariance	Statistics.CramerRao	Statistics.GeneralizedLeastSquares	unrelated
+covariance	Statistics.CramerRao	Statistics.JamesStein	unrelated
+covariance	Statistics.CramerRao	Statistics.ResidualVariance	unrelated
+covariance	Statistics.GaussMarkov	Statistics.GeneralizedLeastSquares	related
+covariance	Statistics.GaussMarkov	Statistics.JamesStein	unrelated
+covariance	Statistics.GaussMarkov	Statistics.ResidualVariance	related
+covariance	Statistics.GeneralizedLeastSquares	Statistics.JamesStein	unrelated
+covariance	Statistics.GeneralizedLeastSquares	Statistics.ResidualVariance	unrelated
+covariance	Statistics.JamesStein	Statistics.ResidualVariance	unrelated
+relative entropy	InformationTheory.Channel	InformationTheory.Entropy	related
+relative entropy	InformationTheory.Channel	InformationTheory.MethodOfTypes	related
+relative entropy	InformationTheory.Channel	InformationTheory.MutualInformation	related
+relative entropy	InformationTheory.Channel	InformationTheory.SignalGrowth	related
+relative entropy	InformationTheory.Channel	InformationTheory.SourceCoding	unrelated
+relative entropy	InformationTheory.Channel	Probability.FiniteChain	related
+relative entropy	InformationTheory.Channel	Probability.LikelihoodScore	unrelated
+relative entropy	InformationTheory.Channel	Probability.RelativeEntropyGrowth	related
+relative entropy	InformationTheory.Channel	Simplex.LogSumExp	related
+relative entropy	InformationTheory.Channel	Simplex.SecondOrder	related
+relative entropy	InformationTheory.Entropy	InformationTheory.MethodOfTypes	related
+relative entropy	InformationTheory.Entropy	InformationTheory.MutualInformation	related
+relative entropy	InformationTheory.Entropy	InformationTheory.SignalGrowth	related
+relative entropy	InformationTheory.Entropy	InformationTheory.SourceCoding	related
+relative entropy	InformationTheory.Entropy	Probability.FiniteChain	related
+relative entropy	InformationTheory.Entropy	Probability.LikelihoodScore	related
+relative entropy	InformationTheory.Entropy	Probability.RelativeEntropyGrowth	related
+relative entropy	InformationTheory.Entropy	Simplex.LogSumExp	related
+relative entropy	InformationTheory.Entropy	Simplex.SecondOrder	related
+relative entropy	InformationTheory.MethodOfTypes	InformationTheory.MutualInformation	unrelated
+relative entropy	InformationTheory.MethodOfTypes	InformationTheory.SignalGrowth	unrelated
+relative entropy	InformationTheory.MethodOfTypes	InformationTheory.SourceCoding	unrelated
+relative entropy	InformationTheory.MethodOfTypes	Probability.FiniteChain	unrelated
+relative entropy	InformationTheory.MethodOfTypes	Probability.LikelihoodScore	unrelated
+relative entropy	InformationTheory.MethodOfTypes	Probability.RelativeEntropyGrowth	related
+relative entropy	InformationTheory.MethodOfTypes	Simplex.LogSumExp	related
+relative entropy	InformationTheory.MethodOfTypes	Simplex.SecondOrder	unrelated
+relative entropy	InformationTheory.MutualInformation	InformationTheory.SignalGrowth	related
+relative entropy	InformationTheory.MutualInformation	InformationTheory.SourceCoding	unrelated
+relative entropy	InformationTheory.MutualInformation	Probability.FiniteChain	unrelated
+relative entropy	InformationTheory.MutualInformation	Probability.LikelihoodScore	unrelated
+relative entropy	InformationTheory.MutualInformation	Probability.RelativeEntropyGrowth	unrelated
+relative entropy	InformationTheory.MutualInformation	Simplex.LogSumExp	related
+relative entropy	InformationTheory.MutualInformation	Simplex.SecondOrder	unrelated
+relative entropy	InformationTheory.SignalGrowth	InformationTheory.SourceCoding	unrelated
+relative entropy	InformationTheory.SignalGrowth	Probability.FiniteChain	unrelated
+relative entropy	InformationTheory.SignalGrowth	Probability.LikelihoodScore	unrelated
+relative entropy	InformationTheory.SignalGrowth	Probability.RelativeEntropyGrowth	related
+relative entropy	InformationTheory.SignalGrowth	Simplex.LogSumExp	related
+relative entropy	InformationTheory.SignalGrowth	Simplex.SecondOrder	unrelated
+relative entropy	InformationTheory.SourceCoding	Probability.FiniteChain	unrelated
+relative entropy	InformationTheory.SourceCoding	Probability.LikelihoodScore	unrelated
+relative entropy	InformationTheory.SourceCoding	Probability.RelativeEntropyGrowth	unrelated
+relative entropy	InformationTheory.SourceCoding	Simplex.LogSumExp	related
+relative entropy	InformationTheory.SourceCoding	Simplex.SecondOrder	unrelated
+relative entropy	Probability.FiniteChain	Probability.LikelihoodScore	unrelated
+relative entropy	Probability.FiniteChain	Probability.RelativeEntropyGrowth	unrelated
+relative entropy	Probability.FiniteChain	Simplex.LogSumExp	related
+relative entropy	Probability.FiniteChain	Simplex.SecondOrder	unrelated
+relative entropy	Probability.LikelihoodScore	Probability.RelativeEntropyGrowth	unrelated
+relative entropy	Probability.LikelihoodScore	Simplex.LogSumExp	related
+relative entropy	Probability.LikelihoodScore	Simplex.SecondOrder	unrelated
+relative entropy	Probability.RelativeEntropyGrowth	Simplex.LogSumExp	related
+relative entropy	Probability.RelativeEntropyGrowth	Simplex.SecondOrder	unrelated
+relative entropy	Simplex.LogSumExp	Simplex.SecondOrder	related
+log-sum-exp	Analysis.ExponentialWeights	Analysis.FiniteGame	related
+log-sum-exp	Analysis.ExponentialWeights	InformationTheory.Entropy	unrelated
+log-sum-exp	Analysis.ExponentialWeights	Simplex.CrossEntropy	unrelated
+log-sum-exp	Analysis.ExponentialWeights	Simplex.DesignConstants	unrelated
+log-sum-exp	Analysis.ExponentialWeights	Simplex.Gibbs	related
+log-sum-exp	Analysis.ExponentialWeights	Simplex.Hessian	unrelated
+log-sum-exp	Analysis.ExponentialWeights	Simplex.Involution	unrelated
+log-sum-exp	Analysis.ExponentialWeights	Simplex.LogSumExp	related
+log-sum-exp	Analysis.ExponentialWeights	Simplex.SecondOrder	unrelated
+log-sum-exp	Analysis.ExponentialWeights	Simplex.Symmetry	unrelated
+log-sum-exp	Analysis.ExponentialWeights	Simplex.Temperature	unrelated
+log-sum-exp	Analysis.FiniteGame	InformationTheory.Entropy	unrelated
+log-sum-exp	Analysis.FiniteGame	Simplex.CrossEntropy	unrelated
+log-sum-exp	Analysis.FiniteGame	Simplex.DesignConstants	unrelated
+log-sum-exp	Analysis.FiniteGame	Simplex.Gibbs	related
+log-sum-exp	Analysis.FiniteGame	Simplex.Hessian	unrelated
+log-sum-exp	Analysis.FiniteGame	Simplex.Involution	unrelated
+log-sum-exp	Analysis.FiniteGame	Simplex.LogSumExp	related
+log-sum-exp	Analysis.FiniteGame	Simplex.SecondOrder	unrelated
+log-sum-exp	Analysis.FiniteGame	Simplex.Symmetry	unrelated
+log-sum-exp	Analysis.FiniteGame	Simplex.Temperature	unrelated
+log-sum-exp	InformationTheory.Entropy	Simplex.CrossEntropy	related
+log-sum-exp	InformationTheory.Entropy	Simplex.DesignConstants	unrelated
+log-sum-exp	InformationTheory.Entropy	Simplex.Gibbs	related
+log-sum-exp	InformationTheory.Entropy	Simplex.Hessian	unrelated
+log-sum-exp	InformationTheory.Entropy	Simplex.Involution	unrelated
+log-sum-exp	InformationTheory.Entropy	Simplex.LogSumExp	related
+log-sum-exp	InformationTheory.Entropy	Simplex.SecondOrder	related
+log-sum-exp	InformationTheory.Entropy	Simplex.Symmetry	unrelated
+log-sum-exp	InformationTheory.Entropy	Simplex.Temperature	unrelated
+log-sum-exp	Simplex.CrossEntropy	Simplex.DesignConstants	unrelated
+log-sum-exp	Simplex.CrossEntropy	Simplex.Gibbs	related
+log-sum-exp	Simplex.CrossEntropy	Simplex.Hessian	unrelated
+log-sum-exp	Simplex.CrossEntropy	Simplex.Involution	unrelated
+log-sum-exp	Simplex.CrossEntropy	Simplex.LogSumExp	related
+log-sum-exp	Simplex.CrossEntropy	Simplex.SecondOrder	related
+log-sum-exp	Simplex.CrossEntropy	Simplex.Symmetry	related
+log-sum-exp	Simplex.CrossEntropy	Simplex.Temperature	unrelated
+log-sum-exp	Simplex.DesignConstants	Simplex.Gibbs	related
+log-sum-exp	Simplex.DesignConstants	Simplex.Hessian	related
+log-sum-exp	Simplex.DesignConstants	Simplex.Involution	unrelated
+log-sum-exp	Simplex.DesignConstants	Simplex.LogSumExp	unrelated
+log-sum-exp	Simplex.DesignConstants	Simplex.SecondOrder	related
+log-sum-exp	Simplex.DesignConstants	Simplex.Symmetry	unrelated
+log-sum-exp	Simplex.DesignConstants	Simplex.Temperature	unrelated
+log-sum-exp	Simplex.Gibbs	Simplex.Hessian	related
+log-sum-exp	Simplex.Gibbs	Simplex.Involution	related
+log-sum-exp	Simplex.Gibbs	Simplex.LogSumExp	related
+log-sum-exp	Simplex.Gibbs	Simplex.SecondOrder	related
+log-sum-exp	Simplex.Gibbs	Simplex.Symmetry	related
+log-sum-exp	Simplex.Gibbs	Simplex.Temperature	related
+log-sum-exp	Simplex.Hessian	Simplex.Involution	unrelated
+log-sum-exp	Simplex.Hessian	Simplex.LogSumExp	unrelated
+log-sum-exp	Simplex.Hessian	Simplex.SecondOrder	related
+log-sum-exp	Simplex.Hessian	Simplex.Symmetry	unrelated
+log-sum-exp	Simplex.Hessian	Simplex.Temperature	unrelated
+log-sum-exp	Simplex.Involution	Simplex.LogSumExp	related
+log-sum-exp	Simplex.Involution	Simplex.SecondOrder	unrelated
+log-sum-exp	Simplex.Involution	Simplex.Symmetry	unrelated
+log-sum-exp	Simplex.Involution	Simplex.Temperature	related
+log-sum-exp	Simplex.LogSumExp	Simplex.SecondOrder	related
+log-sum-exp	Simplex.LogSumExp	Simplex.Symmetry	related
+log-sum-exp	Simplex.LogSumExp	Simplex.Temperature	related
+log-sum-exp	Simplex.SecondOrder	Simplex.Symmetry	unrelated
+log-sum-exp	Simplex.SecondOrder	Simplex.Temperature	unrelated
+log-sum-exp	Simplex.Symmetry	Simplex.Temperature	unrelated
+stochastic matrix	Analysis.LinearProgram	Analysis.MinimumQuadraticForm	unrelated
+stochastic matrix	Analysis.LinearProgram	Analysis.StatePrices	related
+stochastic matrix	Analysis.LinearProgram	InformationTheory.Channel	unrelated
+stochastic matrix	Analysis.LinearProgram	InformationTheory.MutualInformation	unrelated
+stochastic matrix	Analysis.LinearProgram	NumberTheory.LucasCompanion	unrelated
+stochastic matrix	Analysis.LinearProgram	Probability.FiniteChain	unrelated
+stochastic matrix	Analysis.LinearProgram	Probability.RelativeEntropyGrowth	unrelated
+stochastic matrix	Analysis.LinearProgram	Probability.TwoStateChain	unrelated
+stochastic matrix	Analysis.LinearProgram	Simplex.SecondOrder	unrelated
+stochastic matrix	Analysis.LinearProgram	Statistics.GaussMarkov	unrelated
+stochastic matrix	Analysis.LinearProgram	Statistics.ResidualVariance	unrelated
+stochastic matrix	Analysis.MinimumQuadraticForm	Analysis.StatePrices	unrelated
+stochastic matrix	Analysis.MinimumQuadraticForm	InformationTheory.Channel	unrelated
+stochastic matrix	Analysis.MinimumQuadraticForm	InformationTheory.MutualInformation	unrelated
+stochastic matrix	Analysis.MinimumQuadraticForm	NumberTheory.LucasCompanion	unrelated
+stochastic matrix	Analysis.MinimumQuadraticForm	Probability.FiniteChain	unrelated
+stochastic matrix	Analysis.MinimumQuadraticForm	Probability.RelativeEntropyGrowth	unrelated
+stochastic matrix	Analysis.MinimumQuadraticForm	Probability.TwoStateChain	unrelated
+stochastic matrix	Analysis.MinimumQuadraticForm	Simplex.SecondOrder	unrelated
+stochastic matrix	Analysis.MinimumQuadraticForm	Statistics.GaussMarkov	unrelated
+stochastic matrix	Analysis.MinimumQuadraticForm	Statistics.ResidualVariance	unrelated
+stochastic matrix	Analysis.StatePrices	InformationTheory.Channel	unrelated
+stochastic matrix	Analysis.StatePrices	InformationTheory.MutualInformation	unrelated
+stochastic matrix	Analysis.StatePrices	NumberTheory.LucasCompanion	unrelated
+stochastic matrix	Analysis.StatePrices	Probability.FiniteChain	unrelated
+stochastic matrix	Analysis.StatePrices	Probability.RelativeEntropyGrowth	unrelated
+stochastic matrix	Analysis.StatePrices	Probability.TwoStateChain	unrelated
+stochastic matrix	Analysis.StatePrices	Simplex.SecondOrder	unrelated
+stochastic matrix	Analysis.StatePrices	Statistics.GaussMarkov	unrelated
+stochastic matrix	Analysis.StatePrices	Statistics.ResidualVariance	unrelated
+stochastic matrix	InformationTheory.Channel	InformationTheory.MutualInformation	related
+stochastic matrix	InformationTheory.Channel	NumberTheory.LucasCompanion	unrelated
+stochastic matrix	InformationTheory.Channel	Probability.FiniteChain	related
+stochastic matrix	InformationTheory.Channel	Probability.RelativeEntropyGrowth	related
+stochastic matrix	InformationTheory.Channel	Probability.TwoStateChain	unrelated
+stochastic matrix	InformationTheory.Channel	Simplex.SecondOrder	related
+stochastic matrix	InformationTheory.Channel	Statistics.GaussMarkov	unrelated
+stochastic matrix	InformationTheory.Channel	Statistics.ResidualVariance	unrelated
+stochastic matrix	InformationTheory.MutualInformation	NumberTheory.LucasCompanion	unrelated
+stochastic matrix	InformationTheory.MutualInformation	Probability.FiniteChain	unrelated
+stochastic matrix	InformationTheory.MutualInformation	Probability.RelativeEntropyGrowth	unrelated
+stochastic matrix	InformationTheory.MutualInformation	Probability.TwoStateChain	unrelated
+stochastic matrix	InformationTheory.MutualInformation	Simplex.SecondOrder	unrelated
+stochastic matrix	InformationTheory.MutualInformation	Statistics.GaussMarkov	unrelated
+stochastic matrix	InformationTheory.MutualInformation	Statistics.ResidualVariance	unrelated
+stochastic matrix	NumberTheory.LucasCompanion	Probability.FiniteChain	unrelated
+stochastic matrix	NumberTheory.LucasCompanion	Probability.RelativeEntropyGrowth	unrelated
+stochastic matrix	NumberTheory.LucasCompanion	Probability.TwoStateChain	unrelated
+stochastic matrix	NumberTheory.LucasCompanion	Simplex.SecondOrder	unrelated
+stochastic matrix	NumberTheory.LucasCompanion	Statistics.GaussMarkov	unrelated
+stochastic matrix	NumberTheory.LucasCompanion	Statistics.ResidualVariance	unrelated
+stochastic matrix	Probability.FiniteChain	Probability.RelativeEntropyGrowth	unrelated
+stochastic matrix	Probability.FiniteChain	Probability.TwoStateChain	unrelated
+stochastic matrix	Probability.FiniteChain	Simplex.SecondOrder	unrelated
+stochastic matrix	Probability.FiniteChain	Statistics.GaussMarkov	unrelated
+stochastic matrix	Probability.FiniteChain	Statistics.ResidualVariance	unrelated
+stochastic matrix	Probability.RelativeEntropyGrowth	Probability.TwoStateChain	unrelated
+stochastic matrix	Probability.RelativeEntropyGrowth	Simplex.SecondOrder	unrelated
+stochastic matrix	Probability.RelativeEntropyGrowth	Statistics.GaussMarkov	unrelated
+stochastic matrix	Probability.RelativeEntropyGrowth	Statistics.ResidualVariance	unrelated
+stochastic matrix	Probability.TwoStateChain	Simplex.SecondOrder	unrelated
+stochastic matrix	Probability.TwoStateChain	Statistics.GaussMarkov	unrelated
+stochastic matrix	Probability.TwoStateChain	Statistics.ResidualVariance	unrelated
+stochastic matrix	Simplex.SecondOrder	Statistics.GaussMarkov	unrelated
+stochastic matrix	Simplex.SecondOrder	Statistics.ResidualVariance	unrelated
+stochastic matrix	Statistics.GaussMarkov	Statistics.ResidualVariance	related
+generating function	Algebra.CompanionMatrix	Combinatorics.AlgebraicGeneratingFunction	unrelated
+generating function	Algebra.CompanionMatrix	Combinatorics.RecurrenceGeneratingFunction	related
+generating function	Algebra.CompanionMatrix	NumberTheory.LucasSequenceGeneratingFunction	unrelated
+generating function	Algebra.CompanionMatrix	NumberTheory.Tribonacci	related
+generating function	Algebra.CompanionMatrix	Probability.EffectiveSampleSize	unrelated
+generating function	Algebra.CompanionMatrix	Probability.Extinction	unrelated
+generating function	Algebra.CompanionMatrix	Probability.YuleWalker	unrelated
+generating function	Combinatorics.AlgebraicGeneratingFunction	Combinatorics.RecurrenceGeneratingFunction	related
+generating function	Combinatorics.AlgebraicGeneratingFunction	NumberTheory.LucasSequenceGeneratingFunction	unrelated
+generating function	Combinatorics.AlgebraicGeneratingFunction	NumberTheory.Tribonacci	unrelated
+generating function	Combinatorics.AlgebraicGeneratingFunction	Probability.EffectiveSampleSize	unrelated
+generating function	Combinatorics.AlgebraicGeneratingFunction	Probability.Extinction	unrelated
+generating function	Combinatorics.AlgebraicGeneratingFunction	Probability.YuleWalker	unrelated
+generating function	Combinatorics.RecurrenceGeneratingFunction	NumberTheory.LucasSequenceGeneratingFunction	related
+generating function	Combinatorics.RecurrenceGeneratingFunction	NumberTheory.Tribonacci	related
+generating function	Combinatorics.RecurrenceGeneratingFunction	Probability.EffectiveSampleSize	related
+generating function	Combinatorics.RecurrenceGeneratingFunction	Probability.Extinction	unrelated
+generating function	Combinatorics.RecurrenceGeneratingFunction	Probability.YuleWalker	related
+generating function	NumberTheory.LucasSequenceGeneratingFunction	NumberTheory.Tribonacci	unrelated
+generating function	NumberTheory.LucasSequenceGeneratingFunction	Probability.EffectiveSampleSize	unrelated
+generating function	NumberTheory.LucasSequenceGeneratingFunction	Probability.Extinction	unrelated
+generating function	NumberTheory.LucasSequenceGeneratingFunction	Probability.YuleWalker	unrelated
+generating function	NumberTheory.Tribonacci	Probability.EffectiveSampleSize	unrelated
+generating function	NumberTheory.Tribonacci	Probability.Extinction	unrelated
+generating function	NumberTheory.Tribonacci	Probability.YuleWalker	unrelated
+generating function	Probability.EffectiveSampleSize	Probability.Extinction	unrelated
+generating function	Probability.EffectiveSampleSize	Probability.YuleWalker	unrelated
+generating function	Probability.Extinction	Probability.YuleWalker	unrelated
+stopping time	Probability.FairGame	Probability.GamblersRuin	related
+stopping time	Probability.FairGame	Probability.MaximalInequality	unrelated
+stopping time	Probability.GamblersRuin	Probability.MaximalInequality	related
+linear program	Analysis.FiniteGame	Analysis.LinearProgram	unrelated
+linear program	Analysis.FiniteGame	Analysis.StatePrices	unrelated
+linear program	Analysis.FiniteGame	Combinatorics.ArbitrageCycle	unrelated
+linear program	Analysis.LinearProgram	Analysis.StatePrices	related
+linear program	Analysis.LinearProgram	Combinatorics.ArbitrageCycle	unrelated
+linear program	Analysis.StatePrices	Combinatorics.ArbitrageCycle	unrelated
+eigenvalues	Algebra.HadamardInequality	Algebra.Kantorovich	unrelated
+eigenvalues	Algebra.HadamardInequality	Algebra.MinMax	unrelated
+eigenvalues	Algebra.HadamardInequality	Analysis.MinimumQuadraticForm	unrelated
+eigenvalues	Algebra.HadamardInequality	Geometry.Helix	unrelated
+eigenvalues	Algebra.HadamardInequality	Geometry.Spectral3x3	unrelated
+eigenvalues	Algebra.HadamardInequality	GoldenRatio.Characterisations	unrelated
+eigenvalues	Algebra.HadamardInequality	NumberTheory.LucasCompanion	unrelated
+eigenvalues	Algebra.HadamardInequality	Probability.CovarianceDirections	related
+eigenvalues	Algebra.HadamardInequality	Simplex.FisherRao	unrelated
+eigenvalues	Algebra.HadamardInequality	Simplex.SecondOrder	unrelated
+eigenvalues	Algebra.Kantorovich	Algebra.MinMax	unrelated
+eigenvalues	Algebra.Kantorovich	Analysis.MinimumQuadraticForm	unrelated
+eigenvalues	Algebra.Kantorovich	Geometry.Helix	unrelated
+eigenvalues	Algebra.Kantorovich	Geometry.Spectral3x3	unrelated
+eigenvalues	Algebra.Kantorovich	GoldenRatio.Characterisations	unrelated
+eigenvalues	Algebra.Kantorovich	NumberTheory.LucasCompanion	unrelated
+eigenvalues	Algebra.Kantorovich	Probability.CovarianceDirections	unrelated
+eigenvalues	Algebra.Kantorovich	Simplex.FisherRao	unrelated
+eigenvalues	Algebra.Kantorovich	Simplex.SecondOrder	unrelated
+eigenvalues	Algebra.MinMax	Analysis.MinimumQuadraticForm	unrelated
+eigenvalues	Algebra.MinMax	Geometry.Helix	unrelated
+eigenvalues	Algebra.MinMax	Geometry.Spectral3x3	unrelated
+eigenvalues	Algebra.MinMax	GoldenRatio.Characterisations	unrelated
+eigenvalues	Algebra.MinMax	NumberTheory.LucasCompanion	unrelated
+eigenvalues	Algebra.MinMax	Probability.CovarianceDirections	unrelated
+eigenvalues	Algebra.MinMax	Simplex.FisherRao	unrelated
+eigenvalues	Algebra.MinMax	Simplex.SecondOrder	unrelated
+eigenvalues	Analysis.MinimumQuadraticForm	Geometry.Helix	unrelated
+eigenvalues	Analysis.MinimumQuadraticForm	Geometry.Spectral3x3	unrelated
+eigenvalues	Analysis.MinimumQuadraticForm	GoldenRatio.Characterisations	unrelated
+eigenvalues	Analysis.MinimumQuadraticForm	NumberTheory.LucasCompanion	unrelated
+eigenvalues	Analysis.MinimumQuadraticForm	Probability.CovarianceDirections	unrelated
+eigenvalues	Analysis.MinimumQuadraticForm	Simplex.FisherRao	unrelated
+eigenvalues	Analysis.MinimumQuadraticForm	Simplex.SecondOrder	unrelated
+eigenvalues	Geometry.Helix	Geometry.Spectral3x3	unrelated
+eigenvalues	Geometry.Helix	GoldenRatio.Characterisations	related
+eigenvalues	Geometry.Helix	NumberTheory.LucasCompanion	related
+eigenvalues	Geometry.Helix	Probability.CovarianceDirections	unrelated
+eigenvalues	Geometry.Helix	Simplex.FisherRao	unrelated
+eigenvalues	Geometry.Helix	Simplex.SecondOrder	unrelated
+eigenvalues	Geometry.Spectral3x3	GoldenRatio.Characterisations	unrelated
+eigenvalues	Geometry.Spectral3x3	NumberTheory.LucasCompanion	unrelated
+eigenvalues	Geometry.Spectral3x3	Probability.CovarianceDirections	unrelated
+eigenvalues	Geometry.Spectral3x3	Simplex.FisherRao	unrelated
+eigenvalues	Geometry.Spectral3x3	Simplex.SecondOrder	unrelated
+eigenvalues	GoldenRatio.Characterisations	NumberTheory.LucasCompanion	related
+eigenvalues	GoldenRatio.Characterisations	Probability.CovarianceDirections	unrelated
+eigenvalues	GoldenRatio.Characterisations	Simplex.FisherRao	related
+eigenvalues	GoldenRatio.Characterisations	Simplex.SecondOrder	related
+eigenvalues	NumberTheory.LucasCompanion	Probability.CovarianceDirections	unrelated
+eigenvalues	NumberTheory.LucasCompanion	Simplex.FisherRao	unrelated
+eigenvalues	NumberTheory.LucasCompanion	Simplex.SecondOrder	unrelated
+eigenvalues	Probability.CovarianceDirections	Simplex.FisherRao	unrelated
+eigenvalues	Probability.CovarianceDirections	Simplex.SecondOrder	unrelated
+eigenvalues	Simplex.FisherRao	Simplex.SecondOrder	related
+binary strings	InformationTheory.CompressionTest	InformationTheory.SourceCoding	unrelated
+binary strings	InformationTheory.CompressionTest	Probability.LongestRun	unrelated
+binary strings	InformationTheory.CompressionTest	Probability.Reflection	unrelated
+binary strings	InformationTheory.CompressionTest	Statistics.Sufficiency	unrelated
+binary strings	InformationTheory.SourceCoding	Probability.LongestRun	unrelated
+binary strings	InformationTheory.SourceCoding	Probability.Reflection	unrelated
+binary strings	InformationTheory.SourceCoding	Statistics.Sufficiency	unrelated
+binary strings	Probability.LongestRun	Probability.Reflection	unrelated
+binary strings	Probability.LongestRun	Statistics.Sufficiency	unrelated
+binary strings	Probability.Reflection	Statistics.Sufficiency	unrelated
