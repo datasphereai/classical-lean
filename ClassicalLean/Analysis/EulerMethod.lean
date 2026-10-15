@@ -22,7 +22,8 @@ For the equation `y' = f (t, y)`, Euler's method with step `h` from `(t₀, y₀
 * `tendsto_implicitEuler` — order LEAN-29, item 94: for `y' = −c y` with `c > 0`, implicit Euler,
   `u (k + 1) = u k / (1 + h c)`, tends to `0` for every step `h > 0`.
 * `tendsto_explicitEuler_iff` — order LEAN-29, item 94: explicit Euler for the same equation
-  (`eulerIterate` with `f t y = −c y`), from `y₀ ≠ 0`, tends to `0` exactly when `h c < 2`.
+  (`eulerIterate` with `f t y = −c y`), with a step `h > 0` and a start `y₀ ≠ 0`, tends to `0`
+  exactly when `h c < 2`.
 
 This matches the bound in numerical-analysis textbooks; checked for this order by web search,
 it is Theorem 5.9 of Burden and Faires, Numerical Analysis, as numbered in lecture notes that
@@ -58,7 +59,8 @@ The plan's row names the theorem `abs_sub_eulerStep_le`; it bounds `k` steps, so
 
 The plan writes the rate as `λ`, which is not a Lean name; here it is `c > 0`. Implicit Euler
 gives `u k = u 0 (1 + h c)⁻ᵏ`, and `0 < (1 + h c)⁻¹ < 1`. Explicit Euler gives
-`(1 − h c)ᵏ y₀`; a geometric sequence tends to `0` exactly when its ratio has size below `1`
+`(1 − h c)ᵏ y₀`; a geometric sequence with a nonzero start tends to `0` exactly when its ratio
+has size below `1`
 (Mathlib's `tendsto_pow_atTop_nhds_zero_iff`; the ratio `1 − h c` is negative once `h c > 1`), and
 `|1 − h c| < 1` is `0 < h c < 2`. Each hypothesis is needed (order LEAN-29's exact checks, lane
 `lean/LEAN-29-checks.py`, by the label of each line, the first failing cell of its grid):
@@ -74,8 +76,9 @@ gives `u k = u 0 (1 + h c)⁻ᵏ`, and `0 < (1 + h c)⁻¹ < 1`. Explicit Euler 
 * implicit, `h > 0` (`94.drop.ihh`): `h = −1`, `c = 1/2`: the same doubling.
 * implicit, the recursion (by hand): `u k = 1` for every `k`, with `c = h = 1`, tends to `1`.
 
-Lean's junk value in both implicit rows: when `1 + h c = 0` (the cells `(c, h) = (−1, 1)` of
-`94.drop.ihc` and `(h, c) = (−1, 1)` of `94.drop.ihh`), Lean's `x / 0 = 0` makes `u 1 = 0`, and the
+Lean's junk value in both implicit rows: when `1 + h c = 0` (for example the cells
+`(c, h) = (−1, 1)` of `94.drop.ihc` and `(h, c) = (−1, 1)` of `94.drop.ihh`, the ones the script
+prints; the cell `(−1/2, 2)` of each grid is another), Lean's `x / 0 = 0` makes `u 1 = 0`, and the
 sequence then tends to `0`: with a hypothesis dropped, those cells still satisfy the conclusion.
 The hypotheses of each theorem hold together: the two `example`s at the end of this file (explicit
 Euler at `h = 1/2`, where the factor is `1/2`, not `0`).
@@ -89,9 +92,11 @@ error comes from order LEAN-19's descent lemma, and the recursion `e_{k+1} ≤ (
 is solved by induction, with `1 + h L ≤ exp (h L)`. `discrete_gronwall` would give only
 `k (M h²/2) exp (L k h)`, a weaker bound (review r31).
 
-For order LEAN-29 (item 94, row F5 of MATH-PLAN-library-2, re-run by its check script on
-2026-10-15 UTC): `implicit euler|backward euler|a-stable|a-stability` gives 0 lines in pinned
-Mathlib, 0 in Mathlib master at `2da3ab0a`, and 0 in the library.
+For order LEAN-29 (item 94, row F5 of MATH-PLAN-library-2, re-run by the plan's check script
+`MATH-PLAN-library-2-checks.py`, line `row.F5`, at 2026-10-15 02:19 UTC, before this module's
+stability section was written): `implicit euler|backward euler|a-stable|a-stability` gave 0 lines
+in pinned Mathlib, 0 in Mathlib master at `2da3ab0a`, and 0 in the library; the library's matches
+now are this module's own text.
 -/
 
 open scoped NNReal
