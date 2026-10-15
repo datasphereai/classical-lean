@@ -8,9 +8,10 @@ import Mathlib.Analysis.Calculus.MeanValue
 import Mathlib.Analysis.Calculus.IteratedDeriv.Lemmas
 import Mathlib.Analysis.SpecialFunctions.Integrals.Basic
 import Mathlib.MeasureTheory.Integral.IntervalIntegral.FundThmCalculus
+import Mathlib.MeasureTheory.Integral.IntervalIntegral.TrapezoidalRule
 
 /-!
-# Simpson's rule: its error bound
+# Simpson's rule: its error bound, and Richardson's identity
 
 Simpson's rule estimates `∫ₐᵇ f` by cutting `[a, b]` into `2N` equal steps of width
 `h = (b − a)/(2N)` and, on each pair of steps (a *panel* `[c − h, c + h]`), replacing `f` by the
@@ -25,6 +26,9 @@ parabola through its three values: the panel contributes `h/3 · (f(c − h) + 4
 * `simpson_eq_integral_of_cubic` — the rule is exact on cubics, for every `a`, `b`, `N ≥ 1`.
 * `simpson_error_pow_four`, `abs_simpson_error_pow_four_eq_bound` — the bound is attained: `x⁴`
   on `[0, 1]` with `N = 1` has error exactly `−1/120`, and its size equals the bound for `M = 24`.
+* `simpson_eq_trapezoidal` — order LEAN-29, item 93: **Richardson extrapolation, exactly**:
+  `simpson f N a b = (4 T(2N) − T(N))/3` with `T` Mathlib's trapezoidal rule, for every `f`, `a`,
+  `b` and `N` (at `N = 0` both sides are Lean's `0`).
 
 The proof, one panel at a time: with `F' = f`, the panel's error at half-width `t`,
 `g(t) = F(c + t) − F(c − t) − t/3 · (f(c − t) + 4 f(c) + f(c + t))`, has
@@ -54,6 +58,11 @@ bound on `φ'` to a bound on `φ`, by `image_norm_le_of_norm_deriv_right_le_deri
 adapted here, starting from `0`, as `abs_le_of_abs_deriv_le`. The plan's row names Taylor's
 theorem; it is not used. Also used: `integral_hasDerivWithinAt_right`,
 `Convex.norm_image_sub_le_of_norm_hasDerivWithin_le`, `integral_eq_sub_of_hasDerivAt`.
+
+For order LEAN-29 (item 93, row F4 of MATH-PLAN-library-2, re-run by its check script on
+2026-10-15 UTC): `richardson|extrapolat` gives 0 lines in pinned Mathlib, 0 in Mathlib master at
+`2da3ab0a`, and 0 in the library. `simpson_eq_trapezoidal` uses Mathlib's `trapezoidal_integral`
+only through its definition.
 -/
 
 open Set Finset intervalIntegral
@@ -261,6 +270,72 @@ theorem abs_simpson_error_pow_four_eq_bound :
       (1 - 0) * ((1 - 0) / (2 * (1 : ℕ))) ^ 4 * 24 / 180 := by
   rw [simpson_error_pow_four]
   norm_num
+
+/-- **Richardson extrapolation, exactly** (order LEAN-29, item 93 of MATH-PLAN-library-2). The
+library's composite Simpson rule with `N` panels, each two steps wide, is `(4 T(2N) − T(N))/3`,
+where `T(m)` is Mathlib's trapezoidal rule with `m` steps (`trapezoidal_integral`). So Simpson's
+rule is the Richardson extrapolation of the trapezoidal rule: the trapezoidal error is `c h² + …`
+in the step `h`, and the combination `(4 T(h/2) − T(h))/3` removes the `h²` term. The identity
+holds for every `f`, `a` and `b` (`a > b` and `a = b` included); at `N = 0` both sides are Lean's
+`0`, since `(b − a) / 0 = 0` in both definitions. With `h = (b − a)/(2N)` and nodes `a + j h`,
+`T(2N)` uses every node, `T(N)` the even ones, and `4 T(2N) − T(N)` weights the ends `h`, the odd
+nodes `4 h` and the even inner nodes `2 h`, which is `3` times Simpson's rule. -/
+theorem simpson_eq_trapezoidal (f : ℝ → ℝ) (N : ℕ) (a b : ℝ) :
+    simpson f N a b =
+      (4 * trapezoidal_integral f (2 * N) a b - trapezoidal_integral f N a b) / 3 := by
+  rcases Nat.eq_zero_or_pos N with rfl | hN
+  · simp [simpson, trapezoidal_integral]
+  obtain ⟨n, rfl⟩ : ∃ n, N = n + 1 := ⟨N - 1, by omega⟩
+  set h := (b - a) / (2 * ((n + 1 : ℕ) : ℝ)) with hh
+  set g : ℕ → ℝ := fun j ↦ f (a + j * h) with hg
+  have hn : ((n + 1 : ℕ) : ℝ) ≠ 0 := by positivity
+  -- every node is `a + j h`
+  have node (j : ℕ) (x : ℝ) (hx : x = a + j * h) : f x = g j := by rw [hx]
+  have ha : f a = g 0 := node 0 a (by simp)
+  have hb : f b = g (2 * (n + 1)) := node _ b (by rw [hh]; push_cast; field_simp; ring)
+  -- the two sums
+  have odd_even : ∀ m : ℕ, ∑ k ∈ range (2 * m + 1), g (k + 1) =
+      ∑ k ∈ range (m + 1), g (2 * k + 1) + ∑ k ∈ range m, g (2 * k + 2) := by
+    intro m
+    induction m with
+    | zero => simp
+    | succ m ih =>
+      rw [show 2 * (m + 1) + 1 = 2 * m + 1 + 1 + 1 by ring, sum_range_succ, sum_range_succ, ih,
+        sum_range_succ (fun k ↦ g (2 * k + 1)) (m + 1), sum_range_succ (fun k ↦ g (2 * k + 2)) m]
+      ring_nf
+  have panels : ∀ m : ℕ, ∑ k ∈ range (m + 1), (g (2 * k) + 4 * g (2 * k + 1) + g (2 * k + 2)) =
+      g 0 + g (2 * (m + 1)) + 4 * ∑ k ∈ range (m + 1), g (2 * k + 1) +
+        2 * ∑ k ∈ range m, g (2 * k + 2) := by
+    intro m
+    induction m with
+    | zero => simp; ring
+    | succ m ih =>
+      rw [sum_range_succ, ih, sum_range_succ (fun k ↦ g (2 * k + 1)) (m + 1),
+        sum_range_succ (fun k ↦ g (2 * k + 2)) m]
+      ring_nf
+  -- unfold the two rules into `g`
+  have hS : simpson f (n + 1) a b =
+      h / 3 * ∑ k ∈ range (n + 1), (g (2 * k) + 4 * g (2 * k + 1) + g (2 * k + 2)) := by
+    rw [simpson, ← hh]
+    refine congrArg (h / 3 * ·) (sum_congr rfl fun k _ ↦ ?_)
+    rw [node (2 * k) _ (by push_cast; ring), node (2 * k + 1) _ (by push_cast; ring),
+      node (2 * k + 2) _ (by push_cast; ring)]
+  have hT2 : trapezoidal_integral f (2 * (n + 1)) a b =
+      h * ((g 0 + g (2 * (n + 1))) / 2 + ∑ k ∈ range (2 * n + 1), g (k + 1)) := by
+    rw [trapezoidal_integral, ha, hb, show 2 * (n + 1) - 1 = 2 * n + 1 by omega]
+    congr 1
+    · rw [hh]; push_cast; ring
+    · refine congrArg (_ + ·) (sum_congr rfl fun k _ ↦ node (k + 1) _ ?_)
+      rw [hh]; push_cast; field_simp
+  have hT1 : trapezoidal_integral f (n + 1) a b =
+      2 * h * ((g 0 + g (2 * (n + 1))) / 2 + ∑ k ∈ range n, g (2 * k + 2)) := by
+    rw [trapezoidal_integral, ha, hb, show n + 1 - 1 = n by omega]
+    congr 1
+    · rw [hh]; field_simp
+    · refine congrArg (_ + ·) (sum_congr rfl fun k _ ↦ node (2 * k + 2) _ ?_)
+      rw [hh]; push_cast; field_simp
+  rw [hS, hT2, hT1, panels, odd_even]
+  ring
 
 end ClassicalLean
 
