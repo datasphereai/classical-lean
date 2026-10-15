@@ -31,9 +31,9 @@ wider than the row, not narrower.
 
 ## Hypotheses, and Lean's junk values
 
-The junk values below are checked in Lean in order LEAN-27's checks
-(`~/lean/lean27-checks/dev/Junk79.lean`, outside the repository, rc 0), against this module's
-own `convexConjugate` except the real supremum, which cannot use it:
+The junk values below are checked by the seven `example`s at the end of this file (moved there by
+order LEAN-29 from order LEAN-27's scratch file), against this module's own `convexConjugate`
+except the real supremum, which cannot use it:
 
 * Fenchel–Young needs `f` real-valued. Over `EReal` it fails in two ways (cold review r79 found
   the second): if `f x = ⊥` at some `x`, then `f* y = (y ⬝ x) − ⊥ = ⊤` and the right side is
@@ -110,8 +110,46 @@ theorem convexConjugate_convexConjugate_le (f : (ι → ℝ) → EReal) :
   exact h
 
 /-- The hypothesis of `convexConjugate_anti` can be met with the order really reversing:
-`f = 0 ≤ g = 1` on `ℝ²`, where `g* 0 = −1 < 0 = f* 0` (the same values on `ℝ¹` are checked in
-`~/lean/lean27-checks/dev/Junk79.lean`). -/
+`f = 0 ≤ g = 1` on `ℝ²`, where `g* 0 = −1 < 0 = f* 0` (the same values on `ℝ¹` are the last two
+`example`s at the end of this file). -/
 example : ∃ f g : (Fin 2 → ℝ) → EReal, f ≤ g := ⟨0, 1, fun _ ↦ zero_le_one⟩
 
 end ClassicalLean.Analysis.ConvexConjugate
+
+open ClassicalLean.Analysis.ConvexConjugate in
+/-- `f = ⊥` everywhere on `ℝ¹`: its conjugate at `0` is `⊤`. -/
+example : convexConjugate (fun _ : Fin 1 → ℝ ↦ (⊥ : EReal)) 0 = ⊤ := by
+  simp [convexConjugate]
+
+open ClassicalLean.Analysis.ConvexConjugate in
+/-- `f = ⊥` everywhere on `ℝ¹`: Fenchel–Young fails at `x = y = 0`, as `⊥ + ⊤ = ⊥`. -/
+example : ¬ (((0 : Fin 1 → ℝ) ⬝ᵥ 0 : ℝ) : EReal) ≤
+    (⊥ : EReal) + convexConjugate (fun _ : Fin 1 → ℝ ↦ (⊥ : EReal)) 0 := by
+  simp [convexConjugate]
+
+open ClassicalLean.Analysis.ConvexConjugate in
+/-- `f = ⊤` everywhere on `ℝ¹` (cold review r79): its conjugate at `0` is `⊥`. -/
+example : convexConjugate (fun _ : Fin 1 → ℝ ↦ (⊤ : EReal)) 0 = ⊥ := by
+  simp [convexConjugate]
+
+open ClassicalLean.Analysis.ConvexConjugate in
+/-- `f = ⊤` everywhere on `ℝ¹`: Fenchel–Young fails at `x = y = 0`, as `⊤ + ⊥ = ⊥`. -/
+example : ¬ (((0 : Fin 1 → ℝ) ⬝ᵥ 0 : ℝ) : EReal) ≤
+    (⊤ : EReal) + convexConjugate (fun _ : Fin 1 → ℝ ↦ (⊤ : EReal)) 0 := by
+  simp [convexConjugate]
+
+/-- In `ℝ`, Lean's supremum of an unbounded family is `0`: `⨆ x, 1 ⬝ x − 0 = 0` on `ℝ¹`. -/
+example : (⨆ x : Fin 1 → ℝ, (1 : Fin 1 → ℝ) ⬝ᵥ x - 0) = 0 := by
+  apply Real.iSup_of_not_bddAbove
+  rintro ⟨b, hb⟩
+  have := hb ⟨fun _ ↦ b + 1, rfl⟩
+  simp [dotProduct] at this
+  linarith
+
+open ClassicalLean.Analysis.ConvexConjugate in
+/-- `g = 0` on `ℝ¹`: its conjugate at `0` is `0` (the `g` of the next example). -/
+example : convexConjugate (fun _ : Fin 1 → ℝ ↦ (0 : EReal)) 0 = 0 := by simp [convexConjugate]
+
+open ClassicalLean.Analysis.ConvexConjugate in
+/-- `f = 1 ≰ g = 0`: `f* 0 = −1 < 0 = g* 0`, so `convexConjugate_anti` needs `f ≤ g`. -/
+example : convexConjugate (fun _ : Fin 1 → ℝ ↦ (1 : EReal)) 0 = -1 := by simp [convexConjugate]

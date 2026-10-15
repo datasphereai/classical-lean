@@ -34,6 +34,8 @@ already in Mathlib then produces such a `p`.
   divides `a`.
 * an `example` closing Mathlib's `Nat.exists_prime_gt_modEq_one` from that existence theorem, and
   an `example` tying `IsPrimitiveDivisor p 2 n` to `LucasApparition`.
+* after the namespace, an `example` stating the existence theorem with `0 < a` in place of
+  `2 ≤ a` (order LEAN-29).
 
 ## Why `ℕ`, and why `2 ≤ a` / `0 < a`
 
@@ -283,11 +285,11 @@ something checkable from `(a, n)` alone.
 `1 < n` is not removable: `(a, n) = (2, 1)` is a genuine exceptional pair, since at `n = 1` a
 primitive divisor is a prime factor of `a - 1` and `2 - 1 = 1` has none.  `2 ≤ a` is not
 removable — but it *is* weakenable to `0 < a` by a case split, since the radical hypothesis is
-itself false at `a = 1` once `1 < n`; the stronger form was elaborated, rc 0, and `2 ≤ a` is kept
-because it matches what `sub_one_lt_natAbs_cyclotomic_eval` wants and the case split buys one
-vacuous value of `a`.  What removal costs: `a = 0` satisfies the hypothesis vacuously while
-`Φₙ(0) = 1`.  (`a = 1` needs no separate exclusion — with `1 < n` some prime divides `n`, and no
-prime divides `1`.)
+itself false at `a = 1` once `1 < n`; the stronger form is the `example` at the end of this file
+(order LEAN-29), and `2 ≤ a` is kept because it matches what `sub_one_lt_natAbs_cyclotomic_eval`
+wants and the case split buys one vacuous value of `a`.  What removal costs: `a = 0` satisfies the
+hypothesis vacuously while `Φₙ(0) = 1`.  (`a = 1` needs no separate exclusion — with `1 < n` some
+prime divides `n`, and no prime divides `1`.)
 
 For how much of the ground this covers — 13.30% of a 5940-pair grid, and no odd `n` at `a = 2` —
 see the module docstring.  It is a sufficient condition, not a characterisation. -/
@@ -389,3 +391,14 @@ example {p n : ℕ} (hp : p.Prime) (hp2 : p ≠ 2) (hn : 0 < n) :
   norm_num
 
 end ClassicalLean
+
+/-- The stronger form of `exists_isPrimitiveDivisor_of_forall_prime_dvd` that its docstring
+describes (order LEAN-29): `0 < a` in place of `2 ≤ a`, by the case split at `a = 1`, where the
+radical hypothesis fails once `1 < n`, since the smallest prime factor of `n` would divide `1`. -/
+example {a n : ℕ} (ha : 0 < a) (hn : 1 < n) (hrad : ∀ q : ℕ, q.Prime → q ∣ n → q ∣ a) :
+    ∃ p : ℕ, ClassicalLean.IsPrimitiveDivisor p a n := by
+  rcases Nat.lt_or_ge a 2 with h | h
+  · obtain rfl : a = 1 := by omega
+    have hq := Nat.minFac_prime (show n ≠ 1 by omega)
+    exact absurd (hrad _ hq (Nat.minFac_dvd n)) hq.not_dvd_one
+  · exact ClassicalLean.exists_isPrimitiveDivisor_of_forall_prime_dvd h hn hrad
