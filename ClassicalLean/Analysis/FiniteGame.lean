@@ -36,7 +36,10 @@ player picks a mixed strategy `x` (a probability vector on the rows, a point of
   of action `y` after data `x`; `ruleSet`) and a prior as a probability vector, so the average
   risk `matrixAvgRisk` is a game linear in each; Sion's theorem gives a saddle point, as for
   item 62, and `ruleKernel`, `priorMeasure` and `lintegral_comp_eq_ofReal_matrixRisk` carry it
-  to Mathlib's definitions.
+  to Mathlib's definitions. `iSup_bayesRisk_eq_minimaxRisk_of_finite'` (order LEAN-31, item 103)
+  drops the finiteness of the loss: the loss may take the value `∞`. It truncates the loss at each
+  `n`, applies the finite case, takes a convergent subsequence of nearly minimax rule matrices
+  (the rule matrices form a compact set) and passes to the limit by monotone convergence.
 * **Item 66, the value by exponential weights.** For payoffs in `[0, 1]`, the row player runs
   the library's exponential weights (`ExponentialWeights`), treating row `i`'s payment
   `(A y_t) i` in round `t` as that expert's loss: `ewStrategy A η y t = softmax (−η · the
@@ -92,14 +95,20 @@ fractions unless marked):
 * Item 66, `η > 0`: at `η = 0`, `log m / (0 · T)` is Lean's `0`, the weights stay uniform,
   and for `A = I₂` with best response always the first column the gap is `1/2 > 0`.
 * Item 66, `T > 0`: at `T = 0` the averages are `0 / 0 = 0`, not strategies.
-* Item 63, `ℓ θ y ≠ ∞`: kept; whether it is needed is open (an example with an infinite loss
-  still gives equality, both sides `1`).
-* Item 63, a nonempty action set `𝓨`: with no parameters, some data value and no action, the
-  left side is `0` (no prior exists) and the right side is `∞` (no Markov kernel exists, and
-  Lean's infimum over nothing in `[0, ∞]` is `∞`). That is the only failing case (by hand):
-  with no action, some data value and some parameter both sides are `∞`; with no action and no
-  data value the one empty rule is a Markov kernel and both sides are `0`. With no parameters
-  and some action both sides are `0`, which the theorem covers.
+* Item 63, `ℓ θ y ≠ ∞`: not needed, by `iSup_bayesRisk_eq_minimaxRisk_of_finite'` (item 103),
+  which drops it; the unprimed theorem keeps it, so its callers are unchanged. An example (order
+  LEAN-31's exact check `103.noisy`, lane `lean/LEAN-31-checks.py`): two parameters and two
+  observations, the observation equal to the parameter with chance `3/4`; actions guess `0`, guess
+  `1` or abstain, with loss `0` for a right guess, `∞` for a wrong one and `1` for abstaining.
+  Both sides are `1`.
+* The finiteness and measurability instances of item 63 and of item 103 are the setting; they are
+  not shown needed.
+* Items 63 and 103, a nonempty action set `𝓨`: with no parameters, some data value and no
+  action, the left side is `0` (no prior exists) and the right side is `∞` (no Markov kernel
+  exists, and Lean's infimum over nothing in `[0, ∞]` is `∞`). That is the only failing case
+  (by hand): with no action, some data value and some parameter both sides are `∞`; with no action
+  and no data value the one empty rule is a Markov kernel and both sides are `0`. With no
+  parameters and some action both sides are `0`, which the theorem covers.
 
 ## What is cited
 
@@ -844,6 +853,114 @@ theorem iSup_bayesRisk_eq_minimaxRisk_of_finite {Θ 𝓧 𝓨 : Type*} [Measurab
     exact hup.trans (hdown.trans (le_iSup₂ (f := fun π (_ : IsProbabilityMeasure π) ↦
       bayesRisk ℓ P π) (priorMeasure π) this))
 
+open Filter Topology
+
+/-- A value in `[0, ∞]` is the supremum of its truncations at the natural numbers. -/
+private lemma iSup_min_natCast' (a : ℝ≥0∞) : ⨆ m : ℕ, min a (m : ℝ≥0∞) = a := by
+  refine le_antisymm (iSup_le fun m ↦ min_le_left _ _) ?_
+  rcases eq_or_ne a ∞ with rfl | ha
+  · calc (⊤ : ℝ≥0∞) = ⨆ m : ℕ, (m : ℝ≥0∞) := ENNReal.iSup_natCast.symm
+      _ ≤ ⨆ m : ℕ, min ⊤ (m : ℝ≥0∞) := iSup_mono fun m ↦ le_min le_top le_rfl
+  · obtain ⟨m, hm⟩ := ENNReal.exists_nat_gt ha
+    exact le_iSup_of_le m (le_min le_rfl hm.le)
+
+/-- The Bayes risk is monotone in the loss. -/
+private lemma bayesRisk_mono_loss' {Θ 𝓧 𝓨 : Type*} [MeasurableSpace Θ] [MeasurableSpace 𝓧]
+    [MeasurableSpace 𝓨] {ℓ ℓ' : Θ → 𝓨 → ℝ≥0∞} (h : ∀ θ y, ℓ θ y ≤ ℓ' θ y)
+    (P : Kernel Θ 𝓧) (π : Measure Θ) : bayesRisk ℓ P π ≤ bayesRisk ℓ' P π := by
+  unfold bayesRisk avgRisk
+  exact iInf₂_mono fun κ _ ↦ lintegral_mono fun θ ↦ lintegral_mono fun y ↦ h θ y
+
+/-- The matrix risk of a rule matrix is monotone in a finite loss. -/
+private lemma matrixRisk_mono_loss' {Θ 𝓧 𝓨 : Type*} [MeasurableSpace Θ] [MeasurableSpace 𝓧]
+    [MeasurableSpace 𝓨] [Fintype 𝓧] [Fintype 𝓨] {ℓ ℓ' : Θ → 𝓨 → ℝ≥0∞}
+    (hℓ' : ∀ θ y, ℓ' θ y ≠ ∞) (h : ∀ θ y, ℓ θ y ≤ ℓ' θ y) (P : Kernel Θ 𝓧)
+    {K : 𝓧 → 𝓨 → ℝ} (hK : K ∈ ruleSet 𝓧 𝓨) (θ : Θ) :
+    matrixRisk ℓ P K θ ≤ matrixRisk ℓ' P K θ :=
+  sum_le_sum fun x _ ↦ sum_le_sum fun y _ ↦
+    mul_le_mul_of_nonneg_left (ENNReal.toReal_mono (hℓ' θ y) (h θ y))
+      (mul_nonneg ENNReal.toReal_nonneg ((hK x (Set.mem_univ x)).1 y))
+
+/-- **Bayes equals minimax for a finite decision problem, losses in `[0, ∞]` (item 103 of
+MATH-PLAN-library-2, item 63's open point).** Finitely many parameters `Θ`, data values `𝓧` and
+actions `𝓨`, all singletons measurable, at least one action, a finite kernel `P` and any loss `ℓ`,
+possibly infinite: the largest Bayes risk over prior probability measures equals the minimax risk,
+in Mathlib's definitions. So `iSup_bayesRisk_eq_minimaxRisk_of_finite`'s hypothesis that every
+loss is finite is not needed. The proof truncates the loss at `n` (`min (ℓ θ y) n`), applies the
+finite case, takes a convergent subsequence of nearly minimax rule matrices by compactness (the
+rule matrices form a product of simplices), and passes to the limit by monotone convergence. -/
+theorem iSup_bayesRisk_eq_minimaxRisk_of_finite' {Θ 𝓧 𝓨 : Type*} [MeasurableSpace Θ]
+    [MeasurableSpace 𝓧] [MeasurableSpace 𝓨] [Finite Θ] [Finite 𝓧] [Finite 𝓨]
+    [MeasurableSingletonClass Θ] [MeasurableSingletonClass 𝓧] [MeasurableSingletonClass 𝓨]
+    [Nonempty 𝓨] (ℓ : Θ → 𝓨 → ℝ≥0∞) (P : Kernel Θ 𝓧) [IsFiniteKernel P] :
+    ⨆ (π : Measure Θ) (_ : IsProbabilityMeasure π), bayesRisk ℓ P π = minimaxRisk ℓ P := by
+  classical
+  cases nonempty_fintype Θ; cases nonempty_fintype 𝓧; cases nonempty_fintype 𝓨
+  refine le_antisymm (iSup_bayesRisk_le_minimaxRisk ℓ P) ?_
+  set S := ⨆ (π : Measure Θ) (_ : IsProbabilityMeasure π), bayesRisk ℓ P π
+  rcases eq_or_ne S ∞ with hS | hS
+  · rw [hS]; exact le_top
+  let L : ℕ → Θ → 𝓨 → ℝ≥0∞ := fun n θ y ↦ min (ℓ θ y) (n : ℝ≥0∞)
+  have hLfin : ∀ n θ y, L n θ y ≠ ∞ := fun n θ y ↦
+    ne_top_of_le_ne_top (ENNReal.natCast_ne_top n) (min_le_right _ _)
+  have hLS : ∀ n, minimaxRisk (L n) P ≤ S := by
+    intro n
+    rw [← iSup_bayesRisk_eq_minimaxRisk_of_finite (L n) (hLfin n) P]
+    exact iSup₂_mono fun π _ ↦ bayesRisk_mono_loss' (fun θ y ↦ min_le_left _ _) P π
+  have hchoose : ∀ n : ℕ, ∃ K ∈ ruleSet 𝓧 𝓨, ∀ θ,
+      matrixRisk (L n) P K θ ≤ S.toReal + 1 / ((n : ℝ) + 1) := by
+    intro n
+    have hpos : (0 : ℝ) < 1 / ((n : ℝ) + 1) := by positivity
+    have hlt : minimaxRisk (L n) P < S + ENNReal.ofReal (1 / ((n : ℝ) + 1)) :=
+      lt_of_le_of_lt (hLS n) (ENNReal.lt_add_right hS (ENNReal.ofReal_pos.mpr hpos).ne')
+    unfold minimaxRisk at hlt
+    obtain ⟨κ, hlt⟩ := iInf_lt_iff.mp hlt
+    obtain ⟨hκ, hlt⟩ := iInf_lt_iff.mp hlt
+    have := hκ
+    refine ⟨fun x y ↦ (κ x {y}).toReal, kernel_mem_ruleSet κ, fun θ ↦ ?_⟩
+    have h1 : ∫⁻ y, L n θ y ∂((κ ∘ₖ P) θ) ≤ S + ENNReal.ofReal (1 / ((n : ℝ) + 1)) :=
+      (le_iSup (fun θ ↦ ∫⁻ y, L n θ y ∂((κ ∘ₖ P) θ)) θ).trans hlt.le
+    rw [lintegral_comp_eq_ofReal_matrixRisk (L n) (hLfin n) P κ θ,
+      ← ENNReal.ofReal_toReal hS, ← ENNReal.ofReal_add ENNReal.toReal_nonneg hpos.le] at h1
+    exact (ENNReal.ofReal_le_ofReal_iff (add_nonneg ENNReal.toReal_nonneg hpos.le)).mp h1
+  choose K hK hKr using hchoose
+  have hcomp : IsCompact (ruleSet 𝓧 𝓨) := isCompact_univ_pi fun _ ↦ isCompact_closedSimplex
+  obtain ⟨K₀, hK₀, φ, hφ, hlim⟩ := hcomp.tendsto_subseq hK
+  have hK₀bound : ∀ m θ, matrixRisk (L m) P K₀ θ ≤ S.toReal := by
+    intro m θ
+    have hcont : Continuous fun K' : 𝓧 → 𝓨 → ℝ ↦ matrixRisk (L m) P K' θ := by
+      unfold matrixRisk; fun_prop
+    have h1 := (hcont.tendsto K₀).comp hlim
+    have h2 : Tendsto (fun n : ℕ ↦ S.toReal + 1 / ((n : ℝ) + 1)) atTop
+        (𝓝 (S.toReal + 0)) :=
+      tendsto_const_nhds.add tendsto_one_div_add_atTop_nhds_zero_nat
+    rw [add_zero] at h2
+    refine le_of_tendsto_of_tendsto h1 h2 ?_
+    filter_upwards [eventually_ge_atTop m] with n hn
+    have hφn : n ≤ φ n := hφ.id_le n
+    have hφn' : (n : ℝ) ≤ (φ n : ℝ) := by exact_mod_cast hφn
+    change matrixRisk (L m) P (K (φ n)) θ ≤ S.toReal + 1 / ((n : ℝ) + 1)
+    calc matrixRisk (L m) P (K (φ n)) θ ≤ matrixRisk (L (φ n)) P (K (φ n)) θ :=
+          matrixRisk_mono_loss' (hLfin (φ n))
+            (fun θ y ↦ min_le_min_left _ (Nat.cast_le.mpr (hn.trans hφn))) P (hK (φ n)) θ
+      _ ≤ S.toReal + 1 / ((φ n : ℝ) + 1) := hKr (φ n) θ
+      _ ≤ S.toReal + 1 / ((n : ℝ) + 1) := by gcongr
+  have hmk := isMarkovKernel_ruleKernel hK₀
+  have hKK : (fun x y ↦ (ruleKernel K₀ x {y}).toReal) = K₀ := by
+    funext x y
+    rw [ruleKernel_singleton, ENNReal.toReal_ofReal ((hK₀ x (Set.mem_univ x)).1 y)]
+  refine (iInf₂_le (ruleKernel K₀) hmk).trans (iSup_le fun θ ↦ ?_)
+  calc ∫⁻ y, ℓ θ y ∂((ruleKernel K₀ ∘ₖ P) θ)
+      = ∫⁻ y, ⨆ m : ℕ, L m θ y ∂((ruleKernel K₀ ∘ₖ P) θ) :=
+        lintegral_congr fun y ↦ (iSup_min_natCast' (ℓ θ y)).symm
+    _ = ⨆ m : ℕ, ∫⁻ y, L m θ y ∂((ruleKernel K₀ ∘ₖ P) θ) :=
+        lintegral_iSup (f := fun m y ↦ L m θ y) (fun m ↦ measurable_of_countable _)
+          (fun m n hmn y ↦ min_le_min_left _ (Nat.cast_le.mpr hmn))
+    _ ≤ S := by
+        refine iSup_le fun m ↦ ?_
+        rw [lintegral_comp_eq_ofReal_matrixRisk (L m) (hLfin m) P (ruleKernel K₀) θ, hKK]
+        exact (ENNReal.ofReal_le_ofReal (hK₀bound m θ)).trans (ENNReal.ofReal_toReal hS).le
+
 end BayesFinite
 
 end ClassicalLean.Analysis
@@ -865,3 +982,13 @@ rounds. -/
 example := ClassicalLean.Analysis.abs_value_sub_le_of_exponentialWeights (ι := Fin 2) (κ := Fin 2)
   (A := !![1, 0; 0, 1]) (fun i j ↦ by fin_cases i <;> fin_cases j <;> simp) (η := 1) (by norm_num)
   (T := 4) (by norm_num)
+
+open ProbabilityTheory in
+open scoped ENNReal in
+/-- The hypotheses of `iSup_bayesRisk_eq_minimaxRisk_of_finite'` hold together, with a loss that
+takes the value `∞`: two parameters, two observations and two actions; the loss `0` for the right
+action and `∞` for the wrong one; and the kernel that reveals the parameter, `P θ = dirac θ`
+(`Kernel.id`), which depends on the parameter and is a Markov kernel, so finite. -/
+example := ClassicalLean.Analysis.iSup_bayesRisk_eq_minimaxRisk_of_finite' (Θ := Fin 2)
+  (𝓧 := Fin 2) (𝓨 := Fin 2) (ℓ := fun θ y ↦ if θ = y then 0 else ∞)
+  (P := Kernel.id)
