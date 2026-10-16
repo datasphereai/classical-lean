@@ -55,8 +55,8 @@ Item 101 (order LEAN-31's exact checks, lane `lean/LEAN-31-checks.py`, exact fra
   correlated at lag `1`, `q = 1`, `θ = (1, 1)`: `γ 0 = 6`, `γ 1 = 4`, so at `φ = π` the real sum is
   `6 − 8 = −2 < 0`, and no `v` matches (`6 = 2 v` and `4 = v`).
 * the noise square-integrable, for the identity (by hand): the case above (`q = 1`,
-  `θ = (1, 1)`, `v = 0`): the left side is `8/9` at every `φ`, the right side `0`. It does not
-  break the corollary, as `0 ≤ 8/9`.
+  `θ = (1, 1)`, `v = 0`), at `t = 0`: the left side is `8/9` at every `φ`, the right side `0`
+  (at `t ≥ 1` both sides are `0`). It does not break the corollary, as `0 ≤ 8/9`.
 * the noise square-integrable, for the corollary (by hand; the line `101 (he, corollary)` of the
   checks): `W` a fair sign and `Y` independent of it with `P(Y = 2ⁿ) = 2⁻ⁿ`, not integrable;
   `e 0 = Y`, `e 1 = W − Y`, `e 2 = 9 W + Y`, `e t = Y` after. Every noise and every product of two
@@ -199,7 +199,6 @@ private lemma sum_Icc_mul_cexp_eq_sum_sum (q : ℕ) (θ : ℕ → ℝ) (φ : ℝ
     · intro a _
       simp only
       ring
-
 
 /-- **The spectral density of a moving average, finite form** (order LEAN-31, item 101 of
 MATH-PLAN-library-2). For white noise of variance `v`, the autocovariances `γ k` of the moving
