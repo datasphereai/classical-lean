@@ -38,7 +38,7 @@ Write `records/orders/<UTC timestamp>__<source>__order-<id>-<slug>.md` before ex
 **Goal / Scope / Done-means** headings. An order given only in chat is not an order; if a session
 is handed one inline, its first act is to write the file.
 
-`records/orders/INDEX.md` lists every order and its state.
+`records/orders/INDEX.md` lists every order and its state. A row records the state when it was written, and the next order's records commit appends the push of the order before it to that order's INDEX row and CLAIMS row (dated 2026-10-16, order LEAN-31).
 
 ## Rule 3 — claim before you write
 
