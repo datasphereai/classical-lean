@@ -79,8 +79,8 @@ player picks a mixed strategy `x` (a probability vector on the rows, a point of
 
 Item 85 (order LEAN-28) has no hypothesis; its zero-matrix case and the affine change are checked
 in order LEAN-28's `checks.py` (line `85.affine`: 200 random rational matrices, the zero matrix
-included). The rest was checked in order LEAN-25 (`~/lean/lean25-checks/checks.py`; exact
-fractions unless marked):
+included). Items 62, 63 and 66 were checked in order LEAN-25 (`~/lean/lean25-checks/checks.py`;
+exact fractions unless marked); item 103's rows in order LEAN-31 (lane `lean/LEAN-31-checks.py`):
 
 * Item 62, nonempty `ι` and `κ`: with no rows the simplex is empty and no saddle point
   exists. The equality of values would still hold, but only because Lean reads an infimum or
@@ -100,7 +100,9 @@ fractions unless marked):
   LEAN-31's exact check `103.noisy`, lane `lean/LEAN-31-checks.py`): two parameters and two
   observations, the observation equal to the parameter with chance `3/4`; actions guess `0`, guess
   `1` or abstain, with loss `0` for a right guess, `∞` for a wrong one and `1` for abstaining.
-  Both sides are `1`.
+  Both sides are `1` (by hand: each observation has chance at least `1/4` under both parameters,
+  so a rule that guesses with positive chance has risk `∞` under one parameter, and only "always
+  abstain" has finite risk, `1`; the check `103.noisy` confirms it over a grid of rules).
 * The finiteness and measurability instances of item 63 and of item 103 are the setting; they are
   not shown needed.
 * Items 63 and 103, a nonempty action set `𝓨`: with no parameters, some data value and no
@@ -985,8 +987,8 @@ example := ClassicalLean.Analysis.abs_value_sub_le_of_exponentialWeights (ι := 
 
 open ProbabilityTheory in
 open scoped ENNReal in
-/-- The hypotheses of `iSup_bayesRisk_eq_minimaxRisk_of_finite'` hold together, with a loss that
-takes the value `∞`: two parameters, two observations and two actions; the loss `0` for the right
+/-- The hypotheses of `iSup_bayesRisk_eq_minimaxRisk_of_finite'` hold together: a loss that takes
+the value `∞`, with two parameters, two observations and two actions; the loss `0` for the right
 action and `∞` for the wrong one; and the kernel that reveals the parameter, `P θ = dirac θ`
 (`Kernel.id`), which depends on the parameter and is a Markov kernel, so finite. -/
 example := ClassicalLean.Analysis.iSup_bayesRisk_eq_minimaxRisk_of_finite' (Θ := Fin 2)
