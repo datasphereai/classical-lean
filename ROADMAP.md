@@ -688,6 +688,36 @@ Also job 0: five older docstring lines of `NumberTheory/PrimitiveDivisor` and `A
 are checkable from the library or say they report past runs, and PrimitiveDivisor gains one
 `example` naming the two Lifting the Exponent lemmas it cites.
 
+### 1.23 Batch 5 of the second plan (order LEAN-31, round 63)
+
+Items 101 to 105 of MATH-PLAN-library-2, one new module, six extended. Narrowing: none. Wider than
+the plan's reading, two conditions: item 105 for any finite measure, not only a probability
+measure; item 104's Chernoff bound with no `p₀ < 1`. Item 104's `q ≤ 1` and `0 < p₀` are kept
+though not needed. Items 103 and 104 land the carried drafts of API-credit carry list 1 (rows 103
+and 104), with primed names beside the unprimed theorems, which stay.
+
+* `Probability/MovingAverage` (item 101): the spectral density of a moving average, finite form,
+  `∑_{|k| ≤ q} γ(|k|) e^(−i k φ) = v |∑ⱼ θⱼ e^(i j φ)|²` (`sum_covariance_mul_cexp_eq`), and that
+  it is never negative, in real form (`zero_le_sum_covariance_mul_cos`).
+* `Statistics/Sufficiency` (item 102): bounded completeness (`IsBoundedlyComplete`), that
+  completeness gives it (`IsComplete.isBoundedlyComplete`), and Basu's theorem with it
+  (`indep_of_isSufficient_of_isBoundedlyComplete_of_isAncillary`), wider than item 58's.
+* `Analysis/FiniteGame` (item 103, item 63's open point closed): Bayes equals minimax for a finite
+  decision problem with losses in `[0, ∞]` (`iSup_bayesRisk_eq_minimaxRisk_of_finite'`).
+* `Statistics/ResidualVariance`, `Probability/LikelihoodScore`, `Probability/EffectiveSampleSize`
+  (item 104, the generalisations LEAN-17's reviews r3, r5 and r6 proved): the residual variance for
+  any measure (`integral_residual_sq'`), the relative-entropy Chernoff bound at `q = 1` and with no
+  `p₀ < 1` (`measureReal_sum_ge_le_exp_neg_relEntropy'`), and the steady AR(1) average's variance
+  bound with no measure instance (`variance_average_le_of_steady'`, witnessed through Mathlib's
+  `Measure.infinitePi`).
+* `Probability/StepDownProcedure` (item 105, new): Holm's step-down procedure (`holmRejected`)
+  keeps the chance of rejecting any true null at most `q`, under any dependence and any finite
+  measure (`measureReal_exists_holmRejected_true_le`), beside the Benjamini–Hochberg step-up
+  procedure.
+
+Also job 0: the Bloomfield and Watson credit in `Statistics/GeneralizedLeastSquares` is complete
+and marked as checked against the journal's contents page.
+
 ## 2. Categories to add
 
 Tiered by how much work they do inside the system that already exists, not by how interesting
