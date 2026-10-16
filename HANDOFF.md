@@ -297,21 +297,23 @@ MATH-PLAN-library-2, items 101 to 105, and job 0; one new module, six extended:
 `∑_{|k| ≤ q} γ(|k|) e^(−i k φ) = v |∑ⱼ θⱼ e^(i j φ)|²`, and its real form `≥ 0`),
 `Statistics/Sufficiency` (item 102, bounded completeness, that completeness gives it, and Basu's
 theorem with it), `Analysis/FiniteGame` (item 103, Bayes equals minimax with losses in `[0, ∞]`,
-item 63's open point), `Statistics/ResidualVariance`, `Probability/LikelihoodScore` and
-`Probability/EffectiveSampleSize` (item 104, LEAN-17's reviews r3, r5 and r6 as primed theorems
-from the carried draft `d3204-r4-s1.lean`; EffectiveSampleSize now imports
-`Mathlib.Probability.HasLawExists` and `Mathlib.Probability.Distributions.Gaussian.Real`), and the
-new `Probability/StepDownProcedure` (item 105, Holm's step-down procedure, for any finite measure;
-it imports `Mathlib.MeasureTheory.Measure.Real` and `Mathlib.Probability.UniformOn`). Narrowing:
-none. Wider than the plan's reading, two conditions: item 105 for any finite measure; item 104's
-Chernoff bound with no `p₀ < 1`; item 104's `q ≤ 1` and `0 < p₀` are kept though not needed.
-Job 0: the Bloomfield and Watson credit is complete and marked as checked against the journal's
-contents page. Counts, all to be re-measured by its gates on the clean tree (round 63's
+item 63's open point, from the carried draft `d3103-r1-s1.lean`), `Statistics/ResidualVariance`,
+`Probability/LikelihoodScore` and `Probability/EffectiveSampleSize` (item 104, LEAN-17's reviews r3,
+r5 and r6 as primed theorems from the carried draft `d3204-r4-s1.lean`; EffectiveSampleSize now
+imports `Mathlib.Probability.HasLawExists` and `Mathlib.Probability.Distributions.Gaussian.Real`),
+and the new `Probability/StepDownProcedure` (item 105, Holm's step-down procedure, for any finite
+measure; it imports `Mathlib.MeasureTheory.Measure.Real` and `Mathlib.Probability.UniformOn`).
+Narrowing: none. Wider than the plan's reading, two conditions: item 105 for any finite measure;
+item 104's Chernoff bound with no `p₀ < 1`; item 104's `q ≤ 1` and `0 < p₀` are kept though not
+needed. Job 0: the Bloomfield and Watson credit is complete and marked as checked against the
+journal's contents page. Counts, all to be re-measured by its gates on the clean tree (round 63's
 fragment): **3372 theorem constants**, 3345 from the base axiom gate plus 27 from the censuses of
-the changed modules (Method B); **129 modules**; **`lake build` 4177 jobs**, predicted from the
-import closure, which is **4160** modules at `49c4c98` and 4161 after (order LEAN-31's revised
-closure script; order LEAN-30's script read import lines inside comments and printed 9037).
-Also new: rules 36 and 37 below (dated times; `el.sh` refuses names not probed).
+the changed modules (Method B); **129 modules** (128 under `ClassicalLean/` at `49c4c98` plus
+`StepDownProcedure`; the Lean count of the base closure, which also counts the root module, gives
+129 at the base); **`lake build` 4177 jobs**, predicted from the import closure, which is **4160**
+modules at `49c4c98` and 4161 after (order LEAN-31's revised closure script; order LEAN-30's script
+read import lines inside comments and printed 9037). Also new: rules 36 and 37 below (dated times;
+`el.sh` refuses names not probed).
 
 ---
 
@@ -1026,7 +1028,7 @@ failure mode, and it is the one this library was built in reaction to.
   `master`, on both remotes, still moves only from DSMain, after claude-ai's check and on Dustin's
   push.
 - **Rules learned in the runs of order 0923 (rules 1–7), order G-5 (rules 8–15), order G-6
-  (rules 16–19), order G-7 (rules 20–25), order G-8 (rules 26–30), order G-9 (rules 31–34) and
+  (rules 16–19), order G-7 (rules 20–25), order G-8 (rules 26–30), order G-9 (rules 31–34),
   order LEAN-29 (rule 35) and order LEAN-30 (rules 36 and 37).**
   Rules 1–7
   are dated 2026-09-23; source: order G-5 §1, which cites round 17's dated amendment, Findings 1
@@ -1187,9 +1189,9 @@ failure mode, and it is the one this library was built in reaction to.
       changed against the order's base commit), with comments, docstrings and string literals
       removed, takes the identifiers that contain `.` or `_`, and refuses the run, logged
       `NOT RUN` with the tokens, while one is not cleared: by a successful `#check` probe of it or
-      of a dot-prefix of it, or of a full name ending in it (a name under `open`); by a first
-      component the text binds (a hypothesis or a local); by a name the file declares; or by the
-      hashed allowlist of tactic names. The order's own statement probes seed it. Refusing too
+      of a dot-prefix of it, or of a full name that ends in `.` and it (a name under `open`); by a
+      first component that the text declares or binds (a hypothesis or a local); or by the hashed
+      allowlist of tactic names. The order's own statement probes seed it. Refusing too
       much is safe: a probe clears it (order LEAN-30 used names in drafts before their `#check`
       probes again, its review r98's MAJOR and others: LEAN-30's close, thread 3).
 - **Standing answers** (dated 2026-09-23; source: order G-5 §2):
