@@ -72,6 +72,7 @@ import ClassicalLean.Probability.RelativeEntropyGrowth
 import ClassicalLean.Analysis.MinimumQuadraticForm
 import ClassicalLean.Probability.FirstOrderRecursion
 import ClassicalLean.Probability.StepUpProcedure
+import ClassicalLean.Probability.StepDownProcedure
 import ClassicalLean.Probability.RuinBound
 import ClassicalLean.Analysis.GrowthMaximiser
 import ClassicalLean.Probability.LikelihoodScore
