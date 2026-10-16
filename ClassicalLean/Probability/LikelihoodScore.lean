@@ -52,9 +52,10 @@ chance of a win given the past is at most `p₀`: `μ[W (n+1) | 𝒢 n] ≤ p₀
   (both by hand). At `q = 1` no junk value decides: the second term of the relative entropy is
   `0 · log (0 / (1 - p₀)) = 0` whatever the logarithm gives. That the bound `p₀ ^ N` is reached by
   independent outcomes is order LEAN-31's check `104.r5`. The probability measure is needed, in
-  both theorems: under twice the law of one fair coin (`p₀ = 1/2`, `q = 1`, `N = 1`) the chance is
-  `1` against the bound `1/2` (by hand; the conditional means do not change when the measure is
-  scaled).
+  both theorems: under twice the law of one fair coin, with `p₀ = 1/2` and `N = 1`, the chance is
+  `1`, against the bound `1/2` at `q = 1` for the primed theorem, and at `q = 3/4` for the unprimed
+  one against `exp (-(3/4 · log (3/2) + 1/4 · log (1/2))) ≈ 0.877` (by hand; the conditional
+  means do not change when the measure is scaled).
 
 So the score may be looked at after every outcome, and stopping the first time it reaches `1/α`
 raises a false alarm with chance at most `α`. A fixed-size test at level `0.05` re-run after every
