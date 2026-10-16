@@ -25,7 +25,7 @@ smallest, for the largest `k` such that `x₍ᵣ₎ ≤ q / (m − r + 1)` for e
   Holm's procedure rejects some true null is at most `q`, whatever the dependence between the
   p-values. With `h` true nulls and `ω` in that event, the smallest true-null p-value is rejected
   too, at most `q / c` where `c` counts the p-values at least it; every true null is among them,
-  so `h ≤ c` and the event lies inside `⋃ i, {P i ≤ q / h}`, whose measure is at most
+  so `h ≤ c` and the event lies inside `⋃ i ∈ H, {P i ≤ q / h}`, whose measure is at most
   `h · (q / h) = q`. **Wider than the plan's reading:** any finite measure, not only a
   probability measure (order LEAN-31's ruling).
 
@@ -34,7 +34,7 @@ procedure; neither imports the other.
 
 ## Hypotheses
 
-Each hypothesis fails when dropped alone (order LEAN-31's exact checks, lane
+With any one hypothesis dropped, the theorem fails (order LEAN-31's exact checks, lane
 `lean/LEAN-31-checks.py`, exact fractions):
 
 * `0 ≤ q` (`105.drop.hq`): with no true null the event is empty, of measure `0`, and `q = −1`.
@@ -48,8 +48,10 @@ Each hypothesis fails when dropped alone (order LEAN-31's exact checks, lane
   is `0`.
 
 Validity is asked for `u ≥ 0` only: for `u < 0` it would ask a chance to be negative, so no
-measure meets it; for a probability measure it is the same as asking it for `u` in `[0, 1]`; the
-part `u > 1` is what lets a finite measure of mass above `1` meet it.
+measure meets it; for a probability measure it is the same as asking it for `u` in `[0, 1]`; for a
+finite measure of mass above `1` the part `u > 1` is needed (by hand: one point of mass `2`, one
+test, `H = {0}`, `P 0 = 6/5`, `q = 3/2`: validity holds for every `u` in `[0, 1]` but not at
+`u = 6/5`, and Holm's procedure rejects, measure `2 > 3/2`).
 
 ## What is cited
 
