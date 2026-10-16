@@ -194,8 +194,8 @@ example := ClassicalLean.Statistics.integral_residual_sq_div (ι := Fin 3) (κ :
         Fin.sum_univ_four] <;> norm_num)
   (by simp)
 
-/-- The hypotheses of `integral_residual_sq'` hold together under a measure that is not a
-probability measure: the counting measure on four points, of mass `4`; three centred, pairwise
+/-- The hypotheses of `integral_residual_sq'` hold together: under the counting measure on four
+points, of mass `4`, which is not a probability measure; three centred, pairwise
 uncorrelated `±1` noises, each of second moment `4 = 2²`, so `σ = 2`; and a `3 × 2` design whose
 Gram matrix is `1`. -/
 example := ClassicalLean.Statistics.integral_residual_sq' (ι := Fin 3) (κ := Fin 2) (Ω := Fin 4)

@@ -44,13 +44,17 @@ chance of a win given the past is at most `p₀`: `μ[W (n+1) | 𝒢 n] ≤ p₀
   the second follows from `p₀ ≤ q < 1`. `measureReal_sum_ge_le_exp_neg_relEntropy'` (order
   LEAN-31, item 104) proves the case `q = 1` and drops `p₀ < 1`: wider in both. It keeps `q ≤ 1`
   and `0 < p₀`, though neither is needed: for `q > 1` the event is empty once `N ≥ 1`, as every
-  outcome is at most `1`, and at `N = 0` both sides are `1` (order LEAN-31's check `104.q_gt_1`);
+  outcome is at most `1`, and at `N = 0` both sides are `1` (by hand; order LEAN-31's check
+  `104.q_gt_1` samples outcomes in `{0, 1/2, 1}` with `N ≤ 6`);
   for `p₀ < 0` the hypotheses cannot hold together, since `0 ≤ μ[W (n + 1) | 𝒢 n] ≤ p₀` almost
   everywhere; for `p₀ = 0` every outcome is `0` almost surely, so the event is null when `q > 0`
   and `N ≥ 1`, and both sides are `1` when `q = 0` or `N = 0`, as `relEntropy ![0, 1] ![0, 1] = 0`
   (both by hand). At `q = 1` no junk value decides: the second term of the relative entropy is
   `0 · log (0 / (1 - p₀)) = 0` whatever the logarithm gives. That the bound `p₀ ^ N` is reached by
-  independent outcomes is order LEAN-31's check `104.r5`.
+  independent outcomes is order LEAN-31's check `104.r5`. The probability measure is needed, in
+  both theorems: under twice the law of one fair coin (`p₀ = 1/2`, `q = 1`, `N = 1`) the chance is
+  `1` against the bound `1/2` (by hand; the conditional means do not change when the measure is
+  scaled).
 
 So the score may be looked at after every outcome, and stopping the first time it reaches `1/α`
 raises a false alarm with chance at most `α`. A fixed-size test at level `0.05` re-run after every
@@ -466,8 +470,8 @@ example := ClassicalLean.Probability.LikelihoodScore.measureReal_sum_ge_le_exp_n
   (by norm_num) (by norm_num) (by norm_num) (by norm_num) (N := 1)
 
 open MeasureTheory ProbabilityTheory Filter in
-/-- The hypotheses of `measureReal_sum_ge_le_exp_neg_relEntropy'` hold together at `q = 1` with
-two genuine fair coins: under the uniform probability on `Bool × Bool`, `W 1` is the first
+/-- The hypotheses of `measureReal_sum_ge_le_exp_neg_relEntropy'` hold together: at `q = 1`,
+with two genuine fair coins: under the uniform probability on `Bool × Bool`, `W 1` is the first
 coordinate and `W 2` the second (each `1` on `true`, `0` on `false`), `W 0 = 0`, and every later
 outcome `W n`, `n ≥ 3`, is `1/2` when the first coin is `true` and `0` otherwise; time `0` knows
 nothing, time `1` knows the first coin, later times know everything. Given time `0` the mean of

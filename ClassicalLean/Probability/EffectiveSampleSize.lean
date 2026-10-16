@@ -50,8 +50,11 @@ probability measure, as `LinearPrediction` does.
   (`hZ`, `hZ2`) and the noise variance `s²` (`hvar`). The probability measure is not needed
   either (review r6 of order LEAN-17: Mathlib's `iIndepFun.isProbabilityMeasure` derives it from
   the independence); it is kept as `LinearPrediction` states it. `variance_average_le_of_steady'`
-  (order LEAN-31, item 104) is the bound with no measure instance at all; its hypotheses are the
-  others of `variance_average_le_of_steady`, with the rows above.
+  (order LEAN-31, item 104) is the bound with no measure instance at all (by hand: its proof's
+  first line, `iIndepFun.isProbabilityMeasure`; its witness's numbers are order LEAN-31's check
+  `104.r6`); its hypotheses are the others of `variance_average_le_of_steady`, with the rows
+  above. The start and the recursion (`hx0`, `hx`) define the model; they are not shown needed by
+  a case.
 
 **The combinatorics bridge.** `S n = ∑ i, j < n, ρ ^ |i - j|` satisfies the order-3 recurrence
 `S (n + 3) = (2 + ρ) S (n + 2) - (1 + 2 ρ) S (n + 1) + ρ S n` for every `ρ`, `ρ = 1` included
@@ -658,8 +661,8 @@ example : ∃ (μ : Measure (Fin 3)) (X : Fin 2 → Fin 3 → ℝ) (γ : ℕ →
 
 end ClassicalLean.Probability.EffectiveSampleSize
 
-/-- The hypotheses of `variance_average_le_of_steady'` hold together, with no measure instance
-supplied: on `ℕ → ℝ`, the product of the Gaussian laws `N(0, 4/3)` for coordinate `0` and
+/-- The hypotheses of `variance_average_le_of_steady'` hold together: with no measure instance
+supplied, on `ℕ → ℝ`, the product of the Gaussian laws `N(0, 4/3)` for coordinate `0` and
 `N(0, 1)` for every later one (`Measure.infinitePi`, a probability measure); the noises `Z i` the
 coordinates, independent (`iIndepFun_infinitePi`); the recursion `x (t + 1) = x t / 2 + Z (t + 1)`
 started at `x 0 = Z 0`, so `a = 1/2`, `s = 1`, and the start has the steady variance
