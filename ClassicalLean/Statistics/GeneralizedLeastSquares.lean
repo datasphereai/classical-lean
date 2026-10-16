@@ -56,8 +56,10 @@ variance `σ² (1ᵀ V 1) / n²` and generalised least squares has `σ² / (1ᵀ
 is `(1ᵀ V 1)(1ᵀ V⁻¹ 1) / n²` (the variance reading is the standard one, not a theorem of this file).
 `onesQuad_mul_onesInvOnes_le` bounds it: when `m ≤ V ≤ M` in the Loewner order (`V − m I` and
 `M I − V` positive semidefinite) and `0 < m`, the ratio is at most `(m + M)² / (4 m M)`, Bloomfield
-and Watson's efficiency bound in this case (P. Bloomfield and G. S. Watson, "The inefficiency of
-least squares", Biometrika 62 (1975)). It is the Kantorovich inequality
+and Watson's efficiency bound in this case (Peter Bloomfield and Geoffrey S. Watson, "The
+inefficiency of least squares", Biometrika 62(1), 121–128 (1975); authors, title, volume, issue and
+pages checked against the journal's contents page (Biometrika volume 62, issue 1, April 1975) by
+claude-ai on 2026-10-16, not by reading the paper). It is the Kantorovich inequality
 (`ClassicalLean.Algebra.Kantorovich.dotProduct_mulVec_mul_inv_le`, imported here; that module
 imports only Mathlib, so no cycle) at the vector of ones, with `1 ⬝ 1 = n`. The bound is reached at
 `V = diag(m, M)`, `n = 2`, the equal mix of the two eigenvectors (order LEAN-30's check
@@ -243,7 +245,9 @@ theorem glsMatrix_ones_mul_mul_transpose [Unique κ] (V : Matrix ι ι ℝ) :
 MATH-PLAN-library-2). When `m ≤ V ≤ M` in the Loewner order and `0 < m`, the ratio
 `(1ᵀ V 1)(1ᵀ V⁻¹ 1) / n²` (read as the variance of the plain average over that of generalised
 least squares; a reading, not a theorem) is at most `(m + M)² / (4 m M)`: the Kantorovich
-inequality at the vector of ones. -/
+inequality at the vector of ones. The credit: Peter Bloomfield and Geoffrey S. Watson, "The
+inefficiency of least squares", Biometrika 62(1), 121–128 (1975) (checked as the module docstring
+says). -/
 theorem onesQuad_mul_onesInvOnes_le [Nonempty ι] {V : Matrix ι ι ℝ} {m M : ℝ} (hm : 0 < m)
     (hmV : (V - m • 1).PosSemidef) (hVM : (M • 1 - V).PosSemidef) :
     (1 ⬝ᵥ (V *ᵥ 1)) * onesInvOnes V / (Fintype.card ι : ℝ) ^ 2 ≤ (m + M) ^ 2 / (4 * m * M) := by
