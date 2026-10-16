@@ -41,7 +41,16 @@ chance of a win given the past is at most `p₀`: `μ[W (n+1) | 𝒢 n] ≤ p₀
   trivial filtration, `N = 10`: `1/2` against `0.270`). `q < 1` is not shown needed: at `q = 1` the
   event is that every outcome is `1`, and the bound `p₀ ^ N` still holds; the proof uses `q < 1`
   so that both factors of the score are positive. Neither `0 < p₀` nor `p₀ < 1` is claimed needed;
-  the second follows from `p₀ ≤ q < 1`.
+  the second follows from `p₀ ≤ q < 1`. `measureReal_sum_ge_le_exp_neg_relEntropy'` (order
+  LEAN-31, item 104) proves the case `q = 1` and drops `p₀ < 1`: wider in both. It keeps `q ≤ 1`
+  and `0 < p₀`, though neither is needed: for `q > 1` the event is empty once `N ≥ 1`, as every
+  outcome is at most `1`, and at `N = 0` both sides are `1` (order LEAN-31's check `104.q_gt_1`);
+  for `p₀ < 0` the hypotheses cannot hold together, since `0 ≤ μ[W (n + 1) | 𝒢 n] ≤ p₀` almost
+  everywhere; for `p₀ = 0` every outcome is `0` almost surely, so the event is null when `q > 0`
+  and `N ≥ 1`, and both sides are `1` when `q = 0` or `N = 0`, as `relEntropy ![0, 1] ![0, 1] = 0`
+  (both by hand). At `q = 1` no junk value decides: the second term of the relative entropy is
+  `0 · log (0 / (1 - p₀)) = 0` whatever the logarithm gives. That the bound `p₀ ^ N` is reached by
+  independent outcomes is order LEAN-31's check `104.r5`.
 
 So the score may be looked at after every outcome, and stopping the first time it reaches `1/α`
 raises a false alarm with chance at most `α`. A fixed-size test at level `0.05` re-run after every
@@ -322,6 +331,62 @@ theorem measureReal_sum_ge_le_exp_neg_sq {W : ℕ → Ω → ℝ} (hadp : Strong
   have hN : (0 : ℝ) ≤ N := Nat.cast_nonneg N
   nlinarith [mul_le_mul_of_nonneg_left h hN]
 
+/-- **The Chernoff bound in relative-entropy form, `q = 1` included and no `p₀ < 1`** (order
+LEAN-31, item 104 of MATH-PLAN-library-2; review r5 of order LEAN-17). For `0 < p₀ ≤ q ≤ 1`: for
+`q < 1` it is `measureReal_sum_ge_le_exp_neg_relEntropy`; at `q = 1` and `p₀ < 1` the event is
+that each of the first `N` outcomes is `1`, where the score is `(1 / p₀) ^ N`, and Ville's
+inequality gives `p₀ ^ N`, the bound, as `relEntropy ![1, 0] ![p₀, 1 - p₀] = log (1 / p₀)`; at
+`q = p₀ = 1` the bound is `1`. `q ≤ 1` and `0 < p₀` are kept though not needed (the module
+docstring). -/
+theorem measureReal_sum_ge_le_exp_neg_relEntropy' {Ω : Type*} {m0 : MeasurableSpace Ω}
+    {μ : Measure Ω} [IsProbabilityMeasure μ] {𝒢 : Filtration ℕ m0} {p₀ q : ℝ}
+    {W : ℕ → Ω → ℝ} (hadp : StronglyAdapted 𝒢 W)
+    (hW0 : ∀ n ω, 0 ≤ W n ω) (hW1 : ∀ n ω, W n ω ≤ 1)
+    (hcond : ∀ n, μ[W (n + 1) | 𝒢 n] ≤ᵐ[μ] fun _ ↦ p₀) (hp0 : 0 < p₀)
+    (hq0 : p₀ ≤ q) (hq1 : q ≤ 1) (N : ℕ) :
+    μ.real {ω | q * N ≤ ∑ i ∈ range N, W (i + 1) ω} ≤
+      Real.exp (-(N * relEntropy ![q, 1 - q] ![p₀, 1 - p₀])) := by
+  rcases hq1.lt_or_eq with hq | rfl
+  · exact measureReal_sum_ge_le_exp_neg_relEntropy hadp hW0 hW1 hcond hp0
+      (hq0.trans_lt hq) hq0 hq N
+  · rcases hq0.lt_or_eq with hp1 | rfl
+    · have hD : relEntropy ![(1 : ℝ), 1 - 1] ![p₀, 1 - p₀] = Real.log (1 / p₀) := by
+        rw [relEntropy_fin_two]
+        ring
+      have hα : 0 < Real.exp (-((N : ℝ) * relEntropy ![(1 : ℝ), 1 - 1] ![p₀, 1 - p₀])) :=
+        Real.exp_pos _
+      have hsub : {ω | 1 * (N : ℝ) ≤ ∑ i ∈ range N, W (i + 1) ω} ⊆
+          {ω | ∃ n ≤ N, 1 / Real.exp (-((N : ℝ) * relEntropy ![(1 : ℝ), 1 - 1] ![p₀, 1 - p₀]))
+            ≤ score p₀ 1 W n ω} := by
+        intro ω hω
+        refine ⟨N, le_rfl, ?_⟩
+        have hω' : 1 * (N : ℝ) ≤ ∑ i ∈ range N, W (i + 1) ω := hω
+        have hnn : ∀ i ∈ range N, 0 ≤ 1 - W (i + 1) ω := fun i _ ↦ sub_nonneg.mpr (hW1 _ _)
+        have hsum0 : ∑ i ∈ range N, (1 - W (i + 1) ω) = 0 := by
+          have he : ∑ i ∈ range N, (1 - W (i + 1) ω) = (N : ℝ) - ∑ i ∈ range N, W (i + 1) ω := by
+            rw [Finset.sum_sub_distrib, Finset.sum_const, Finset.card_range, nsmul_eq_mul,
+              mul_one]
+          have := Finset.sum_nonneg hnn
+          linarith
+        have hone : ∀ i ∈ range N, W (i + 1) ω = 1 := fun i hi ↦ by
+          have := (Finset.sum_eq_zero_iff_of_nonneg hnn).mp hsum0 i hi
+          linarith
+        have hscore : score p₀ 1 W N ω = (1 / p₀) ^ N := by
+          have h1 : ∀ i ∈ range N, scoreFactor p₀ 1 (W (i + 1) ω) = 1 / p₀ := fun i hi ↦ by
+            rw [hone i hi, scoreFactor_one]
+          unfold score
+          rw [Finset.prod_congr rfl h1, Finset.prod_const, Finset.card_range]
+        rw [one_div, ← Real.exp_neg, neg_neg, hD, Real.exp_nat_mul,
+          Real.exp_log (one_div_pos.mpr hp0)]
+        exact hscore.ge
+      exact (measureReal_mono hsub).trans
+        (measureReal_exists_le_score hadp hW0 hW1 hcond hp0 hp1 hq0 le_rfl hα N)
+    · have h0 : relEntropy ![(1 : ℝ), 1 - 1] ![1, 1 - 1] = 0 := by
+        rw [relEntropy_fin_two]
+        simp
+      rw [h0, mul_zero, neg_zero, Real.exp_zero]
+      exact (measureReal_mono (Set.subset_univ _)).trans (le_of_eq probReal_univ)
+
 end RelativeEntropy
 
 end ClassicalLean.Probability.LikelihoodScore
@@ -399,3 +464,89 @@ example := ClassicalLean.Probability.LikelihoodScore.measureReal_sum_ge_le_exp_n
         Integrable.of_finite]
       exact Eventually.of_forall fun ω ↦ by simp)
   (by norm_num) (by norm_num) (by norm_num) (by norm_num) (N := 1)
+
+open MeasureTheory ProbabilityTheory Filter in
+/-- The hypotheses of `measureReal_sum_ge_le_exp_neg_relEntropy'` hold together at `q = 1` with
+two genuine fair coins: under the uniform probability on `Bool × Bool`, `W 1` is the first
+coordinate and `W 2` the second (each `1` on `true`, `0` on `false`), `W 0 = 0`, and every later
+outcome `W n`, `n ≥ 3`, is `1/2` when the first coin is `true` and `0` otherwise; time `0` knows
+nothing, time `1` knows the first coin, later times know everything. Given time `0` the mean of
+`W 1` is `1/2`; given the first coin the mean of the second is `1/2`, by independence of the
+coordinates; from time `2` on each later outcome is known, so its conditional mean is itself, at
+most `1/2`; `0 < p₀ = 1/2 ≤ q = 1 ≤ 1`, with `N = 2`. -/
+example := ClassicalLean.Probability.LikelihoodScore.measureReal_sum_ge_le_exp_neg_relEntropy'
+  (p₀ := 1 / 2) (q := 1) (Ω := Bool × Bool) (μ := uniformOn Set.univ)
+  (𝒢 := ⟨fun n ↦ if n = 0 then ⊥ else if n = 1 then
+      MeasurableSpace.comap (fun ω : Bool × Bool ↦ if ω.1 then (1 : ℝ) else 0) inferInstance
+      else (inferInstance : MeasurableSpace (Bool × Bool)),
+    fun i j hij ↦ by
+      have hm : MeasurableSpace.comap (fun ω : Bool × Bool ↦ if ω.1 then (1 : ℝ) else 0)
+          inferInstance ≤ (inferInstance : MeasurableSpace (Bool × Bool)) :=
+        measurable_iff_comap_le.1 (measurable_of_finite _)
+      rcases i with _ | _ | i
+      · exact bot_le
+      · rcases j with _ | _ | j
+        · omega
+        · exact le_rfl
+        · exact hm
+      · rcases j with _ | _ | j
+        · omega
+        · omega
+        · exact le_rfl,
+    fun i ↦ by
+      have hm : MeasurableSpace.comap (fun ω : Bool × Bool ↦ if ω.1 then (1 : ℝ) else 0)
+          inferInstance ≤ (inferInstance : MeasurableSpace (Bool × Bool)) :=
+        measurable_iff_comap_le.1 (measurable_of_finite _)
+      rcases i with _ | _ | i
+      · exact bot_le
+      · exact hm
+      · exact le_rfl⟩)
+  (W := fun n ω ↦ if n = 1 then (if ω.1 then 1 else 0) else
+    if n = 2 then (if ω.2 then 1 else 0) else
+    if n = 0 then 0 else (if ω.1 then 1 / 2 else 0))
+  (fun n ↦ by
+    rcases n with _ | _ | n
+    · exact (stronglyMeasurable_const : StronglyMeasurable[⊥] fun _ : Bool × Bool ↦ (0 : ℝ))
+    · exact (measurable_iff_comap_le.2 le_rfl :
+        Measurable[MeasurableSpace.comap (fun ω : Bool × Bool ↦ if ω.1 then (1 : ℝ) else 0)
+          inferInstance] fun ω : Bool × Bool ↦ if ω.1 then (1 : ℝ) else 0).stronglyMeasurable
+    · exact ((measurable_of_finite _).stronglyMeasurable :
+        StronglyMeasurable[(inferInstance : MeasurableSpace (Bool × Bool))]
+          (_ : Bool × Bool → ℝ)))
+  (fun _ _ ↦ by split_ifs <;> norm_num) (fun _ _ ↦ by split_ifs <;> norm_num)
+  (fun n ↦ by
+    have hμ : ∀ x : Bool × Bool, (uniformOn Set.univ : Measure (Bool × Bool)).real {x} = 1 / 4 :=
+      fun x ↦ by simp [uniformOn_univ, Measure.real]
+    rcases n with _ | _ | n
+    · change condExp ⊥ (uniformOn Set.univ) _ ≤ᵐ[uniformOn Set.univ] _
+      rw [condExp_bot]
+      refine Eventually.of_forall fun ω ↦ ?_
+      rw [integral_fintype Integrable.of_finite]
+      simp [hμ, Fintype.sum_prod_type]; norm_num
+    · classical
+      have hm : MeasurableSpace.comap (fun ω : Bool × Bool ↦ if ω.1 then (1 : ℝ) else 0)
+          inferInstance ≤ (inferInstance : MeasurableSpace (Bool × Bool)) :=
+        measurable_iff_comap_le.1 (measurable_of_finite _)
+      change condExp (MeasurableSpace.comap (fun ω : Bool × Bool ↦ if ω.1 then (1 : ℝ) else 0)
+          inferInstance) (uniformOn Set.univ) (fun ω : Bool × Bool ↦ if ω.2 then (1 : ℝ) else 0)
+          ≤ᵐ[uniformOn Set.univ] fun _ ↦ (1 / 2 : ℝ)
+      refine EventuallyEq.le (EventuallyEq.symm ?_)
+      refine ae_eq_condExp_of_forall_setIntegral_eq hm Integrable.of_finite
+        (fun s _ _ ↦ (integrable_const _).integrableOn) (fun s hs _ ↦ ?_)
+        stronglyMeasurable_const.aestronglyMeasurable
+      obtain ⟨t, -, rfl⟩ := MeasurableSpace.measurableSet_comap.mp hs
+      have hmeas : MeasurableSet ((fun ω : Bool × Bool ↦ if ω.1 then (1 : ℝ) else 0) ⁻¹' t) :=
+        hm _ hs
+      rw [← integral_indicator hmeas, ← integral_indicator hmeas,
+        integral_fintype Integrable.of_finite, integral_fintype Integrable.of_finite]
+      simp only [hμ, Fintype.sum_prod_type, Fintype.sum_bool, Set.indicator_apply,
+        Set.mem_preimage, smul_eq_mul]
+      by_cases h0 : (0 : ℝ) ∈ t <;> by_cases h1 : (1 : ℝ) ∈ t <;> simp [h0, h1] <;> norm_num
+    · change condExp (inferInstance : MeasurableSpace (Bool × Bool)) (uniformOn Set.univ)
+        (fun ω : Bool × Bool ↦ if ω.1 then (1 / 2 : ℝ) else 0) ≤ᵐ[uniformOn Set.univ] _
+      rw [condExp_of_stronglyMeasurable le_rfl
+        (measurable_of_finite
+          (fun ω : Bool × Bool ↦ if ω.1 then (1 / 2 : ℝ) else 0)).stronglyMeasurable
+        Integrable.of_finite]
+      exact Eventually.of_forall fun ω ↦ by rcases ω with ⟨_ | _, _⟩ <;> norm_num)
+  (by norm_num) (by norm_num) le_rfl (N := 2)

@@ -17,6 +17,8 @@ In the linear model `y = X β + ε`, with a design `X` of `n` rows and `p` colum
 * `sum_residualMaker_mulVec_sq`: the residual sum of squares `∑ i, (M y) i ^ 2` is `εᵀ M ε`,
   because `M X = 0` and `M` is symmetric and idempotent.
 * `integral_residual_sq`: its mean is `σ² (n − p)`.
+* `integral_residual_sq'` (order LEAN-31, item 104): the same for any measure, not only a
+  probability measure.
 * `integral_residual_sq_div`: so, for `p < n`, dividing it by `n − p` estimates `σ²` without bias,
   the usual estimate `s²` of the noise variance.
 
@@ -34,7 +36,10 @@ Without `p < n` (`n = p = 1`) Lean's `x / 0 = 0` gives `0`, not `σ²`.
 The finite second moments (`hε`) are not shown needed by a case here (none exists on a finite
 space). The probability measure is not needed: review r3 of order LEAN-17 proved the first theorem
 for any measure, by a route that does not pass through `integral_dotProduct_mulVec`; it is kept so
-that the proof is the bridge above.
+that the proof is the bridge above, and `integral_residual_sq'` (order LEAN-31, item 104) is that
+theorem for any measure. Its other hypotheses are the first theorem's, with the rows above; its
+witness, at the end of this file, uses the counting measure of mass `4` (order LEAN-31's check
+`104.r3`).
 
 ## What Mathlib provides
 
@@ -84,6 +89,50 @@ theorem integral_residual_sq {X : Matrix ι κ ℝ} (hX : IsUnit (Xᵀ * X).det)
   have hm : (fun i ↦ μ[ε i]) = 0 := funext hmean
   rw [hS, hm, mulVec_zero, dotProduct_zero, add_zero, Matrix.mul_smul, Matrix.mul_one,
     trace_smul, trace_residualMaker hX, smul_eq_mul]
+
+/-- **The residual sum of squares has mean `σ² (n − p)`, for any measure** (order LEAN-31, item
+104 of MATH-PLAN-library-2; review r3 of order LEAN-17). `integral_residual_sq` with no
+probability measure: the noise square-integrable, of mean `0` and with covariances `σ² δᵢⱼ` under
+`μ`, whatever its total mass. With mean `0` each covariance is the integral of a product, so the
+quadratic form `ε ⬝ᵥ (M *ᵥ ε)` has mean `σ²` times the trace of `M`, which is `n − p`. -/
+theorem integral_residual_sq' {ι κ Ω : Type*} [Fintype ι] [DecidableEq ι] [Fintype κ]
+    [DecidableEq κ] {m0 : MeasurableSpace Ω} {μ : Measure Ω}
+    {X : Matrix ι κ ℝ} (hX : IsUnit (Xᵀ * X).det) (β : κ → ℝ)
+    {ε : ι → Ω → ℝ} (hε : ∀ i, MemLp (ε i) 2 μ) (hmean : ∀ i, μ[ε i] = 0) {σ : ℝ}
+    (hcov : ∀ i j, cov[ε i, ε j; μ] = if i = j then σ ^ 2 else 0) :
+    ∫ ω, ∑ i, (residualMaker X *ᵥ (X *ᵥ β + fun i ↦ ε i ω)) i ^ 2 ∂μ =
+      σ ^ 2 * (Fintype.card ι - Fintype.card κ) := by
+  simp_rw [sum_residualMaker_mulVec_sq hX β]
+  have hprod : ∀ i j, ∫ ω, ε i ω * ε j ω ∂μ = if i = j then σ ^ 2 else 0 := by
+    intro i j
+    have h := hcov i j
+    simp only [covariance, hmean, sub_zero] at h
+    exact h
+  have hint : ∀ i j, Integrable (fun ω ↦ ε i ω * (residualMaker X i j * ε j ω)) μ := fun i j ↦ by
+    have := ((hε j).const_mul (residualMaker X i j)).integrable_mul (hε i)
+    exact this.congr (ae_of_all _ fun ω ↦ by simp only [Pi.mul_apply]; ring)
+  simp only [dotProduct, mulVec, Finset.mul_sum]
+  rw [integral_finsetSum _ fun i _ ↦ integrable_finsetSum _ fun j _ ↦ hint i j]
+  simp_rw [integral_finsetSum _ fun j _ ↦ hint _ j]
+  have hterm : ∀ i j, ∫ ω, ε i ω * (residualMaker X i j * ε j ω) ∂μ =
+      residualMaker X i j * (if i = j then σ ^ 2 else 0) := by
+    intro i j
+    rw [← hprod i j, ← integral_const_mul]
+    congr 1
+    funext ω
+    ring
+  simp_rw [hterm]
+  have hdiag : ∀ i, ∑ j, residualMaker X i j * (if i = j then σ ^ 2 else 0) =
+      residualMaker X i i * σ ^ 2 := by
+    intro i
+    rw [Finset.sum_eq_single i (fun j _ hj ↦ by simp [Ne.symm hj])
+      (fun h ↦ absurd (Finset.mem_univ i) h)]
+    simp
+  simp only [hdiag]
+  have htr : ∑ i, residualMaker X i i = (Fintype.card ι : ℝ) - Fintype.card κ :=
+    trace_residualMaker hX
+  rw [← Finset.sum_mul, htr]
+  ring
 
 /-- **The residual variance estimate is unbiased.** Under the hypotheses of `integral_residual_sq`,
 and with more observations than parameters, the residual sum of squares divided by `n − p` has
@@ -144,3 +193,21 @@ example := ClassicalLean.Statistics.integral_residual_sq_div (ι := Fin 3) (κ :
       simp [integral_fintype Integrable.of_finite, uniformOn_univ, Measure.real,
         Fin.sum_univ_four] <;> norm_num)
   (by simp)
+
+/-- The hypotheses of `integral_residual_sq'` hold together under a measure that is not a
+probability measure: the counting measure on four points, of mass `4`; three centred, pairwise
+uncorrelated `±1` noises, each of second moment `4 = 2²`, so `σ = 2`; and a `3 × 2` design whose
+Gram matrix is `1`. -/
+example := ClassicalLean.Statistics.integral_residual_sq' (ι := Fin 3) (κ := Fin 2) (Ω := Fin 4)
+  (μ := Measure.count) (X := !![1, 0; 0, 1; 0, 0])
+  (by simp [isUnit_iff_ne_zero, det_fin_two, mul_apply, Fin.sum_univ_three]) (β := ![1, 2])
+  (ε := ![![1, 1, -1, -1], ![1, -1, 1, -1], ![1, -1, -1, 1]]) (fun _ ↦ MemLp.of_discrete)
+  (fun i ↦ by
+    rw [integral_fintype Integrable.of_finite]
+    fin_cases i <;> simp [Measure.real, Fin.sum_univ_four])
+  (σ := 2)
+  (fun i j ↦ by
+    simp only [covariance]
+    rw [integral_fintype Integrable.of_finite]
+    fin_cases i <;> fin_cases j <;>
+      simp [integral_fintype Integrable.of_finite, Measure.real, Fin.sum_univ_four] <;> norm_num)

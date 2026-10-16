@@ -7,6 +7,8 @@ Authors: Dustin Watkins, Claude (Anthropic)
 import Mathlib.Probability.Moments.Variance
 import ClassicalLean.Combinatorics.RecurrenceGeneratingFunction
 import ClassicalLean.Probability.LinearPrediction
+import Mathlib.Probability.HasLawExists
+import Mathlib.Probability.Distributions.Gaussian.Real
 
 /-!
 # What an average of correlated quantities is worth
@@ -47,7 +49,9 @@ probability measure, as `LinearPrediction` does.
 * Not shown needed by a case: the measurability and the finite second moments of the noises
   (`hZ`, `hZ2`) and the noise variance `s²` (`hvar`). The probability measure is not needed
   either (review r6 of order LEAN-17: Mathlib's `iIndepFun.isProbabilityMeasure` derives it from
-  the independence); it is kept as `LinearPrediction` states it.
+  the independence); it is kept as `LinearPrediction` states it. `variance_average_le_of_steady'`
+  (order LEAN-31, item 104) is the bound with no measure instance at all; its hypotheses are the
+  others of `variance_average_le_of_steady`, with the rows above.
 
 **The combinatorics bridge.** `S n = ∑ i, j < n, ρ ^ |i - j|` satisfies the order-3 recurrence
 `S (n + 3) = (2 + ρ) S (n + 2) - (1 + 2 ρ) S (n + 1) + ρ S n` for every `ρ`, `ρ = 1` included
@@ -426,6 +430,21 @@ theorem variance_average_le_of_steady [IsProbabilityMeasure μ] {Z x : ℕ → �
     field_simp
     ring
 
+/-- **The variance of the average of a steady first-order recursion, bounded, with no measure
+instance** (order LEAN-31, item 104 of MATH-PLAN-library-2; review r6 of order LEAN-17).
+`variance_average_le_of_steady` with no `[IsProbabilityMeasure μ]`: the independence of the noises
+gives it (`iIndepFun.isProbabilityMeasure`). -/
+theorem variance_average_le_of_steady' {Ω : Type*} {m0 : MeasurableSpace Ω} {μ : Measure Ω}
+    {Z x : ℕ → Ω → ℝ} {a s : ℝ}
+    (hZ : ∀ i, Measurable (Z i))
+    (hZ2 : ∀ i, MemLp (Z i) 2 μ) (hind : iIndepFun Z μ) (hx0 : x 0 = Z 0)
+    (hx : ∀ t ω, x (t + 1) ω = a * x t ω + Z (t + 1) ω) (ha0 : 0 ≤ a) (ha1 : a < 1)
+    (hvar : ∀ t, variance (Z (t + 1)) μ = s ^ 2) (hstart : variance (x 0) μ = s ^ 2 / (1 - a ^ 2))
+    (n : ℕ) :
+    Var[fun ω ↦ (∑ t ∈ range n, x t ω) / n; μ] ≤ s ^ 2 / ((1 - a) ^ 2 * n) := by
+  have := hind.isProbabilityMeasure
+  exact variance_average_le_of_steady hZ hZ2 hind hx0 hx ha0 ha1 hvar hstart n
+
 /-! ### The variance of a sum for a covariance-stationary series (items 80 and 80b) -/
 
 omit [IsFiniteMeasure μ] in
@@ -638,3 +657,39 @@ example : ∃ (μ : Measure (Fin 3)) (X : Fin 2 → Fin 3 → ℝ) (γ : ℕ →
     norm_num
 
 end ClassicalLean.Probability.EffectiveSampleSize
+
+/-- The hypotheses of `variance_average_le_of_steady'` hold together, with no measure instance
+supplied: on `ℕ → ℝ`, the product of the Gaussian laws `N(0, 4/3)` for coordinate `0` and
+`N(0, 1)` for every later one (`Measure.infinitePi`, a probability measure); the noises `Z i` the
+coordinates, independent (`iIndepFun_infinitePi`); the recursion `x (t + 1) = x t / 2 + Z (t + 1)`
+started at `x 0 = Z 0`, so `a = 1/2`, `s = 1`, and the start has the steady variance
+`4/3 = 1 / (1 - 1/4)`, which is positive; `n = 3`. -/
+example := ClassicalLean.Probability.EffectiveSampleSize.variance_average_le_of_steady'
+  (Ω := ℕ → ℝ)
+  (μ := Measure.infinitePi fun i : ℕ ↦
+    gaussianReal 0 (if i = 0 then (⟨4 / 3, by norm_num⟩ : NNReal) else 1))
+  (Z := fun i ω ↦ ω i)
+  (x := fun t ↦ Nat.rec (motive := fun _ ↦ (ℕ → ℝ) → ℝ) (fun ω ↦ ω 0)
+    (fun k xk ω ↦ 1 / 2 * xk ω + ω (k + 1)) t)
+  (a := 1 / 2) (s := 1)
+  (fun i ↦ measurable_pi_apply i)
+  (fun i ↦ by
+    have h : MemLp id 2 ((Measure.infinitePi fun i : ℕ ↦
+        gaussianReal 0 (if i = 0 then (⟨4 / 3, by norm_num⟩ : NNReal) else 1)).map
+          (fun ω ↦ ω i)) := by
+      rw [Measure.infinitePi_map_eval]
+      exact memLp_id_gaussianReal' 2 (by norm_num)
+    exact (memLp_map_measure_iff aestronglyMeasurable_id (measurable_pi_apply i).aemeasurable).mp h)
+  (iIndepFun_infinitePi (X := fun _ ↦ id) fun _ ↦ measurable_id)
+  rfl (fun _ _ ↦ rfl) (by norm_num) (by norm_num)
+  (fun t ↦ by
+    rw [← variance_id_map (measurable_pi_apply (t + 1)).aemeasurable, Measure.infinitePi_map_eval,
+      variance_id_gaussianReal]
+    simp)
+  (by
+    change Var[fun ω : ℕ → ℝ ↦ ω 0; _] = _
+    rw [← variance_id_map (measurable_pi_apply 0).aemeasurable, Measure.infinitePi_map_eval,
+      variance_id_gaussianReal]
+    norm_num
+    rfl)
+  (n := 3)
