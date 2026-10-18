@@ -57,24 +57,29 @@ uniform draws): the supremum is `0.0551`, `0.0243`,
 
 Item 107 is wider than the plan's row, which takes `F` to differ from `F₀` somewhere: the first
 theorem asks no such thing (when `F = F₀` the supremum is `0` and the claim is about `c < 0`), and
-`F₀ = cdf ν₀` for any measure `ν₀` on `ℝ`, with no instance: Mathlib's `cdf_nonneg` and
-`cdf_le_one` take none, so `cdf ν₀` lies in `[0, 1]`, every supremum here is of a family bounded by
-`1` and is the true one, never Lean's `⨆ = 0`. (For `ν₀` that is not a probability measure,
-`cdf ν₀` is still a distribution function: `tendsto_cdf_atBot` and `tendsto_cdf_atTop` take no
-instance either.) The second theorem is an addition, for the plan's "a test with thresholds
-`c_n → 0` rejects eventually". Its hypotheses are needed, by hand (order LEAN-32's checks): without
-`F ≠ F₀` somewhere, `X i = 0` for every `i` and `F₀ = F = 1{x ≥ 0}` give `sup |F_n − F₀| = 0` for
-`n ≥ 1`, never above `c n = 1/(n + 1)` (`107.drop.hne`); without `c n → 0`, `c n = 1` is never
-below `sup |F_n − F₀| ≤ 1` (`107.drop.hc`); without independence, `X i = X 0` a fair coin on
-`{0, 1}` and `F₀ = 1{x ≥ 1}` give `sup |F − F₀| = 1/2`, while on `{X 0 = 1}` (chance `1/2`)
-`F_n = F₀` and `sup |F_n − F₀| = 0 < 1/4` for every `n` (`107.drop.indep`); without identical
-distribution, `X i = 0` for even `i` and `1` for odd `i`, `F = 1{x ≥ 0}` and `F₀` the distribution
-function of `(δ₀ + δ₁)/2` give `sup |F − F₀| = 1/2` and `F_n = F₀` at every even `n ≥ 2`, so
-`c = 1/4` is not eventually below `sup |F_n − F₀|` (`107.drop.ident`). `hX0` is item 60's, used to
-name the law; not shown needed. The witnesses draw fair coins on `ℕ → Bool` under Mathlib's
-`Measure.infinitePi` (independence by `iIndepFun_infinitePi`, identical distribution by
-`Measure.infinitePi_map_eval`), the first form order LEAN-32's rule 2 asked for; this module now
-imports `Mathlib.Probability.HasLawExists` for them.
+`F₀ = cdf ν₀` for any measure `ν₀` on `ℝ`, with no instance. Mathlib's `cdf_nonneg`, `cdf_le_one`,
+`tendsto_cdf_atBot` and `tendsto_cdf_atTop` take none, so `cdf ν₀` is a distribution function for
+every `ν₀`, and the `F₀` covered are the same as for a probability measure; the statement is wider
+only in that it asks no instance. (For a `ν₀` that is not a probability measure, `cdf ν₀` is in
+general not its own distribution function: `2 • δ₀` gives `(Iic 0)` mass `2`, while `cdf ν₀ ≤ 1`.)
+Every supremum here is of a family bounded by `1`, so it is the true one, never Lean's `⨆ = 0`.
+The second theorem is an addition, for the plan's "a test with thresholds `c_n → 0` rejects
+eventually". The hypotheses are needed, by hand (order LEAN-32's checks): without `F ≠ F₀`
+somewhere (second theorem), `X i = 0` for every `i` and `F₀ = F = 1{x ≥ 0}` give
+`sup |F_n − F₀| = 0` for `n ≥ 1`, never above `c n = 1/(n + 1)` (`107.drop.hne`); without
+`c n → 0` (second theorem), `c n = 1` is never below `sup |F_n − F₀| ≤ 1` (`107.drop.hc`). The
+next two rows serve both theorems, with `c = 1/4` for the first and `c n = 1/(n + 1)` for the
+second: without independence, `X i = X 0` a fair coin on `{0, 1}` and `F₀ = 1{x ≥ 1}` give
+`sup |F − F₀| = 1/2`, while on `{X 0 = 1}` (chance `1/2`) `F_n = F₀` and `sup |F_n − F₀| = 0` for
+every `n ≥ 1` (at `n = 0` Lean's `x / 0 = 0` makes `F_0 = 0` and the supremum `1`)
+(`107.drop.indep`); without identical distribution, `X i = 0` for even `i` and `1` for odd `i`,
+`F = 1{x ≥ 0}` and `F₀` the distribution function of `(δ₀ + δ₁)/2` give `sup |F − F₀| = 1/2` and
+`F_n = F₀` at every even `n ≥ 2`, so neither threshold is eventually below `sup |F_n − F₀|`
+(`107.drop.ident`). `hX0` is item 60's, used to name the law; not shown needed. The witnesses draw
+fair coins on `ℕ → Bool` under Mathlib's `Measure.infinitePi` (independence by
+`iIndepFun_infinitePi`, identical distribution by `Measure.infinitePi_map_eval`), the first form
+order LEAN-32's rule 2 asked for; this module now imports `Mathlib.Probability.HasLawExists` for
+them.
 
 ## What is cited
 
