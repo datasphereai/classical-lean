@@ -43,13 +43,13 @@ The witness of the equality uses the standard normal law `gaussianReal 0 1` with
 Mathlib knows it is a probability measure and that it puts no mass on a point
 (`nullSingletonClass_gaussianReal`), so its distribution function has no jump. The order suggested
 the uniform law on `[0, 1]`, `volume.restrict (Set.Icc 0 1)`. It is a probability measure (its
-mass is `volume (Set.Icc 0 1) = 1`, Mathlib's `Real.volume_Icc`), but no instance under the
-library's imports says so, and the witness's standing form, the theorem applied by named
+mass is `volume (Set.Icc 0 1) = 1`, Mathlib's `Real.volume_Icc`), but no instance under this
+module's imports says so, and the witness's standing form, the theorem applied by named
 arguments, has no slot for one: the instance argument has no name. Supplying it by an `@`
 application or a `haveI` would leave that form. (Mathlib gives the unit interval, as its own type,
-a probability measure by an instance in `Mathlib.MeasureTheory.Constructions.UnitInterval`, which
-is outside the library's imports.) Where the law is uniform on `[0, 1]`, `F x = x` there and
-`P(F(X) ≤ u) = u` (by hand, line `106.eq_uniform`).
+a probability measure by an instance in `Mathlib.MeasureTheory.Constructions.UnitInterval`, read
+in its source, by hand; that module is outside the library's imports.) Where the law is uniform
+on `[0, 1]`, `F x = x` there and `P(F(X) ≤ u) = u` (by hand, line `106.eq_uniform`).
 
 ## Mathlib at v4.34.0
 
