@@ -62,7 +62,7 @@ needed, by a case that keeps the others (order LEAN-32's checks, exact fractions
 `W` with rows `(1/2, 1/2)` unless said): `f` convex, without it `f x = -x²`, `p = (1, 0)`,
 `q = (1, 1)` gives `-1/2 > -1` (line `110.drop.conv`); `p ≥ 0`, without it `p = (-1, 2)`,
 `q = (1, 1)` and `f` equal to `0` on `[0, ∞)` and `-1` below give `0 > -1` (`110.drop.p`); `q ≥ 0`,
-a case with a negative entry of `q`, found by the checks' search (`110.drop.q`); the support,
+`f x = x²`, `p = (0, 1)`, `q = (-1, -1)` gives `-1/2 > -1` (`110.drop.q`); the support,
 `f x = x²`, `p = (1, 1)`, `q = (0, 1)` gives `4 > 1` (`110.drop.supp`); `W ≥ 0`, `f x = x²`,
 `p = (1, 0)`, `q = (1, 1)`, `W = [[2, -1], [0, 1]]` gives `2 > 1` (`110.drop.W0`); the row sums,
 `f x = x²`, `p = q = (1, 1)`, `W = 2 I` gives `4 > 2` (`110.drop.W1`). Lean's junk values: a
