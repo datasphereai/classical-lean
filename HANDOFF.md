@@ -315,6 +315,27 @@ modules at `49c4c98` and 4161 after (order LEAN-31's revised closure script; ord
 read import lines inside comments and printed 9037). Also new: rules 36 and 37 below (dated times;
 `el.sh` refuses names not probed).
 
+**Dated 2026-10-18 UTC (order LEAN-32, round 64; branch `lean-32`, DSMain):** batch 6 of
+MATH-PLAN-library-2, items 106 to 110, the last batch above the plan's cut; one new module, four
+extended: `Probability/IntegralTransform` (item 106, new: the probability integral transform,
+`P(F(X) ≤ u) ≤ u` for `u ≥ 0`, with equality on `[0, 1]` when `F` is continuous),
+`Probability/GlivenkoCantelli` (item 107, the Kolmogorov–Smirnov test is consistent, and its test
+with thresholds `c n → 0` rejects eventually; it now imports `Mathlib.Probability.HasLawExists`),
+`Analysis/LinearODE` (item 108, a Lyapunov bound for `x' = A x`),
+`InformationTheory/MethodOfTypes` (item 109, the asymptotic equipartition property; it now imports
+`Mathlib.Probability.StrongLaw` and `Mathlib.Probability.HasLawExists`) and
+`InformationTheory/Channel` (item 110, data processing for every f-divergence). Narrowing: none.
+Wider than the plan's reading, five conditions: item 107 for any measure `ν₀` and with no "`F`
+differs from `F₀`" hypothesis; item 108 with no positive definiteness and no symmetry of `P`; item
+109's law hypothesis; item 109 with pairwise independence only; item 110 with `q ≥ 0` and the
+support condition. Item 107's second theorem is an addition. Counts, all to be re-measured by its
+gates on the clean tree (round 64's fragment): **3379 theorem constants**, 3372 from the base axiom
+gate plus 7 from the censuses of the changed modules (Method B, equal to Method A); **130 modules**;
+**`lake build` 4178 jobs**, predicted from the import closure (4161 → 4162 modules) and seen by
+the root build inside `rootrun.sh` (label `used-head`). Also new: rules 38 and 39 below (a fresh
+root build before any tool that imports `ClassicalLean`; run citations in commit messages written
+by script).
+
 ---
 
 ## 2. What I claimed, and what I actually checked
@@ -1029,7 +1050,7 @@ failure mode, and it is the one this library was built in reaction to.
   push.
 - **Rules learned in the runs of order 0923 (rules 1–7), order G-5 (rules 8–15), order G-6
   (rules 16–19), order G-7 (rules 20–25), order G-8 (rules 26–30), order G-9 (rules 31–34),
-  order LEAN-29 (rule 35) and order LEAN-30 (rules 36 and 37).**
+  order LEAN-29 (rule 35), order LEAN-30 (rules 36 and 37) and order LEAN-32 (rules 38 and 39).**
   Rules 1–7
   are dated 2026-09-23; source: order G-5 §1, which cites round 17's dated amendment, Findings 1
   and 3 and "Options and linters", round 18's Findings 1 and 2 and closing addendum, and order
@@ -1048,7 +1069,10 @@ failure mode, and it is the one this library was built in reaction to.
   A and B); see also claude-ai's push review of LEAN-29 (lane `lean/LEAN-29-ruling-2.md`, note 1);
   lead-in extended 2026-10-15 UTC, order LEAN-30, job 3. Rules 36 and 37 are dated 2026-10-16
   UTC; source: order LEAN-31's rules 9 and 10, which cite order LEAN-30's close, threads 2 and 3;
-  lead-in extended 2026-10-16 UTC, order LEAN-31, job 3.
+  lead-in extended 2026-10-16 UTC, order LEAN-31, job 3. Rules 38 and 39 are dated 2026-10-18 UTC;
+  source: order LEAN-32's rules 12 and 13, which cite order LEAN-31's `misses.md` item 23 (rule 38)
+  and order LEAN-31's close, section 3.4, and `misses.md` items 10 to 14, 17 and 20 (rule 39);
+  lead-in extended 2026-10-18 UTC, order LEAN-32, job 3.
   The next order
   cites these instead of repeating them:
   1. *Check the invariant, not a proxy* — §0 applied to a gate: the cache check tested all of
@@ -1194,6 +1218,25 @@ failure mode, and it is the one this library was built in reaction to.
       allowlist of tactic names. The order's own statement probes seed it. Refusing too
       much is safe: a probe clears it (order LEAN-30 used names in drafts before their `#check`
       probes again, its review r98's MAJOR and others: LEAN-30's close, thread 3).
+  38. *A tool that imports `ClassicalLean` runs only on a fresh root build.* The bridge search, the
+      report tool, the plan's checks with `--lean`, a census that imports the root, and any other
+      tool that imports `ClassicalLean` run through a wrapper (order LEAN-32's `rootrun.sh`) that
+      first runs `lake build` at the current HEAD under the memory cap, logs its rc, its job count
+      and `git rev-parse HEAD`, and refuses the command, logged `NOT RUN`, unless that build's rc is
+      0. The gates are not wrapped; they run after gate 1's build. Tested before first use: with the
+      build replaced by `false` the command is refused and not run; with the real build the build
+      line comes before the command line, at the same HEAD (order LEAN-31's first bridge search and
+      report tool run read a `ClassicalLean.olean` built before its new module existed, so both saw
+      128 modules and were void: its `misses.md` item 23).
+  39. *Run citations in commit messages are written by script.* After each commit a marker line
+      `COMMIT <hash>` goes into `evidence.log`; a commit message that cites runs ends with one line
+      written by a script (order LEAN-32's `evcite.py`), `Evidence: evidence.log lines N to M:
+      <every label in those lines>`, covering every line since the last marker; and a checker (its
+      `citecheck.py`) compares each commit's `Evidence:` line with the log and reports every
+      difference, its output in the push-review file. Tested before first use: a message whose label
+      list leaves one label out is reported; the generated line passes (order LEAN-31's commit
+      messages named lists of runs that were not the whole list: its close, section 3.4, and
+      `misses.md` items 10 to 14, 17 and 20).
 - **Standing answers** (dated 2026-09-23; source: order G-5 §2):
   - A Mathlib cache gap outside this library's import closure: use the import-closure check plus
     the `.olean` sha256 manifest taken before and after `lake build` (ruled for order 0923's J3).

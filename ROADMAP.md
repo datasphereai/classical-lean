@@ -718,6 +718,35 @@ and 104), with primed names beside the unprimed theorems, which stay.
 Also job 0: the Bloomfield and Watson credit in `Statistics/GeneralizedLeastSquares` is complete
 and marked as checked against the journal's contents page.
 
+### 1.24 Batch 6 of the second plan (order LEAN-32, round 64)
+
+Items 106 to 110 of MATH-PLAN-library-2, one new module, four extended. With this batch the six
+batches of MATH-PLAN-library-2 above its cut are done; what comes next (rows below the cut, a third
+plan, or something else) is claude-ai's to propose and Dustin's to decide. Narrowing: none. Wider
+than the plan's reading, five conditions: item 107 for any measure `ν₀` and with no "`F` differs
+from `F₀`" hypothesis; item 108 with no positive definiteness and no symmetry of `P`; item 109's law
+hypothesis; item 109 with pairwise independence only; item 110 with `q ≥ 0` and the support
+condition. Item 107's second theorem is an addition.
+
+* `Probability/IntegralTransform` (item 106, new): the probability integral transform,
+  `P(F(X) ≤ u) ≤ u` for every `u ≥ 0` (`measureReal_cdf_le_le`), so a threshold test's p-value is
+  valid, and `F(X)` uniform on `[0, 1]` when `F` is continuous
+  (`measureReal_cdf_le_eq_of_continuous`).
+* `Probability/GlivenkoCantelli` (item 107): the Kolmogorov–Smirnov test is consistent
+  (`eventually_lt_sup_abs_empiricalCDF_sub`), and its test with thresholds `c n → 0` rejects
+  eventually (`eventually_lt_sup_abs_empiricalCDF_sub_of_tendsto`), from item 60.
+* `Analysis/LinearODE` (item 108): a Lyapunov bound for `x' = A x`, `x(t)ᵀ P x(t) ≤ e^(−2ct)
+  x(0)ᵀ P x(0)` for `t ≥ 0` (`quadForm_le_exp_mul`).
+* `InformationTheory/MethodOfTypes` (item 109): the asymptotic equipartition property,
+  `−(1/n) ∑ log p(X i) → H(p)` almost surely (`tendsto_neg_log_div_shannonEntropy`), the strong law
+  for `−log p(X i)`.
+* `InformationTheory/Channel` (item 110): data processing for every f-divergence on finite sets
+  (`sum_mul_comp_div_vecMul_le`); relative entropy is the case `f x = x log x`.
+
+The witnesses of items 107 and 109 build independent, identically distributed draws with Mathlib's
+`Measure.infinitePi` (fair coins on `ℕ → Bool`, uniform letters of `Fin 4`); item 106's equality
+uses the standard normal law, Mathlib's `gaussianReal 0 1`.
+
 ## 2. Categories to add
 
 Tiered by how much work they do inside the system that already exists, not by how interesting
