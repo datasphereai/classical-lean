@@ -31,9 +31,10 @@ import Mathlib.Probability.HasLawExists
   (`((−1, −1) ‖ (1/2, 1/2))` gives `−2 log 2`), which would only have weakened the bound. The
   matching lower bound (for open `E`) is not proved.
 * `tendsto_neg_log_div_shannonEntropy` — order LEAN-32, item 109, **the asymptotic equipartition
-  property**: for independent draws `X 0, X 1, …` with law `p` on the finite alphabet `α`,
-  `−(1/n) ∑_{i<n} log p (X i) → H(p)` almost surely, `H` the library's `shannonEntropy`. It is the
-  strong law (`strong_law_ae`) for `−log p (X i)`, whose mean is `∑ a, p a · (−log p a) = H(p)`.
+  property**: for pairwise independent, identically distributed draws `X 0, X 1, …` with law `p`
+  on the finite alphabet `α`, `−(1/n) ∑_{i<n} log p (X i) → H(p)` almost surely, `H` the
+  library's `shannonEntropy`. It is the strong law (`strong_law_ae`) for `−log p (X i)`, whose mean
+  is `∑ a, p a · (−log p a) = H(p)`.
 
 What `K`, `E` and `p i = 0` do. `K` enters only through the number of types: each type is a
 vector of counts in `{0, …, n}`, so there are at most `(n + 1)^K` of them. `E` is any set of real
@@ -71,18 +72,18 @@ Item 109 is wider than the plan's row in two ways. The law is given as
 measurability beyond what `IdentDistrib` gives (`X 0` is almost everywhere measurable,
 `IdentDistrib.aemeasurable_fst`); and pairwise independence is enough, where the plan says
 independent draws, since Mathlib's strong law asks no more. The plan's row names the library's
-`vecMeasure`; the statement does not use it, the law being given as above. Lean's `log 0 = 0`
-does not matter: a letter with `p a = 0` is drawn with chance `0`. Each hypothesis is needed, with
-a law that is not uniform (when `p` is uniform, `−log p a = log |α| = H(p)` for every letter, so
-the conclusion holds whatever the draws are and no case exists): `p = (1/4, 3/4)`, so
+`vecMeasure`; the statement does not use it, the law being given as above. Lean's `log 0 = 0` does
+not matter: a letter with `p a = 0` is drawn with chance `0`. Each hypothesis is needed, with a law
+that is not uniform (when `p` is uniform, `−log p a = log |α| = H(p)` for every letter, so the
+conclusion holds whatever the draws are and no case exists): `p = (1/4, 3/4)`, so
 `H(p) = log 4 − (3/4) log 3`. Without the law, true law `(1, 0)`: the limit is `log 4`, not `H(p)`
-(order LEAN-32's own checks, `checks109.py`, line `109.drop.law`); without independence,
-`X i = X 0` for every `i`: the average is `log 4` or `log (4/3)`, never `H(p)` (`109.drop.indep`);
-without identical distribution, `X 0` with law `p` and `X i` the second letter for every `i ≥ 1`
-(constants, so independent): the limit is `log (4/3)` (`109.drop.ident`). Each "not `H(p)`" is
-reduced by hand to a fact about whole numbers (`3³ ≠ 1`, `3 ≠ 1`), which the script checks
-exactly. The witness draws uniform letters of `Fin 4` under Mathlib's `Measure.infinitePi` and
-reads `X i = (ω i = 0)`, so the law on `Bool` is `p true = 1/4`, `p false = 3/4`, not uniform;
+(the exact checks written for item 109 under order LEAN-32, `checks109.py`, line `109.drop.law`);
+without independence, `X i = X 0` for every `i`: the average is `log 4` or `log (4/3)`, never `H(p)`
+(`109.drop.indep`); without identical distribution, `X 0` with law `p` and `X i` the second letter
+for every `i ≥ 1` (constants, so independent): the limit is `log (4/3)` (`109.drop.ident`). Each
+"not `H(p)`" is reduced by hand to a fact about whole numbers (`3³ ≠ 1`, `3 ≠ 1`), which the script
+checks exactly. The witness draws uniform letters of `Fin 4` under Mathlib's `Measure.infinitePi`
+and reads `X i = (ω i = 0)`, so the law on `Bool` is `p true = 1/4`, `p false = 3/4`, not uniform;
 the module imports `Mathlib.Probability.HasLawExists` for it.
 
 ## What is cited
