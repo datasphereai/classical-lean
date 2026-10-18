@@ -318,23 +318,24 @@ read import lines inside comments and printed 9037). Also new: rules 36 and 37 b
 **Dated 2026-10-18 UTC (order LEAN-32, round 64; branch `lean-32`, DSMain):** batch 6 of
 MATH-PLAN-library-2, items 106 to 110, the last batch above the plan's cut; one new module, four
 extended: `Probability/IntegralTransform` (item 106, new: the probability integral transform,
-`P(F(X) ≤ u) ≤ u` for `u ≥ 0`, with equality on `[0, 1]` when `F` is continuous),
-`Probability/GlivenkoCantelli` (item 107, the Kolmogorov–Smirnov test is consistent, and its test
-with thresholds `c n → 0` rejects eventually; it now imports `Mathlib.Probability.HasLawExists`),
-`Analysis/LinearODE` (item 108, a Lyapunov bound for `x' = A x`),
-`InformationTheory/MethodOfTypes` (item 109, the asymptotic equipartition property; it now imports
-`Mathlib.Probability.StrongLaw` and `Mathlib.Probability.HasLawExists`) and
-`InformationTheory/Channel` (item 110, data processing for every f-divergence). Narrowing: none.
-Wider than the plan's reading, five conditions: item 107 for any measure `ν₀` and with no "`F`
-differs from `F₀`" hypothesis; item 108 with no positive definiteness and no symmetry of `P`; item
-109's law hypothesis; item 109 with pairwise independence only; item 110 with `q ≥ 0` and the
-support condition. Item 107's second theorem is an addition. Counts, all to be re-measured by its
-gates on the clean tree (round 64's fragment): **3379 theorem constants**, 3372 from the base axiom
-gate plus 7 from the censuses of the changed modules (Method B, equal to Method A); **130 modules**;
-**`lake build` 4178 jobs**, predicted from the import closure (4161 → 4162 modules) and seen by
-the root build inside `rootrun.sh` (label `used-head`). Also new: rules 38 and 39 below (a fresh
-root build before any tool that imports `ClassicalLean`; run citations in commit messages written
-by script).
+`P(F(X) ≤ u) ≤ u` for `u ≥ 0`, with equality on `[0, 1]` when `F` is continuous; it imports
+`Mathlib.Probability.CDF`, `Mathlib.MeasureTheory.Measure.Lebesgue.Basic` and, for its witness,
+`Mathlib.Probability.Distributions.Gaussian.Real`), `Probability/GlivenkoCantelli` (item 107, the
+Kolmogorov–Smirnov test is consistent, and its test with thresholds `c n → 0` rejects eventually
+when `F` differs from `cdf ν₀`; it now imports `Mathlib.Probability.HasLawExists`),
+`Analysis/LinearODE` (item 108, a Lyapunov bound for `x' = A x`), `InformationTheory/MethodOfTypes`
+(item 109, the asymptotic equipartition property; it now imports `Mathlib.Probability.StrongLaw` and
+`Mathlib.Probability.HasLawExists`) and `InformationTheory/Channel` (item 110, data processing for
+every f-divergence). Narrowing: none. Wider than the plan's reading, five conditions: item 107 for
+any measure `ν₀`, and its first theorem with no "`F` differs from `F₀`" hypothesis; item 108 with no
+positive definiteness and no symmetry of `P`; item 109's law hypothesis; item 109 with pairwise
+independence only; item 110 with `q ≥ 0` and the support condition. Item 107's second theorem is an
+addition. Counts, all to be re-measured by its gates on the clean tree (round 64's fragment): **3379
+theorem constants**, 3372 from the base axiom gate plus 7 from the censuses of the changed modules
+(Method B, equal to Method A); **130 modules**; **`lake build` 4178 jobs**, predicted from the
+import closure (4161 → 4162 modules) and seen by the root build inside `rootrun.sh` (label
+`used-head-build`). Also new: rules 38 and 39 below (a fresh root build before any tool that imports
+`ClassicalLean`; run citations in commit messages written by script).
 
 ---
 
@@ -1233,10 +1234,10 @@ failure mode, and it is the one this library was built in reaction to.
       written by a script (order LEAN-32's `evcite.py`), `Evidence: evidence.log lines N to M:
       <every label in those lines>`, covering every line since the last marker; and a checker (its
       `citecheck.py`) compares each commit's `Evidence:` line with the log and reports every
-      difference, its output in the push-review file. Tested before first use: a message whose label
-      list leaves one label out is reported; the generated line passes (order LEAN-31's commit
-      messages named lists of runs that were not the whole list: its close, section 3.4, and
-      `misses.md` items 10 to 14, 17 and 20).
+      difference, its output at the end of the push-review file (order LEAN-32, job 4e). Tested
+      before first use: a message whose label list leaves one label out is reported; the generated
+      line passes (order LEAN-31's commit messages named lists of runs that were not the whole
+      list: its close, section 3.4, and `misses.md` items 10 to 14, 17 and 20).
 - **Standing answers** (dated 2026-09-23; source: order G-5 §2):
   - A Mathlib cache gap outside this library's import closure: use the import-closure check plus
     the `.olean` sha256 manifest taken before and after `lake build` (ruled for order 0923's J3).

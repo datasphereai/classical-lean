@@ -723,10 +723,10 @@ and marked as checked against the journal's contents page.
 Items 106 to 110 of MATH-PLAN-library-2, one new module, four extended. With this batch the six
 batches of MATH-PLAN-library-2 above its cut are done; what comes next (rows below the cut, a third
 plan, or something else) is claude-ai's to propose and Dustin's to decide. Narrowing: none. Wider
-than the plan's reading, five conditions: item 107 for any measure `ν₀` and with no "`F` differs
-from `F₀`" hypothesis; item 108 with no positive definiteness and no symmetry of `P`; item 109's law
-hypothesis; item 109 with pairwise independence only; item 110 with `q ≥ 0` and the support
-condition. Item 107's second theorem is an addition.
+than the plan's reading, five conditions: item 107 for any measure `ν₀`, and its first theorem with
+no "`F` differs from `F₀`" hypothesis; item 108 with no positive definiteness and no symmetry of
+`P`; item 109's law hypothesis; item 109 with pairwise independence only; item 110 with `q ≥ 0` and
+the support condition. Item 107's second theorem is an addition.
 
 * `Probability/IntegralTransform` (item 106, new): the probability integral transform,
   `P(F(X) ≤ u) ≤ u` for every `u ≥ 0` (`measureReal_cdf_le_le`), so a threshold test's p-value is
@@ -734,7 +734,8 @@ condition. Item 107's second theorem is an addition.
   (`measureReal_cdf_le_eq_of_continuous`).
 * `Probability/GlivenkoCantelli` (item 107): the Kolmogorov–Smirnov test is consistent
   (`eventually_lt_sup_abs_empiricalCDF_sub`), and its test with thresholds `c n → 0` rejects
-  eventually (`eventually_lt_sup_abs_empiricalCDF_sub_of_tendsto`), from item 60.
+  eventually when `F` differs from `cdf ν₀` (`eventually_lt_sup_abs_empiricalCDF_sub_of_tendsto`),
+  from item 60.
 * `Analysis/LinearODE` (item 108): a Lyapunov bound for `x' = A x`, `x(t)ᵀ P x(t) ≤ e^(−2ct)
   x(0)ᵀ P x(0)` for `t ≥ 0` (`quadForm_le_exp_mul`).
 * `InformationTheory/MethodOfTypes` (item 109): the asymptotic equipartition property,
