@@ -21,6 +21,15 @@ need not be.
 * `relEntropy_vecMul_le` — **the data-processing inequality**: passing both arguments through the
   same channel does not increase relative entropy. Proved column by column from the log-sum
   inequality `mul_log_le_relEntropy`.
+* `sum_mul_comp_div_vecMul_le` — order LEAN-32, item 110, **data processing for every
+  f-divergence**: for `f` convex on `[0, ∞)`,
+  `∑ j, (q ᵥ* W) j * f ((p ᵥ* W) j / (q ᵥ* W) j) ≤ ∑ i, q i * f (p i / q i)`, with the hypotheses
+  of `relEntropy_vecMul_le`. Relative entropy is the case `f x = x log x`: then
+  `q i * f (p i / q i) = p i * log (p i / q i)` when `q i ≠ 0` (the factor
+  `q i * (p i / q i) = p i`, order LEAN-32's checks, line `110.rel`), and both are `0` when
+  `q i = 0 = p i` (by hand, line `110.rel.zero`). `relEntropy_vecMul_le` stays as it is. Proved
+  column by column from Jensen's inequality (`ConvexOn.map_sum_le`) with weights
+  `q i * W i j / (q ᵥ* W) j`, whose weighted mean of `p i / q i` is `(p ᵥ* W) j / (q ᵥ* W) j`.
 * `shannonEntropy_le_shannonEntropy_vecMul` — entropy does not decrease under a doubly stochastic
   matrix: the data-processing inequality at the uniform vector, which a doubly stochastic matrix
   fixes.
@@ -46,6 +55,20 @@ Without support it fails at `p = (½, ½)`, `q = (1, 0)`, `W = [[1, 0], [½, ½]
 theorem needs both row and column sums: `W = [[1, 0], [1, 0]]` (rows only) sends `(½, ½)` from
 entropy `log 2` to `0`, and `W = [[1, 1], [0, 0]]` (columns only) sends `(0.9, 0.1)` from entropy
 `≈ 0.325` to `≈ 0.190`.
+
+`sum_mul_comp_div_vecMul_le` (item 110) asks `q ≥ 0` with `q i = 0 → p i = 0`, where the plan's
+row asks `q > 0`: wider, in the hypothesis form of `relEntropy_vecMul_le`. Each hypothesis is
+needed, by a case that keeps the others (order LEAN-32's checks, exact fractions, two symbols and
+`W` with rows `(1/2, 1/2)` unless said): `f` convex, without it `f x = -x²`, `p = (1, 0)`,
+`q = (1, 1)` gives `-1/2 > -1` (line `110.drop.conv`); `p ≥ 0`, without it `p = (-1, 2)`,
+`q = (1, 1)` and `f` equal to `0` on `[0, ∞)` and `-1` below give `0 > -1` (`110.drop.p`); `q ≥ 0`,
+a case with a negative entry of `q`, found by the checks' search (`110.drop.q`); the support,
+`f x = x²`, `p = (1, 1)`, `q = (0, 1)` gives `4 > 1` (`110.drop.supp`); `W ≥ 0`, `f x = x²`,
+`p = (1, 0)`, `q = (1, 1)`, `W = [[2, -1], [0, 1]]` gives `2 > 1` (`110.drop.W0`); the row sums,
+`f x = x²`, `p = q = (1, 1)`, `W = 2 I` gives `4 > 2` (`110.drop.W1`). Lean's junk values: a
+column with `(q ᵥ* W) j = 0` adds `0 * f (… / 0) = 0` on the left (`x / 0 = 0`; line `110.qW0`),
+and a letter with `q i = 0` adds `0 * f (p i / 0) = 0` on the right; the inequality holds on 600
+random instances with such zeros (`110.le`).
 
 ## Relation to Mathlib
 
@@ -121,6 +144,58 @@ theorem relEntropy_vecMul_le {p q : ι → ℝ} {W : Matrix ι κ ℝ} (hp : ∀
         refine Finset.sum_congr rfl fun i _ => ?_
         rw [← Finset.sum_mul, hW1 i, one_mul]
     _ = relEntropy p q := rfl
+
+/-- **Data processing for every f-divergence** (order LEAN-32, item 110): for `f` convex on
+`[0, ∞)`, nonnegative `p`, `q` with `q i = 0 → p i = 0`, and a channel `W`,
+`∑ j, (q ᵥ* W) j * f ((p ᵥ* W) j / (q ᵥ* W) j) ≤ ∑ i, q i * f (p i / q i)`. Relative entropy is
+the case `f x = x log x`. Each column is Jensen's inequality with weights
+`q i * W i j / (q ᵥ* W) j`; a column with `(q ᵥ* W) j = 0` contributes `0` on both sides. -/
+theorem sum_mul_comp_div_vecMul_le {f : ℝ → ℝ} (hf : ConvexOn ℝ (Set.Ici 0) f)
+    {p q : ι → ℝ} {W : Matrix ι κ ℝ} (hp : ∀ i, 0 ≤ p i) (hq : ∀ i, 0 ≤ q i)
+    (hpq : ∀ i, q i = 0 → p i = 0) (hW0 : ∀ i j, 0 ≤ W i j) (hW1 : ∀ i, ∑ j, W i j = 1) :
+    ∑ j, (q ᵥ* W) j * f ((p ᵥ* W) j / (q ᵥ* W) j) ≤ ∑ i, q i * f (p i / q i) := by
+  have hqp : ∀ i, q i * (p i / q i) = p i := by
+    intro i
+    by_cases h : q i = 0
+    · rw [h, hpq i h, zero_mul]
+    · exact mul_div_cancel₀ (p i) h
+  have hcol : ∀ j, (q ᵥ* W) j * f ((p ᵥ* W) j / (q ᵥ* W) j)
+      ≤ ∑ i, W i j * (q i * f (p i / q i)) := by
+    intro j
+    rw [Matrix.vecMul_apply_eq_sum, Matrix.vecMul_apply_eq_sum]
+    have hnn : ∀ i ∈ Finset.univ, 0 ≤ q i * W i j := fun i _ ↦ mul_nonneg (hq i) (hW0 i j)
+    rcases (Finset.sum_nonneg hnn).eq_or_lt with h | h
+    · have hz := (Finset.sum_eq_zero_iff_of_nonneg hnn).1 h.symm
+      rw [← h, zero_mul]
+      refine (Finset.sum_eq_zero fun i hi ↦ ?_).symm.le
+      rw [← mul_assoc, mul_comm (W i j), hz i hi, zero_mul]
+    · have hw0 : ∀ i ∈ Finset.univ, 0 ≤ q i * W i j / ∑ k, q k * W k j :=
+        fun i hi ↦ div_nonneg (hnn i hi) h.le
+      have hw1 : ∑ i, q i * W i j / ∑ k, q k * W k j = 1 := by
+        rw [← Finset.sum_div, div_self h.ne']
+      have hmem : ∀ i ∈ Finset.univ, p i / q i ∈ Set.Ici (0 : ℝ) :=
+        fun i _ ↦ div_nonneg (hp i) (hq i)
+      have hJ := hf.map_sum_le hw0 hw1 hmem
+      have hmean : ∑ i, (q i * W i j / ∑ k, q k * W k j) • (p i / q i)
+          = (∑ i, p i * W i j) / ∑ k, q k * W k j := by
+        rw [Finset.sum_div]
+        refine Finset.sum_congr rfl fun i _ ↦ ?_
+        rw [smul_eq_mul, div_mul_eq_mul_div, mul_right_comm, hqp i]
+      rw [hmean] at hJ
+      calc (∑ k, q k * W k j) * f ((∑ i, p i * W i j) / ∑ k, q k * W k j)
+          ≤ (∑ k, q k * W k j) * ∑ i, (q i * W i j / ∑ k, q k * W k j) • f (p i / q i) :=
+            mul_le_mul_of_nonneg_left hJ h.le
+        _ = ∑ i, W i j * (q i * f (p i / q i)) := by
+            rw [Finset.mul_sum]
+            refine Finset.sum_congr rfl fun i _ ↦ ?_
+            rw [smul_eq_mul, ← mul_assoc, mul_div_cancel₀ _ h.ne']
+            ring
+  calc ∑ j, (q ᵥ* W) j * f ((p ᵥ* W) j / (q ᵥ* W) j)
+      ≤ ∑ j, ∑ i, W i j * (q i * f (p i / q i)) := Finset.sum_le_sum fun j _ ↦ hcol j
+    _ = ∑ i, q i * f (p i / q i) := by
+        rw [Finset.sum_comm]
+        refine Finset.sum_congr rfl fun i _ ↦ ?_
+        rw [← Finset.sum_mul, hW1 i, one_mul]
 
 /-- **Entropy does not decrease under a doubly stochastic matrix.** The data-processing inequality
 at the uniform vector, which a doubly stochastic matrix fixes, read through `relEntropy_uniform`.
@@ -243,3 +318,13 @@ example := ClassicalLean.Simplex.sq_sum_abs_sub_le_two_mul_relEntropy (ι := Fin
   (fun i ↦ by fin_cases i <;> norm_num) (by simp [Fin.sum_univ_two]; norm_num)
   (fun i ↦ by fin_cases i <;> norm_num) (by simp [Fin.sum_univ_two]; norm_num)
   (fun i h ↦ by fin_cases i <;> simp_all)
+
+/-- The hypotheses of `sum_mul_comp_div_vecMul_le` hold together: on two symbols, `f x = x log x`
+(convex on `[0, ∞)`, Mathlib's `Real.convexOn_mul_log`), `p = (1/4, 3/4)`, `q = (1/2, 1/2)` (never
+`0`), and the channel `W = [[2/3, 1/3], [1/3, 2/3]]`, which keeps each input with chance `2/3`. -/
+example := ClassicalLean.Simplex.sum_mul_comp_div_vecMul_le (ι := Fin 2) (κ := Fin 2)
+  (f := fun x ↦ x * Real.log x) (p := ![1 / 4, 3 / 4]) (q := ![1 / 2, 1 / 2])
+  (W := !![2 / 3, 1 / 3; 1 / 3, 2 / 3]) Real.convexOn_mul_log
+  (fun i ↦ by fin_cases i <;> norm_num) (fun i ↦ by fin_cases i <;> norm_num)
+  (fun i h ↦ by fin_cases i <;> simp_all) (fun i j ↦ by fin_cases i <;> fin_cases j <;> norm_num)
+  (fun i ↦ by fin_cases i <;> simp [Fin.sum_univ_two] <;> norm_num)
