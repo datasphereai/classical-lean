@@ -6,6 +6,7 @@ Authors: Dustin Watkins, Claude (Anthropic)
 
 import Mathlib.Probability.StrongLaw
 import Mathlib.Probability.CDF
+import Mathlib.Probability.HasLawExists
 
 /-!
 # The Glivenko–Cantelli theorem
@@ -18,6 +19,13 @@ distributed. `F = cdf (μ.map (X 0))` is Mathlib's distribution function of `X 0
   (Lean's `x / 0 = 0`). `empiricalCDFLT` is the same with `< x`.
 * `tendsto_sup_abs_empiricalCDF_sub` — order LEAN-24, item 60, **the Glivenko–Cantelli
   theorem**: almost surely, `⨆ x : ℝ, |empiricalCDF X n ω x − F x| → 0` as `n → ∞`.
+* `eventually_lt_sup_abs_empiricalCDF_sub` — order LEAN-32, item 107, **the Kolmogorov–Smirnov
+  test is consistent**: for any hypothesised distribution function `F₀ = cdf ν₀`, almost surely
+  `sup |F_n − F₀|` eventually exceeds every `c < sup |F − F₀|`. By the triangle inequality,
+  `sup |F − F₀| ≤ sup |F_n − F| + sup |F_n − F₀|`, and the first term tends to `0` by item 60.
+* `eventually_lt_sup_abs_empiricalCDF_sub_of_tendsto` — the same item's test: if `F` differs from
+  `F₀` somewhere, a test that rejects when `sup |F_n − F₀|` exceeds thresholds `c n → 0` rejects
+  eventually, almost surely (apply the first theorem with half of `sup |F − F₀| > 0`).
 
 The supremum is over all real `x`. It is a real supremum of a family bounded by `1` (both functions
 take values in `[0, 1]`; `bddAbove_abs_empiricalCDF_sub`), so Lean's convention for unbounded
@@ -46,6 +54,27 @@ only to compute its law
 already makes each `X i` measurable up to a null set (review r60). An illustration (FLOAT, seeded
 uniform draws): the supremum is `0.0551`, `0.0243`,
 `0.0043` at `n = 100, 1000, 20000`.
+
+Item 107 is wider than the plan's row, which takes `F` to differ from `F₀` somewhere: the first
+theorem asks no such thing (when `F = F₀` the supremum is `0` and the claim is about `c < 0`), and
+`F₀ = cdf ν₀` for any measure `ν₀` on `ℝ`, with no instance: Mathlib's `cdf_nonneg` and
+`cdf_le_one` take none, so `cdf ν₀` lies in `[0, 1]`, every supremum here is of a family bounded by
+`1` and is the true one, never Lean's `⨆ = 0`. (For `ν₀` that is not a probability measure,
+`cdf ν₀` is still a distribution function: `tendsto_cdf_atBot` and `tendsto_cdf_atTop` take no
+instance either.) The second theorem is an addition, for the plan's "a test with thresholds
+`c_n → 0` rejects eventually". Its hypotheses are needed, by hand (order LEAN-32's checks): without
+`F ≠ F₀` somewhere, `X i = 0` for every `i` and `F₀ = F = 1{x ≥ 0}` give `sup |F_n − F₀| = 0` for
+`n ≥ 1`, never above `c n = 1/(n + 1)` (`107.drop.hne`); without `c n → 0`, `c n = 1` is never
+below `sup |F_n − F₀| ≤ 1` (`107.drop.hc`); without independence, `X i = X 0` a fair coin on
+`{0, 1}` and `F₀ = 1{x ≥ 1}` give `sup |F − F₀| = 1/2`, while on `{X 0 = 1}` (chance `1/2`)
+`F_n = F₀` and `sup |F_n − F₀| = 0 < 1/4` for every `n` (`107.drop.indep`); without identical
+distribution, `X i = 0` for even `i` and `1` for odd `i`, `F = 1{x ≥ 0}` and `F₀` the distribution
+function of `(δ₀ + δ₁)/2` give `sup |F − F₀| = 1/2` and `F_n = F₀` at every even `n ≥ 2`, so
+`c = 1/4` is not eventually below `sup |F_n − F₀|` (`107.drop.ident`). `hX0` is item 60's, used to
+name the law; not shown needed. The witnesses draw fair coins on `ℕ → Bool` under Mathlib's
+`Measure.infinitePi` (independence by `iIndepFun_infinitePi`, identical distribution by
+`Measure.infinitePi_map_eval`), the first form order LEAN-32's rule 2 asked for; this module now
+imports `Mathlib.Probability.HasLawExists` for them.
 
 ## What is cited
 
@@ -317,4 +346,104 @@ theorem tendsto_sup_abs_empiricalCDF_sub {μ : Measure Ω} [IsProbabilityMeasure
   have hk' : (1 : ℝ) / (M : ℝ) < ε / 2 := by rw [hM]; push_cast; exact hk
   linarith
 
+/-- **The Kolmogorov–Smirnov test is consistent** (order LEAN-32, item 107): for any measure
+`ν₀` on `ℝ`, almost surely, every `c` below `sup |F − cdf ν₀|` lies below
+`sup |F_n − cdf ν₀|` for all large `n`, where `F` is the distribution function of `X 0` and
+`F_n` the empirical one. -/
+theorem eventually_lt_sup_abs_empiricalCDF_sub {μ : Measure Ω} [IsProbabilityMeasure μ]
+    {X : ℕ → Ω → ℝ} (hX0 : Measurable (X 0))
+    (hindep : Pairwise fun i j ↦ IndepFun (X i) (X j) μ)
+    (hident : ∀ i, IdentDistrib (X i) (X 0) μ μ) (ν₀ : Measure ℝ) :
+    ∀ᵐ ω ∂μ, ∀ c < ⨆ x : ℝ, |cdf (μ.map (X 0)) x - cdf ν₀ x|,
+      ∀ᶠ n in atTop, c < ⨆ x : ℝ, |empiricalCDF X n ω x - cdf ν₀ x| := by
+  filter_upwards [tendsto_sup_abs_empiricalCDF_sub hX0 hindep hident] with ω hω
+  intro c hc
+  filter_upwards [hω.eventually (gt_mem_nhds (sub_pos.2 hc))] with n hn
+  have hb : BddAbove (range fun x ↦ |empiricalCDF X n ω x - cdf ν₀ x|) := by
+    refine ⟨1, ?_⟩
+    rintro _ ⟨x, rfl⟩
+    rw [abs_le]
+    constructor <;> linarith [empiricalCDF_nonneg X n ω x, empiricalCDF_le_one X n ω x,
+      cdf_nonneg ν₀ x, cdf_le_one ν₀ x]
+  have key : ⨆ x : ℝ, |cdf (μ.map (X 0)) x - cdf ν₀ x|
+      ≤ (⨆ x : ℝ, |empiricalCDF X n ω x - cdf (μ.map (X 0)) x|)
+        + ⨆ x : ℝ, |empiricalCDF X n ω x - cdf ν₀ x| := by
+    refine ciSup_le fun x ↦ ?_
+    have h1 := le_ciSup (bddAbove_abs_empiricalCDF_sub X (μ.map (X 0)) n ω) x
+    have h2 := le_ciSup hb x
+    have h3 := abs_sub_le (cdf (μ.map (X 0)) x) (empiricalCDF X n ω x) (cdf ν₀ x)
+    rw [abs_sub_comm (cdf (μ.map (X 0)) x) (empiricalCDF X n ω x)] at h3
+    linarith
+  linarith
+
+/-- **The Kolmogorov–Smirnov test rejects eventually** (order LEAN-32, item 107): if `F` differs
+from `cdf ν₀` somewhere and the thresholds `c n` tend to `0`, then almost surely
+`c n < sup |F_n − cdf ν₀|` for all large `n`. -/
+theorem eventually_lt_sup_abs_empiricalCDF_sub_of_tendsto {μ : Measure Ω}
+    [IsProbabilityMeasure μ] {X : ℕ → Ω → ℝ} (hX0 : Measurable (X 0))
+    (hindep : Pairwise fun i j ↦ IndepFun (X i) (X j) μ)
+    (hident : ∀ i, IdentDistrib (X i) (X 0) μ μ) (ν₀ : Measure ℝ)
+    (hne : ∃ x, cdf (μ.map (X 0)) x ≠ cdf ν₀ x) {c : ℕ → ℝ} (hc : Tendsto c atTop (𝓝 0)) :
+    ∀ᵐ ω ∂μ, ∀ᶠ n in atTop, c n < ⨆ x : ℝ, |empiricalCDF X n ω x - cdf ν₀ x| := by
+  obtain ⟨x₀, hx₀⟩ := hne
+  have hD : 0 < ⨆ x : ℝ, |cdf (μ.map (X 0)) x - cdf ν₀ x| := by
+    have hb : BddAbove (range fun x ↦ |cdf (μ.map (X 0)) x - cdf ν₀ x|) := by
+      refine ⟨1, ?_⟩
+      rintro _ ⟨x, rfl⟩
+      rw [abs_le]
+      constructor <;> linarith [cdf_nonneg (μ.map (X 0)) x, cdf_le_one (μ.map (X 0)) x,
+        cdf_nonneg ν₀ x, cdf_le_one ν₀ x]
+    exact (abs_pos.2 (sub_ne_zero.2 hx₀)).trans_le (le_ciSup hb x₀)
+  filter_upwards [eventually_lt_sup_abs_empiricalCDF_sub hX0 hindep hident ν₀] with ω hω
+  filter_upwards [hω _ (half_lt_self hD), hc.eventually (gt_mem_nhds (half_pos hD))]
+    with n h1 h2
+  exact h2.trans h1
+
 end ClassicalLean.Probability
+
+/-- The hypotheses of `eventually_lt_sup_abs_empiricalCDF_sub` hold together: fair coins `ω i` on
+`ℕ → Bool` under `Measure.infinitePi` of the uniform law on `Bool`, `X i ω = 1` when `ω i` is
+true and `0` otherwise (independent, identically distributed, not constant), and `ν₀` the point
+mass at `2`. -/
+example := ClassicalLean.Probability.eventually_lt_sup_abs_empiricalCDF_sub (Ω := ℕ → Bool)
+  (μ := Measure.infinitePi fun _ : ℕ ↦ uniformOn (Set.univ : Set Bool))
+  (X := fun i ω ↦ if ω i then 1 else 0)
+  ((measurable_of_finite fun b : Bool ↦ if b then (1 : ℝ) else 0).comp (measurable_pi_apply 0))
+  (fun i j hij ↦ (iIndepFun_infinitePi (P := fun _ : ℕ ↦ uniformOn (Set.univ : Set Bool))
+    (X := fun _ b ↦ if b then (1 : ℝ) else 0)
+    fun _ ↦ measurable_of_finite _).indepFun hij)
+  (fun i ↦ (show IdentDistrib (fun ω : ℕ → Bool ↦ ω i) (fun ω : ℕ → Bool ↦ ω 0)
+      (Measure.infinitePi fun _ : ℕ ↦ uniformOn (Set.univ : Set Bool))
+      (Measure.infinitePi fun _ : ℕ ↦ uniformOn (Set.univ : Set Bool)) from
+    ⟨(measurable_pi_apply i).aemeasurable, (measurable_pi_apply 0).aemeasurable, by
+      rw [Measure.infinitePi_map_eval, Measure.infinitePi_map_eval]⟩).comp
+    (measurable_of_finite fun b : Bool ↦ if b then (1 : ℝ) else 0))
+  (ν₀ := Measure.dirac 2)
+
+/-- The hypotheses of `eventually_lt_sup_abs_empiricalCDF_sub_of_tendsto` hold together: the same
+fair coins and `ν₀` the point mass at `2`; the distribution functions differ at `1` (`1` for the
+coins, every draw being at most `1`, and `0` for the point mass), and `c n = 1/(n + 1) → 0`. -/
+example := ClassicalLean.Probability.eventually_lt_sup_abs_empiricalCDF_sub_of_tendsto
+  (Ω := ℕ → Bool) (μ := Measure.infinitePi fun _ : ℕ ↦ uniformOn (Set.univ : Set Bool))
+  (X := fun i ω ↦ if ω i then 1 else 0)
+  ((measurable_of_finite fun b : Bool ↦ if b then (1 : ℝ) else 0).comp (measurable_pi_apply 0))
+  (fun i j hij ↦ (iIndepFun_infinitePi (P := fun _ : ℕ ↦ uniformOn (Set.univ : Set Bool))
+    (X := fun _ b ↦ if b then (1 : ℝ) else 0)
+    fun _ ↦ measurable_of_finite _).indepFun hij)
+  (fun i ↦ (show IdentDistrib (fun ω : ℕ → Bool ↦ ω i) (fun ω : ℕ → Bool ↦ ω 0)
+      (Measure.infinitePi fun _ : ℕ ↦ uniformOn (Set.univ : Set Bool))
+      (Measure.infinitePi fun _ : ℕ ↦ uniformOn (Set.univ : Set Bool)) from
+    ⟨(measurable_pi_apply i).aemeasurable, (measurable_pi_apply 0).aemeasurable, by
+      rw [Measure.infinitePi_map_eval, Measure.infinitePi_map_eval]⟩).comp
+    (measurable_of_finite fun b : Bool ↦ if b then (1 : ℝ) else 0))
+  (ν₀ := Measure.dirac 2)
+  ⟨1, by
+    rw [cdf_eq_real, cdf_eq_real, map_measureReal_apply
+      (show Measurable fun ω : ℕ → Bool ↦ if ω 0 then (1 : ℝ) else 0 from
+        (measurable_of_finite fun b : Bool ↦ if b then (1 : ℝ) else 0).comp
+          (measurable_pi_apply 0)) measurableSet_Iic]
+    have hu : (fun ω : ℕ → Bool ↦ if ω 0 then (1 : ℝ) else 0) ⁻¹' Set.Iic 1 = Set.univ :=
+      Set.eq_univ_of_forall fun ω ↦ by by_cases h : ω 0 <;> simp [h]
+    rw [hu, probReal_univ]
+    simp [Measure.real, Measure.dirac_apply' _ measurableSet_Iic]⟩
+  (c := fun n ↦ 1 / ((n : ℝ) + 1)) tendsto_one_div_add_atTop_nhds_zero_nat
