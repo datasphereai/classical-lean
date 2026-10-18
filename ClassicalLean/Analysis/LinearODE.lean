@@ -25,7 +25,7 @@ Here `exp` is Mathlib's `NormedSpace.exp`, the sum `∑ (t A)ᵏ / k!`. The stat
 on a choice of matrix norm; one (the `ℓ∞` operator norm) is chosen inside the proofs only, as in
 Mathlib's `Analysis/Normed/Algebra/MatrixExponential`.
 
-This is the standard fact about linear systems found in differential-equations textbooks; no
+These are standard facts about linear systems found in differential-equations textbooks; no
 theorem number is cited, none was checked.
 
 ## Hypotheses
@@ -49,8 +49,8 @@ of a linear system is `exp (t A) x₀` there and extends to every time. Each hyp
 by hand (order LEAN-32's checks): `t ≥ 0`, with `A = 0`, `P = 1`, `c = -1` and `x` constant of
 length `1`, the claim at `t = -1` reads `1 ≤ exp (-2)` (`108.drop.t`); the form inequality, with
 `A = P = 1`, `c = 0` and `x t = exp t • v`, `|v| = 1`, the left side at `t = 1` is `e²`, above
-`1` (`108.drop.hL`); the equation, with `x t = t • v`, `A = 0`, `P = 1`, `c = 0`, the left side
-at `t = 1` is `1`, above `0` (`108.drop.hx`).
+`1` (`108.drop.hL`); the equation, with `x t = t • v`, `|v| = 1`, `A = 0`, `P = 1`, `c = 0`, the
+left side at `t = 1` is `1`, above `0` (`108.drop.hx`).
 
 ## Mathlib at v4.34.0
 
