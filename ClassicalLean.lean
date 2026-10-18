@@ -124,6 +124,7 @@ import ClassicalLean.InformationTheory.CompressionTest
 import ClassicalLean.Statistics.NeymanPearson
 import ClassicalLean.InformationTheory.MethodOfTypes
 import ClassicalLean.Probability.GlivenkoCantelli
+import ClassicalLean.Probability.IntegralTransform
 import ClassicalLean.Statistics.JamesStein
 import ClassicalLean.Analysis.ConvexConjugate
 import ClassicalLean.Algebra.Kantorovich
