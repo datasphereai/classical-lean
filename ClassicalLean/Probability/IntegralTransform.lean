@@ -42,10 +42,13 @@ file does not use. The bound holds on 49 values of `u` in `[0, 2]` for five disc
 The witness of the equality uses the standard normal law `gaussianReal 0 1` with `X` the identity:
 Mathlib knows it is a probability measure and that it puts no mass on a point
 (`nullSingletonClass_gaussianReal`), so its distribution function has no jump. The order suggested
-the uniform law on `[0, 1]`, `volume.restrict (Set.Icc 0 1)`; Mathlib has no instance that it is a
-probability measure, and the module that gives `[0, 1]` its probability measure
-(`Mathlib.MeasureTheory.Constructions.UnitInterval`) is outside the library's imports. Where the
-law is uniform on `[0, 1]`, `F x = x` there and `P(F(X) ≤ u) = u` (by hand, line `106.eq_uniform`).
+the uniform law on `[0, 1]`, `volume.restrict (Set.Icc 0 1)`. It is a probability measure (its
+mass is `volume (Set.Icc 0 1) = 1`, Mathlib's `Real.volume_Icc`), but Mathlib has no instance
+saying so, and the witness's one-block form cannot supply one: the theorem's instance argument has
+no name to pass it by, and a local instance would be a helper. The module that gives `[0, 1]` its
+probability measure as an instance (`Mathlib.MeasureTheory.Constructions.UnitInterval`) is outside
+the library's imports. Where the law is uniform on `[0, 1]`, `F x = x` there and
+`P(F(X) ≤ u) = u` (by hand, line `106.eq_uniform`).
 
 ## Mathlib at v4.34.0
 
