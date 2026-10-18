@@ -6,6 +6,8 @@ Authors: Dustin Watkins, Claude (Anthropic)
 
 import ClassicalLean.Probability.RelativeEntropyGrowth
 import ClassicalLean.InformationTheory.Entropy
+import Mathlib.Probability.StrongLaw
+import Mathlib.Probability.HasLawExists
 
 /-!
 # The method of types: Sanov's theorem for a finite alphabet, upper bound
@@ -28,6 +30,10 @@ import ClassicalLean.InformationTheory.Entropy
   points of `E` (review r57): there Lean's `relEntropy` is a junk value that can be negative
   (`((−1, −1) ‖ (1/2, 1/2))` gives `−2 log 2`), which would only have weakened the bound. The
   matching lower bound (for open `E`) is not proved.
+* `tendsto_neg_log_div_shannonEntropy` — order LEAN-32, item 109, **the asymptotic equipartition
+  property**: for independent draws `X 0, X 1, …` with law `p` on the finite alphabet `α`,
+  `−(1/n) ∑_{i<n} log p (X i) → H(p)` almost surely, `H` the library's `shannonEntropy`. It is the
+  strong law (`strong_law_ae`) for `−log p (X i)`, whose mean is `∑ a, p a · (−log p a) = H(p)`.
 
 What `K`, `E` and `p i = 0` do. `K` enters only through the number of types: each type is a
 vector of counts in `{0, …, n}`, so there are at most `(n + 1)^K` of them. `E` is any set of real
@@ -59,6 +65,25 @@ hypothesis `d ≤ D` on `E` is needed: for `E = {(1/2, 1/2)}`, `p = (1/2, 1/2)`,
 (with `p = (2, 2)`, `n = 1`, `q = (1, 0)`: chance `2 = exp (−D)`, check S5). Kept but not shown
 needed: `p ≥ 0` (by hand: `vecMeasure` gives mass `0` to a letter with `p i < 0`, so a type using
 it has chance `0`; the hypothesis is used to read off `vecMeasure`'s masses).
+
+Item 109 is wider than the plan's row in two ways. The law is given as
+`μ.real {ω | X 0 ω = a} = p a` for every letter, which carries `p ≥ 0` and `∑ p = 1`, with no
+measurability beyond what `IdentDistrib` gives (`X 0` is almost everywhere measurable,
+`IdentDistrib.aemeasurable_fst`); and pairwise independence is enough, where the plan says
+independent draws, since Mathlib's strong law asks no more. The plan's row names the library's
+`vecMeasure`; the statement does not use it, the law being given as above. Lean's `log 0 = 0`
+does not matter: a letter with `p a = 0` is drawn with chance `0`. Each hypothesis is needed, with
+a law that is not uniform (when `p` is uniform, `−log p a = log |α| = H(p)` for every letter, so
+the conclusion holds whatever the draws are and no case exists): `p = (1/4, 3/4)`, so
+`H(p) = log 4 − (3/4) log 3`. Without the law, true law `(1, 0)`: the limit is `log 4`, not `H(p)`
+(order LEAN-32's own checks, `checks109.py`, line `109.drop.law`); without independence,
+`X i = X 0` for every `i`: the average is `log 4` or `log (4/3)`, never `H(p)` (`109.drop.indep`);
+without identical distribution, `X 0` with law `p` and `X i` the second letter for every `i ≥ 1`
+(constants, so independent): the limit is `log (4/3)` (`109.drop.ident`). Each "not `H(p)`" is
+reduced by hand to a fact about whole numbers (`3³ ≠ 1`, `3 ≠ 1`), which the script checks
+exactly. The witness draws uniform letters of `Fin 4` under Mathlib's `Measure.infinitePi` and
+reads `X i = (ω i = 0)`, so the law on `Bool` is `p true = 1/4`, `p false = 3/4`, not uniform;
+the module imports `Mathlib.Probability.HasLawExists` for it.
 
 ## What is cited
 
@@ -256,6 +281,41 @@ theorem measureReal_empirical_mem_le {p : α → ℝ} (hp0 : ∀ i, 0 ≤ p i) (
     _ ≤ (n + 1) ^ Fintype.card α * exp (-(n * d)) :=
         mul_le_mul_of_nonneg_right hcard (exp_pos _).le
 
+open ProbabilityTheory Filter Topology in
+omit [DecidableEq α] in
+/-- **The asymptotic equipartition property** (order LEAN-32, item 109): for pairwise independent,
+identically distributed draws `X i` on a finite alphabet with law `p`, almost surely
+`−(1/n) ∑_{i<n} log p (X i) → H(p)`, the strong law for `−log p (X i)`. -/
+theorem tendsto_neg_log_div_shannonEntropy {Ω : Type*} [MeasurableSpace Ω] {μ : Measure Ω}
+    [IsProbabilityMeasure μ] {X : ℕ → Ω → α}
+    (hindep : Pairwise fun i j ↦ IndepFun (X i) (X j) μ)
+    (hident : ∀ i, IdentDistrib (X i) (X 0) μ μ) {p : α → ℝ}
+    (hlaw : ∀ a, μ.real {ω | X 0 ω = a} = p a) :
+    ∀ᵐ ω ∂μ, Tendsto (fun n : ℕ ↦ -(∑ i ∈ range n, Real.log (p (X i ω))) / n) atTop
+      (𝓝 (ClassicalLean.Simplex.shannonEntropy p)) := by
+  have hg : Measurable fun a : α ↦ -Real.log (p a) := measurable_of_finite _
+  have hX0 : AEMeasurable (X 0) μ := (hident 0).aemeasurable_fst
+  have hint : Integrable ((fun a : α ↦ -Real.log (p a)) ∘ X 0) μ :=
+    (Integrable.of_finite (μ := μ.map (X 0))).comp_aemeasurable hX0
+  have hmean : ∫ ω, ((fun a : α ↦ -Real.log (p a)) ∘ X 0) ω ∂μ = shannonEntropy p := by
+    rw [show ∫ ω, ((fun a : α ↦ -Real.log (p a)) ∘ X 0) ω ∂μ
+        = ∫ a, -Real.log (p a) ∂(μ.map (X 0)) from
+          (integral_map (f := fun a : α ↦ -Real.log (p a)) hX0
+            (measurable_of_finite _).aestronglyMeasurable).symm,
+      integral_fintype Integrable.of_finite]
+    simp only [map_measureReal_apply_of_aemeasurable hX0 (measurableSet_singleton _),
+      smul_eq_mul, shannonEntropy, mul_neg, Finset.sum_neg_distrib]
+    refine congrArg Neg.neg (Finset.sum_congr rfl fun a _ ↦ ?_)
+    rw [← hlaw a]
+    rfl
+  have h := strong_law_ae (fun i ↦ (fun a : α ↦ -Real.log (p a)) ∘ X i) hint
+    (fun i j hij ↦ (hindep hij).comp hg hg) fun i ↦ (hident i).comp hg
+  filter_upwards [h] with ω hω
+  rw [hmean] at hω
+  refine hω.congr fun n ↦ ?_
+  simp only [Function.comp_apply, smul_eq_mul, Finset.sum_neg_distrib]
+  ring
+
 end ClassicalLean.InformationTheory
 
 open ClassicalLean.Simplex in
@@ -268,3 +328,34 @@ example := ClassicalLean.InformationTheory.measureReal_empirical_mem_le (α := F
   (p := ![1 / 2, 1 / 2]) (fun i ↦ by fin_cases i <;> norm_num) (n := 4)
   (E := {![3 / 4, 1 / 4]}) (d := relEntropy ![3 / 4, 1 / 4] ![1 / 2, 1 / 2])
   (fun ω h ↦ by rw [Set.mem_singleton_iff.mp h])
+
+open ProbabilityTheory in
+/-- The hypotheses of `tendsto_neg_log_div_shannonEntropy` hold together: uniform letters `ω i` of
+`Fin 4`, independent under `Measure.infinitePi`, read as `X i ω = (ω i = 0)` in `Bool`, so the law
+is `p true = 1/4`, `p false = 3/4`, not uniform. -/
+example := ClassicalLean.InformationTheory.tendsto_neg_log_div_shannonEntropy (α := Bool)
+  (Ω := ℕ → Fin 4) (μ := Measure.infinitePi fun _ : ℕ ↦ uniformOn (Set.univ : Set (Fin 4)))
+  (X := fun i ω ↦ decide (ω i = 0))
+  (fun i j hij ↦ (iIndepFun_infinitePi (P := fun _ : ℕ ↦ uniformOn (Set.univ : Set (Fin 4)))
+    (X := fun _ k ↦ decide (k = 0)) fun _ ↦ measurable_of_finite _).indepFun hij)
+  (fun i ↦ (show IdentDistrib (fun ω : ℕ → Fin 4 ↦ ω i) (fun ω : ℕ → Fin 4 ↦ ω 0)
+      (Measure.infinitePi fun _ : ℕ ↦ uniformOn (Set.univ : Set (Fin 4)))
+      (Measure.infinitePi fun _ : ℕ ↦ uniformOn (Set.univ : Set (Fin 4))) from
+    ⟨(measurable_pi_apply i).aemeasurable, (measurable_pi_apply 0).aemeasurable, by
+      rw [Measure.infinitePi_map_eval, Measure.infinitePi_map_eval]⟩).comp
+    (measurable_of_finite fun k : Fin 4 ↦ decide (k = 0)))
+  (p := fun b ↦ if b then 1 / 4 else 3 / 4)
+  (fun a ↦ by
+    rw [show {ω : ℕ → Fin 4 | decide (ω 0 = 0) = a}
+        = (fun ω : ℕ → Fin 4 ↦ ω 0) ⁻¹' {k | decide (k = 0) = a} from rfl,
+      ← map_measureReal_apply (measurable_pi_apply 0) (Set.toFinite _).measurableSet,
+      Measure.infinitePi_map_eval]
+    cases a
+    · rw [show {k : Fin 4 | decide (k = 0) = false} = ↑({1, 2, 3} : Finset (Fin 4)) by
+        ext k; fin_cases k <;> simp]
+      rw [measureReal_def, uniformOn_univ, Measure.count_apply_finset]
+      norm_num
+    · rw [show {k : Fin 4 | decide (k = 0) = true} = ↑({0} : Finset (Fin 4)) by
+        ext k; fin_cases k <;> simp]
+      rw [measureReal_def, uniformOn_univ, Measure.count_apply_finset]
+      norm_num)
