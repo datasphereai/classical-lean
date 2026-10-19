@@ -4,8 +4,8 @@
 
 [meta]
 section = "HANDOFF.md section 6"
-budget_self_applied = 39
-budget_set_by = "Dustin 2026-10-18: one in, one out (store row 20261018-010)"
+budget_self_applied = 21
+budget_set_by = "RULES-1 2026-10-19: lowered to the self-applied count under row 20261018-010"
 allowed_bullets = ['''Local commits only.''', '''Rules learned in the runs of o''', '''Standing answers** (dated 2026''', '''Keep the records true.''', '''Report what you measured.''']
 outside_sha256 = "f39a512b6b1d3a56f15d03c8e420584993d1ef0b38700aae3bedc909e78c9fac"
 
@@ -50,72 +50,78 @@ n = 4
 title = '''Stage every commit by path'''
 body = ''', branch commits included.'''
 subject = "commits"
-status = "active"
-merged_into = 0
+status = "merged"
+merged_into = 39
 enforced_by = ''''''
 enforcement = ""
 verified_by = ""
 last_caught = ""
+change_note = '''RULES-1 J4: rules 4, 6, 7, 35 merged into rule 39, carrying out Dustin's ruling of 2026-10-18 (store row 20261018-010)'''
 
 [[rule]]
 n = 5
 title = '''Every evidence-log line carries its command and its rc.'''
 body = ''''''
 subject = "evidence-log"
-status = "active"
-merged_into = 0
+status = "merged"
+merged_into = 23
 enforced_by = ''''''
 enforcement = ""
 verified_by = ""
 last_caught = ""
+change_note = '''RULES-1 J4: rules 5, 8, 30, 32 merged into rule 23, carrying out Dustin's ruling of 2026-10-18 (store row 20261018-010)'''
 
 [[rule]]
 n = 6
 title = '''Any linter or option switched off or on'''
 body = '''goes in the first paragraph of the commit message, and in §1.'''
 subject = "commits"
-status = "active"
-merged_into = 0
+status = "merged"
+merged_into = 39
 enforced_by = ''''''
 enforcement = ""
 verified_by = ""
 last_caught = ""
+change_note = '''RULES-1 J4: rules 4, 6, 7, 35 merged into rule 39, carrying out Dustin's ruling of 2026-10-18 (store row 20261018-010)'''
 
 [[rule]]
 n = 7
 title = '''Write a commit message only after its gates have run.'''
 body = ''''''
 subject = "commits"
-status = "active"
-merged_into = 0
+status = "merged"
+merged_into = 39
 enforced_by = ''''''
 enforcement = ""
 verified_by = ""
 last_caught = ""
+change_note = '''RULES-1 J4: rules 4, 6, 7, 35 merged into rule 39, carrying out Dustin's ruling of 2026-10-18 (store row 20261018-010)'''
 
 [[rule]]
 n = 8
 title = '''An evidence log records only a measured rc'''
 body = ''', taken from the command's own `$?`. A run that did not happen is logged `NOT RUN`, never a placeholder (round 20, the Close check's addendum).'''
 subject = "evidence-log"
-status = "active"
-merged_into = 0
+status = "merged"
+merged_into = 23
 enforced_by = ''''''
 enforcement = ""
 verified_by = ""
 last_caught = ""
+change_note = '''RULES-1 J4: rules 5, 8, 30, 32 merged into rule 23, carrying out Dustin's ruling of 2026-10-18 (store row 20261018-010)'''
 
 [[rule]]
 n = 9
 title = '''Time windows use epoch seconds, or `find -newer <reference file>`'''
 body = ''', never a formatted UTC time without its `Z` (order G-5's session page, as claude-ai read it; not recorded in round 20).'''
 subject = "time"
-status = "active"
-merged_into = 0
+status = "merged"
+merged_into = 36
 enforced_by = ''''''
 enforcement = ""
 verified_by = ""
 last_caught = ""
+change_note = '''RULES-1 J4: rule 9 merged into rule 36, carrying out Dustin's ruling of 2026-10-18 (store row 20261018-010)'''
 
 [[rule]]
 n = 10
@@ -134,12 +140,13 @@ n = 11
 title = '''`lake env lean` checks types only.'''
 body = '''Linter results count only from `lake build`, run from the repository root: `[leanOptions]` apply only there, and the header linter finds the root by a relative path (rounds 19 and 20).'''
 subject = "build"
-status = "active"
-merged_into = 0
+status = "merged"
+merged_into = 20
 enforced_by = ''''''
 enforcement = ""
 verified_by = ""
 last_caught = ""
+change_note = '''RULES-1 J4: rule 11 merged into rule 20, carrying out Dustin's ruling of 2026-10-18 (store row 20261018-010)'''
 
 [[rule]]
 n = 12
@@ -158,17 +165,18 @@ n = 13
 title = '''Every new declaration, private helpers included, is reviewed cold before its commit'''
 body = '''(round 20: three helpers were reviewed only after proving).'''
 subject = "review-order"
-status = "active"
-merged_into = 0
+status = "merged"
+merged_into = 31
 enforced_by = ''''''
 enforcement = ""
 verified_by = ""
 last_caught = ""
+change_note = '''RULES-1 J4: rules 13, 16, 21, 29 merged into rule 31, carrying out Dustin's ruling of 2026-10-18 (store row 20261018-010)'''
 
 [[rule]]
 n = 14
-title = '''Before-and-after evidence is `TypeDump.lean` with `g5_typediff.py`'''
-body = ''', not name lists alone (round 19). Read its `DIFF removed= added= changed=` line, not its exit code, which is 0 whenever nothing changed even if records were removed or added (order G-6, round 21). **Amended 2026-09-24 UTC (order G-8, rule 25):** the pair is now `~/work/_bump-evidence/TypeDumpPI.lean` with `g8_typediff.py`, which print today's fields and the same forms with every proof replaced by one placeholder; their `DIFF` line adds `proof_only=`. They passed their controls in order G-8's J1 (round 25). `TypeDump.lean` and `g5_typediff.py` are kept, unchanged.'''
+title = '''Before-and-after evidence is a type dump, read by its `DIFF` line and judged up to proof irrelevance.'''
+body = '''Before-and-after evidence is `TypeDump.lean` with `g5_typediff.py`, not name lists alone (round 19). Read its `DIFF removed= added= changed=` line, not its exit code, which is 0 whenever nothing changed even if records were removed or added (order G-6, round 21). **Amended 2026-09-24 UTC (order G-8, rule 25, now part of this rule):** the pair is now `~/work/_bump-evidence/TypeDumpPI.lean` with `g8_typediff.py`, which print today's fields and the same forms with every proof replaced by one placeholder; their `DIFF` line adds `proof_only=`. They passed their controls in order G-8's J1 (round 25). `TypeDump.lean` and `g5_typediff.py` are kept, unchanged. Type-dump Done-means are judged up to proof irrelevance: a record whose raw form differs only inside proof terms is `PROOF-ONLY`: listed, explained, and not counted as changed (round 24's addendum, item 1; order G-8 §2's ruling). Without a tool that has passed its controls, such a record is settled by a Lean file with a fire test, as round 23 did (`DefeqCheck.lean`).'''
 subject = "gates"
 status = "active"
 merged_into = 0
@@ -176,6 +184,7 @@ enforced_by = ''''''
 enforcement = ""
 verified_by = ""
 last_caught = ""
+change_note = '''RULES-1 J4: rule 25 merged into rule 14, carrying out Dustin's ruling of 2026-10-18 (store row 20261018-010)'''
 
 [[rule]]
 n = 15
@@ -194,17 +203,18 @@ n = 16
 title = '''A statement review's verdict is in before any proof of those statements is written.'''
 body = '''Research, other jobs' drafting, and gate runs may overlap a review; proofs of the statements under review may not (order G-6's run: J2's and J3's statement reviews returned after their proofs were written, J2's compiled; §0 row 13 of order G-7, rounds 21 and 22).'''
 subject = "review-order"
-status = "active"
-merged_into = 0
+status = "merged"
+merged_into = 31
 enforced_by = ''''''
 enforcement = ""
 verified_by = ""
 last_caught = ""
+change_note = '''RULES-1 J4: rules 13, 16, 21, 29 merged into rule 31, carrying out Dustin's ruling of 2026-10-18 (store row 20261018-010)'''
 
 [[rule]]
 n = 17
 title = '''Every reviewer and checker output is saved verbatim, with its sha256, in the order's evidence directory when it returns.'''
-body = '''Fragments quote from the saved file (order G-6's Close check: the statement reviews were paraphrased and their outputs not kept).'''
+body = '''Fragments quote from the saved file. A workflow returns each report's text with its sha256, and the saving command compares the two before the report is read; where reviews are dispatched outside a workflow, the same holds by extracting each agent's returned text from its hand-back and hashing the saved file against it. Sources: order G-6's Close check: the statement reviews were paraphrased and their outputs not kept (rule 17); nothing in orders G-5 to G-9 had checked that a saved review was the text its agent returned, until G-9's addendum compared all twelve against the harness's journal, round 28's addendum item 23 (rule 33).'''
 subject = "saved-outputs"
 status = "active"
 merged_into = 0
@@ -212,6 +222,7 @@ enforced_by = ''''''
 enforcement = ""
 verified_by = ""
 last_caught = ""
+change_note = '''RULES-1 J4: rule 33 merged into rule 17, carrying out Dustin's ruling of 2026-10-18 (store row 20261018-010)'''
 
 [[rule]]
 n = 18
@@ -239,8 +250,8 @@ last_caught = ""
 
 [[rule]]
 n = 20
-title = '''Scratch proofs are elaborated with the lakefile's options'''
-body = ''': `lake env lean -Dpp.unicode.fun=true -DrelaxedAutoImplicit=false -Dweak.linter.mathlibStandardSet=true -DmaxSynthPendingDepth=3 <file>`. Plain `lake env lean` applies none of `[leanOptions]`, so a proof checked only that way can land with linter warnings; rule 11 still holds (round 24: four `flexible` warnings at order G-7's first J3 build; order G-8 §0 row 17).'''
+title = '''`lake env lean` checks types only: scratch proofs are elaborated with the lakefile's options, and linter results count only from `lake build`.'''
+body = '''Linter results count only from `lake build`, run from the repository root: `[leanOptions]` apply only there, and the header linter finds the root by a relative path. Scratch proofs are elaborated with the lakefile's options: `lake env lean -Dpp.unicode.fun=true -DrelaxedAutoImplicit=false -Dweak.linter.mathlibStandardSet=true -DmaxSynthPendingDepth=3 <file>`. Plain `lake env lean` applies none of `[leanOptions]`, so a proof checked only that way can land with linter warnings. Sources: rounds 19 and 20 (rule 11); round 24: four `flexible` warnings at order G-7's first J3 build, and order G-8 §0 row 17 (rule 20).'''
 subject = "build"
 status = "active"
 merged_into = 0
@@ -248,23 +259,25 @@ enforced_by = ''''''
 enforcement = ""
 verified_by = ""
 last_caught = ""
+change_note = '''RULES-1 J4: rule 11 merged into rule 20, carrying out Dustin's ruling of 2026-10-18 (store row 20261018-010)'''
 
 [[rule]]
 n = 21
 title = '''A statement drafted in a plan is drafted.'''
 body = '''A job's recorded searches and junk cells come before any of its statements is drafted, the plan's drafts included (round 24's addendum, item 2).'''
 subject = "review-order"
-status = "active"
-merged_into = 0
+status = "merged"
+merged_into = 31
 enforced_by = ''''''
 enforcement = ""
 verified_by = ""
 last_caught = ""
+change_note = '''RULES-1 J4: rules 13, 16, 21, 29 merged into rule 31, carrying out Dustin's ruling of 2026-10-18 (store row 20261018-010)'''
 
 [[rule]]
 n = 22
-title = '''Every quote in a fragment is checked by a script against its saved source before the fragment is committed'''
-body = ''', with a negative control, and every omission inside a quote is marked `[...]` (round 24's addendum, items 3 and 4; `g7/close/quotecheck.py`).'''
+title = '''Every quote in a fragment, block or inline, is checked by a script against its saved source before the fragment is committed'''
+body = ''', with a negative control (for inline quotes, a planted misquote), and every omission inside a quote is marked `[...]`. An inline quote is a phrase in quotation marks or backticks attributed to a document; it is checked by script against its source, as block quotes are. Sources: round 24's addendum, items 3 and 4, and `g7/close/quotecheck.py` (rule 22); `inlinecheck.py`, and round 28's addendum items 11 and 23: three inline quotes cut or paraphrased their sources and the block-quote check never saw them (rule 34).'''
 subject = "quotes"
 status = "active"
 merged_into = 0
@@ -272,11 +285,12 @@ enforced_by = '''quotecheck.py'''
 enforcement = "proposed"
 verified_by = ""
 last_caught = ""
+change_note = '''RULES-1 J4: rule 34 merged into rule 22, carrying out Dustin's ruling of 2026-10-18 (store row 20261018-010)'''
 
 [[rule]]
 n = 23
-title = '''Evidence commands run through one helper'''
-body = '''that takes the prediction as an argument, refuses to run without one, and logs the command with its own `$?`; a commit runs only when its gates exited 0 in the same run (round 24's addendum, items 7, 8 and 9; order G-8's `ev.sh` and `land.sh`, round 25).'''
+title = '''Evidence commands run through one helper, and the evidence log holds only what was measured.'''
+body = '''The helper takes the prediction as an argument, refuses to run without one, and logs the command with its own `$?`; every evidence-log line carries its command and its rc. An evidence log records only a measured rc, taken from the command's own `$?`: a run that did not happen is logged `NOT RUN`, never a placeholder, and a refused call is logged `NOT RUN` in the next helper call, with the refused command's label and the guard's message, so that the final report's count of refusals is a `grep` of `evidence.log` and not a recollection. Every write, hash and edit of an evidence or records file runs through the helper, or is listed in the plan and the fragment before the commit that carries it. A commit runs only when its gates exited 0 in the same run. Sources: round 24's addendum, items 7, 8 and 9, and order G-8's `ev.sh` and `land.sh`, round 25 (rule 23); rule 5; round 20, the Close check's addendum (rule 8); order G-9 §0 row 15: the report said "nothing stopped" and "the only refusals were my own tools" over one guard refusal the log never saw (rule 30); order G-9 ran five such commands outside the helper, round 28's addendum item 20 (rule 32).'''
 subject = "evidence-log"
 status = "active"
 merged_into = 0
@@ -284,42 +298,46 @@ enforced_by = '''ev.sh (refuses to run without a prediction)'''
 enforcement = "proposed"
 verified_by = ""
 last_caught = ""
+change_note = '''RULES-1 J4: rules 5, 8, 30, 32 merged into rule 23, carrying out Dustin's ruling of 2026-10-18 (store row 20261018-010)'''
 
 [[rule]]
 n = 24
 title = '''Every reader, research and review brief quotes the rules it will be checked against'''
 body = ''', at least rules 16–25 (round 24's addendum, item 6).'''
-subject = "reviewers"
-status = "active"
-merged_into = 0
+subject = "briefs"
+status = "merged"
+merged_into = 26
 enforced_by = ''''''
 enforcement = ""
 verified_by = ""
 last_caught = ""
+change_note = '''RULES-1 J4: rule 24 merged into rule 26, carrying out Dustin's ruling of 2026-10-18 (store row 20261018-010)'''
 
 [[rule]]
 n = 25
 title = '''Type-dump Done-means are judged up to proof irrelevance.'''
 body = '''A record whose raw form differs only inside proof terms is `PROOF-ONLY`: listed, explained, and not counted as changed (round 24's addendum, item 1; order G-8 §2's ruling). Without a tool that has passed its controls, such a record is settled by a Lean file with a fire test, as round 23 did (`DefeqCheck.lean`).'''
 subject = "gates"
-status = "active"
-merged_into = 0
+status = "merged"
+merged_into = 14
 enforced_by = ''''''
 enforcement = ""
 verified_by = ""
 last_caught = ""
+change_note = '''RULES-1 J4: rule 25 merged into rule 14, carrying out Dustin's ruling of 2026-10-18 (store row 20261018-010)'''
 
 [[rule]]
 n = 26
-title = '''Every brief is built by script from `HANDOFF.md` and saved with its sha256 before it is sent'''
-body = ''', as order G-8's Close-check brief was (`close-brief-make`); a brief that claims to quote a rule verbatim quotes it verbatim, cuts marked `[...]` (round 26's addendum, item 16: the J3 post-proof brief shortened rules 16–25 without marking the cuts, and the J2 briefs were never saved).'''
-subject = "quotes"
+title = '''Every brief is built by script from `HANDOFF.md` and saved with its sha256 before it is sent; every reader, research and review brief quotes the rules it will be checked against'''
+body = ''', at least rules 16 to 25 as numbered on 2026-10-18 (where one of them has since been merged, the rule that absorbed it). Briefs are built as order G-8's Close-check brief was (`close-brief-make`); a brief that claims to quote a rule verbatim quotes it verbatim, cuts marked `[...]`. Sources: round 24's addendum, item 6 (rule 24); round 26's addendum, item 16: the J3 post-proof brief shortened rules 16–25 without marking the cuts, and the J2 briefs were never saved (rule 26).'''
+subject = "briefs"
 status = "active"
 merged_into = 0
 enforced_by = '''close-brief-make (builds briefs by script)'''
 enforcement = "proposed"
 verified_by = ""
 last_caught = ""
+change_note = '''RULES-1 J4: rule 24 merged into rule 26, carrying out Dustin's ruling of 2026-10-18 (store row 20261018-010)'''
 
 [[rule]]
 n = 27
@@ -350,29 +368,31 @@ n = 29
 title = '''A review fix that touches a proof line gets its delta check before the landing'''
 body = ''', as the review's condition asked (round 26's addendum, item 18: `hp.out` to `(Fact.out : p.Prime)` landed without it; the gates and the type dump then held, which is luck, not a check).'''
 subject = "review-order"
-status = "active"
-merged_into = 0
+status = "merged"
+merged_into = 31
 enforced_by = ''''''
 enforcement = ""
 verified_by = ""
 last_caught = ""
+change_note = '''RULES-1 J4: rules 13, 16, 21, 29 merged into rule 31, carrying out Dustin's ruling of 2026-10-18 (store row 20261018-010)'''
 
 [[rule]]
 n = 30
 title = '''A refused call is logged `NOT RUN`'''
 body = '''(rule 8) in the next helper call, with the refused command's label and the guard's message, so that the final report's count of refusals is a `grep` of `evidence.log` and not a recollection (order G-9 §0 row 15: the report said "nothing stopped" and "the only refusals were my own tools" over one guard refusal the log never saw).'''
 subject = "evidence-log"
-status = "active"
-merged_into = 0
+status = "merged"
+merged_into = 23
 enforced_by = ''''''
 enforcement = ""
 verified_by = ""
 last_caught = ""
+change_note = '''RULES-1 J4: rules 5, 8, 30, 32 merged into rule 23, carrying out Dustin's ruling of 2026-10-18 (store row 20261018-010)'''
 
 [[rule]]
 n = 31
-title = '''No statement of a job is drafted until the job's last search and cell has run'''
-body = ''', the ones a plan critic adds included; a cell a review adds after a draft is run and logged, and the draft re-hashed and re-elaborated after it (rule 18); J1 item 12 checks it by mtime against the log (order G-9's J1 ran cells and reads after the first drafts — round 28's addendum item 17, a MAJOR finding).'''
+title = '''A job's work runs in order: no statement is drafted before the job's last search and cell has run, a statement review's verdict is in before any proof of those statements, and every new declaration is reviewed cold before its commit.'''
+body = '''No statement of a job is drafted until the job's last search and cell has run, the ones a plan critic adds included; a statement drafted in a plan is drafted, so a job's recorded searches and junk cells come before any of its statements is drafted, the plan's drafts included. A cell a review adds after a draft is run and logged, and the draft re-hashed and re-elaborated after it (rule 18); J1 item 12 checks it by mtime against the log. A statement review's verdict is in before any proof of those statements is written: research, other jobs' drafting, and gate runs may overlap a review; proofs of the statements under review may not. Every new declaration, private helpers included, is reviewed cold before its commit. A review fix that touches a proof line gets its delta check before the landing, as the review's condition asked. Sources: order G-9's J1 ran cells and reads after the first drafts, round 28's addendum item 17, a MAJOR finding (rule 31); round 24's addendum, item 2 (rule 21); order G-6's run: J2's and J3's statement reviews returned after their proofs were written, J2's compiled, and §0 row 13 of order G-7, rounds 21 and 22 (rule 16); round 20: three helpers were reviewed only after proving (rule 13); round 26's addendum, item 18: `hp.out` to `(Fact.out : p.Prime)` landed without its delta check, and the gates and the type dump then held, which is luck, not a check (rule 29).'''
 subject = "review-order"
 status = "active"
 merged_into = 0
@@ -380,59 +400,64 @@ enforced_by = ''''''
 enforcement = ""
 verified_by = ""
 last_caught = ""
+change_note = '''RULES-1 J4: rules 13, 16, 21, 29 merged into rule 31, carrying out Dustin's ruling of 2026-10-18 (store row 20261018-010)'''
 
 [[rule]]
 n = 32
 title = '''Every write, hash and edit of an evidence or records file runs through the helper'''
 body = '''(rule 23), or is listed in the plan and the fragment before the commit that carries it (order G-9 ran five such commands outside it — round 28's addendum item 20).'''
 subject = "evidence-log"
-status = "active"
-merged_into = 0
+status = "merged"
+merged_into = 23
 enforced_by = '''ev.sh / land.sh (evidence writes run through the helper)'''
 enforcement = "proposed"
 verified_by = ""
 last_caught = ""
+change_note = '''RULES-1 J4: rules 5, 8, 30, 32 merged into rule 23, carrying out Dustin's ruling of 2026-10-18 (store row 20261018-010)'''
 
 [[rule]]
 n = 33
 title = '''A workflow returns each report's text with its sha256, and the saving command compares the two before the report is read'''
 body = '''(rule 17): nothing in orders G-5 to G-9 had checked that a saved review was the text its agent returned, until G-9's addendum compared all twelve against the harness's journal (round 28's addendum item 23). Where reviews are dispatched outside a workflow, the same holds by extracting each agent's returned text from its hand-back and hashing the saved file against it.'''
 subject = "saved-outputs"
-status = "active"
-merged_into = 0
+status = "merged"
+merged_into = 17
 enforced_by = ''''''
 enforcement = ""
 verified_by = ""
 last_caught = ""
+change_note = '''RULES-1 J4: rule 33 merged into rule 17, carrying out Dustin's ruling of 2026-10-18 (store row 20261018-010)'''
 
 [[rule]]
 n = 34
 title = '''Every inline quote in a fragment — a phrase in quotation marks or backticks attributed to a document — is checked by script against its source, as block quotes are'''
 body = '''(rule 22), with a planted misquote as the negative control (`inlinecheck.py`; round 28's addendum items 11 and 23: three inline quotes cut or paraphrased their sources and the block-quote check never saw them).'''
 subject = "quotes"
-status = "active"
-merged_into = 0
+status = "merged"
+merged_into = 22
 enforced_by = '''inlinecheck.py'''
 enforcement = "proposed"
 verified_by = ""
 last_caught = ""
+change_note = '''RULES-1 J4: rule 34 merged into rule 22, carrying out Dustin's ruling of 2026-10-18 (store row 20261018-010)'''
 
 [[rule]]
 n = 35
 title = '''A commit message says only what the evidence log shows.'''
 body = '''Every Mathlib or library name a proof uses that the order's own probes do not cover gets a logged `#check` probe before the first draft that uses it, and a commit message that cites a run names its evidence label and claims only what that run's output shows (order LEAN-29's `2bba7b6` said item 92's names "were probed first (el.sh p92-1)", when that probe had failed on three names and two of the names used were never probed by `#check`, review r92, finding 4; the fix commit `54c3624` restated it with a quotation cut without a mark and left out the run that confirmed the names, review r92c, findings A and B).'''
-subject = "names"
-status = "active"
-merged_into = 0
+subject = "commits"
+status = "merged"
+merged_into = 39
 enforced_by = ''''''
 enforcement = ""
 verified_by = ""
 last_caught = ""
+change_note = '''RULES-1 J4: rules 4, 6, 7, 35 merged into rule 39, carrying out Dustin's ruling of 2026-10-18 (store row 20261018-010)'''
 
 [[rule]]
 n = 36
-title = '''Every clock time carries its date.'''
-body = '''A clock time in a brief, a prediction or a record carries its ISO date on the same line (for example `2026-10-16T01:45 EDT`, or `2026-10-16 01:45 EDT`), or the text names no clock; a brief names the night window of its order's Scope rather than copying its daily times, and gives the dated end of its own run. The brief builder refuses a brief with a line that holds a time, matched by `(?<![\d:])\d{1,2}:\d{2}(?!\d)`, and no date `\d{4}-\d{2}-\d{2}` on that line; an order copied verbatim into `records/orders/` is exempt (order LEAN-30's brief builder wrote "none after 01:45 EDT" with no date, and four item reviewers read it on 2026-10-15 at 13:53 EDT as already past and ran no Lean: LEAN-30's close, thread 2).'''
+title = '''Every clock time carries its date, and time windows use epoch seconds or `find -newer`.'''
+body = '''A clock time in a brief, a prediction or a record carries its ISO date on the same line (for example `2026-10-16T01:45 EDT`, or `2026-10-16 01:45 EDT`), or the text names no clock; a brief names the night window of its order's Scope rather than copying its daily times, and gives the dated end of its own run. The brief builder refuses a brief with a line that holds a time, matched by `(?<![\d:])\d{1,2}:\d{2}(?!\d)`, and no date `\d{4}-\d{2}-\d{2}` on that line; an order copied verbatim into `records/orders/` is exempt. Time windows use epoch seconds, or `find -newer <reference file>`, never a formatted UTC time without its `Z`. Sources: order LEAN-30's brief builder wrote "none after 01:45 EDT" with no date, and four item reviewers read it on 2026-10-15 at 13:53 EDT as already past and ran no Lean: LEAN-30's close, thread 2 (rule 36); order G-5's session page, as claude-ai read it, not recorded in round 20 (rule 9).'''
 subject = "time"
 status = "active"
 merged_into = 0
@@ -440,6 +465,7 @@ enforced_by = '''the brief builder (refuses a time with no date)'''
 enforcement = "proposed"
 verified_by = ""
 last_caught = ""
+change_note = '''RULES-1 J4: rule 9 merged into rule 36, carrying out Dustin's ruling of 2026-10-18 (store row 20261018-010)'''
 
 [[rule]]
 n = 37
@@ -467,8 +493,8 @@ last_caught = ""
 
 [[rule]]
 n = 39
-title = '''Run citations in commit messages are written by script.'''
-body = '''After each commit a marker line `COMMIT <hash>` goes into `evidence.log`; a commit message that cites runs ends with one line written by a script (order LEAN-32's `evcite.py`), `Evidence: evidence.log lines N to M: <every label in those lines>`, covering every line since the last marker; and a checker (its `citecheck.py`) compares each commit's `Evidence:` line with the log and reports every difference, its output at the end of the push-review file (order LEAN-32, job 4e). Tested before first use: a message whose label list leaves one label out is reported; the generated line passes (order LEAN-31's commit messages named lists of runs that were not the whole list: its close, section 3.4, and `misses.md` items 10 to 14, 17 and 20).'''
+title = '''A commit is staged by path; its message is written after its gates have run, says only what the evidence log shows, and, when it cites runs, ends with a run citation written by script.'''
+body = '''Stage every commit by path, branch commits included. Write a commit message only after its gates have run. Any linter or option switched off or on goes in the first paragraph of the commit message, and in §1. A commit message says only what the evidence log shows: a commit message that cites a run names its evidence label and claims only what that run's output shows, and every Mathlib or library name a proof uses that the order's own probes do not cover gets a logged `#check` probe before the first draft that uses it. Run citations in commit messages are written by script. After each commit a marker line `COMMIT <hash>` goes into `evidence.log`; a commit message that cites runs ends with one line written by a script (order LEAN-32's `evcite.py`), `Evidence: evidence.log lines N to M: <every label in those lines>`, covering every line since the last marker; and a checker (its `citecheck.py`) compares each commit's `Evidence:` line with the log and reports every difference, its output at the end of the push-review file (order LEAN-32, job 4e). Tested before first use: a message whose label list leaves one label out is reported; the generated line passes. Sources: order LEAN-31's commit messages named lists of runs that were not the whole list, its close, section 3.4, and `misses.md` items 10 to 14, 17 and 20 (rule 39); order LEAN-29's `2bba7b6` said item 92's names "were probed first (el.sh p92-1)", when that probe had failed on three names and two of the names used were never probed by `#check`, review r92, finding 4, and the fix commit `54c3624` restated it with a quotation cut without a mark and left out the run that confirmed the names, review r92c, findings A and B (rule 35); rules 4, 6 and 7.'''
 subject = "commits"
 status = "active"
 merged_into = 0
@@ -476,3 +502,4 @@ enforced_by = '''evcite.py and citecheck.py'''
 enforcement = "proposed"
 verified_by = ""
 last_caught = ""
+change_note = '''RULES-1 J4: rules 4, 6, 7, 35 merged into rule 39, carrying out Dustin's ruling of 2026-10-18 (store row 20261018-010)'''

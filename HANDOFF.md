@@ -1076,168 +1076,32 @@ failure mode, and it is the one this library was built in reaction to.
   lead-in extended 2026-10-18 UTC, order LEAN-32, job 3.
   The next order
   cites these instead of repeating them:
-  1. *Check the invariant, not a proxy* — §0 applied to a gate: the cache check tested all of
-     Mathlib, and so it stopped the toolchain move over a module this library never imports.
-  2. *Read a Mathlib definition before stating anything about it.* The `klDiv` bridge was
-     written from the name; the definition carries a mass term.
-  3. *Junk cells need random trials plus constructed exact-zero cases.* Random search missed a
-     measure-zero failure.
-  4. *Stage every commit by path*, branch commits included.
-  5. *Every evidence-log line carries its command and its rc.*
-  6. *Any linter or option switched off or on* goes in the first paragraph of the commit
-     message, and in §1.
-  7. *Write a commit message only after its gates have run.*
-  8. *An evidence log records only a measured rc*, taken from the command's own `$?`. A run that
-     did not happen is logged `NOT RUN`, never a placeholder (round 20, the Close check's
-     addendum).
-  9. *Time windows use epoch seconds, or `find -newer <reference file>`*, never a formatted UTC
-     time without its `Z` (order G-5's session page, as claude-ai read it; not recorded in round
-     20).
-  10. *Test harnesses match identifiers exactly, never by prefix.* Suspect the harness first when
-      a result surprises (round 20: `S1` matched `S10`).
-  11. *`lake env lean` checks types only.* Linter results count only from `lake build`, run from
-      the repository root: `[leanOptions]` apply only there, and the header linter finds the
-      root by a relative path (rounds 19 and 20).
-  12. *Reviewers work in a scratch directory outside the repository*, with
-      `PYTHONDONTWRITEBYTECODE=1`, copy a repository script before importing it, and are followed
-      by a `git status` check (round 20: two reviewers wrote outside their brief).
-  13. *Every new declaration, private helpers included, is reviewed cold before its commit*
-      (round 20: three helpers were reviewed only after proving).
-  14. *Before-and-after evidence is `TypeDump.lean` with `g5_typediff.py`*, not name lists alone
-      (round 19). Read its `DIFF removed= added= changed=` line, not its exit code, which is 0
-      whenever nothing changed even if records were removed or added (order G-6, round 21).
-      **Amended 2026-09-24 UTC (order G-8, rule 25):** the pair is now
-      `~/work/_bump-evidence/TypeDumpPI.lean` with `g8_typediff.py`, which print today's fields
-      and the same forms with every proof replaced by one placeholder; their `DIFF` line adds
-      `proof_only=`. They passed their controls in order G-8's J1 (round 25). `TypeDump.lean`
-      and `g5_typediff.py` are kept, unchanged.
-  15. *A pattern written for a tool is tested under that tool's own compile flags* (round 19:
-      claude-ai's exception, compiled with `re.I`, also admitted lowercase variants).
-  16. *A statement review's verdict is in before any proof of those statements is written.*
-      Research, other jobs' drafting, and gate runs may overlap a review; proofs of the
-      statements under review may not (order G-6's run: J2's and J3's statement reviews
-      returned after their proofs were written, J2's compiled; §0 row 13 of order G-7, rounds
-      21 and 22).
-  17. *Every reviewer and checker output is saved verbatim, with its sha256, in the order's
-      evidence directory when it returns.* Fragments quote from the saved file (order G-6's
-      Close check: the statement reviews were paraphrased and their outputs not kept).
-  18. *Records follow the clock.* When a step runs out of the order's sequence, or overlaps
-      another (a search re-run after the proof, step commits cut from a finished module,
-      proving while a review runs), the fragment says so at that step, with times (order G-7
-      §0 row 13; rounds 21 and 22).
-  19. *Research notes name the source of every proof route they propose*: derived here, a
-      textbook with its reference, or a prior-art file, so that the module docstring's credit
-      can be exact (round 22: the base-2 route was the prior art's).
-  20. *Scratch proofs are elaborated with the lakefile's options*: `lake env lean
-      -Dpp.unicode.fun=true -DrelaxedAutoImplicit=false -Dweak.linter.mathlibStandardSet=true
-      -DmaxSynthPendingDepth=3 <file>`. Plain `lake env lean` applies none of `[leanOptions]`, so
-      a proof checked only that way can land with linter warnings; rule 11 still holds (round 24:
-      four `flexible` warnings at order G-7's first J3 build; order G-8 §0 row 17).
-  21. *A statement drafted in a plan is drafted.* A job's recorded searches and junk cells come
-      before any of its statements is drafted, the plan's drafts included (round 24's addendum,
-      item 2).
-  22. *Every quote in a fragment is checked by a script against its saved source before the
-      fragment is committed*, with a negative control, and every omission inside a quote is
-      marked `[...]` (round 24's addendum, items 3 and 4; `g7/close/quotecheck.py`).
-  23. *Evidence commands run through one helper* that takes the prediction as an argument,
-      refuses to run without one, and logs the command with its own `$?`; a commit runs only
-      when its gates exited 0 in the same run (round 24's addendum, items 7, 8 and 9; order G-8's
-      `ev.sh` and `land.sh`, round 25).
-  24. *Every reader, research and review brief quotes the rules it will be checked against*, at
-      least rules 16–25 (round 24's addendum, item 6).
-  25. *Type-dump Done-means are judged up to proof irrelevance.* A record whose raw form differs
-      only inside proof terms is `PROOF-ONLY`: listed, explained, and not counted as changed
-      (round 24's addendum, item 1; order G-8 §2's ruling). Without a tool that has passed its
-      controls, such a record is settled by a Lean file with a fire test, as round 23 did
-      (`DefeqCheck.lean`).
-  26. *Every brief is built by script from `HANDOFF.md` and saved with its sha256 before it is
-      sent*, as order G-8's Close-check brief was (`close-brief-make`); a brief that claims to
-      quote a rule verbatim quotes it verbatim, cuts marked `[...]` (round 26's addendum, item 16:
-      the J3 post-proof brief shortened rules 16–25 without marking the cuts, and the J2 briefs
-      were never saved).
-  27. *A count that Lean generates is predicted by a Lean measurement of the scratch file, not by
-      hand.* Theorem constants: a census of the elaborated scratch file's environment under the
-      axiom gate's `.thmInfo` predicate, restricted to the declarations being landed, auxiliaries
-      included; import closures: `env.header.moduleNames` of a file importing the module alone
-      (order G-8: 1421 against a hand prediction of 1326–1345, 16 modules against 5–8; order G-9
-      §0 row 14). A hand prediction may accompany the measurement; it does not replace it.
-  28. *A workflow or script that consumes inputs takes them as arguments and refuses to run
-      without them.* Order G-8's critic script ignored its arguments; re-invoked by mistake it
-      would have re-run four critics over the old draft and overwritten their saved reports
-      (round 25's timeline, 20:29:42Z; order G-9 §0 row 14).
-  29. *A review fix that touches a proof line gets its delta check before the landing*, as the
-      review's condition asked (round 26's addendum, item 18: `hp.out` to `(Fact.out : p.Prime)`
-      landed without it; the gates and the type dump then held, which is luck, not a check).
-  30. *A refused call is logged `NOT RUN`* (rule 8) in the next helper call, with the refused
-      command's label and the guard's message, so that the final report's count of refusals is a
-      `grep` of `evidence.log` and not a recollection (order G-9 §0 row 15: the report said
-      "nothing stopped" and "the only refusals were my own tools" over one guard refusal the log
-      never saw).
-  31. *No statement of a job is drafted until the job's last search and cell has run*, the ones a
-      plan critic adds included; a cell a review adds after a draft is run and logged, and the draft
-      re-hashed and re-elaborated after it (rule 18); J1 item 12 checks it by mtime against the log
-      (order G-9's J1 ran cells and reads after the first drafts — round 28's addendum item 17, a
-      MAJOR finding).
-  32. *Every write, hash and edit of an evidence or records file runs through the helper* (rule 23),
-      or is listed in the plan and the fragment before the commit that carries it (order G-9 ran
-      five such commands outside it — round 28's addendum item 20).
-  33. *A workflow returns each report's text with its sha256, and the saving command compares the
-      two before the report is read* (rule 17): nothing in orders G-5 to G-9 had checked that a
-      saved review was the text its agent returned, until G-9's addendum compared all twelve against
-      the harness's journal (round 28's addendum item 23). Where reviews are dispatched outside a
-      workflow, the same holds by extracting each agent's returned text from its hand-back and
-      hashing the saved file against it.
-  34. *Every inline quote in a fragment — a phrase in quotation marks or backticks attributed to a
-      document — is checked by script against its source, as block quotes are* (rule 22), with a
-      planted misquote as the negative control (`inlinecheck.py`; round 28's addendum items 11 and
-      23: three inline quotes cut or paraphrased their sources and the block-quote check never saw
-      them).
-  35. *A commit message says only what the evidence log shows.* Every Mathlib or library name a
-      proof uses that the order's own probes do not cover gets a logged `#check` probe before the
-      first draft that uses it, and a commit message that cites a run names its evidence label and
-      claims only what that run's output shows (order LEAN-29's `2bba7b6` said item 92's names
-      "were probed first (el.sh p92-1)", when that probe had failed on three names and two of the
-      names used were never probed by `#check`, review r92, finding 4; the fix commit `54c3624`
-      restated it with a quotation cut without a mark and left out the run that confirmed the
-      names, review r92c, findings A and B).
-  36. *Every clock time carries its date.* A clock time in a brief, a prediction or a record
-      carries its ISO date on the same line (for example `2026-10-16T01:45 EDT`, or
-      `2026-10-16 01:45 EDT`), or the text names no clock; a brief names the night window of its
-      order's Scope rather than copying its daily times, and gives the dated end of its own run.
-      The brief builder refuses a brief with a line that holds a time, matched by
-      `(?<![\d:])\d{1,2}:\d{2}(?!\d)`, and no date `\d{4}-\d{2}-\d{2}` on that line; an order
-      copied verbatim into `records/orders/` is exempt (order LEAN-30's brief builder wrote "none
-      after 01:45 EDT" with no date, and four item reviewers read it on 2026-10-15 at 13:53 EDT as
-      already past and ran no Lean: LEAN-30's close, thread 2).
-  37. *A name is probed before the text that uses it, and `el.sh` enforces it.* Before it runs
-      Lean, `el.sh` reads the text (a scratch draft whole; a library module only on its lines
-      changed against the order's base commit), with comments, docstrings and string literals
-      removed, takes the identifiers that contain `.` or `_`, and refuses the run, logged
-      `NOT RUN` with the tokens, while one is not cleared: by a successful `#check` probe of it or
-      of a dot-prefix of it, or of a full name that ends in `.` and it (a name under `open`); by a
-      first component that the text declares or binds (a hypothesis or a local); or by the hashed
-      allowlist of tactic names. The order's own statement probes seed it. Refusing too
-      much is safe: a probe clears it (order LEAN-30 used names in drafts before their `#check`
-      probes again, its review r98's MAJOR and others: LEAN-30's close, thread 3).
-  38. *A tool that imports `ClassicalLean` runs only on a fresh root build.* The bridge search, the
-      report tool, the plan's checks with `--lean`, a census that imports the root, and any other
-      tool that imports `ClassicalLean` run through a wrapper (order LEAN-32's `rootrun.sh`) that
-      first runs `lake build` at the current HEAD under the memory cap, logs its rc, its job count
-      and `git rev-parse HEAD`, and refuses the command, logged `NOT RUN`, unless that build's rc is
-      0. The gates are not wrapped; they run after gate 1's build. Tested before first use: with the
-      build replaced by `false` the command is refused and not run; with the real build the build
-      line comes before the command line, at the same HEAD (order LEAN-31's first bridge search and
-      report tool run read a `ClassicalLean.olean` built before its new module existed, so both saw
-      128 modules and were void: its `misses.md` item 23).
-  39. *Run citations in commit messages are written by script.* After each commit a marker line
-      `COMMIT <hash>` goes into `evidence.log`; a commit message that cites runs ends with one line
-      written by a script (order LEAN-32's `evcite.py`), `Evidence: evidence.log lines N to M:
-      <every label in those lines>`, covering every line since the last marker; and a checker (its
-      `citecheck.py`) compares each commit's `Evidence:` line with the log and reports every
-      difference, its output at the end of the push-review file (order LEAN-32, job 4e). Tested
-      before first use: a message whose label list leaves one label out is reported; the generated
-      line passes (order LEAN-31's commit messages named lists of runs that were not the whole
-      list: its close, section 3.4, and `misses.md` items 10 to 14, 17 and 20).
+<!-- rules:begin (generated by compile_rules.py from the rule registry; edit the registry, not this block) -->
+  Rules to apply yourself (21 of a budget of 21, set by RULES-1 2026-10-19: lowered to the self-applied count under row 20261018-010):
+  1. *Check the invariant, not a proxy* — §0 applied to a gate: the cache check tested all of Mathlib, and so it stopped the toolchain move over a module this library never imports.
+  2. *Read a Mathlib definition before stating anything about it.* The `klDiv` bridge was written from the name; the definition carries a mass term.
+  3. *Junk cells need random trials plus constructed exact-zero cases.* Random search missed a measure-zero failure.
+  10. *Test harnesses match identifiers exactly, never by prefix.* Suspect the harness first when a result surprises (round 20: `S1` matched `S10`).
+  12. *Reviewers work in a scratch directory outside the repository*, with `PYTHONDONTWRITEBYTECODE=1`, copy a repository script before importing it, and are followed by a `git status` check (round 20: two reviewers wrote outside their brief).
+  14. *Before-and-after evidence is a type dump, read by its `DIFF` line and judged up to proof irrelevance.* (absorbs rule 25) Before-and-after evidence is `TypeDump.lean` with `g5_typediff.py`, not name lists alone (round 19). Read its `DIFF removed= added= changed=` line, not its exit code, which is 0 whenever nothing changed even if records were removed or added (order G-6, round 21). **Amended 2026-09-24 UTC (order G-8, rule 25, now part of this rule):** the pair is now `~/work/_bump-evidence/TypeDumpPI.lean` with `g8_typediff.py`, which print today's fields and the same forms with every proof replaced by one placeholder; their `DIFF` line adds `proof_only=`. They passed their controls in order G-8's J1 (round 25). `TypeDump.lean` and `g5_typediff.py` are kept, unchanged. Type-dump Done-means are judged up to proof irrelevance: a record whose raw form differs only inside proof terms is `PROOF-ONLY`: listed, explained, and not counted as changed (round 24's addendum, item 1; order G-8 §2's ruling). Without a tool that has passed its controls, such a record is settled by a Lean file with a fire test, as round 23 did (`DefeqCheck.lean`).
+  15. *A pattern written for a tool is tested under that tool's own compile flags* (round 19: claude-ai's exception, compiled with `re.I`, also admitted lowercase variants).
+  17. *Every reviewer and checker output is saved verbatim, with its sha256, in the order's evidence directory when it returns.* (absorbs rule 33) Fragments quote from the saved file. A workflow returns each report's text with its sha256, and the saving command compares the two before the report is read; where reviews are dispatched outside a workflow, the same holds by extracting each agent's returned text from its hand-back and hashing the saved file against it. Sources: order G-6's Close check: the statement reviews were paraphrased and their outputs not kept (rule 17); nothing in orders G-5 to G-9 had checked that a saved review was the text its agent returned, until G-9's addendum compared all twelve against the harness's journal, round 28's addendum item 23 (rule 33).
+  18. *Records follow the clock.* When a step runs out of the order's sequence, or overlaps another (a search re-run after the proof, step commits cut from a finished module, proving while a review runs), the fragment says so at that step, with times (order G-7 §0 row 13; rounds 21 and 22).
+  19. *Research notes name the source of every proof route they propose*: derived here, a textbook with its reference, or a prior-art file, so that the module docstring's credit can be exact (round 22: the base-2 route was the prior art's).
+  20. *`lake env lean` checks types only: scratch proofs are elaborated with the lakefile's options, and linter results count only from `lake build`.* (absorbs rule 11) Linter results count only from `lake build`, run from the repository root: `[leanOptions]` apply only there, and the header linter finds the root by a relative path. Scratch proofs are elaborated with the lakefile's options: `lake env lean -Dpp.unicode.fun=true -DrelaxedAutoImplicit=false -Dweak.linter.mathlibStandardSet=true -DmaxSynthPendingDepth=3 <file>`. Plain `lake env lean` applies none of `[leanOptions]`, so a proof checked only that way can land with linter warnings. Sources: rounds 19 and 20 (rule 11); round 24: four `flexible` warnings at order G-7's first J3 build, and order G-8 §0 row 17 (rule 20).
+  22. *Every quote in a fragment, block or inline, is checked by a script against its saved source before the fragment is committed* (absorbs rule 34), with a negative control (for inline quotes, a planted misquote), and every omission inside a quote is marked `[...]`. An inline quote is a phrase in quotation marks or backticks attributed to a document; it is checked by script against its source, as block quotes are. Sources: round 24's addendum, items 3 and 4, and `g7/close/quotecheck.py` (rule 22); `inlinecheck.py`, and round 28's addendum items 11 and 23: three inline quotes cut or paraphrased their sources and the block-quote check never saw them (rule 34).
+  23. *Evidence commands run through one helper, and the evidence log holds only what was measured.* (absorbs rules 5, 8, 30, 32) The helper takes the prediction as an argument, refuses to run without one, and logs the command with its own `$?`; every evidence-log line carries its command and its rc. An evidence log records only a measured rc, taken from the command's own `$?`: a run that did not happen is logged `NOT RUN`, never a placeholder, and a refused call is logged `NOT RUN` in the next helper call, with the refused command's label and the guard's message, so that the final report's count of refusals is a `grep` of `evidence.log` and not a recollection. Every write, hash and edit of an evidence or records file runs through the helper, or is listed in the plan and the fragment before the commit that carries it. A commit runs only when its gates exited 0 in the same run. Sources: round 24's addendum, items 7, 8 and 9, and order G-8's `ev.sh` and `land.sh`, round 25 (rule 23); rule 5; round 20, the Close check's addendum (rule 8); order G-9 §0 row 15: the report said "nothing stopped" and "the only refusals were my own tools" over one guard refusal the log never saw (rule 30); order G-9 ran five such commands outside the helper, round 28's addendum item 20 (rule 32).
+  26. *Every brief is built by script from `HANDOFF.md` and saved with its sha256 before it is sent; every reader, research and review brief quotes the rules it will be checked against* (absorbs rule 24), at least rules 16 to 25 as numbered on 2026-10-18 (where one of them has since been merged, the rule that absorbed it). Briefs are built as order G-8's Close-check brief was (`close-brief-make`); a brief that claims to quote a rule verbatim quotes it verbatim, cuts marked `[...]`. Sources: round 24's addendum, item 6 (rule 24); round 26's addendum, item 16: the J3 post-proof brief shortened rules 16–25 without marking the cuts, and the J2 briefs were never saved (rule 26).
+  27. *A count that Lean generates is predicted by a Lean measurement of the scratch file, not by hand.* Theorem constants: a census of the elaborated scratch file's environment under the axiom gate's `.thmInfo` predicate, restricted to the declarations being landed, auxiliaries included; import closures: `env.header.moduleNames` of a file importing the module alone (order G-8: 1421 against a hand prediction of 1326–1345, 16 modules against 5–8; order G-9 §0 row 14). A hand prediction may accompany the measurement; it does not replace it.
+  28. *A workflow or script that consumes inputs takes them as arguments and refuses to run without them.* Order G-8's critic script ignored its arguments; re-invoked by mistake it would have re-run four critics over the old draft and overwritten their saved reports (round 25's timeline, 20:29:42Z; order G-9 §0 row 14).
+  31. *A job's work runs in order: no statement is drafted before the job's last search and cell has run, a statement review's verdict is in before any proof of those statements, and every new declaration is reviewed cold before its commit.* (absorbs rules 13, 16, 21, 29) No statement of a job is drafted until the job's last search and cell has run, the ones a plan critic adds included; a statement drafted in a plan is drafted, so a job's recorded searches and junk cells come before any of its statements is drafted, the plan's drafts included. A cell a review adds after a draft is run and logged, and the draft re-hashed and re-elaborated after it (rule 18); J1 item 12 checks it by mtime against the log. A statement review's verdict is in before any proof of those statements is written: research, other jobs' drafting, and gate runs may overlap a review; proofs of the statements under review may not. Every new declaration, private helpers included, is reviewed cold before its commit. A review fix that touches a proof line gets its delta check before the landing, as the review's condition asked. Sources: order G-9's J1 ran cells and reads after the first drafts, round 28's addendum item 17, a MAJOR finding (rule 31); round 24's addendum, item 2 (rule 21); order G-6's run: J2's and J3's statement reviews returned after their proofs were written, J2's compiled, and §0 row 13 of order G-7, rounds 21 and 22 (rule 16); round 20: three helpers were reviewed only after proving (rule 13); round 26's addendum, item 18: `hp.out` to `(Fact.out : p.Prime)` landed without its delta check, and the gates and the type dump then held, which is luck, not a check (rule 29).
+  36. *Every clock time carries its date, and time windows use epoch seconds or `find -newer`.* (absorbs rule 9) A clock time in a brief, a prediction or a record carries its ISO date on the same line (for example `2026-10-16T01:45 EDT`, or `2026-10-16 01:45 EDT`), or the text names no clock; a brief names the night window of its order's Scope rather than copying its daily times, and gives the dated end of its own run. The brief builder refuses a brief with a line that holds a time, matched by `(?<![\d:])\d{1,2}:\d{2}(?!\d)`, and no date `\d{4}-\d{2}-\d{2}` on that line; an order copied verbatim into `records/orders/` is exempt. Time windows use epoch seconds, or `find -newer <reference file>`, never a formatted UTC time without its `Z`. Sources: order LEAN-30's brief builder wrote "none after 01:45 EDT" with no date, and four item reviewers read it on 2026-10-15 at 13:53 EDT as already past and ran no Lean: LEAN-30's close, thread 2 (rule 36); order G-5's session page, as claude-ai read it, not recorded in round 20 (rule 9).
+  37. *A name is probed before the text that uses it, and `el.sh` enforces it.* Before it runs Lean, `el.sh` reads the text (a scratch draft whole; a library module only on its lines changed against the order's base commit), with comments, docstrings and string literals removed, takes the identifiers that contain `.` or `_`, and refuses the run, logged `NOT RUN` with the tokens, while one is not cleared: by a successful `#check` probe of it or of a dot-prefix of it, or of a full name that ends in `.` and it (a name under `open`); by a first component that the text declares or binds (a hypothesis or a local); or by the hashed allowlist of tactic names. The order's own statement probes seed it. Refusing too much is safe: a probe clears it (order LEAN-30 used names in drafts before their `#check` probes again, its review r98's MAJOR and others: LEAN-30's close, thread 3).
+  38. *A tool that imports `ClassicalLean` runs only on a fresh root build.* The bridge search, the report tool, the plan's checks with `--lean`, a census that imports the root, and any other tool that imports `ClassicalLean` run through a wrapper (order LEAN-32's `rootrun.sh`) that first runs `lake build` at the current HEAD under the memory cap, logs its rc, its job count and `git rev-parse HEAD`, and refuses the command, logged `NOT RUN`, unless that build's rc is 0. The gates are not wrapped; they run after gate 1's build. Tested before first use: with the build replaced by `false` the command is refused and not run; with the real build the build line comes before the command line, at the same HEAD (order LEAN-31's first bridge search and report tool run read a `ClassicalLean.olean` built before its new module existed, so both saw 128 modules and were void: its `misses.md` item 23).
+  39. *A commit is staged by path; its message is written after its gates have run, says only what the evidence log shows, and, when it cites runs, ends with a run citation written by script.* (absorbs rules 4, 6, 7, 35) Stage every commit by path, branch commits included. Write a commit message only after its gates have run. Any linter or option switched off or on goes in the first paragraph of the commit message, and in §1. A commit message says only what the evidence log shows: a commit message that cites a run names its evidence label and claims only what that run's output shows, and every Mathlib or library name a proof uses that the order's own probes do not cover gets a logged `#check` probe before the first draft that uses it. Run citations in commit messages are written by script. After each commit a marker line `COMMIT <hash>` goes into `evidence.log`; a commit message that cites runs ends with one line written by a script (order LEAN-32's `evcite.py`), `Evidence: evidence.log lines N to M: <every label in those lines>`, covering every line since the last marker; and a checker (its `citecheck.py`) compares each commit's `Evidence:` line with the log and reports every difference, its output at the end of the push-review file (order LEAN-32, job 4e). Tested before first use: a message whose label list leaves one label out is reported; the generated line passes. Sources: order LEAN-31's commit messages named lists of runs that were not the whole list, its close, section 3.4, and `misses.md` items 10 to 14, 17 and 20 (rule 39); order LEAN-29's `2bba7b6` said item 92's names "were probed first (el.sh p92-1)", when that probe had failed on three names and two of the names used were never probed by `#check`, review r92, finding 4, and the fix commit `54c3624` restated it with a quotation cut without a mark and left out the run that confirmed the names, review r92c, findings A and B (rule 35); rules 4, 6 and 7.
+- **Rules a tool enforces** (0; the tool refuses the act, so there is nothing to remember):
+- **The full text** of every rule, the enforced, merged and retired ones included, is in the rule registry (merged: 4 into 39, 5 into 23, 6 into 39, 7 into 39, 8 into 23, 9 into 36, 11 into 20, 13 into 31, 16 into 31, 21 into 31, 24 into 26, 25 into 14, 29 into 31, 30 into 23, 32 into 23, 33 into 17, 34 into 22, 35 into 39).
+<!-- rules:end -->
 - **Standing answers** (dated 2026-09-23; source: order G-5 §2):
   - A Mathlib cache gap outside this library's import closure: use the import-closure check plus
     the `.olean` sha256 manifest taken before and after `lake build` (ruled for order 0923's J3).

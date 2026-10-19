@@ -18,6 +18,11 @@ jobs:
     timeout-minutes: 90
     steps:
       - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6.1.0
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1 # v6.3.0
+        with:
+          python-version: "3.12"
       - id: lean
         uses: leanprover/lean-action@24581d74d674803a25a81b10b059c5c0cdd344c6 # v1.6.2
         with:
@@ -35,3 +40,22 @@ jobs:
       - name: Vacuity gate
         if: ${{ !cancelled() && steps.lean.outcome == 'success' }}
         run: lake env lean tools/VacuityGate.lean
+      - name: Rules gate
+        if: ${{ !cancelled() }}
+        run: |
+          tmp=$(mktemp -d)
+          hint="${{ github.event.before }}"
+          git cat-file -e "$hint^{commit}" 2>/dev/null || hint=""   # empty, all zeros, or a force-push's old tip the checkout never fetched
+          case "$hint" in ""|0000000000000000000000000000000000000000)
+            git fetch -q origin master && hint=$(git merge-base HEAD origin/master) ;;   # a manual run, or a branch's first push
+          esac
+          base=$(git rev-parse --verify "$hint^{commit}") || { echo "FAIL rules gate: base not found"; exit 1; }
+          if git cat-file -e "$base:records/rules.toml" 2>/dev/null; then
+            git show "$base:records/rules.toml" > "$tmp/base-rules.toml"
+            python3 tools/compile_rules.py check records/rules.toml --base "$tmp/base-rules.toml" || exit 1
+          elif git merge-base --is-ancestor "$base" a6d5c0f948e18231f53b2126201966b51c7d6416; then
+            python3 tools/compile_rules.py check records/rules.toml --first || exit 1
+          else
+            echo "FAIL rules gate: base $base has no registry"; exit 1
+          fi
+          python3 tools/compile_rules.py drift records/rules.toml HANDOFF.md || exit 1
