@@ -86,6 +86,15 @@ type comparison found every main theorem and definition the same as the draft's.
   finding, fixed in the docstring only and confirmed by a fresh reviewer (`rv2c-150`). Its two
   witnesses (`pinv_unique` on `!![1, 2; 0, 0]`, rank one; `pinv_eq_leastSquares` on a three-by-two
   matrix of full column rank) are new: the item had no witness start.
+* **151** (`d151-r9-s1.lean`). No warning to fix, at 9c0639c (the Goal list) or here. The private
+  `isProb_gamma_aux` (lines 54 to 58, its docstring included) is gone, and its one use (line 245)
+  now calls Mathlib's `ProbabilityTheory.isProbabilityMeasure_gammaMeasure`; a comment at
+  `complexMGF_gammaMeasure_aux` says that its route is the one of Mathlib's
+  `ProbabilityTheory.eqOn_complexMGF_of_mgf'`, and why that lemma does not apply as stated.
+  `import Mathlib` is replaced by thirteen Mathlib modules, each declaring a name the file uses.
+  The module's `lake build`: 0 warning lines (`build-151`). Its witness takes `k = 3`, from
+  claude-ai's satisfiability check `d151-r9-s1-sat.lean`. Its review, `rv2-151`: CLEAN, so no
+  confirming pass.
 
 ## Steps out of the order's sequence (rule 18)
 

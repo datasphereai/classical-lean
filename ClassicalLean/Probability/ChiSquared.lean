@@ -1,7 +1,57 @@
-import Mathlib
+/-
+Copyright (c) 2026 Dustin Watkins. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Dustin Watkins, Claude (Anthropic)
+-/
+
+import Mathlib.Analysis.Analytic.IsolatedZeros
+import Mathlib.Analysis.Complex.Convex
+import Mathlib.Analysis.SpecialFunctions.Complex.Analytic
+import Mathlib.Analysis.SpecialFunctions.Gamma.Basic
+import Mathlib.Analysis.SpecialFunctions.Gaussian.GaussianIntegral
+import Mathlib.MeasureTheory.Constructions.Pi
+import Mathlib.MeasureTheory.Integral.Prod
+import Mathlib.MeasureTheory.Measure.CharacteristicFunction.Basic
+import Mathlib.Probability.Distributions.Gamma
+import Mathlib.Probability.Distributions.Gaussian.Real
+import Mathlib.Probability.HasLaw
+import Mathlib.Probability.Independence.Basic
+import Mathlib.Probability.Moments.ComplexMGF
+
+/-!
+# The chi-squared law
+
+* `hasLaw_sum_sq_gaussian` — order CLOUD-MATH-2, item 151 of MATH-PLAN-library-2: for `k ≥ 1`
+  independent real random variables `X i` on a probability space, each with the standard normal
+  law `gaussianReal 0 1`, the sum of squares `∑ i, X i ^ 2` has the gamma law
+  `gammaMeasure (k / 2) (1 / 2)`, shape `k / 2` and rate `1 / 2`: the chi-squared law with `k`
+  degrees of freedom.
+
+The proof is by characteristic functions (`Measure.ext_of_charFun`). The gamma law's complex
+moment generating function is `r ^ a * (1 / (r - z)) ^ a` on the half-plane `re z < r`
+(`complexMGF_gammaMeasure_aux`): both sides are analytic there and agree at the real points
+`s < r`, where the integral is Mathlib's real gamma integral (`mgf_gammaMeasure_aux`). At
+`z = t * I` this is the gamma law's characteristic function (`charFun_gammaMeasure_aux`). The
+square of a standard normal has the characteristic function of `gammaMeasure (1 / 2) (1 / 2)`, by
+the complex Gaussian integral (`charFun_sq_gaussian_aux`). Independence makes the characteristic
+function of the sum the product of the `k` factors (`integral_exp_add_of_indep_aux`, by induction
+over the summands), and `(r ^ (1 / 2) * (1 / (r - t * I)) ^ (1 / 2)) ^ k` is
+`r ^ (k / 2) * (1 / (r - t * I)) ^ (k / 2)` at `r = 1 / 2`.
+
+The proof is the draft `d151-r9-s1` (written by a Claude Code session on DSMain, order CC-151,
+from an API draft), adapted by the Claude Code cloud session that landed it (order CLOUD-MATH-2):
+the namespace, targeted imports and docstrings, and the draft's private lemma that the gamma law
+is a probability measure replaced by Mathlib's
+`ProbabilityTheory.isProbabilityMeasure_gammaMeasure`.
+The witness at the end of the file, for `k = 3` coordinates of the product of standard normal laws
+(`Measure.pi`, which is why the file imports `Mathlib.MeasureTheory.Constructions.Pi`), starts from
+claude-ai's satisfiability check of 2026-10-13 (`d151-r9-s1-sat.lean`).
+-/
 
 open MeasureTheory ProbabilityTheory
 open scoped Real Topology
+
+namespace ClassicalLean.Probability.ChiSquared
 
 /-- For a positive real `p`, complex powers split over the product `p * z`. -/
 private lemma cpow_ofReal_mul_aux {p : ℝ} (hp : 0 < p) {z : ℂ} (hz : z ≠ 0) (w : ℂ) :
@@ -50,12 +100,6 @@ private lemma integral_exp_add_of_indep_aux {Ω : Type*} [MeasurableSpace Ω] {P
       (fun x : ℝ => Complex.exp ((t : ℂ) * (x : ℂ) * Complex.I)),
     integral_map hA.aemeasurable hc.aestronglyMeasurable,
     integral_map hB.aemeasurable hc.aestronglyMeasurable]
-
-/-- The gamma law is a probability measure. -/
-private lemma isProb_gamma_aux {a r : ℝ} (ha : 0 < a) (hr : 0 < r) :
-    IsProbabilityMeasure (gammaMeasure a r) :=
-  ⟨by rw [gammaMeasure, withDensity_apply _ MeasurableSet.univ, Measure.restrict_univ,
-      lintegral_gammaPDF_eq_one ha hr]⟩
 
 /-- The mgf of the gamma law at a real point `s` below the rate. The integral has the real
 rate `r - s`, so Mathlib's real gamma integral applies. -/
@@ -106,6 +150,13 @@ private lemma complexMGF_gammaMeasure_ofReal_aux {a r : ℝ} (ha : 0 < a) (hr : 
   push_cast
   rfl
 
+-- The route of this proof is the one of Mathlib's `ProbabilityTheory.eqOn_complexMGF_of_mgf'`
+-- (`Mathlib/Probability/Moments/ComplexMGF.lean`): the identity theorem
+-- `AnalyticOnNhd.eqOn_of_preconnected_of_frequently_eq` on a preconnected set, from agreement at
+-- the real points near a real base point, moved from `ℝ` to `ℂ` by
+-- `Filter.frequently_iff_seq_forall`, `tendsto_nhdsWithin_iff` and `Filter.tendsto_ofReal_iff`.
+-- That lemma compares the complex mgfs of two measures with the same mgf; here one side is an
+-- explicit function, so it does not apply as stated.
 /-- The complex mgf of the gamma law on the half-plane `re z < r`. Both sides are analytic
 there and agree at the real points, so they agree on the whole half-plane. -/
 private lemma complexMGF_gammaMeasure_aux {a r : ℝ} (ha : 0 < a) (hr : 0 < r) {z : ℂ}
@@ -213,8 +264,9 @@ private lemma integral_sq_eq_aux {Ω : Type*} [MeasurableSpace Ω] {P : Measure 
     charFun_map_eq_aux _ (by fun_prop : Measurable fun x : ℝ => x ^ 2) t,
     ← hlaw.map_eq, integral_map hY.aemeasurable hc.aestronglyMeasurable]
 
-/-- The chi-squared law: the sum of squares of `k ≥ 1` independent standard normal
-random variables has the gamma law with shape `k/2` and rate `1/2`. -/
+/-- **The chi-squared law** (item 151 of MATH-PLAN-library-2): the sum of squares of `k ≥ 1`
+independent standard normal random variables has the gamma law with shape `k/2` and rate
+`1/2`. -/
 theorem hasLaw_sum_sq_gaussian {Ω : Type*} [MeasurableSpace Ω] {P : Measure Ω}
     [IsProbabilityMeasure P] {k : ℕ} (hk : 0 < k) {X : Fin k → Ω → ℝ}
     (hmeas : ∀ i, Measurable (X i)) (hind : iIndepFun X P)
@@ -242,7 +294,7 @@ theorem hasLaw_sum_sq_gaussian {Ω : Type*} [MeasurableSpace Ω] {P : Measure Ω
   have hmeasSum : Measurable fun ω => ∑ i, X i ω ^ 2 :=
     Finset.measurable_sum _ fun j _ => (hmeas j).pow_const 2
   have hpos : (0 : ℝ) < (k : ℝ) / 2 := div_pos (Nat.cast_pos.2 hk) two_pos
-  have := isProb_gamma_aux hpos (by norm_num : (0 : ℝ) < 1 / 2)
+  have := ProbabilityTheory.isProbabilityMeasure_gammaMeasure hpos (by norm_num : (0 : ℝ) < 1 / 2)
   refine ⟨hmeasSum.aemeasurable, ?_⟩
   apply Measure.ext_of_charFun
   funext t
@@ -253,14 +305,14 @@ theorem hasLaw_sum_sq_gaussian {Ω : Type*} [MeasurableSpace Ω] {P : Measure Ω
     charFun_gammaMeasure_aux (a := (k : ℝ) / 2) (r := 1 / 2) hpos (by norm_num),
     hc, Complex.cpow_nat_mul, Complex.cpow_nat_mul, mul_pow]
 
-/-! Satisfiability check by claude-ai (2026-10-13), not part of the draft: the
-hypotheses of `hasLaw_sum_sq_gaussian` hold for the coordinates of the product of
-`k` standard normal laws. -/
-example (k : ℕ) (hk : 0 < k) :
-    HasLaw (fun ω : Fin k → ℝ => ∑ i, ω i ^ 2) (gammaMeasure ((k : ℝ) / 2) (1 / 2))
-      (Measure.pi fun _ => gaussianReal 0 1) :=
-  hasLaw_sum_sq_gaussian hk (fun i => measurable_pi_apply i)
-    (iIndepFun_pi (fun _ => aemeasurable_id))
-    (fun i => ⟨(measurable_pi_apply i).aemeasurable, (measurePreserving_eval _ i).map_eq⟩)
+end ClassicalLean.Probability.ChiSquared
 
-#print axioms hasLaw_sum_sq_gaussian
+/-- The hypotheses of `hasLaw_sum_sq_gaussian` hold together: `k = 3` coordinates `X i ω = ω i`
+on `Fin 3 → ℝ` under the product `Measure.pi fun _ => gaussianReal 0 1` of three standard normal
+laws, a probability measure; the coordinates are measurable, independent (`iIndepFun_pi`), and
+each has the standard normal law, a coordinate of a product measure having its factor as its law
+(`measurePreserving_eval`). -/
+example := ClassicalLean.Probability.ChiSquared.hasLaw_sum_sq_gaussian (Ω := Fin 3 → ℝ)
+    (P := Measure.pi fun _ => gaussianReal 0 1) (k := 3) (X := fun i ω => ω i) (by norm_num)
+    (fun i => measurable_pi_apply i) (iIndepFun_pi (fun _ => aemeasurable_id))
+    (fun i => ⟨(measurable_pi_apply i).aemeasurable, (measurePreserving_eval _ i).map_eq⟩)
