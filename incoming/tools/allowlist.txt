@@ -1,0 +1,27 @@
+# rule 37 (formerly rule 10): the allowlist of tokens that are not Lean constants (tactic and syntax
+# names), one per line, a tab, the reason. el.sh hashes it into evidence.log whenever it changes.
+simp_rw	tactic name
+split_ifs	tactic name
+fin_cases	tactic name
+norm_num	tactic name
+field_simp	tactic name
+exact_mod_cast	tactic name
+push_cast	tactic name
+filter_upwards	tactic name
+fun_prop	tactic name
+by_cases	tactic name
+by_contra	tactic name
+nth_rw	tactic name
+nth_rewrite	tactic name
+simp_all	tactic name
+ring_nf	tactic name
+linear_combination	tactic name
+norm_cast	tactic name
+rw_mod_cast	tactic name
+interval_cases	tactic name
+subst_vars	tactic name
+all_goals	tactic combinator
+conv_lhs	tactic name
+push_neg	tactic name (deprecated at this Mathlib in favour of `push Not`; a module must build with 0 warnings)
+run_cmd	command syntax (the import-closure scratch file of rule 27)
+set_option	command keyword, not a constant: the type-comparison scratch files of job 1 (never in a module or a witness; added after CLOUD-MATH-2, whose session allowlisted it the same way)
