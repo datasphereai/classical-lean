@@ -134,6 +134,7 @@ import ClassicalLean.Analysis.StatePrices
 import ClassicalLean.InformationTheory.HanInequality
 import ClassicalLean.Probability.PolyaUrn
 import ClassicalLean.Analysis.FrankWolfe
+import ClassicalLean.Analysis.PowerMethod
 
 /-!
 # ClassicalLean

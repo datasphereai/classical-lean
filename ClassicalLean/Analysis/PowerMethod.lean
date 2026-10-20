@@ -1,7 +1,65 @@
-import Mathlib
+/-
+Copyright (c) 2026 Dustin Watkins. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Dustin Watkins, Claude (Anthropic)
+-/
+
+import Mathlib.Analysis.InnerProductSpace.Spectrum
+import Mathlib.Analysis.SpecificLimits.Basic
+import Mathlib.Analysis.InnerProductSpace.Trace
+import Mathlib.Analysis.Matrix.Hermitian
+import Mathlib.Analysis.Normed.Lp.Matrix
+import Mathlib.LinearAlgebra.Trace
+import Mathlib.Algebra.Order.Archimedean.Real.Hom
+
+/-!
+# The power method
+
+`T` is a symmetric linear map of a finite-dimensional real inner product space `E` of dimension
+`n` (`hn : Module.finrank ℝ E = n`). Mathlib's spectral theorem gives its eigenvalues
+`hT.eigenvalues hn : Fin n → ℝ`, ordered largest first, and an orthonormal basis of eigenvectors
+`hT.eigenvectorBasis hn`. The power method applies `T` again and again to a start vector `x`: the
+iterates are `(T ^ k) x`, the map `T ^ k` applied to `x`.
+
+* `tendsto_powerIterate` — order CLOUD-MATH-2, item 147 of MATH-PLAN-library-2. Let
+  `u = hT.eigenvectorBasis hn i₀`, an eigenvector with eigenvalue `λ₀ = hT.eigenvalues hn i₀`, and
+  `λ₁ = hT.eigenvalues hn i₁`, with `|λ₁| < |λ₀|` and `|hT.eigenvalues hn i| ≤ |λ₁|` for every
+  `i ≠ i₀`. If `x` has a nonzero component `⟪u, x⟫` along `u`, the iterate rescaled to unit
+  component along `u`, `⟪u, (T ^ k) x⟫⁻¹ • (T ^ k) x`, is within `C * (|λ₁| / |λ₀|) ^ k` of `u` for
+  one constant `C` and every `k`, and so tends to `u`.
+
+Wider than the plan's row, by this session's reading (the draft's last review, as the order's table
+gives it: GENERALIZED): the row speaks of a symmetric matrix, and the theorem is stated for a
+symmetric linear map of any finite-dimensional real inner product space, a matrix being the case
+`E = EuclideanSpace ℝ (Fin n)` (the witness below); and `λ₀` need not come first in Mathlib's
+order of the eigenvalues, only be larger in absolute value than the eigenvalue at every other
+index.
+
+The proof. Write `x = c • u + w` with `c = ⟪u, x⟫ ≠ 0` and `⟪u, w⟫ = 0`. Then
+`(T ^ k) u = λ₀ ^ k • u` (`pow_apply_eigen`) and `⟪u, (T ^ k) x⟫ = λ₀ ^ k * c` (`inner_pow_apply`,
+from the symmetry of `T`), so the rescaled iterate minus `u` is `(λ₀ ^ k * c)⁻¹ • (T ^ k) w`.
+Expanding `w` in the eigenvector basis, where its coefficient along `u` is `0`, gives
+`‖(T ^ k) w‖ ≤ (∑ i, |⟪bᵢ, w⟫|) * |λ₁| ^ k` (`norm_pow_apply_le`), hence the bound with
+`C = (∑ i, |⟪bᵢ, w⟫|) / |c|`; the rate `|λ₁| / |λ₀|` lies in `[0, 1)`, so the bound tends to `0`
+(`power_aux`).
+
+The proof is the draft `d147-r1-s2` (written by Claude Opus 5.5 through the Anthropic Batch API,
+the lane's API-CREDIT-1 work), adapted by the Claude Code cloud session that landed it (order
+CLOUD-MATH-2): the namespace, targeted imports and docstrings, `change` where a `show` changed the
+goal, `simp` where a `simpa` needed no term, and a `first` chain and a `try` cut to what fires.
+The witness at the end of the
+file, for the matrix `!![2, 0; 0, 1]`, is the one claude-ai wrote for the order
+(`d147-r1-s2-witness.lean`); it is why the file imports `Mathlib.Analysis.InnerProductSpace.Trace`,
+`Mathlib.Analysis.Matrix.Hermitian`, `Mathlib.Analysis.Normed.Lp.Matrix`,
+`Mathlib.LinearAlgebra.Trace` and `Mathlib.Algebra.Order.Archimedean.Real.Hom`.
+-/
 
 open Filter Topology
 
+namespace ClassicalLean.Analysis.PowerMethod
+
+/-- On an eigenvector `v` of `T` with eigenvalue `c`, `T ^ k` acts as multiplication by
+`c ^ k`. -/
 private lemma pow_apply_eigen {E : Type*} [NormedAddCommGroup E] [InnerProductSpace ℝ E]
     (T : E →ₗ[ℝ] E) (v : E) (c : ℝ) (h : T v = c • v) (k : ℕ) :
     (T ^ k) v = c ^ k • v := by
@@ -9,9 +67,11 @@ private lemma pow_apply_eigen {E : Type*} [NormedAddCommGroup E] [InnerProductSp
   | zero => rw [pow_zero, pow_zero, one_smul]; rfl
   | succ k ih =>
     rw [pow_succ']
-    show T ((T ^ k) v) = _
+    change T ((T ^ k) v) = _
     rw [ih, map_smul, h, smul_smul, ← pow_succ]
 
+/-- For a symmetric `T` and an eigenvector `u` with eigenvalue `c`, the component of `(T ^ k) y`
+along `u` is `c ^ k` times that of `y`. -/
 private lemma inner_pow_apply {E : Type*} [NormedAddCommGroup E] [InnerProductSpace ℝ E]
     {T : E →ₗ[ℝ] E} (hT : T.IsSymmetric) (u : E) (c : ℝ) (h : T u = c • u) (y : E)
     (k : ℕ) : inner ℝ u ((T ^ k) y) = c ^ k * inner ℝ u y := by
@@ -19,10 +79,12 @@ private lemma inner_pow_apply {E : Type*} [NormedAddCommGroup E] [InnerProductSp
   | zero => rw [pow_zero, pow_zero, one_mul]; rfl
   | succ k ih =>
     rw [pow_succ']
-    show inner ℝ u (T ((T ^ k) y)) = _
+    change inner ℝ u (T ((T ^ k) y)) = _
     rw [← hT u, h, real_inner_smul_left, ih]
     ring
 
+/-- For `w` with no component along the basis vector `b i₀`, when `|ev i| ≤ μ` for every index
+`i ≠ i₀`, `‖(T ^ k) w‖ ≤ (∑ i, |⟪b i, w⟫|) * μ ^ k`. -/
 private lemma norm_pow_apply_le {E : Type*} [NormedAddCommGroup E] [InnerProductSpace ℝ E]
     (T : E →ₗ[ℝ] E) {n : ℕ} (b : OrthonormalBasis (Fin n) ℝ E) (ev : Fin n → ℝ)
     (hb : ∀ i, T (b i) = ev i • b i) (i₀ : Fin n) (μ : ℝ)
@@ -49,6 +111,9 @@ private lemma norm_pow_apply_le {E : Type*} [NormedAddCommGroup E] [InnerProduct
             (pow_le_pow_left₀ (abs_nonneg _) (hdom i hi) k) (abs_nonneg _)
     _ = (∑ i, |inner ℝ (b i) w|) * μ ^ k := by rw [Finset.sum_mul]
 
+/-- The power method for any orthonormal basis of eigenvectors `b` with eigenvalues `ev`, and any
+`μ ≥ 0` with `μ < |ev i₀|` and `|ev i| ≤ μ` for every index `i ≠ i₀`, and a start `x` with a
+nonzero component along `b i₀`: the rate `(μ / |ev i₀|) ^ k` and the limit `b i₀`. -/
 private lemma power_aux {E : Type*} [NormedAddCommGroup E] [InnerProductSpace ℝ E]
     {T : E →ₗ[ℝ] E} (hT : T.IsSymmetric) {n : ℕ} (b : OrthonormalBasis (Fin n) ℝ E)
     (ev : Fin n → ℝ) (hb : ∀ i, T (b i) = ev i • b i) (i₀ : Fin n) (μ : ℝ)
@@ -95,7 +160,6 @@ private lemma power_aux {E : Type*} [NormedAddCommGroup E] [InnerProductSpace �
       _ = C * (μ / |ev i₀|) ^ k := by
           rw [hC, div_pow]
           field_simp
-          try ring
   refine ⟨⟨C, hbound⟩, ?_⟩
   have hr0 : 0 ≤ μ / |ev i₀| := div_nonneg hμ0 (abs_nonneg _)
   have hr1 : μ / |ev i₀| < 1 := (div_lt_one hevpos).mpr hgap
@@ -105,10 +169,14 @@ private lemma power_aux {E : Type*} [NormedAddCommGroup E] [InnerProductSpace �
     (f := fun k : ℕ => (inner ℝ (b i₀) ((T ^ k) x))⁻¹ • (T ^ k) x - b i₀) hbound ht
   exact tendsto_sub_nhds_zero_iff.mp h0
 
-/-- Power method: if the eigenvalue `λ₀ = eigenvalues i₀` strictly dominates in absolute
-value an eigenvalue `λ₁ = eigenvalues i₁` which bounds all the others, and the start vector
-has a nonzero component along the top eigenvector `u`, then the iterates `Tᵏ x`, rescaled to
-unit `u`-component, approach `u` at rate `(|λ₁|/|λ₀|)^k`. -/
+/-- **The power method** (item 147 of MATH-PLAN-library-2). `T` is a symmetric linear map of a
+finite-dimensional real inner product space of dimension `n`; `u = hT.eigenvectorBasis hn i₀` is
+an eigenvector with eigenvalue `λ₀ = hT.eigenvalues hn i₀`, and `λ₁ = hT.eigenvalues hn i₁` is an
+eigenvalue with `|λ₁| < |λ₀|` and `|hT.eigenvalues hn i| ≤ |λ₁|` for every index `i ≠ i₀` (so
+`λ₀` is a simple eigenvalue). The iterates are `T ^ k` applied to the start vector `x`, rescaled
+to unit component along `u`: `⟪u, (T ^ k) x⟫⁻¹ • (T ^ k) x`. If `x` has a nonzero component
+along `u`, the rescaled iterates are within `C * (|λ₁| / |λ₀|) ^ k` of `u` for one `C` and every
+`k`, and they tend to `u`. -/
 theorem tendsto_powerIterate {E : Type*} [NormedAddCommGroup E] [InnerProductSpace ℝ E]
     [FiniteDimensional ℝ E] {T : E →ₗ[ℝ] E} (hT : T.IsSymmetric) {n : ℕ}
     (hn : Module.finrank ℝ E = n) (i₀ i₁ : Fin n)
@@ -124,18 +192,19 @@ theorem tendsto_powerIterate {E : Type*} [NormedAddCommGroup E] [InnerProductSpa
       (𝓝 (hT.eigenvectorBasis hn i₀)) := by
   have hb : ∀ i, T (hT.eigenvectorBasis hn i)
       = hT.eigenvalues hn i • hT.eigenvectorBasis hn i := fun i => by
-    first
-      | simpa using hT.apply_eigenvectorBasis hn i
-      | (rw [hT.apply_eigenvectorBasis hn i]; rfl)
+      simp
   exact power_aux hT (hT.eigenvectorBasis hn) (hT.eigenvalues hn) hb i₀
     |hT.eigenvalues hn i₁| (abs_nonneg _) hgap hdom x hx
 
+end ClassicalLean.Analysis.PowerMethod
 
-/-! Witness starting material for item 147, written by claude-ai on 2026-10-19, not part of the
-draft: the hypotheses of `tendsto_powerIterate` hold together for the diagonal map with entries
-2 and 1 on the plane, started from `(1, 1)`, which has a nonzero component along both
-eigenvectors. -/
-example := tendsto_powerIterate (E := EuclideanSpace ℝ (Fin 2))
+/-- The hypotheses of `tendsto_powerIterate` hold together: on the Euclidean plane
+`EuclideanSpace ℝ (Fin 2)`, `T` is the symmetric map of the diagonal matrix `!![2, 0; 0, 1]`, whose
+eigenvalues in Mathlib's order are `2` and `1` (`i₀ = 0` and `i₁ = 1`, so `|λ₁| < |λ₀|` and the
+rate is `1 / 2`), and the start `x = (1, 1)` has a nonzero component along each eigenvector, so the
+iterates do not start on the top eigenvector. -/
+example := ClassicalLean.Analysis.PowerMethod.tendsto_powerIterate
+    (E := EuclideanSpace ℝ (Fin 2))
     (T := Matrix.toEuclideanLin !![(2 : ℝ), 0; 0, 1])
     (hT := Matrix.isSymmetric_toEuclideanLin_iff.mpr (by
       ext i j; fin_cases i <;> fin_cases j <;> simp))
