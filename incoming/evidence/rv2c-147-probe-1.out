@@ -1,4 +1,0 @@
-@sub_mul : ∀ {α : Type u_1} [inst : NonUnitalNonAssocRing α] (a b c : α), (a - b) * c = a * c - b * c
-zero_smul : ∀ (M₀ : Type u_1) {A : Type u_2} [inst : Zero M₀] [inst_1 : Zero A] [inst_2 : SMulWithZero M₀ A] (m : A),
-  0 • m = 0
-rc=0

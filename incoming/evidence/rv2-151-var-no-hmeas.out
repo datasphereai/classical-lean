@@ -1,6 +1,0 @@
-/root/cm2-review-7/var/no-hmeas.lean:285:63: error(lean.unknownIdentifier): Unknown identifier `hmeas`
-/root/cm2-review-7/var/no-hmeas.lean:290:42: error(lean.unknownIdentifier): Unknown identifier `hmeas`
-/root/cm2-review-7/var/no-hmeas.lean:291:47: error(lean.unknownIdentifier): Unknown identifier `hmeas`
-/root/cm2-review-7/var/no-hmeas.lean:292:32: error(lean.unknownIdentifier): Unknown identifier `hmeas`
-/root/cm2-review-7/var/no-hmeas.lean:295:40: error(lean.unknownIdentifier): Unknown identifier `hmeas`
-rc=1

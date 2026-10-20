@@ -1,9 +1,0 @@
-/root/cm2-review-8/var/hmin.lean:99:31: error: Application type mismatch: The argument
-  hmin
-has type
-  True
-but is expected to have type
-  IsMinOn ?m.444 ?m.445 ?m.446
-in the application
-  isMinOn_iff.mp hmin
-rc=1

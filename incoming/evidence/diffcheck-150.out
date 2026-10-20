@@ -1,4 +1,0 @@
- ClassicalLean.lean                                 |  1 +
- .../Algebra/Pseudoinverse.lean                     | 93 +++++++++++++++++++---
- ...method-pseudoinverse-chi-squared-kkt-huffman.md | 46 +++++++++++
- 3 files changed, 127 insertions(+), 13 deletions(-)

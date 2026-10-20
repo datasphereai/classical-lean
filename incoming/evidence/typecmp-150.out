@@ -1,7 +1,0 @@
-SAME 1: @ClassicalLean.Algebra.Pseudoinverse.pinv
-SAME 2: def ClassicalLean.Algebra.Pseudoinverse.pinv.{U1, U2}
-SAME 3: @ClassicalLean.Algebra.Pseudoinverse.pinv_spec
-SAME 4: @ClassicalLean.Algebra.Pseudoinverse.pinv_unique
-SAME 5: @ClassicalLean.Algebra.Pseudoinverse.pinv_residual_dotProduct_le
-SAME 6: @ClassicalLean.Algebra.Pseudoinverse.pinv_eq_leastSquares
-TYPECMP 6/6

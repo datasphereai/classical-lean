@@ -1,4 +1,0 @@
-/home/user/classical-lean/ClassicalLean/Analysis/PowerMethod.lean:176:100: warning: This line exceeds the 100 character limit, please shorten it!
-
-Note: This linter can be disabled with `set_option linter.style.longLine false`
-rc=0

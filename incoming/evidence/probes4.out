@@ -1,7 +1,0 @@
-@isUnit_iff_ne_zero : ∀ {G₀ : Type u_1} [inst : GroupWithZero G₀] {a : G₀}, IsUnit a ↔ a ≠ 0
-@Matrix.det_fin_two : ∀ {R : Type u_1} [inst : CommRing R] (A : Matrix (Fin 2) (Fin 2) R),
-  A.det = A 0 0 * A 1 1 - A 0 1 * A 1 0
-@Matrix.mul_apply : ∀ {l : Type u_2} {m : Type u_3} {n : Type u_4} {α : Type u_1} [inst : Fintype m] [inst_1 : Mul α]
-  [inst_2 : AddCommMonoid α] {M : Matrix l m α} {N : Matrix m n α} {i : l} {k : n}, (M * N) i k = ∑ j, M i j * N j k
-@Fin.sum_univ_three : ∀ {M : Type u_1} [inst : AddCommMonoid M] (f : Fin 3 → M), ∑ i, f i = f 0 + f 1 + f 2
-rc=0

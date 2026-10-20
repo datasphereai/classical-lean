@@ -1,5 +1,0 @@
-Lean.EnvironmentHeader.moduleData : Lean.EnvironmentHeader → Array Lean.ModuleData
-Lean.ModuleData.imports : Lean.ModuleData → Array Lean.Import
-Lean.Import.module : Lean.Import → Lean.Name
-Lean.Environment.imports : Lean.Environment → Array Lean.Import
-rc=0

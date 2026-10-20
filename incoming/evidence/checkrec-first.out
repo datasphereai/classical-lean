@@ -1,2 +1,0 @@
-check_records PASS — 130 module(s) under ClassicalLean, every one named in the records (96 file(s) searched), 1 named exemption(s).
-  exempt: Simplex/Hessian.lean

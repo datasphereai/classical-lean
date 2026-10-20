@@ -1,4 +1,0 @@
- ClassicalLean.lean                                 |   1 +
- .../InformationTheory/Huffman.lean                 | 106 +++++++++++++++++----
- ...method-pseudoinverse-chi-squared-kkt-huffman.md |  18 ++++
- 3 files changed, 105 insertions(+), 20 deletions(-)

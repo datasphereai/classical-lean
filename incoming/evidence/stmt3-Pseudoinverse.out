@@ -1,9 +1,0 @@
-/root/cm2-evidence/stmt/Pseudoinverse.lean:54:16: warning: declaration uses `sorry`
-/root/cm2-evidence/stmt/Pseudoinverse.lean:59:16: warning: declaration uses `sorry`
-/root/cm2-evidence/stmt/Pseudoinverse.lean:65:16: warning: declaration uses `sorry`
-/root/cm2-evidence/stmt/Pseudoinverse.lean:83:8: warning: declaration uses `sorry`
-/root/cm2-evidence/stmt/Pseudoinverse.lean:90:8: warning: declaration uses `sorry`
-/root/cm2-evidence/stmt/Pseudoinverse.lean:96:16: warning: declaration uses `sorry`
-/root/cm2-evidence/stmt/Pseudoinverse.lean:102:8: warning: declaration uses `sorry`
-/root/cm2-evidence/stmt/Pseudoinverse.lean:109:8: warning: declaration uses `sorry`
-rc=0

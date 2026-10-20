@@ -1,6 +1,0 @@
-Lean.Environment.constants : Lean.Environment → Lean.ConstMap
-@Lean.SMap.map₂ : {α : Type u_1} →
-  {β : Type u_2} → [inst : BEq α] → [inst_1 : Hashable α] → Lean.SMap α β → Lean.PHashMap α β
-@Std.HashMap.toList : {α : Type u_1} →
-  {β : Type u_2} → {x : BEq α} → {x_1 : Hashable α} → Std.HashMap α β → List (α × β)
-rc=0

@@ -1,8 +1,0 @@
-/root/cm2-review-8/var/hxbar.lean:210:45: error: Function expected at
-  hxbar
-but this term has type
-  True
-
-Note: Expected a function because this term is being applied to the argument
-  i
-rc=1

@@ -1,8 +1,0 @@
-2026-10-20T18:30:31Z	types-draft-147	cmd=refused by rule 37 (probecheck rc 4): el.sh /root/cm2-evidence/types/draft-147.lean :: NOT CLEARED: set_option
-2026-10-20T18:30:31Z	types-draft-150	cmd=refused by rule 37 (probecheck rc 4): el.sh /root/cm2-evidence/types/draft-150.lean :: NOT CLEARED: set_option
-2026-10-20T18:30:31Z	types-draft-151	cmd=refused by rule 37 (probecheck rc 4): el.sh /root/cm2-evidence/types/draft-151.lean :: NOT CLEARED: set_option
-2026-10-20T18:30:32Z	types-draft-152	cmd=refused by rule 37 (probecheck rc 4): el.sh /root/cm2-evidence/types/draft-152.lean :: NOT CLEARED: set_option
-2026-10-20T18:30:32Z	types-draft-153	cmd=refused by rule 37 (probecheck rc 4): el.sh /root/cm2-evidence/types/draft-153.lean :: NOT CLEARED: set_option
-2026-10-20T19:29:31Z	rv2c-147-simple	cmd=refused by rule 37 (probecheck rc 4): el.sh /root/cm2-review-4/simple.lean :: NOT CLEARED: sub_mul zero_smul
-2026-10-20T20:07:40Z	rv2-151-var-no-hind	cmd=refused by rule 37 (probecheck rc 4): el.sh /root/cm2-review-7/var/no-hind.lean :: NOT CLEARED: hind.comp
-2026-10-20T21:06:22Z	notrun-count	cmd=grep -c rc=NOT RUN /root/cm2-evidence/evidence.log :: out notrun-count.out sha256 10159baf262b43a92d95db59dae1f72c645127301661e0a3ce4e38b295a97c58

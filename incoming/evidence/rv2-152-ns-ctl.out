@@ -1,4 +1,0 @@
-DECL planted_root_thm
-DECL ClassicalLean.Analysis.KKT.exists_kkt_of_slater
-DECL _private._stdin.0.ClassicalLean.Analysis.KKT.convex_comb_lt
-rc=0

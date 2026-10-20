@@ -1,5 +1,0 @@
-/root/cm2-review-1/ns/KKT.lean:48:14: warning: declaration uses `sorry`
-/root/cm2-review-1/ns/KKT.lean:57:8: warning: declaration uses `sorry`
-DECL ClassicalLean.Analysis.KKT.exists_kkt_of_slater
-DECL _private._stdin.0.ClassicalLean.Analysis.KKT.convex_comb_lt
-rc=0

@@ -1,6 +1,0 @@
-17,18c17,18
-<   `huffAux` on finite sets of symbols (`Fintype.card ι` steps, each merging the two lightest
-<   symbols, which `pick` chooses).
----
->   `huffAux` on finite sets of symbols (`Fintype.card ι` steps of the recursion; each step with
->   at least two symbols left merges the two lightest, which `pick` chooses).

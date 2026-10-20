@@ -1,5 +1,0 @@
-⚠ [2677/2677] Built ClassicalLean.Analysis.PowerMethod (5.0s)
-warning: ClassicalLean/Analysis/PowerMethod.lean:177:100: This line exceeds the 100 character limit, please shorten it!
-
-Note: This linter can be disabled with `set_option linter.style.longLine false`
-Build completed successfully (2677 jobs).

@@ -1,9 +1,0 @@
-/root/cm2-review-7/var/wit-ctl.lean:318:53: error: Application type mismatch: The argument
-  (measurePreserving_eval ?m.58 i).map_eq
-has type
-  Measure.map (Function.eval i) (Measure.pi ?m.58) = ?m.58 i
-but is expected to have type
-  Measure.map (fun ω ↦ ω i) (Measure.pi fun x ↦ gaussianReal 0 2) = gaussianReal 0 1
-in the application
-  { aemeasurable := Measurable.aemeasurable (measurable_pi_apply i), map_eq := (measurePreserving_eval ?m.58 i).map_eq }
-rc=1

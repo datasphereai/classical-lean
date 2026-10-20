@@ -1,6 +1,0 @@
-/root/cm2-review-1/imp/i152b-x4.lean:14:12: error: unknown namespace `RealInnerProductSpace`
-/root/cm2-review-1/imp/i152b-x4.lean:205:12: error: expected token
-/root/cm2-review-1/imp/i152b-x4.lean:28:65: error(lean.unknownIdentifier): Unknown identifier `InnerProductSpace`
-
-Note: It is not possible to treat `InnerProductSpace` as an implicitly bound variable here because it has multiple characters while the `relaxedAutoImplicit` option is set to `false`.
-rc=1
