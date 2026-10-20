@@ -1,0 +1,37 @@
+35c35,36
+< order of the eigenvalues, only dominate the others in absolute value.
+---
+> order of the eigenvalues, only be larger in absolute value than the eigenvalue at every other
+> index.
+46c47
+< the lane's order API-CREDIT-1), adapted by the Claude Code cloud session that landed it (order
+---
+> the lane's API-CREDIT-1 work), adapted by the Claude Code cloud session that landed it (order
+48c49,50
+< goal, and a `first` chain and a `try` cut to the step that fires. The witness at the end of the
+---
+> goal, `simp` where a `simpa` needed no term, and a `first` chain and a `try` cut to what fires.
+> The witness at the end of the
+84,85c86,87
+< /-- For `w` with no component along the basis vector `b i₀`, when every other eigenvalue is at
+< most `μ` in absolute value, `‖(T ^ k) w‖ ≤ (∑ i, |⟪b i, w⟫|) * μ ^ k`. -/
+---
+> /-- For `w` with no component along the basis vector `b i₀`, when `|ev i| ≤ μ` for every index
+> `i ≠ i₀`, `‖(T ^ k) w‖ ≤ (∑ i, |⟪b i, w⟫|) * μ ^ k`. -/
+113,114c115,116
+< `μ ≥ 0` with `μ < |ev i₀|` that bounds every other eigenvalue in absolute value, and a start `x`
+< with a nonzero component along `b i₀`: the rate `(μ / |ev i₀|) ^ k` and the limit `b i₀`. -/
+---
+> `μ ≥ 0` with `μ < |ev i₀|` and `|ev i| ≤ μ` for every index `i ≠ i₀`, and a start `x` with a
+> nonzero component along `b i₀`: the rate `(μ / |ev i₀|) ^ k` and the limit `b i₀`. -/
+173,176c175,179
+< eigenvalue with `|λ₁| < |λ₀|` that bounds every eigenvalue other than `λ₀` in absolute value. The
+< iterates are `T ^ k` applied to the start vector `x`, rescaled to unit component along `u`:
+< `⟪u, (T ^ k) x⟫⁻¹ • (T ^ k) x`. If `x` has a nonzero component along `u`, the rescaled iterates
+< are within `C * (|λ₁| / |λ₀|) ^ k` of `u` for one `C` and every `k`, and they tend to `u`. -/
+---
+> eigenvalue with `|λ₁| < |λ₀|` and `|hT.eigenvalues hn i| ≤ |λ₁|` for every index `i ≠ i₀` (so
+> `λ₀` is a simple eigenvalue). The iterates are `T ^ k` applied to the start vector `x`, rescaled
+> to unit component along `u`: `⟪u, (T ^ k) x⟫⁻¹ • (T ^ k) x`. If `x` has a nonzero component
+> along `u`, the rescaled iterates are within `C * (|λ₁| / |λ₀|) ^ k` of `u` for one `C` and every
+> `k`, and they tend to `u`. -/

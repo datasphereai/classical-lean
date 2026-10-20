@@ -1,0 +1,14 @@
+/root/cm2-evidence/stmt/Pseudoinverse.lean:54:16: warning: declaration uses `sorry`
+/root/cm2-evidence/stmt/Pseudoinverse.lean:60:16: warning: declaration uses `sorry`
+/root/cm2-evidence/stmt/Pseudoinverse.lean:67:16: warning: declaration uses `sorry`
+/root/cm2-evidence/stmt/Pseudoinverse.lean:80:18: warning: Overlapping instance parameters in `pinv`:
+
+⚠️ There are 2 `[DecidableEq n]` instances; one is sufficient.
+
+Note: This linter can be disabled with `set_option linter.overlappingInstances false`
+/root/cm2-evidence/stmt/Pseudoinverse.lean:84:8: warning: declaration uses `sorry`
+/root/cm2-evidence/stmt/Pseudoinverse.lean:91:8: warning: declaration uses `sorry`
+/root/cm2-evidence/stmt/Pseudoinverse.lean:97:16: warning: declaration uses `sorry`
+/root/cm2-evidence/stmt/Pseudoinverse.lean:103:8: warning: declaration uses `sorry`
+/root/cm2-evidence/stmt/Pseudoinverse.lean:110:8: warning: declaration uses `sorry`
+rc=0

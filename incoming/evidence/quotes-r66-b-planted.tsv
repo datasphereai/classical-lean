@@ -1,0 +1,11 @@
+# round 66 fragment, first part: quote manifest (quote<TAB>source)
+; pushed by Dustin: DSMain's master ref written 2026-10-19 20:07:42 EDT, GitHub master equal (`9c0639c`)	/home/user/classical-lean/records/orders/20261020T181822Z__claude-ai__order-cloudmath2-power-method-pseudoinverse-chi-squared-kkt-huffman.md
+Build completed successfully (4178 jobs).	/root/cm2-evidence/start-build.out
+axiom gate PASS — 3379 theorem constant(s) under [ClassicalLean], every one depending only on a subset of [propext, Classical.choice, Quot.sound]; 0 scoped exceptions	/root/cm2-evidence/start-axiom.out
+3fc1b6ebabad26085aca2e48e5d356e703eba48cfcc011dc7671f973b47cc700	/home/user/classical-lean/incoming/README.md
+BAD=0	/root/cm2-evidence/ctools-test.out
+9c0639c5878d09db83b1334ec35b705add9a8cb7	/root/cm2-evidence/lsremote-start.out
+simpa using hT.apply_eigenvectorBasis hn i	/root/cm2-evidence/types/draft-147.lean
+try ring	/root/cm2-evidence/types/draft-147.lean
+Classical.choose_spec (exists_penrose A)	/root/cm2-evidence/types/draft-150.lean
+simpa using hT.apply_eigenvectorBasis hn j	/root/cm2-evidence/types/draft-147.lean

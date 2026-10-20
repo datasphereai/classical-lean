@@ -1,0 +1,29 @@
+/root/cm2-review-10/pickval.lean:17:0: warning: `exists_pair` does not use the following hypothesis in its type:
+  • [DecidableEq ι] (#2)
+
+Consider removing this hypothesis and using `classical` in the proof instead. For terms, consider using `open scoped Classical in` at the term level (not the command level).
+
+Note: This linter can be disabled with `set_option linter.unusedDecidableInType false`
+/root/cm2-review-10/pickval.lean:68:15: warning: `dif_pos` has been deprecated: Use `dite_eq_left` instead
+/root/cm2-review-10/pickval.lean:72:15: warning: `dif_neg` has been deprecated: Use `dite_eq_right` instead
+/root/cm2-review-10/pickval.lean:240:4: warning: `push_neg` has been deprecated. Prefer using `push Not` instead.
+If you'd rather continue using `push_neg` in your project, you can implement it as follows:
+```
+open Lean.Parser.Tactic in
+macro "push_neg" cfg:optConfig loc:(location)? : tactic =>
+  `(tactic| push $cfg:optConfig Not $[$loc]?)
+```
+ClassicalLean.Huffman.pick BINDER ι : Type u_1 used=true
+ClassicalLean.Huffman.pick BINDER inst._@._stdin.245533531._hygCtx._hyg.3 : DecidableEq ι used=true
+ClassicalLean.Huffman.pick BINDER w : ι → ℝ used=true
+ClassicalLean.Huffman.pick BINDER s : Finset ι used=true
+ClassicalLean.Huffman.pick BINDER h : 2 ≤ #s used=true
+ClassicalLean.Huffman.pick BODY Classical.choose ⋯
+ClassicalLean.Huffman.huffAux BINDER ι : Type u_1 used=true
+ClassicalLean.Huffman.huffAux BINDER inst._@._stdin.1994453668._hygCtx._hyg.3 : DecidableEq ι used=true
+ClassicalLean.Huffman.huffAux BINDER x._@._stdin.1994453668._hygCtx._hyg.26 : ℕ used=true
+ClassicalLean.Huffman.huffAux BINDER x._@._stdin.1994453668._hygCtx._hyg.27 : ι → ℝ used=true
+ClassicalLean.Huffman.huffAux BINDER x._@._stdin.1994453668._hygCtx._hyg.28 : Finset ι used=true
+ClassicalLean.Huffman.huffAux BODY Nat.brecOn (motive := fun x ↦ (ι → ℝ) → Finset ι → ι → ℕ) x✝²
+  ClassicalLean.Huffman.huffAux._f x✝¹ x✝
+rc=0

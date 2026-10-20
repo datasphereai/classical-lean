@@ -1,0 +1,6 @@
+/root/cm2-review-8/var/hslater.lean:176:35: error(lean.unknownIdentifier): Unknown identifier `x0`
+/root/cm2-review-8/var/hslater.lean:177:18: error(lean.unknownIdentifier): Unknown identifier `x0`
+/root/cm2-review-8/var/hslater.lean:178:34: error(lean.unknownIdentifier): Unknown identifier `x0`
+/root/cm2-review-8/var/hslater.lean:179:50: error(lean.unknownIdentifier): Unknown identifier `hx0`
+/root/cm2-review-8/var/hslater.lean:186:25: error(lean.unknownIdentifier): Unknown identifier `hx0`
+rc=1

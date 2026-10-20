@@ -1,0 +1,21 @@
+/root/cm2-review-1/imp/i147b-x3.lean:17:4: warning: The `show` tactic should only be used to indicate intermediate goal states for readability.
+However, this tactic invocation changed the goal. Please use `change` instead for these purposes.
+
+Note: This linter can be disabled with `set_option linter.style.show false`
+/root/cm2-review-1/imp/i147b-x3.lean:27:4: warning: The `show` tactic should only be used to indicate intermediate goal states for readability.
+However, this tactic invocation changed the goal. Please use `change` instead for these purposes.
+
+Note: This linter can be disabled with `set_option linter.style.show false`
+/root/cm2-review-1/imp/i147b-x3.lean:133:8: warning: try 'simp' instead of 'simpa'
+
+Note: This linter can be disabled with `set_option linter.unnecessarySimpa false`
+/root/cm2-review-1/imp/i147b-x3.lean:134:8: warning: this tactic is never executed
+
+Note: This linter can be disabled with `set_option linter.unreachableTactic false`
+/root/cm2-review-1/imp/i147b-x3.lean:134:8: warning: Unused tactic linter: `(rw [hT.apply_eigenvectorBasis hn i]; rfl)` does nothing
+
+Note: This linter can be disabled with `set_option linter.unusedTactic false`
+/root/cm2-review-1/imp/i147b-x3.lean:145:11: error(lean.unknownIdentifier): Unknown constant `Matrix.isSymmetric_toEuclideanLin_iff.mpr`
+/root/cm2-review-1/imp/i147b-x3.lean:150:8: error(lean.unknownIdentifier): Unknown constant `Matrix.isSymmetric_toEuclideanLin_iff.mpr`
+/root/cm2-review-1/imp/i147b-x3.lean:203:8: error(lean.unknownIdentifier): Unknown constant `Matrix.isSymmetric_toEuclideanLin_iff.mpr`
+rc=1

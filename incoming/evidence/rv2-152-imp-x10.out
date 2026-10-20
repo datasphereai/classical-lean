@@ -1,0 +1,7 @@
+/root/cm2-review-8/imp/x10.lean:42:12: error: unknown namespace `RealInnerProductSpace`
+/root/cm2-review-8/imp/x10.lean:236:12: error: expected token
+/root/cm2-review-8/imp/x10.lean:59:65: error(lean.unknownIdentifier): Unknown identifier `InnerProductSpace`
+
+Note: It is not possible to treat `InnerProductSpace` as an implicitly bound variable here because it has multiple characters while the `relaxedAutoImplicit` option is set to `false`.
+/root/cm2-review-8/imp/x10.lean:252:11: error(lean.unknownIdentifier): Unknown identifier `ClassicalLean.Analysis.KKT.exists_kkt_of_slater`
+rc=1

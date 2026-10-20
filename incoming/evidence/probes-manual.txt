@@ -1,0 +1,65 @@
+# field notation in the drafts and witness starts, by hand (the discovery cannot resolve a name
+# written after a local's dot)
+# 147
+Filter.Tendsto.const_mul
+OrthonormalBasis.orthonormal
+Orthonormal.ne_zero
+OrthonormalBasis.sum_repr
+OrthonormalBasis.toBasis
+LinearMap.IsSymmetric
+LinearMap.IsSymmetric.eigenvalues
+LinearMap.IsSymmetric.eigenvectorBasis
+LinearMap.IsSymmetric.apply_eigenvectorBasis
+LinearMap.IsSymmetric.re_trace_eq_sum_eigenvalues
+LinearMap.IsSymmetric.eigenvalues_antitone
+Iff.mp
+Iff.mpr
+Or.resolve_left
+# 150
+Commute.mul_right
+Commute.eq
+Polynomial.Monic.ne_zero
+Polynomial.divX
+Polynomial.coeff
+Matrix.charpoly
+Polynomial.rootMultiplicity
+Eq.symm
+# 151
+Measurable.ennreal_ofReal
+ProbabilityTheory.HasLaw.map_eq
+ProbabilityTheory.HasLaw.aemeasurable
+MeasureTheory.MeasurePreserving.map_eq
+Measurable.pow_const
+Measurable.aemeasurable
+Continuous.aestronglyMeasurable
+AnalyticOnNhd.eqOn_of_preconnected_of_frequently_eq
+AnalyticOnNhd.mono
+Convex.isPreconnected
+ProbabilityTheory.iIndepFun.comp
+ProbabilityTheory.iIndepFun.indepFun_finsetSum_of_notMem
+ProbabilityTheory.IndepFun.symm
+AnalyticAt.cpow
+AnalyticAt.fun_mul
+AnalyticAt.fun_div
+AnalyticAt.fun_sub
+LT.lt.ne'
+LT.lt.le
+# 152
+HasFDerivAt.const_mul
+HasFDerivAt.add
+IsLocalMin.hasFDerivAt_eq_zero
+LE.le.lt_or_eq
+IsOpen.inter
+ContinuousLinearMap
+# 153
+Finset.exists_min_image
+Finset.exists_max_image
+InformationTheory.IsPrefixFree.finsetSum_one_div_card_pow_length_le_one
+Equiv.injective
+Eq.trans
+Finset.image
+# the Goal list's new names
+ProbabilityTheory.isProbabilityMeasure_gammaMeasure
+ProbabilityTheory.eqOn_complexMGF_of_mgf'
+dite_eq_left
+dite_eq_right

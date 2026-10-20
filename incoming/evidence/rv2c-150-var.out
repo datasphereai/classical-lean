@@ -1,0 +1,55 @@
+/root/cm2-review-6/files/var.lean:57:44: error(lean.synthInstanceFailed): failed to synthesize instance of type class
+  HPow (Matrix n n ℝ) ℕ ?m.41
+
+Hint: Type class instance resolution failures can be inspected with the `set_option trace.Meta.synthInstance true` command.
+/root/cm2-review-6/files/var.lean:63:16: error(lean.synthInstanceFailed): failed to synthesize instance of type class
+  HPow (Matrix n n ℝ) ℕ ?m.89
+
+Hint: Type class instance resolution failures can be inspected with the `set_option trace.Meta.synthInstance true` command.
+/root/cm2-review-6/files/var.lean:70:4: error(lean.synthInstanceFailed): failed to synthesize instance of type class
+  DecidableEq n
+
+Hint: Type class instance resolution failures can be inspected with the `set_option trace.Meta.synthInstance true` command.
+/root/cm2-review-6/files/var.lean:70:16: error(lean.synthInstanceFailed): failed to synthesize instance of type class
+  DecidableEq n
+
+Hint: Type class instance resolution failures can be inspected with the `set_option trace.Meta.synthInstance true` command.
+/root/cm2-review-6/files/var.lean:73:14: error(lean.synthInstanceFailed): failed to synthesize instance of type class
+  DecidableEq n
+
+Hint: Type class instance resolution failures can be inspected with the `set_option trace.Meta.synthInstance true` command.
+/root/cm2-review-6/files/var.lean:125:37: error(lean.synthInstanceFailed): failed to synthesize instance of type class
+  OfNat (Matrix n n ℝ) 1
+numerals are polymorphic in Lean, but the numeral `1` cannot be used in a context where the expected type is
+  Matrix n n ℝ
+due to the absence of the instance above
+
+Hint: Type class instance resolution failures can be inspected with the `set_option trace.Meta.synthInstance true` command.
+/root/cm2-review-6/files/var.lean:126:24: error(lean.synthInstanceFailed): failed to synthesize instance of type class
+  DecidableEq n
+
+Hint: Type class instance resolution failures can be inspected with the `set_option trace.Meta.synthInstance true` command.
+/root/cm2-review-6/files/var.lean:125:47: error: unsolved goals
+m : Type u_1
+n : Type u_2
+inst✝¹ : Fintype m
+inst✝ : Fintype n
+A : Matrix m n ℝ
+G : Matrix n n ℝ
+hGt : Gᵀ = G
+hGc : Commute (Aᵀ * A) G
+hMGM : Aᵀ * A * G * (Aᵀ * A) = Aᵀ * A
+hGMG : G * (Aᵀ * A) * G = G
+⊢ DecidableEq n
+/root/cm2-review-6/files/var.lean:127:33: error(lean.synthInstanceFailed): failed to synthesize instance of type class
+  OfNat (Matrix n n ℝ) 1
+numerals are polymorphic in Lean, but the numeral `1` cannot be used in a context where the expected type is
+  Matrix n n ℝ
+due to the absence of the instance above
+
+Hint: Type class instance resolution failures can be inspected with the `set_option trace.Meta.synthInstance true` command.
+/root/cm2-review-6/files/var.lean:132:24: error(lean.synthInstanceFailed): failed to synthesize instance of type class
+  DecidableEq n
+
+Hint: Type class instance resolution failures can be inspected with the `set_option trace.Meta.synthInstance true` command.
+rc=1

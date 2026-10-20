@@ -1,0 +1,31 @@
+CLOUD-MATH-2 item 150: the Moore–Penrose pseudoinverse, new module ClassicalLean/Algebra/Pseudoinverse.lean; round 66's list of proof changes and its rule 18 notes
+
+No linter or option switched off or on.
+
+What evidence.log shows since f58d3ba. The module, assembled earlier from the reviewed statement
+file and the draft's proofs with classical added to two private helpers (mod150-a, m150-a, in the
+previous commit's log lines) and the credit wording of incoming/README.md, placed with one import
+line: el.sh rc 0 with no message (m150-module); lake build of the module rc 0, 0 warning lines
+(build-150, build-150-warn); the vacuity gate copy whose only change is its import line, PASS
+with 1 reviewed helper (vac-150-file, vac-150); check_sorry PASS 132, check_records PASS 132
+(sorry-150, checkrec-150). The cold review rv2-150 (task-rv2-150, mkbrief-rv2-150,
+briefcheck-rv2-150, brief-rv2-150, status-before-rv2-150; its runs rv2-150-*; the report hashed
+equal to the value returned, review-rv2-150; status-after-rv2-150 unchanged): VERDICT FINDINGS 1,
+MINOR, the module docstring; fixed in the docstring only (mod150-fix), el.sh rc 0 with no message
+(m150-module-2), lake build 0 warning lines (build-150-2, build-150-2-warn). Round 66 gained its
+list of proof changes and warning fixes for items 147 and 150 and its rule 18 notes, its quotes
+checked by script: the planted misquote reported (quotes-r66-b-planted, quotes-r66-c-planted, rc
+1), a manifest listing a quote the fragment does not hold, rc 1 (quotes-r66-b), the corrected
+manifest rc 0 (quotes-r66-b-files, quotes-r66-c-files, quotes-r66-c), hashed (round66-150). The
+confirming pass rv2c-150 by a fresh reviewer (task-rv2c-150, mkbrief-rv2c-150,
+briefcheck-rv2c-150, brief-rv2c-150, status-before-rv2c-150; its runs rv2c-150-*;
+review-rv2c-150; status-after-rv2c-150 unchanged): VERDICT CONFIRMED. Round 66's item 150 entry
+completed, quotes rc 0 (quotes-r66-d), hashed (round66-150b). On the final text: vacuity gate copy
+PASS (vac-150-2), check_sorry PASS 132 (sorry-150-2), check_records PASS 132 (checkrec-150-2).
+Staged by path: the module, one import line, round 66, the draft removed from incoming/
+(diffcheck-150).
+
+Evidence: evidence.log lines 927 to 1043: m150-module, build-150, build-150-warn, vac-150-file, vac-150, sorry-150, checkrec-150, task-rv2-150, mkbrief-rv2-150, briefcheck-rv2-150, brief-rv2-150, status-before-rv2-150, rv2-150-mod, rv2-150-cmp, rv2-150-cmp2, rv2-150-cmp3, rv2-150-ctl, rv2-150-ns, rv2-150-ns2, rv2-150-wit, rv2-150-var, rv2-150-imp-x1, rv2-150-imp-x2, rv2-150-imp-x3, rv2-150-imp-x4, review-rv2-150, status-after-rv2-150, mod150-fix, m150-module-2, build-150-2, build-150-2-warn, quotes-r66-b-files, quotes-r66-b-planted, quotes-r66-b, quotes-r66-c-files, quotes-r66-c-planted, quotes-r66-c, round66-150, task-rv2c-150, mkbrief-rv2c-150, briefcheck-rv2c-150, brief-rv2c-150, status-before-rv2c-150, rv2c-150-mod, rv2c-150-chk, rv2c-150-var, rv2c-150-draft, review-rv2c-150, status-after-rv2c-150, quotes-r66-d, round66-150b, vac-150-2, sorry-150-2, checkrec-150-2, diffcheck-150
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_019tga5LT3iStpcstjGMLwLU

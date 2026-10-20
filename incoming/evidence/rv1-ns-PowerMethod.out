@@ -1,0 +1,11 @@
+/root/cm2-review-1/ns/PowerMethod.lean:61:14: warning: declaration uses `sorry`
+/root/cm2-review-1/ns/PowerMethod.lean:68:14: warning: declaration uses `sorry`
+/root/cm2-review-1/ns/PowerMethod.lean:75:14: warning: declaration uses `sorry`
+/root/cm2-review-1/ns/PowerMethod.lean:85:14: warning: declaration uses `sorry`
+/root/cm2-review-1/ns/PowerMethod.lean:103:8: warning: declaration uses `sorry`
+DECL _private._stdin.0.ClassicalLean.Analysis.PowerMethod.inner_pow_apply
+DECL _private._stdin.0.ClassicalLean.Analysis.PowerMethod.norm_pow_apply_le
+DECL _private._stdin.0.ClassicalLean.Analysis.PowerMethod.power_aux
+DECL ClassicalLean.Analysis.PowerMethod.tendsto_powerIterate
+DECL _private._stdin.0.ClassicalLean.Analysis.PowerMethod.pow_apply_eigen
+rc=0

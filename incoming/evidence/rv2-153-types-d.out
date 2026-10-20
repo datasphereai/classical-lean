@@ -1,0 +1,138 @@
+/root/cm2-review-10/types-d.lean:17:0: warning: `exists_pair` does not use the following hypothesis in its type:
+  • [DecidableEq ι] (#2)
+
+Consider removing this hypothesis and using `classical` in the proof instead. For terms, consider using `open scoped Classical in` at the term level (not the command level).
+
+Note: This linter can be disabled with `set_option linter.unusedDecidableInType false`
+/root/cm2-review-10/types-d.lean:68:15: warning: `dif_pos` has been deprecated: Use `dite_eq_left` instead
+/root/cm2-review-10/types-d.lean:72:15: warning: `dif_neg` has been deprecated: Use `dite_eq_right` instead
+/root/cm2-review-10/types-d.lean:240:4: warning: `push_neg` has been deprecated. Prefer using `push Not` instead.
+If you'd rather continue using `push_neg` in your project, you can implement it as follows:
+```
+open Lean.Parser.Tactic in
+macro "push_neg" cfg:optConfig loc:(location)? : tactic =>
+  `(tactic| push $cfg:optConfig Not $[$loc]?)
+```
+/root/cm2-review-10/types-d.lean:420:0: warning: Setting options starting with 'debug', 'pp', 'profiler', 'trace' is only intended for development and not for final code. If you intend to submit this contribution to the Mathlib project, please remove 'set_option pp.fullNames'.
+
+Note: This linter can be disabled with `set_option linter.style.setOption false`
+@ClassicalLean.Huffman.exists_pair : ∀ {ι : Type u_1} [DecidableEq ι] (w : ι → ℝ) (s : Finset ι),
+  2 ≤ #s → ∃ ab, ab.1 ∈ s ∧ ab.2 ∈ s ∧ ab.1 ≠ ab.2 ∧ (∀ x ∈ s, w ab.1 ≤ w x) ∧ ∀ x ∈ s, x ≠ ab.1 → w ab.2 ≤ w x
+@ClassicalLean.Huffman.pick : {ι : Type u_1} → [DecidableEq ι] → (ι → ℝ) → (s : Finset ι) → 2 ≤ #s → ι × ι
+@ClassicalLean.Huffman.pick_spec : ∀ {ι : Type u_1} [inst : DecidableEq ι] (w : ι → ℝ) (s : Finset ι) (h : 2 ≤ #s),
+  (ClassicalLean.Huffman.pick w s h).1 ∈ s ∧
+    (ClassicalLean.Huffman.pick w s h).2 ∈ s ∧
+      (ClassicalLean.Huffman.pick w s h).1 ≠ (ClassicalLean.Huffman.pick w s h).2 ∧
+        (∀ x ∈ s, w (ClassicalLean.Huffman.pick w s h).1 ≤ w x) ∧
+          ∀ x ∈ s, x ≠ (ClassicalLean.Huffman.pick w s h).1 → w (ClassicalLean.Huffman.pick w s h).2 ≤ w x
+@ClassicalLean.Huffman.mergeLen : {ι : Type u_1} → [DecidableEq ι] → (ι → ℕ) → ι → ι → ι → ℕ
+@ClassicalLean.Huffman.mergeW : {ι : Type u_1} → [DecidableEq ι] → (ι → ℝ) → ι → ι → ι → ℝ
+@ClassicalLean.Huffman.huffAux : {ι : Type u_1} → [DecidableEq ι] → ℕ → (ι → ℝ) → Finset ι → ι → ℕ
+@ClassicalLean.Huffman.huffmanLength : {ι : Type u_1} → [DecidableEq ι] → [Fintype ι] → (ι → ℝ) → ι → ℕ
+@ClassicalLean.Huffman.huffAux_zero : ∀ {ι : Type u_1} [inst : DecidableEq ι] (w : ι → ℝ) (s : Finset ι),
+  ClassicalLean.Huffman.huffAux 0 w s = fun x ↦ 0
+@ClassicalLean.Huffman.huffAux_succ : ∀ {ι : Type u_1} [inst : DecidableEq ι] (n : ℕ) (w : ι → ℝ) (s : Finset ι)
+  (h : 2 ≤ #s),
+  ClassicalLean.Huffman.huffAux (n + 1) w s =
+    ClassicalLean.Huffman.mergeLen
+      (ClassicalLean.Huffman.huffAux n
+        (ClassicalLean.Huffman.mergeW w (ClassicalLean.Huffman.pick w s h).1 (ClassicalLean.Huffman.pick w s h).2)
+        (s.erase (ClassicalLean.Huffman.pick w s h).2))
+      (ClassicalLean.Huffman.pick w s h).1 (ClassicalLean.Huffman.pick w s h).2
+@ClassicalLean.Huffman.huffAux_succ_of_not : ∀ {ι : Type u_1} [inst : DecidableEq ι] (n : ℕ) (w : ι → ℝ) (s : Finset ι),
+  ¬2 ≤ #s → ClassicalLean.Huffman.huffAux (n + 1) w s = fun x ↦ 0
+@ClassicalLean.Huffman.mergeLen_left : ∀ {ι : Type u_1} [inst : DecidableEq ι] {ℓ : ι → ℕ} {a b : ι},
+  a ≠ b → ClassicalLean.Huffman.mergeLen ℓ a b a = ℓ a + 1
+@ClassicalLean.Huffman.mergeLen_right : ∀ {ι : Type u_1} [inst : DecidableEq ι] {ℓ : ι → ℕ} {a b : ι},
+  ClassicalLean.Huffman.mergeLen ℓ a b b = ℓ a + 1
+@ClassicalLean.Huffman.mergeLen_of_ne : ∀ {ι : Type u_1} [inst : DecidableEq ι] {ℓ : ι → ℕ} {a b z : ι},
+  z ≠ a → z ≠ b → ClassicalLean.Huffman.mergeLen ℓ a b z = ℓ z
+@ClassicalLean.Huffman.mergeW_self : ∀ {ι : Type u_1} [inst : DecidableEq ι] (w : ι → ℝ) (a b : ι),
+  ClassicalLean.Huffman.mergeW w a b a = w a + w b
+@ClassicalLean.Huffman.mergeW_of_ne : ∀ {ι : Type u_1} [inst : DecidableEq ι] {w : ι → ℝ} {a b z : ι},
+  z ≠ a → ClassicalLean.Huffman.mergeW w a b z = w z
+@ClassicalLean.Huffman.mergeW_nonneg : ∀ {ι : Type u_1} [inst : DecidableEq ι] {w : ι → ℝ},
+  (∀ (i : ι), 0 ≤ w i) → ∀ (a b i : ι), 0 ≤ ClassicalLean.Huffman.mergeW w a b i
+@ClassicalLean.Huffman.sum_split : ∀ {ι : Type u_1} [inst : DecidableEq ι] {s : Finset ι} {a b : ι},
+  a ∈ s → b ∈ s → a ≠ b → ∀ (f : ι → ℝ), ∑ i ∈ s, f i = f a + f b + ∑ i ∈ (s.erase b).erase a, f i
+@ClassicalLean.Huffman.sum_erase_split : ∀ {ι : Type u_1} [inst : DecidableEq ι] {s : Finset ι} {a b : ι},
+  a ∈ s → a ≠ b → ∀ (f : ι → ℝ), ∑ i ∈ s.erase b, f i = f a + ∑ i ∈ (s.erase b).erase a, f i
+@ClassicalLean.Huffman.swap_mem : ∀ {ι : Type u_1} [inst : DecidableEq ι] {s : Finset ι} {u v z : ι},
+  u ∈ s → v ∈ s → z ∈ s → (Equiv.swap u v) z ∈ s
+@ClassicalLean.Huffman.sum_swap : ∀ {ι : Type u_1} [inst : DecidableEq ι] {s : Finset ι} {u v : ι},
+  u ∈ s →
+    v ∈ s →
+      ∀ (F : ι → ℕ → ℝ) (ℓ : ι → ℕ),
+        ∑ z ∈ s, F z (ℓ ((Equiv.swap u v) z)) = ∑ z ∈ s, F z (ℓ z) + (F u (ℓ v) + F v (ℓ u) - F u (ℓ u) - F v (ℓ v))
+@ClassicalLean.Huffman.two_pow_mul_half_pow : ∀ {k M : ℕ}, k ≤ M → 2 ^ M * (1 / 2) ^ k = ↑(2 ^ (M - k))
+@ClassicalLean.Huffman.kraft_mergeLen : ∀ {ι : Type u_1} [inst : DecidableEq ι] {s : Finset ι} {a b : ι},
+  a ∈ s →
+    b ∈ s →
+      a ≠ b → ∀ (ℓ : ι → ℕ), ∑ i ∈ s, (1 / 2) ^ ClassicalLean.Huffman.mergeLen ℓ a b i = ∑ i ∈ s.erase b, (1 / 2) ^ ℓ i
+@ClassicalLean.Huffman.cost_mergeLen : ∀ {ι : Type u_1} [inst : DecidableEq ι] (w : ι → ℝ) {s : Finset ι} {a b : ι},
+  a ∈ s →
+    b ∈ s →
+      a ≠ b →
+        ∀ (ℓ : ι → ℕ),
+          ∑ i ∈ s, w i * ↑(ClassicalLean.Huffman.mergeLen ℓ a b i) =
+            ∑ i ∈ s.erase b, ClassicalLean.Huffman.mergeW w a b i * ↑(ℓ i) + w a + w b
+@ClassicalLean.Huffman.merge_step : ∀ {ι : Type u_1} [inst : DecidableEq ι] {w : ι → ℝ},
+  (∀ (i : ι), 0 ≤ w i) →
+    ∀ {s : Finset ι} {a b : ι},
+      a ∈ s →
+        b ∈ s →
+          a ≠ b →
+            ∀ {ℓ : ι → ℕ},
+              ℓ b ≤ ℓ a →
+                (∀ z ∈ s, z ≠ a → ℓ z ≤ ℓ b) →
+                  ∑ i ∈ s, (1 / 2) ^ ℓ i ≤ 1 →
+                    ∃ ℓ',
+                      ∑ i ∈ s.erase b, (1 / 2) ^ ℓ' i ≤ 1 ∧
+                        ∑ i ∈ s.erase b, ClassicalLean.Huffman.mergeW w a b i * ↑(ℓ' i) + w a + w b ≤
+                          ∑ i ∈ s, w i * ↑(ℓ i)
+@ClassicalLean.Huffman.reduce_step : ∀ {ι : Type u_1} [inst : DecidableEq ι] {w : ι → ℝ},
+  (∀ (i : ι), 0 ≤ w i) →
+    ∀ {s : Finset ι} {a b : ι},
+      a ∈ s →
+        b ∈ s →
+          a ≠ b →
+            (∀ x ∈ s, w a ≤ w x) →
+              (∀ x ∈ s, x ≠ a → w b ≤ w x) →
+                ∀ {ℓ : ι → ℕ},
+                  ∑ i ∈ s, (1 / 2) ^ ℓ i ≤ 1 →
+                    ∃ ℓ',
+                      ∑ i ∈ s.erase b, (1 / 2) ^ ℓ' i ≤ 1 ∧
+                        ∑ i ∈ s.erase b, ClassicalLean.Huffman.mergeW w a b i * ↑(ℓ' i) + w a + w b ≤
+                          ∑ i ∈ s, w i * ↑(ℓ i)
+@ClassicalLean.Huffman.huffAux_kraft : ∀ {ι : Type u_1} [inst : DecidableEq ι] (n : ℕ) (w : ι → ℝ) (s : Finset ι),
+  #s = n → ∑ i ∈ s, (1 / 2) ^ ClassicalLean.Huffman.huffAux n w s i ≤ 1
+@ClassicalLean.Huffman.huffAux_opt : ∀ {ι : Type u_1} [inst : DecidableEq ι] (n : ℕ) (w : ι → ℝ) (s : Finset ι),
+  (∀ (i : ι), 0 ≤ w i) →
+    #s = n →
+      ∀ (ℓ : ι → ℕ),
+        ∑ i ∈ s, (1 / 2) ^ ℓ i ≤ 1 → ∑ i ∈ s, w i * ↑(ClassicalLean.Huffman.huffAux n w s i) ≤ ∑ i ∈ s, w i * ↑(ℓ i)
+@huffman_optimal : ∀ {ι : Type u_1} {α : Type u_2} [inst : Fintype ι] [inst_1 : DecidableEq ι] [inst_2 : Fintype α],
+  Fintype.card α = 2 →
+    ∀ {p : ι → ℝ},
+      (∀ (i : ι), 0 ≤ p i) →
+        ∃ c,
+          Function.Injective c ∧
+            InformationTheory.IsPrefixFree (Set.range c) ∧
+              (∀ (i : ι), (c i).length = ClassicalLean.Huffman.huffmanLength p i) ∧
+                ∀ (c' : ι → List α),
+                  Function.Injective c' →
+                    InformationTheory.IsPrefixFree (Set.range c') → ∑ i, p i * ↑(c i).length ≤ ∑ i, p i * ↑(c' i).length
+private def ClassicalLean.Huffman.pick.{u_1} : {ι : Type u_1} →
+  [DecidableEq ι] → (ι → ℝ) → (s : Finset ι) → 2 ≤ #s → ι × ι :=
+fun {ι} [DecidableEq ι] w s h ↦ Classical.choose ⋯
+private def ClassicalLean.Huffman.mergeLen.{u_1} : {ι : Type u_1} → [DecidableEq ι] → (ι → ℕ) → ι → ι → ι → ℕ :=
+fun {ι} [DecidableEq ι] ℓ a b ↦ Function.update (Function.update ℓ a (ℓ a + 1)) b (ℓ a + 1)
+private def ClassicalLean.Huffman.mergeW.{u_1} : {ι : Type u_1} → [DecidableEq ι] → (ι → ℝ) → ι → ι → ι → ℝ :=
+fun {ι} [DecidableEq ι] w a b ↦ Function.update w a (w a + w b)
+private def ClassicalLean.Huffman.huffAux.{u_1} : {ι : Type u_1} → [DecidableEq ι] → ℕ → (ι → ℝ) → Finset ι → ι → ℕ :=
+fun {ι} [DecidableEq ι] x x_1 x_2 ↦
+  Nat.brecOn (motive := fun x ↦ (ι → ℝ) → Finset ι → ι → ℕ) x ClassicalLean.Huffman.huffAux._f x_1 x_2
+def ClassicalLean.Huffman.huffmanLength.{u_1} : {ι : Type u_1} → [DecidableEq ι] → [Fintype ι] → (ι → ℝ) → ι → ℕ :=
+fun {ι} [DecidableEq ι] [Fintype ι] p ↦ ClassicalLean.Huffman.huffAux (Fintype.card ι) p Finset.univ
+'huffman_optimal' depends on axioms: [propext, Classical.choice, Quot.sound]
+rc=0

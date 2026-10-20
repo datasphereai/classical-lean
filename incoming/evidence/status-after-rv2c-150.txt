@@ -1,0 +1,3 @@
+ M ClassicalLean.lean
+ M records/rounds/20261020T181822Z__round-66-power-method-pseudoinverse-chi-squared-kkt-huffman.md
+?? ClassicalLean/Algebra/Pseudoinverse.lean

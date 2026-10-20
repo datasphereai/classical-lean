@@ -1,0 +1,309 @@
+NONE namespace
+NONE ClassicalLean.Huffman
+NONE variable
+NONE ι
+NONE Type
+FULL DecidableEq DecidableEq
+NONE private
+NONE theorem
+NONE exists_pair
+NONE w
+NONE ℝ
+NONE s
+FULL Finset Finset
+NONE h
+NONE s.card
+NONE ab
+NONE x
+NONE by
+NONE have
+NONE hs
+NONE s.Nonempty
+FULL Finset.card_pos.mp Finset.card_pos
+NONE omega
+NONE obtain
+NONE a
+NONE ha
+NONE hamin
+NONE s.exists_min_image
+NONE hs'
+NONE s.erase
+FULL Nonempty Nonempty
+NONE rw
+FULL Finset.card_erase_of_mem Finset.card_erase_of_mem
+NONE b
+NONE hb
+NONE hbmin
+FULL exists_min_image Finset.exists_min_image
+NONE refine
+FULL mem_of_mem_erase Finset.mem_of_mem_erase
+FULL ne_of_mem_erase Finset.ne_of_mem_erase
+FULL symm symm
+NONE intro
+NONE hx
+NONE hxa
+NONE exact
+FULL mem_erase.mpr Finset.mem_erase
+NONE noncomputable
+NONE def
+NONE pick
+FULL Classical.choose Classical.choose
+NONE pick_spec
+FULL Classical.choose_spec Classical.choose_spec
+NONE mergeLen
+NONE ℓ
+NONE ℕ
+FULL Function.update Function.update
+NONE mergeW
+NONE huffAux
+NONE _
+NONE fun
+NONE n
+NONE if
+NONE then
+NONE else
+NONE huffmanLength
+FULL Fintype Fintype
+NONE p
+FULL Fintype.card Fintype.card
+FULL Finset.univ Finset.univ
+NONE huffAux_zero
+NONE huffAux_succ
+FULL dif_pos dif_pos
+NONE huffAux_succ_of_not
+FULL dif_neg dif_neg
+NONE mergeLen_left
+NONE hab
+NONE unfold
+FULL Function.update_of_ne Function.update_of_ne
+FULL Function.update_self Function.update_self
+NONE mergeLen_right
+NONE mergeLen_of_ne
+NONE z
+NONE hza
+NONE hzb
+NONE mergeW_self
+NONE mergeW_of_ne
+NONE mergeW_nonneg
+NONE hw
+NONE i
+FULL by_cases by_cases
+NONE linarith
+NONE sum_split
+NONE f
+FULL erase Finset.erase
+FULL Finset.add_sum_erase Finset.add_sum_erase
+NONE ring
+NONE sum_erase_split
+NONE swap_mem
+NONE u
+NONE v
+NONE hu
+NONE hv
+NONE hz
+FULL Equiv.swap Equiv.swap
+FULL Equiv.swap_apply_def Equiv.swap_apply_def
+NONE split_ifs
+NONE assumption
+NONE sum_swap
+NONE F
+NONE rcases
+FULL eq_or_ne eq_or_ne
+NONE with
+FULL rfl rfl
+NONE huv
+NONE simp
+NONE only
+FULL Equiv.swap_self Equiv.swap_self
+FULL Equiv.refl_apply Equiv.refl_apply
+NONE h1
+NONE h2
+NONE h3
+FULL sum_congr Finset.sum_congr
+FULL Equiv.swap_apply_of_ne_of_ne Equiv.swap_apply_of_ne_of_ne
+FULL Equiv.swap_apply_left Equiv.swap_apply_left
+FULL Equiv.swap_apply_right Equiv.swap_apply_right
+NONE two_pow_mul_half_pow
+NONE k
+NONE M
+NONE hk
+NONE d
+FULL Nat.exists_eq_add_of_le Nat.exists_eq_add_of_le
+FULL Nat.add_sub_cancel_left Nat.add_sub_cancel_left
+FULL pow_add pow_add
+NONE push_cast
+FULL mul_pow mul_pow
+FULL norm_num norm_num
+NONE linear_combination
+NONE kraft_mergeLen
+NONE cost_mergeLen
+NONE merge_step
+NONE hba
+NONE hle
+NONE ℓ'
+NONE hzt
+NONE hks
+NONE hR0
+FULL sum_nonneg Finset.sum_nonneg
+FULL positivity positivity
+NONE hpa
+NONE hM1
+FULL by_contra by_contra
+NONE h0
+NONE h0'
+FULL pow_zero pow_zero
+NONE at
+NONE hℓ'a
+NONE hℓ'z
+NONE hsplit
+NONE hrest
+NONE hq
+NONE hkk
+NONE hN
+FULL mul_sum Finset.mul_sum
+FULL Nat.cast_sum Nat.cast_sum
+NONE hX
+NONE hXq
+NONE hXa
+FULL mul_pos mul_pos
+FULL mul_le_mul_of_nonneg_left mul_le_mul_of_nonneg_left
+NONE hX.le
+NONE e
+NONE exact_mod_cast
+NONE h4
+NONE hc
+NONE push_neg
+NONE hlt
+FULL mul_lt_mul_of_pos_left mul_lt_mul_of_pos_left
+NONE e2
+NONE hs2
+FULL Nat.cast_sub Nat.cast_sub
+FULL Nat.cast_one Nat.cast_one
+NONE nlinarith
+NONE this
+NONE reduce_step
+NONE hxmax
+NONE s.exists_max_image
+NONE hne
+NONE hax
+NONE hax.trans
+NONE h.symm
+NONE y
+NONE hy
+NONE hymax
+FULL exists_max_image Finset.exists_max_image
+NONE hyx
+NONE hys
+NONE y'
+NONE hy'
+NONE hy's
+NONE e3
+NONE e1
+NONE hy'a
+NONE apply
+NONE e0
+NONE hy'a.symm
+NONE k1
+NONE k2
+NONE hk2
+NONE c1
+NONE c2
+NONE hxb
+NONE h.trans
+NONE e2.symm
+NONE injective
+NONE hb1
+NONE d1
+FULL mul_nonneg mul_nonneg
+FULL sub_nonneg.mpr sub_nonneg
+NONE d2
+NONE hc2
+NONE e0.symm
+NONE hk'
+NONE hc'
+NONE hc''
+NONE huffAux_kraft
+NONE induction
+NONE zero
+FULL Finset.card_eq_zero.mp Finset.card_eq_zero
+NONE succ
+NONE ih
+FULL card_erase_of_mem Finset.card_erase_of_mem
+FULL sum_const Finset.sum_const
+FULL nsmul_eq_mul nsmul_eq_mul
+FULL mul_one mul_one
+NONE show
+NONE huffAux_opt
+FULL Nat.cast_zero Nat.cast_zero
+FULL mul_zero MulZeroClass.mul_zero
+FULL sum_const_zero Finset.sum_const_zero
+FULL Nat.cast_nonneg Nat.cast_nonneg
+NONE hcard
+FULL card Finset.card
+NONE hw'
+NONE hIH
+NONE end
+NONE huffman_optimal
+NONE α
+NONE hα
+NONE hp
+NONE c
+FULL List List
+FULL Function.Injective Function.Injective
+FULL InformationTheory.IsPrefixFree InformationTheory.IsPrefixFree
+FULL Set.range Set.range
+NONE length
+NONE ClassicalLean.Huffman.huffmanLength
+NONE c'
+FULL Fintype.card_pos_iff.mp Fintype.card_pos_iff
+NONE hD
+NONE ClassicalLean.Huffman.huffAux_kraft
+FULL univ Finset.univ
+FULL Finset.card_univ Finset.card_univ
+NONE hinj
+NONE hpf
+NONE hlen
+FULL ClassicalLean.Simplex.exists_isPrefixFree_length_eq ClassicalLean.Simplex.exists_isPrefixFree_length_eq
+NONE hinj'
+NONE hpf'
+NONE classical
+NONE hS
+FULL univ.image Finset.univ
+FULL Set Set
+NONE finsetSum_one_div_card_pow_length_le_one
+FULL calc Lean.calc
+NONE rwa
+FULL sum_image Finset.sum_image
+NONE j
+NONE hopt
+NONE ClassicalLean.Huffman.huffAux_opt
+NONE ClassicalLean.Huffman.huffAux
+/root/cm2-evidence/disc/d153-r1-s2.lean:235:100: warning: This line exceeds the 100 character limit, please shorten it!
+You can use "string gaps" to format long strings: within a string quotation, using a '\' at the end of a line allows you to continue the string on the following line, removing all intervening whitespace.
+
+Note: This linter can be disabled with `set_option linter.style.longLine false`
+/root/cm2-evidence/disc/d153-r1-s2.lean:263:100: warning: This line exceeds the 100 character limit, please shorten it!
+You can use "string gaps" to format long strings: within a string quotation, using a '\' at the end of a line allows you to continue the string on the following line, removing all intervening whitespace.
+
+Note: This linter can be disabled with `set_option linter.style.longLine false`
+/root/cm2-evidence/disc/d153-r1-s2.lean:265:100: warning: This line exceeds the 100 character limit, please shorten it!
+You can use "string gaps" to format long strings: within a string quotation, using a '\' at the end of a line allows you to continue the string on the following line, removing all intervening whitespace.
+
+Note: This linter can be disabled with `set_option linter.style.longLine false`
+/root/cm2-evidence/disc/d153-r1-s2.lean:267:100: warning: This line exceeds the 100 character limit, please shorten it!
+You can use "string gaps" to format long strings: within a string quotation, using a '\' at the end of a line allows you to continue the string on the following line, removing all intervening whitespace.
+
+Note: This linter can be disabled with `set_option linter.style.longLine false`
+/root/cm2-evidence/disc/d153-r1-s2.lean:273:100: warning: This line exceeds the 100 character limit, please shorten it!
+You can use "string gaps" to format long strings: within a string quotation, using a '\' at the end of a line allows you to continue the string on the following line, removing all intervening whitespace.
+
+Note: This linter can be disabled with `set_option linter.style.longLine false`
+/root/cm2-evidence/disc/d153-r1-s2.lean:286:100: warning: This line exceeds the 100 character limit, please shorten it!
+You can use "string gaps" to format long strings: within a string quotation, using a '\' at the end of a line allows you to continue the string on the following line, removing all intervening whitespace.
+
+Note: This linter can be disabled with `set_option linter.style.longLine false`
+/root/cm2-evidence/disc/d153-r1-s2.lean:287:100: warning: This line exceeds the 100 character limit, please shorten it!
+You can use "string gaps" to format long strings: within a string quotation, using a '\' at the end of a line allows you to continue the string on the following line, removing all intervening whitespace.
+
+Note: This linter can be disabled with `set_option linter.style.longLine false`
+rc=0

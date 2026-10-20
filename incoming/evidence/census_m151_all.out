@@ -1,0 +1,13 @@
+ALLCONST 12
+CONST _private._stdin.0.ClassicalLean.Probability.ChiSquared.Iio_subset_integrableExpSet_gamma_aux
+CONST ClassicalLean.Probability.ChiSquared.hasLaw_sum_sq_gaussian
+CONST _private._stdin.0.ClassicalLean.Probability.ChiSquared.cpow_ofReal_mul_aux
+CONST _private._stdin.0.ClassicalLean.Probability.ChiSquared.integral_sq_eq_aux
+CONST _private._stdin.0.ClassicalLean.Probability.ChiSquared.complexMGF_gammaMeasure_aux
+CONST _private._stdin.0.ClassicalLean.Probability.ChiSquared.charFun_gammaMeasure_aux
+CONST _private._stdin.0.ClassicalLean.Probability.ChiSquared.integral_exp_add_of_indep_aux
+CONST _private._stdin.0.ClassicalLean.Probability.ChiSquared.complexMGF_gammaMeasure_ofReal_aux
+CONST _private._stdin.0.ClassicalLean.Probability.ChiSquared.charFun_sq_gaussian_aux
+CONST _private._stdin.0.ClassicalLean.Probability.ChiSquared.charFun_map_eq_aux
+CONST _private._stdin.0.ClassicalLean.Probability.ChiSquared.mgf_gammaMeasure_aux
+CONST _private._stdin.0.ClassicalLean.Probability.ChiSquared.sq_gauss_alg_aux

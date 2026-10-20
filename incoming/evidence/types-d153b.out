@@ -1,0 +1,30 @@
+/root/cm2-evidence/types/draft-153b.lean:17:0: warning: `exists_pair` does not use the following hypothesis in its type:
+  • [DecidableEq ι] (#2)
+
+Consider removing this hypothesis and using `classical` in the proof instead. For terms, consider using `open scoped Classical in` at the term level (not the command level).
+
+Note: This linter can be disabled with `set_option linter.unusedDecidableInType false`
+/root/cm2-evidence/types/draft-153b.lean:68:15: warning: `dif_pos` has been deprecated: Use `dite_eq_left` instead
+/root/cm2-evidence/types/draft-153b.lean:72:15: warning: `dif_neg` has been deprecated: Use `dite_eq_right` instead
+/root/cm2-evidence/types/draft-153b.lean:240:4: warning: `push_neg` has been deprecated. Prefer using `push Not` instead.
+If you'd rather continue using `push_neg` in your project, you can implement it as follows:
+```
+open Lean.Parser.Tactic in
+macro "push_neg" cfg:optConfig loc:(location)? : tactic =>
+  `(tactic| push $cfg:optConfig Not $[$loc]?)
+```
+/root/cm2-evidence/types/draft-153b.lean:420:0: warning: Setting options starting with 'debug', 'pp', 'profiler', 'trace' is only intended for development and not for final code. If you intend to submit this contribution to the Mathlib project, please remove 'set_option pp.fullNames'.
+
+Note: This linter can be disabled with `set_option linter.style.setOption false`
+@ClassicalLean.Huffman.huffAux.eq_1 : ∀ {ι : Type u_1} [inst : DecidableEq ι] (x : ι → ℝ) (x_1 : Finset ι),
+  ClassicalLean.Huffman.huffAux 0 x x_1 = fun x ↦ 0
+@ClassicalLean.Huffman.huffAux.eq_2 : ∀ {ι : Type u_1} [inst : DecidableEq ι] (x : ι → ℝ) (x_1 : Finset ι) (n : ℕ),
+  ClassicalLean.Huffman.huffAux n.succ x x_1 =
+    if h : 2 ≤ #x_1 then
+      ClassicalLean.Huffman.mergeLen
+        (ClassicalLean.Huffman.huffAux n
+          (ClassicalLean.Huffman.mergeW x (ClassicalLean.Huffman.pick x x_1 h).1 (ClassicalLean.Huffman.pick x x_1 h).2)
+          (x_1.erase (ClassicalLean.Huffman.pick x x_1 h).2))
+        (ClassicalLean.Huffman.pick x x_1 h).1 (ClassicalLean.Huffman.pick x x_1 h).2
+    else fun x ↦ 0
+rc=0

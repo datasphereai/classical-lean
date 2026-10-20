@@ -1,0 +1,8 @@
+/root/cm2-review-8/var/hgb.lean:223:68: error: Function expected at
+  hgb
+but this term has type
+  True
+
+Note: Expected a function because this term is being applied to the argument
+  i
+rc=1

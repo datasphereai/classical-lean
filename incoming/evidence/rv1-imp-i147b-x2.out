@@ -1,0 +1,28 @@
+/root/cm2-review-1/imp/i147b-x2.lean:17:4: warning: The `show` tactic should only be used to indicate intermediate goal states for readability.
+However, this tactic invocation changed the goal. Please use `change` instead for these purposes.
+
+Note: This linter can be disabled with `set_option linter.style.show false`
+/root/cm2-review-1/imp/i147b-x2.lean:27:4: warning: The `show` tactic should only be used to indicate intermediate goal states for readability.
+However, this tactic invocation changed the goal. Please use `change` instead for these purposes.
+
+Note: This linter can be disabled with `set_option linter.style.show false`
+/root/cm2-review-1/imp/i147b-x2.lean:133:8: warning: try 'simp' instead of 'simpa'
+
+Note: This linter can be disabled with `set_option linter.unnecessarySimpa false`
+/root/cm2-review-1/imp/i147b-x2.lean:134:8: warning: this tactic is never executed
+
+Note: This linter can be disabled with `set_option linter.unreachableTactic false`
+/root/cm2-review-1/imp/i147b-x2.lean:134:8: warning: Unused tactic linter: `(rw [hT.apply_eigenvectorBasis hn i]; rfl)` does nothing
+
+Note: This linter can be disabled with `set_option linter.unusedTactic false`
+/root/cm2-review-1/imp/i147b-x2.lean:178:23: error(lean.invalidField): Invalid field `re_trace_eq_sum_eigenvalues`: The environment does not contain `Function.re_trace_eq_sum_eigenvalues`, so it is not possible to project the field `re_trace_eq_sum_eigenvalues` from an expression
+  hsym
+of type
+  ∀ (x y : EuclideanSpace ℝ (Fin 2)),
+    inner ℝ ((Matrix.toEuclideanLin !![2, 0; 0, 1]) x) y = inner ℝ x ((Matrix.toEuclideanLin !![2, 0; 0, 1]) y)
+/root/cm2-review-1/imp/i147b-x2.lean:148:13: error: unsolved goals
+hsym : (Matrix.toEuclideanLin !![2, 0; 0, 1]).IsSymmetric
+hn : Module.finrank ℝ (EuclideanSpace ℝ (Fin 2)) = 2
+hval : ∀ (i : Fin 2), hsym.eigenvalues hn i = 2 ∨ hsym.eigenvalues hn i = 1
+⊢ |hsym.eigenvalues hn 1| < |hsym.eigenvalues hn 0|
+rc=1

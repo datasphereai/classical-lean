@@ -1,0 +1,2 @@
+/root/cm2-evidence/probes6.lean:6:8: error(lean.unknownIdentifier): Unknown constant `Even.convexOn_pow`
+rc=1

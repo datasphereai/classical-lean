@@ -1,0 +1,5 @@
+@HasFDerivAt.congr_fderiv : ∀ {𝕜 : Type u_1} [inst : NontriviallyNormedField 𝕜] {E : Type u_2} [inst_1 : AddCommGroup E]
+  [inst_2 : Module 𝕜 E] [inst_3 : TopologicalSpace E] {F : Type u_3} [inst_4 : AddCommGroup F] [inst_5 : Module 𝕜 F]
+  [inst_6 : TopologicalSpace F] {f : E → F} {f' g' : E →L[𝕜] F} {x : E},
+  HasFDerivAt f f' x → f' = g' → HasFDerivAt f g' x
+rc=0

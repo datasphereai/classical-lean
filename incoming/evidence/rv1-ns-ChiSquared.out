@@ -1,0 +1,25 @@
+/root/cm2-review-1/ns/ChiSquared.lean:57:14: warning: declaration uses `sorry`
+/root/cm2-review-1/ns/ChiSquared.lean:62:14: warning: declaration uses `sorry`
+/root/cm2-review-1/ns/ChiSquared.lean:68:14: warning: declaration uses `sorry`
+/root/cm2-review-1/ns/ChiSquared.lean:78:14: warning: declaration uses `sorry`
+/root/cm2-review-1/ns/ChiSquared.lean:83:14: warning: declaration uses `sorry`
+/root/cm2-review-1/ns/ChiSquared.lean:88:14: warning: declaration uses `sorry`
+/root/cm2-review-1/ns/ChiSquared.lean:102:14: warning: declaration uses `sorry`
+/root/cm2-review-1/ns/ChiSquared.lean:108:14: warning: declaration uses `sorry`
+/root/cm2-review-1/ns/ChiSquared.lean:114:14: warning: declaration uses `sorry`
+/root/cm2-review-1/ns/ChiSquared.lean:121:14: warning: declaration uses `sorry`
+/root/cm2-review-1/ns/ChiSquared.lean:127:14: warning: declaration uses `sorry`
+/root/cm2-review-1/ns/ChiSquared.lean:136:8: warning: declaration uses `sorry`
+DECL _private._stdin.0.ClassicalLean.Probability.ChiSquared.sq_gauss_alg_aux
+DECL _private._stdin.0.ClassicalLean.Probability.ChiSquared.mgf_gammaMeasure_aux
+DECL _private._stdin.0.ClassicalLean.Probability.ChiSquared.charFun_map_eq_aux
+DECL _private._stdin.0.ClassicalLean.Probability.ChiSquared.charFun_sq_gaussian_aux
+DECL _private._stdin.0.ClassicalLean.Probability.ChiSquared.complexMGF_gammaMeasure_ofReal_aux
+DECL _private._stdin.0.ClassicalLean.Probability.ChiSquared.integral_exp_add_of_indep_aux
+DECL _private._stdin.0.ClassicalLean.Probability.ChiSquared.charFun_gammaMeasure_aux
+DECL _private._stdin.0.ClassicalLean.Probability.ChiSquared.complexMGF_gammaMeasure_aux
+DECL _private._stdin.0.ClassicalLean.Probability.ChiSquared.integral_sq_eq_aux
+DECL _private._stdin.0.ClassicalLean.Probability.ChiSquared.cpow_ofReal_mul_aux
+DECL ClassicalLean.Probability.ChiSquared.hasLaw_sum_sq_gaussian
+DECL _private._stdin.0.ClassicalLean.Probability.ChiSquared.Iio_subset_integrableExpSet_gamma_aux
+rc=0

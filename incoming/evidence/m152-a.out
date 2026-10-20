@@ -1,0 +1,15 @@
+/root/cm2-evidence/mod/KKT-a.lean:269:5: error: unsolved goals
+case e'_12
+he✝¹ : RCLike.toInnerProductSpaceReal.toModule = (NormedAlgebra.toNormedSpace ℝ).toModule
+e_8✝ : Real.instRCLike.toDivisionRing.toAddCommGroup = Real.normedCommRing.toCommRing.toAddCommGroup
+he✝ : Semiring.toModule = (NormedAlgebra.toNormedSpace ℝ).toModule
+e_10✝ : PseudoMetricSpace.toUniformSpace.toTopologicalSpace = PseudoMetricSpace.toUniformSpace.toTopologicalSpace
+⊢ (InnerProductSpace.toDual ℝ ℝ) 2 = ContinuousLinearMap.id ℝ ℝ + ContinuousLinearMap.id ℝ ℝ
+/root/cm2-evidence/mod/KKT-a.lean:273:12: warning: This simp argument is unused:
+  InnerProductSpace.toDual_apply_apply
+
+Hint: Omit it from the simp argument list.
+  [apply] simp
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+rc=1

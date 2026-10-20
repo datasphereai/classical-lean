@@ -1,0 +1,27 @@
+CLOUD-MATH-2 item 153: optimality of Huffman's code, new module ClassicalLean/InformationTheory/Huffman.lean
+
+No linter or option switched off or on.
+
+What evidence.log shows since 7b7a471. The module, assembled earlier from the reviewed statement
+file and the draft's proofs with the Goal list's edits (the namespace and the new names in
+huffman_optimal's proof, omit and classical for exists_pair and pick_spec, dite_eq_left and
+dite_eq_right, push Not) and its new witness (mod153-a, m153-a, mod153-c, mod153-d, m153-d in
+earlier commits' log lines), placed with one import line: el.sh rc 0 with no message
+(m153-module); lake build of the module rc 0, 0 warning lines (build-153, build-153-warn); the
+vacuity gate copy whose only change is its import line, PASS with 1 reviewed helper
+(vac-153-file, vac-153); check_sorry PASS 135, check_records PASS 135 (sorry-153, checkrec-153).
+The cold review rv2-153 (task-rv2-153, mkbrief-rv2-153, briefcheck-rv2-153, brief-rv2-153,
+status-before-rv2-153; its runs rv2-153-*; the report hashed equal to the value returned,
+review-rv2-153; status-after-rv2-153 unchanged): VERDICT FINDINGS 2, both MINOR, docstrings;
+fixed in docstrings only (mod153-fix), el.sh rc 0 with no message (m153-module-2), lake build 0
+warning lines (build-153-2, build-153-2-warn). Round 66's item 153 entry written, quotes rc 0
+(quotes-r66-h, quotes-r66-i), hashed (round66-153, round66-153b). The confirming pass rv2c-153 by
+a fresh reviewer (task-rv2c-153, mkbrief-rv2c-153, briefcheck-rv2c-153, brief-rv2c-153,
+status-before-rv2c-153; its runs rv2c-153-*; review-rv2c-153; status-after-rv2c-153 unchanged):
+VERDICT CONFIRMED. On the final text: vacuity gate copy PASS (vac-153-2), check_sorry PASS 135
+(sorry-153-2), check_records PASS 135 (checkrec-153-2). Staged by path: the module, one import
+line, round 66, the draft removed from incoming/ (diffcheck-153).
+
+Also in these log lines, for the predictions to come and not in this commit: census.sh on the
+committed modules of items 147, 150, 151 and 152, theorem constants 14, 10, 12 and 2
+(census_m147_thm to census_m152_all).

@@ -1,0 +1,4 @@
+Lean.Environment.header : Lean.Environment → Lean.EnvironmentHeader
+Lean.EnvironmentHeader.moduleNames : Lean.EnvironmentHeader → Array Lean.Name
+@Lean.Elab.Command.liftTermElabM : {α : Type} → Lean.Elab.TermElabM α → Lean.Elab.Command.CommandElabM α
+rc=0

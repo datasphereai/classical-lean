@@ -1,0 +1,4 @@
+ ClassicalLean.lean                                 |   1 +
+ .../Analysis/KKT.lean                              | 109 +++++++++++++++++----
+ ...method-pseudoinverse-chi-squared-kkt-huffman.md |  12 +++
+ 3 files changed, 103 insertions(+), 19 deletions(-)

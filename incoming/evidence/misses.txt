@@ -1,0 +1,6 @@
+MISS-1 2026-10-20 probecheck check on the five drafts run once outside ev.sh after the probes run (not cited)
+MISS-2 2026-10-20 typecmp-153's logged prediction said 7 of 8 SAME; the file has 7 messages, 6 SAME, pick DIFF as predicted
+MISS-3 2026-10-20 rule 12: the repository tree changed during review rv1c (status empty before at 19:07Z; the session added ClassicalLean/Analysis/PowerMethod.lean and its import line at 19:08:55Z-19:09:03Z, logged m147-module, build-147); the reviewer wrote nothing and says so; from here the tree is not touched while a reviewer runs
+MISS-4 2026-10-20 a line-length check of PowerMethod.lean ran as inline python outside ev.sh (not cited); two fix edits had first made lines over 100 characters, caught by el.sh m147-module-2 and m147-module-3 (1 warning each) before the final text
+MISS-5 2026-10-20 quotes-r66-b listed a quote not in the fragment (manifest error, rc 1); corrected manifest quotes-r66-c rc 0
+MISS-6 2026-10-20 quotes-report's manifest missed three quoted spans of REPORT.md (rc 1, UNLISTED); quotes-report-b lists them, rc 0

@@ -1,0 +1,41 @@
+/root/cm2-evidence/types/stmt-153b.lean:64:16: warning: declaration uses `sorry`
+/root/cm2-evidence/types/stmt-153b.lean:76:16: warning: declaration uses `sorry`
+/root/cm2-evidence/types/stmt-153b.lean:104:16: warning: declaration uses `sorry`
+/root/cm2-evidence/types/stmt-153b.lean:107:16: warning: declaration uses `sorry`
+/root/cm2-evidence/types/stmt-153b.lean:113:16: warning: declaration uses `sorry`
+/root/cm2-evidence/types/stmt-153b.lean:117:16: warning: declaration uses `sorry`
+/root/cm2-evidence/types/stmt-153b.lean:121:16: warning: declaration uses `sorry`
+/root/cm2-evidence/types/stmt-153b.lean:124:16: warning: declaration uses `sorry`
+/root/cm2-evidence/types/stmt-153b.lean:128:16: warning: declaration uses `sorry`
+/root/cm2-evidence/types/stmt-153b.lean:131:16: warning: declaration uses `sorry`
+/root/cm2-evidence/types/stmt-153b.lean:134:16: warning: declaration uses `sorry`
+/root/cm2-evidence/types/stmt-153b.lean:138:16: warning: declaration uses `sorry`
+/root/cm2-evidence/types/stmt-153b.lean:142:16: warning: declaration uses `sorry`
+/root/cm2-evidence/types/stmt-153b.lean:146:16: warning: declaration uses `sorry`
+/root/cm2-evidence/types/stmt-153b.lean:151:16: warning: declaration uses `sorry`
+/root/cm2-evidence/types/stmt-153b.lean:157:16: warning: declaration uses `sorry`
+/root/cm2-evidence/types/stmt-153b.lean:161:16: warning: declaration uses `sorry`
+/root/cm2-evidence/types/stmt-153b.lean:166:16: warning: declaration uses `sorry`
+/root/cm2-evidence/types/stmt-153b.lean:173:16: warning: declaration uses `sorry`
+/root/cm2-evidence/types/stmt-153b.lean:181:16: warning: declaration uses `sorry`
+/root/cm2-evidence/types/stmt-153b.lean:189:16: warning: declaration uses `sorry`
+/root/cm2-evidence/types/stmt-153b.lean:195:16: warning: declaration uses `sorry`
+/root/cm2-evidence/types/stmt-153b.lean:205:8: warning: declaration uses `sorry`
+/root/cm2-evidence/types/stmt-153b.lean:216:0: warning: Setting options starting with 'debug', 'pp', 'profiler', 'trace' is only intended for development and not for final code. If you intend to submit this contribution to the Mathlib project, please remove 'set_option pp.fullNames'.
+
+Note: This linter can be disabled with `set_option linter.style.setOption false`
+@ClassicalLean.InformationTheory.Huffman.huffAux.eq_1 : ∀ {ι : Type u_1} [inst : DecidableEq ι] (x : ι → ℝ)
+  (x_1 : Finset ι), ClassicalLean.InformationTheory.Huffman.huffAux 0 x x_1 = fun x ↦ 0
+@ClassicalLean.InformationTheory.Huffman.huffAux.eq_2 : ∀ {ι : Type u_1} [inst : DecidableEq ι] (x : ι → ℝ)
+  (x_1 : Finset ι) (n : ℕ),
+  ClassicalLean.InformationTheory.Huffman.huffAux n.succ x x_1 =
+    if h : 2 ≤ #x_1 then
+      ClassicalLean.InformationTheory.Huffman.mergeLen
+        (ClassicalLean.InformationTheory.Huffman.huffAux n
+          (ClassicalLean.InformationTheory.Huffman.mergeW x (ClassicalLean.InformationTheory.Huffman.pick x x_1 h).1
+            (ClassicalLean.InformationTheory.Huffman.pick x x_1 h).2)
+          (x_1.erase (ClassicalLean.InformationTheory.Huffman.pick x x_1 h).2))
+        (ClassicalLean.InformationTheory.Huffman.pick x x_1 h).1
+        (ClassicalLean.InformationTheory.Huffman.pick x x_1 h).2
+    else fun x ↦ 0
+rc=0

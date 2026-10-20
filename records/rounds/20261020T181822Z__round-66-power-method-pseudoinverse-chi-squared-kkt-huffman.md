@@ -138,5 +138,84 @@ type comparison found every main theorem and definition the same as the draft's.
   `status-after-rv1c` differ by item 147's two files, which the reviewer did not write.
 * Items 150 to 153 were assembled and elaborated in the evidence folder, not in the tree, while
   item 147's review `rv2-147` ran (its brief 2026-10-20T19:09:55Z, its report
-  2026-10-20T19:22:26Z; `mod150-a` at 2026-10-20T19:10:41Z to `m153-a` at 2026-10-20T19:16:01Z). Each enters the tree only after the item before it is committed, and not while a
-  reviewer runs.
+  2026-10-20T19:22:26Z; `mod150-a` at 2026-10-20T19:10:41Z to `m153-a` at 2026-10-20T19:16:01Z).
+  Each entered the tree only after the item before it was committed, and never while a reviewer
+  ran (every later review's `status-before-*` and `status-after-*` are equal).
+
+## Completed after the work
+
+All five items are closed; no narrowing; no item undone; no entry added to
+`tools/vacuity_reviewed.txt`. Report: `incoming/REPORT.md`; reviews: `incoming/reviews/`;
+evidence: `incoming/evidence/` (one file over 1 MB left out, named in the report).
+
+**Commits** (branch `cloud-math-2`, each pushed with `git push origin cloud-math-2`):
+
+* `1663442` — records first (the order's copy, its INDEX row, the CLAIMS row, this fragment's first
+  part, RULES-1's push in its two rows);
+* `f58d3ba` — item 147, `ClassicalLean/Analysis/PowerMethod.lean` (with job 1);
+* `f2c4785` — item 150, `ClassicalLean/Algebra/Pseudoinverse.lean`;
+* `bcc7619` — item 151, `ClassicalLean/Probability/ChiSquared.lean`;
+* `7b7a471` — item 152, `ClassicalLean/Analysis/KKT.lean`;
+* `f224ec9` — item 153, `ClassicalLean/InformationTheory/Huffman.lean`;
+* `2f21991` — `incoming/PREDICTIONS.md`;
+* the commit that carries this section — the report, the reviews, the evidence, the CLAIMS row
+  closed and the INDEX row's state (its own hash cannot be written in it).
+
+Each landing commit added its module's import line at the end of `ClassicalLean.lean`'s import
+block (landing order: PowerMethod, Pseudoinverse, ChiSquared, KKT, Huffman) and removed its draft,
+and its witness start where it had one, from `incoming/`.
+
+**The modules and their theorem-constant counts**, from `census.sh` on each final module file
+(rule 27: the axiom gate's predicate, user names under `ClassicalLean`, private ones and
+auxiliaries included); their total, 79, plus the base's 3379 is the axiom gate's 3458 below:
+
+| module | item | theorem constants |
+|---|---|---|
+| `ClassicalLean/Analysis/PowerMethod.lean` | 147 | 14 (5 written, 7 `_simp` and 2 `_abel` auxiliaries) |
+| `ClassicalLean/Algebra/Pseudoinverse.lean` | 150 | 10 (8 written, `pinv.congr_simp`, 1 `_abel`) |
+| `ClassicalLean/Probability/ChiSquared.lean` | 151 | 12 (12 written) |
+| `ClassicalLean/Analysis/KKT.lean` | 152 | 2 (2 written) |
+| `ClassicalLean/InformationTheory/Huffman.lean` | 153 | 41 (23 written, 8 `_proof_`, 4 `congr_simp`, 6 equation lemmas) |
+| **five modules** | | **79** |
+
+**Main theorems and their verdicts** (each docstring names its item of MATH-PLAN-library-2):
+147 `tendsto_powerIterate` GENERALIZED; 150 `pinv` (definition), `pinv_spec`, `pinv_unique`,
+`pinv_residual_dotProduct_le`, `pinv_eq_leastSquares` FAITHFUL; 151 `hasLaw_sum_sq_gaussian`
+FAITHFUL; 152 `exists_kkt_of_slater` FAITHFUL; 153 `huffmanLength` (definition) FAITHFUL,
+`huffman_optimal` GENERALIZED. Each under its module's namespace.
+
+**Witnesses** (rule 4; six, after each module's last line; epoch seconds from `date +%s` through
+`ev.sh`): 147 from 1792523234 to 1792523335; 150 (two) from 1792523425 to 1792523459; 151 from
+1792523478 to 1792523502; 152 from 1792523608 to 1792523729; 153 from 1792523743 to 1792523766.
+All within 1800 seconds.
+
+**Reviews** (`incoming/reviews/`, each by a fresh subagent; each report returned only its sha256,
+checked equal by `hl.sh` before it was opened; each brief built by script from `HANDOFF.md`,
+`briefcheck.py` PASS, hashed before it was sent): job 1's statement review `rv1-statements`,
+FINDINGS 1 (MINOR), confirmed `rv1c-confirm`; `rv2-147` FINDINGS 2 (MINOR), confirmed `rv2c-147`;
+`rv2-150` FINDINGS 1 (MINOR), confirmed `rv2c-150`; `rv2-151` CLEAN; `rv2-152` FINDINGS 1
+(MINOR), confirmed `rv2c-152`; `rv2-153` FINDINGS 2 (MINOR), confirmed `rv2c-153`. Every finding
+was a docstring; one fix-and-confirm round each. Every reviewer checked that no main theorem's
+conclusion is a recursive predicate that is `True` everywhere: none is.
+
+**End check 1** (the clean tree at `2f21991`, the predictions committed first; no fix or undo
+followed, so it ran once):
+
+| command | predicted | measured |
+|---|---|---|
+| `lake build` | rc 0, 4188 jobs, 0 warnings | rc 0, `Build completed successfully (4188 jobs).`, 0 `warning:` lines (`ec1-build`, `ec1-build-warn`) |
+| `lake env lean tools/AxiomGate.lean` | PASS 3458 | PASS 3458, 0 scoped exceptions (`ec1-axiom`) |
+| `python3 -I tools/check_sorry.py` | PASS 135 | PASS 135 (`ec1-sorry`) |
+| `lake env lean tools/VacuityGate.lean` | PASS, 1 reviewed helper, 0 VACUOUS-PENDING, rule 5 out on 0 | the same (`ec1-vacuity`) |
+| `python3 -I tools/check_records.py` | PASS 135, 1 exemption | the same (`ec1-records`) |
+| `python3 tools/compile_rules.py drift records/rules.toml HANDOFF.md` | `PASS no drift` | `PASS no drift` (`ec1-drift`) |
+
+**End check 2** (`citecheck.py` over every commit after `4d99afd`): `OK` for all seven,
+`1663442`, `f58d3ba`, `f2c4785`, `bcc7619`, `7b7a471`, `f224ec9` and `2f21991` (`citecheck`).
+
+`git ls-remote origin master` at the start and at the end (`lsremote-start`, `lsremote-end`):
+`9c0639c5878d09db83b1334ec35b705add9a8cb7`. CI: success on `4d99afd`, `1663442`, `f58d3ba` and
+`7b7a471`; the runs on `f2c4785`, `bcc7619` and `f224ec9` were cancelled by the next push, as the
+workflow's `concurrency` setting does; the run on `2f21991` was in progress when this was written
+(`ci-list-end`); the run on the last commit is read after its push, and its result is in the
+session's final message.

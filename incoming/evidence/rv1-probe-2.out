@@ -1,0 +1,3 @@
+@Lean.PersistentHashMap.toList : {α : Type u_1} →
+  {β : Type u_2} → {x : BEq α} → {x_1 : Hashable α} → Lean.PersistentHashMap α β → List (α × β)
+rc=0

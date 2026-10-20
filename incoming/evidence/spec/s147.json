@@ -1,0 +1,5 @@
+{"ranges": [[8, 13], [18, 24], [31, 50], [61, 106], [125, 131]],
+ "edits": [[12, "show", "change"], [22, "show", "change"], [98, "try ring", null],
+           [127, "first", null], [128, "| simpa using hT.apply_eigenvectorBasis hn i", "simp"],
+           [129, "(rw [hT.apply_eigenvectorBasis hn i]; rfl)", null]],
+ "tail": "/root/cm2-evidence/witness/w147.lean"}

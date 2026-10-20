@@ -1,0 +1,27 @@
+@hasGradientAt_iff_hasFDerivAt : ∀ {𝕜 : Type u_1} {F : Type u_2} [inst : RCLike 𝕜] [inst_1 : NormedAddCommGroup F]
+  [inst_2 : InnerProductSpace 𝕜 F] [inst_3 : CompleteSpace F] {f : F → 𝕜} {f' x : F},
+  HasGradientAt f f' x ↔ HasFDerivAt f ((InnerProductSpace.toDual 𝕜 F) f') x
+@HasDerivAt.hasGradientAt' : ∀ {g : ℝ → ℝ} {g' u : ℝ}, HasDerivAt g g' u → HasGradientAt g g' u
+@hasDerivAt_id : ∀ {𝕜 : Type u_1} [inst : NontriviallyNormedField 𝕜] (x : 𝕜), HasDerivAt id 1 x
+@HasDerivAt.const_sub : ∀ {𝕜 : Type u_1} [inst : NontriviallyNormedField 𝕜] {F : Type u_2}
+  [inst_1 : NormedAddCommGroup F] [inst_2 : NormedSpace 𝕜 F] {f : 𝕜 → F} {f' : F} {x : 𝕜} (c : F),
+  HasDerivAt f f' x → HasDerivAt (fun x ↦ c - f x) (-f') x
+@HasDerivAt.sub_const : ∀ {𝕜 : Type u_1} [inst : NontriviallyNormedField 𝕜] {F : Type u_2}
+  [inst_1 : NormedAddCommGroup F] [inst_2 : NormedSpace 𝕜 F] {f : 𝕜 → F} {f' : F} {x : 𝕜} (c : F),
+  HasDerivAt f f' x → HasDerivAt (fun x ↦ f x - c) f' x
+@hasFDerivAt_id : ∀ {𝕜 : Type u_1} [inst : NontriviallyNormedField 𝕜] {E : Type u_2} [inst_1 : AddCommGroup E]
+  [inst_2 : Module 𝕜 E] [inst_3 : TopologicalSpace E] (x : E), HasFDerivAt id (ContinuousLinearMap.id 𝕜 E) x
+@HasFDerivAt.mul : ∀ {𝕜 : Type u_1} [inst : NontriviallyNormedField 𝕜] {E : Type u_2} [inst_1 : NormedAddCommGroup E]
+  [inst_2 : NormedSpace 𝕜 E] {x : E} {𝔸' : Type u_3} [inst_3 : NormedCommRing 𝔸'] [inst_4 : NormedAlgebra 𝕜 𝔸']
+  {c d : E → 𝔸'} {c' d' : E →L[𝕜] 𝔸'},
+  HasFDerivAt c c' x → HasFDerivAt d d' x → HasFDerivAt (c * d) (c x • d' + d x • c') x
+@convex_univ : ∀ {𝕜 : Type u_1} {E : Type u_2} [inst : Semiring 𝕜] [inst_1 : PartialOrder 𝕜] [inst_2 : AddCommMonoid E]
+  [inst_3 : SMul 𝕜 E], Convex 𝕜 Set.univ
+@isMinOn_iff : ∀ {α : Type u_1} {β : Type u_2} [inst : Preorder β] {f : α → β} {s : Set α} {a : α},
+  IsMinOn f s a ↔ ∀ x ∈ s, f a ≤ f x
+@sq_nonneg : ∀ {R : Type u_1} [inst : Semiring R] [inst_1 : LinearOrder R] [ExistsAddOfLE R] [PosMulMono R]
+  [AddLeftMono R] (a : R), 0 ≤ a ^ 2
+@Fin.zero_eta : ∀ {n : ℕ}, ⟨0, ⋯⟩ = 0
+@Fin.mk_one : ∀ {n : ℕ}, ⟨1, ⋯⟩ = 1
+@Matrix.cons_val_one : ∀ {α : Type u_1} {m : ℕ} (x : α) (u : Fin m.succ → α), Matrix.vecCons x u 1 = u 0
+rc=0

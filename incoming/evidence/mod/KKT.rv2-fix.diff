@@ -1,0 +1,7 @@
+28,29c28,30
+< With `w i = λ i / l₀`, `xbar` minimises the Lagrangian `f + ∑ i, w i * g i` over the whole space,
+< which gives complementary slackness; the Lagrangian's derivative at `xbar`, the functional of
+---
+> With `w i = λ i / l₀`, `f xbar ≤ f x + ∑ i, w i * g i x` for every `x`; at `x = xbar`, with
+> feasibility, this gives complementary slackness, so `xbar` minimises the Lagrangian
+> `f + ∑ i, w i * g i` over the whole space; the Lagrangian's derivative at `xbar`, the functional of

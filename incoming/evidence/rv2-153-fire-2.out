@@ -1,0 +1,19 @@
+/root/cm2-review-10/fire2.lean:499:0: warning: `exists_pair` does not use the following hypothesis in its type:
+  • [DecidableEq ι] (#2)
+
+Consider removing this hypothesis and using `classical` in the proof instead. For terms, consider using `open scoped Classical in` at the term level (not the command level).
+
+Note: This linter can be disabled with `set_option linter.unusedDecidableInType false`
+/root/cm2-review-10/fire2.lean:550:15: warning: `dif_pos` has been deprecated: Use `dite_eq_left` instead
+/root/cm2-review-10/fire2.lean:554:15: warning: `dif_neg` has been deprecated: Use `dite_eq_right` instead
+/root/cm2-review-10/fire2.lean:722:4: warning: `push_neg` has been deprecated. Prefer using `push Not` instead.
+If you'd rather continue using `push_neg` in your project, you can implement it as follows:
+```
+open Lean.Parser.Tactic in
+macro "push_neg" cfg:optConfig loc:(location)? : tactic =>
+  `(tactic| push $cfg:optConfig Not $[$loc]?)
+```
+/root/cm2-review-10/fire2.lean:906:100: warning: This line exceeds the 100 character limit, please shorten it!
+
+Note: This linter can be disabled with `set_option linter.style.longLine false`
+rc=0
