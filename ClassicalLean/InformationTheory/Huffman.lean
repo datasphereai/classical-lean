@@ -1,24 +1,72 @@
+/-
+Copyright (c) 2026 Dustin Watkins. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Dustin Watkins, Claude (Anthropic)
+-/
+
 import ClassicalLean.InformationTheory.SourceCoding
 
 /-!
 # Optimality of Huffman's code
 
-Binary Huffman coding: repeatedly merge the two lightest symbols. The resulting codeword lengths
-have Kraft sum at most `1`, so they are the lengths of an injective prefix-free binary code, and
-no injective prefix-free binary code has smaller mean length.
+Binary Huffman coding of the symbols `ι` with weights `p`: repeatedly merge the two lightest
+symbols into one, whose weight is the sum of theirs, and give each of the two merged symbols the
+codeword length of the merged one plus one.
+
+* `huffmanLength` — Huffman's codeword lengths for the weights `p`, defined by the recursion
+  `huffAux` on finite sets of symbols (`Fintype.card ι` steps of the recursion; each step with
+  at least two symbols left merges the two lightest, which `pick` chooses).
+* `huffman_optimal` — order CLOUD-MATH-2, item 153 of MATH-PLAN-library-2: for nonnegative
+  weights `p` and a two-letter alphabet `α`, some injective prefix-free code `c : ι → List α` has
+  Huffman's lengths, and its mean length `∑ i, p i * (c i).length` is at most that of every
+  injective prefix-free code.
+
+Wider than the plan's row, by this session's reading (the draft's last review, as the order's table
+gives it: GENERALIZED): the row says Huffman's code has the least mean length among prefix-free
+codes; the theorem also gives the code (an injective prefix-free code with Huffman's lengths
+exists), and the weights need only be nonnegative, not sum to `1`.
+
+The proof. Huffman's lengths have Kraft sum at most `1` (`huffAux_kraft`, by induction on the
+number of symbols: splitting the merged symbol back into two of one more length keeps the sum,
+`kraft_mergeLen`), so the library's converse of Kraft's inequality
+(`ClassicalLean.Simplex.exists_isPrefixFree_length_eq`) gives an injective prefix-free code with
+those lengths. Optimality (`huffAux_opt`, by the same induction): lengths with Kraft sum at most
+`1` can be rearranged by two exchanges (`Equiv.swap`), without raising the cost, so that the two
+lightest symbols get the two largest lengths, and then the two can be merged into one symbol whose
+length is one less than the second largest, with Kraft sum still at most `1` and cost, plus the two
+weights, at most the cost before (`reduce_step`, `merge_step`); Huffman's recursion pays exactly
+the two weights at that step (`cost_mergeLen`), and the induction hypothesis, on the merged
+weights and one symbol fewer, bounds the rest by the merged lengths' cost.
+The lengths of every prefix-free code pass Kraft's test (Mathlib's
+`InformationTheory.IsPrefixFree.finsetSum_one_div_card_pow_length_le_one`).
+
+The proof is the draft `d153-r1-s2` (written by Claude Opus 5.5 through the Anthropic Batch API,
+the lane's API-CREDIT-1 work), adapted by the Claude Code cloud session that landed it (order
+CLOUD-MATH-2): every declaration in the namespace `ClassicalLean.InformationTheory.Huffman` (the
+draft had the helpers in `ClassicalLean.Huffman` and `huffman_optimal` outside any namespace), the
+helpers' `variable` line in a section closed before `huffman_optimal`, whose own binders are the
+draft's; docstrings; `omit [DecidableEq ι] in` on `exists_pair` (with `classical` in its proof)
+and on `pick_spec`, so the private `pick`, which used the instance only inside the proof it gives
+`Classical.choose`, no longer takes it (`huffAux` and `huffmanLength` take it, as in the draft,
+for `Finset.erase` and `Function.update`); `dite_eq_left` and `dite_eq_right` for the deprecated
+`dif_pos` and `dif_neg`; `push Not` for the deprecated `push_neg`.
 -/
 
 open Finset
 
-namespace ClassicalLean.Huffman
+namespace ClassicalLean.InformationTheory.Huffman
+
+section Recursion
 
 variable {ι : Type*} [DecidableEq ι]
 
+omit [DecidableEq ι] in
 /-- Two distinct elements of `s`, the first of least weight, the second of least weight among
 the rest. -/
 private theorem exists_pair (w : ι → ℝ) (s : Finset ι) (h : 2 ≤ s.card) :
     ∃ ab : ι × ι, ab.1 ∈ s ∧ ab.2 ∈ s ∧ ab.1 ≠ ab.2 ∧ (∀ x ∈ s, w ab.1 ≤ w x) ∧
       ∀ x ∈ s, x ≠ ab.1 → w ab.2 ≤ w x := by
+  classical
   have hs : s.Nonempty := Finset.card_pos.mp (by omega)
   obtain ⟨a, ha, hamin⟩ := s.exists_min_image w hs
   have hs' : (s.erase a).Nonempty :=
@@ -28,9 +76,13 @@ private theorem exists_pair (w : ι → ℝ) (s : Finset ι) (h : 2 ≤ s.card) 
   intro x hx hxa
   exact hbmin x (mem_erase.mpr ⟨hxa, hx⟩)
 
+/-- The two symbols Huffman's step merges: a lightest symbol of `s` and a lightest of the rest. -/
 private noncomputable def pick (w : ι → ℝ) (s : Finset ι) (h : 2 ≤ s.card) : ι × ι :=
   Classical.choose (exists_pair w s h)
 
+omit [DecidableEq ι] in
+/-- What `pick` gives: two distinct symbols of `s`, the first of least weight, the second of
+least weight among the rest. -/
 private theorem pick_spec (w : ι → ℝ) (s : Finset ι) (h : 2 ≤ s.card) :
     (pick w s h).1 ∈ s ∧ (pick w s h).2 ∈ s ∧ (pick w s h).1 ≠ (pick w s h).2 ∧
       (∀ x ∈ s, w (pick w s h).1 ≤ w x) ∧
@@ -54,7 +106,8 @@ private noncomputable def huffAux : ℕ → (ι → ℝ) → Finset ι → ι �
         (pick w s h).1 (pick w s h).2
     else fun _ => 0
 
-/-- **Huffman's codeword lengths** for weights `p`, binary alphabet. -/
+/-- **Huffman's codeword lengths** for weights `p`, binary alphabet (item 153 of
+MATH-PLAN-library-2). -/
 noncomputable def huffmanLength [Fintype ι] (p : ι → ℝ) : ι → ℕ :=
   huffAux (Fintype.card ι) p Finset.univ
 
@@ -65,11 +118,11 @@ private theorem huffAux_succ (n : ℕ) (w : ι → ℝ) (s : Finset ι) (h : 2 �
     huffAux (n + 1) w s =
       mergeLen (huffAux n (mergeW w (pick w s h).1 (pick w s h).2) (s.erase (pick w s h).2))
         (pick w s h).1 (pick w s h).2 := by
-  rw [huffAux, dif_pos h]
+  rw [huffAux, dite_eq_left h]
 
 private theorem huffAux_succ_of_not (n : ℕ) (w : ι → ℝ) (s : Finset ι) (h : ¬ 2 ≤ s.card) :
     huffAux (n + 1) w s = fun _ => 0 := by
-  rw [huffAux, dif_neg h]
+  rw [huffAux, dite_eq_right h]
 
 private theorem mergeLen_left {ℓ : ι → ℕ} {a b : ι} (hab : a ≠ b) :
     mergeLen ℓ a b a = ℓ a + 1 := by
@@ -178,7 +231,9 @@ private theorem cost_mergeLen (w : ι → ℝ) {s : Finset ι} {a b : ι} (ha : 
   push_cast
   ring
 
-/-- Merging `a` (longest) and `b` (second longest) into one symbol of length `ℓ b - 1`. -/
+/-- Merging `a` (longest) and `b` (second longest): some lengths on `s.erase b` have Kraft sum at
+most `1` and cost, plus `w a + w b`, at most the cost of `ℓ` (the proof gives the merged symbol
+the length `ℓ b - 1`). -/
 private theorem merge_step {w : ι → ℝ} (hw : ∀ i, 0 ≤ w i) {s : Finset ι} {a b : ι}
     (ha : a ∈ s) (hb : b ∈ s) (hab : a ≠ b) {ℓ : ι → ℕ} (hba : ℓ b ≤ ℓ a)
     (hle : ∀ z ∈ s, z ≠ a → ℓ z ≤ ℓ b) (hk : ∑ i ∈ s, (1 / 2 : ℝ) ^ ℓ i ≤ 1) :
@@ -237,7 +292,7 @@ private theorem merge_step {w : ι → ℝ} (hw : ∀ i, 0 ≤ w i) {s : Finset 
       exact_mod_cast h3
     rw [hq]
     by_contra hc
-    push_neg at hc
+    push Not at hc
     have hlt := mul_lt_mul_of_pos_left hc hX
     have e2 : (2 : ℝ) ^ (ℓ b) * (2 * (1 / 2) ^ (ℓ b) +
         ∑ i ∈ (s.erase b).erase a, (1 / 2 : ℝ) ^ ℓ i) =
@@ -338,6 +393,7 @@ private theorem reduce_step {w : ι → ℝ} (hw : ∀ i, 0 ≤ w i) {s : Finset
       ∑ i ∈ s, w i * (ℓ (Equiv.swap a x (Equiv.swap b y' i)) : ℝ) := hc'
   linarith
 
+/-- Huffman's lengths on a set of `n` symbols have Kraft sum at most `1`. -/
 private theorem huffAux_kraft (n : ℕ) : ∀ (w : ι → ℝ) (s : Finset ι), s.card = n →
     ∑ i ∈ s, (1 / 2 : ℝ) ^ (huffAux n w s i) ≤ 1 := by
   induction n with
@@ -356,6 +412,8 @@ private theorem huffAux_kraft (n : ℕ) : ∀ (w : ι → ℝ) (s : Finset ι), 
       simp only [pow_zero, sum_const, nsmul_eq_mul, mul_one]
       exact_mod_cast (show s.card ≤ 1 by omega)
 
+/-- On a set of `n` symbols with nonnegative weights, Huffman's lengths cost at most any lengths
+with Kraft sum at most `1`. -/
 private theorem huffAux_opt (n : ℕ) : ∀ (w : ι → ℝ) (s : Finset ι), (∀ i, 0 ≤ w i) →
     s.card = n → ∀ ℓ : ι → ℕ, ∑ i ∈ s, (1 / 2 : ℝ) ^ ℓ i ≤ 1 →
       ∑ i ∈ s, w i * (huffAux n w s i : ℝ) ≤ ∑ i ∈ s, w i * (ℓ i : ℝ) := by
@@ -381,23 +439,23 @@ private theorem huffAux_opt (n : ℕ) : ∀ (w : ι → ℝ) (s : Finset ι), (�
       simp only [Nat.cast_zero, mul_zero, sum_const_zero]
       exact sum_nonneg fun i _ => mul_nonneg (hw i) (Nat.cast_nonneg _)
 
-end ClassicalLean.Huffman
+end Recursion
 
-/-- **Optimality of Huffman's code.** For nonnegative weights `p` and a two-letter alphabet,
-some injective prefix-free code has Huffman's codeword lengths, and its mean length
-`∑ p i · |c i|` is at most that of every injective prefix-free code. -/
+/-- **Optimality of Huffman's code** (item 153 of MATH-PLAN-library-2). For nonnegative weights
+`p` and a two-letter alphabet, some injective prefix-free code has Huffman's codeword lengths, and
+its mean length `∑ p i · |c i|` is at most that of every injective prefix-free code. -/
 theorem huffman_optimal {ι α : Type*} [Fintype ι] [DecidableEq ι] [Fintype α]
     (hα : Fintype.card α = 2) {p : ι → ℝ} (hp : ∀ i, 0 ≤ p i) :
     ∃ c : ι → List α, Function.Injective c ∧ InformationTheory.IsPrefixFree (Set.range c) ∧
-      (∀ i, (c i).length = ClassicalLean.Huffman.huffmanLength p i) ∧
+      (∀ i, (c i).length = huffmanLength p i) ∧
       ∀ c' : ι → List α, Function.Injective c' →
         InformationTheory.IsPrefixFree (Set.range c') →
           ∑ i, p i * ((c i).length : ℝ) ≤ ∑ i, p i * ((c' i).length : ℝ) := by
   have : Nonempty α := Fintype.card_pos_iff.mp (by omega)
   have hD : (1 / (Fintype.card α : ℝ)) = 1 / 2 := by rw [hα]; norm_num
-  have hk := ClassicalLean.Huffman.huffAux_kraft (Fintype.card ι) p univ Finset.card_univ
+  have hk := huffAux_kraft (Fintype.card ι) p univ Finset.card_univ
   obtain ⟨c, hinj, hpf, hlen⟩ := ClassicalLean.Simplex.exists_isPrefixFree_length_eq (α := α)
-    (ClassicalLean.Huffman.huffmanLength p) (by rw [hD]; exact hk)
+    (huffmanLength p) (by rw [hD]; exact hk)
   refine ⟨c, hinj, hpf, hlen, fun c' hinj' hpf' => ?_⟩
   have hk' : ∑ i, (1 / 2 : ℝ) ^ (c' i).length ≤ 1 := by
     classical
@@ -406,13 +464,21 @@ theorem huffman_optimal {ι α : Type*} [Fintype ι] [DecidableEq ι] [Fintype �
     calc ∑ i, (1 / 2 : ℝ) ^ (c' i).length
         = ∑ i, (1 / (Fintype.card α : ℝ)) ^ (c' i).length := by rw [hD]
       _ ≤ 1 := by rwa [sum_image fun i _ j _ h => hinj' h] at this
-  have hopt := ClassicalLean.Huffman.huffAux_opt (Fintype.card ι) p univ hp Finset.card_univ
+  have hopt := huffAux_opt (Fintype.card ι) p univ hp Finset.card_univ
     (fun i => (c' i).length) hk'
   have e : ∀ i, ((c i).length : ℝ) =
-      (ClassicalLean.Huffman.huffAux (Fintype.card ι) p univ i : ℝ) := fun i => by
-    rw [hlen i, ClassicalLean.Huffman.huffmanLength]
+      (huffAux (Fintype.card ι) p univ i : ℝ) := fun i => by
+    rw [hlen i, huffmanLength]
   have e2 : ∑ i, p i * ((c i).length : ℝ) =
-      ∑ i, p i * (ClassicalLean.Huffman.huffAux (Fintype.card ι) p univ i : ℝ) :=
+      ∑ i, p i * (huffAux (Fintype.card ι) p univ i : ℝ) :=
     sum_congr rfl fun i _ => by rw [e i]
   rw [e2]
   exact hopt
+
+end ClassicalLean.InformationTheory.Huffman
+
+/-- The hypotheses of `huffman_optimal` hold together: three symbols (`ι = Fin 3`) with the
+weights `p = (1/2, 1/4, 1/4)`, all positive and not all equal, and the two-letter alphabet
+`α = Bool`. -/
+example := ClassicalLean.InformationTheory.Huffman.huffman_optimal (ι := Fin 3) (α := Bool)
+    (p := ![1 / 2, 1 / 4, 1 / 4]) Fintype.card_bool (fun i => by fin_cases i <;> norm_num)

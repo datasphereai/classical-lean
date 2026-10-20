@@ -107,6 +107,24 @@ type comparison found every main theorem and definition the same as the draft's.
   start): minimise `x * x` on the real line subject to `1 - x ≤ 0` and `x - 2 ≤ 0`. Its review,
   `rv2-152`, had one MINOR finding in the module docstring's proof sketch, fixed in the docstring
   only and confirmed by a fresh reviewer (`rv2c-152`).
+* **153** (`d153-r1-s2.lean`). Every declaration is now in `ClassicalLean.InformationTheory.Huffman`
+  (the draft had the helpers in `ClassicalLean.Huffman` and `huffman_optimal` outside any
+  namespace), and the helpers' `variable {ι : Type*} [DecidableEq ι]` line is in a section closed
+  before `huffman_optimal`, whose binders stay the draft's. In `huffman_optimal`'s proof (lines 398,
+  400, 409, 412, 413 and 415) the full names `ClassicalLean.Huffman.huffAux_kraft`,
+  `…huffmanLength`, `…huffAux_opt` and `…huffAux` became their names in the new namespace (its
+  statement's, job 1). The warning that `exists_pair` does not use `[DecidableEq ι]` in its type:
+  `omit [DecidableEq ι] in` before `exists_pair`, with `classical` as the new first line of its
+  proof (before line 22), and before `pick_spec`, whose type then has no use for it either; so the
+  private `pick` no longer takes the instance, which the Goal list allows for a private helper
+  (job 1's type comparison: `pick` alone differs; review `rv1-statements`'s fire test: the draft's
+  `pick` and this one are equal by `rfl`). Lines 68 and 72: the deprecated `dif_pos` and `dif_neg`
+  became `dite_eq_left` and `dite_eq_right`. Line 240: the deprecated `push_neg` became
+  `push Not`. `pick_spec` and `sum_erase_split` keep the draft's term proofs (lines 38 and 110).
+  The module's `lake build`: 0 warning lines (`build-153-2`). Its witness is new (the item had no
+  witness start): three symbols with the weights `(1/2, 1/4, 1/4)` and the alphabet `Bool`. Its
+  review, `rv2-153`, had two MINOR docstring findings, fixed in docstrings only and confirmed by a
+  fresh reviewer (`rv2c-153`).
 
 ## Steps out of the order's sequence (rule 18)
 
