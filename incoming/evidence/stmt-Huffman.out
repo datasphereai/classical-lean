@@ -1,0 +1,30 @@
+/root/cm2-evidence/stmt/Huffman.lean:62:16: warning: declaration uses `sorry`
+/root/cm2-evidence/stmt/Huffman.lean:73:16: warning: declaration uses `sorry`
+/root/cm2-evidence/stmt/Huffman.lean:71:0: warning: `pick_spec` does not use the following hypothesis in its type:
+  • [DecidableEq ι] (#2)
+
+Consider removing this hypothesis and using `classical` in the proof instead. For terms, consider using `open scoped Classical in` at the term level (not the command level).
+
+Note: This linter can be disabled with `set_option linter.unusedDecidableInType false`
+/root/cm2-evidence/stmt/Huffman.lean:101:16: warning: declaration uses `sorry`
+/root/cm2-evidence/stmt/Huffman.lean:104:16: warning: declaration uses `sorry`
+/root/cm2-evidence/stmt/Huffman.lean:110:16: warning: declaration uses `sorry`
+/root/cm2-evidence/stmt/Huffman.lean:114:16: warning: declaration uses `sorry`
+/root/cm2-evidence/stmt/Huffman.lean:118:16: warning: declaration uses `sorry`
+/root/cm2-evidence/stmt/Huffman.lean:121:16: warning: declaration uses `sorry`
+/root/cm2-evidence/stmt/Huffman.lean:125:16: warning: declaration uses `sorry`
+/root/cm2-evidence/stmt/Huffman.lean:128:16: warning: declaration uses `sorry`
+/root/cm2-evidence/stmt/Huffman.lean:131:16: warning: declaration uses `sorry`
+/root/cm2-evidence/stmt/Huffman.lean:135:16: warning: declaration uses `sorry`
+/root/cm2-evidence/stmt/Huffman.lean:139:16: warning: declaration uses `sorry`
+/root/cm2-evidence/stmt/Huffman.lean:143:16: warning: declaration uses `sorry`
+/root/cm2-evidence/stmt/Huffman.lean:148:16: warning: declaration uses `sorry`
+/root/cm2-evidence/stmt/Huffman.lean:154:16: warning: declaration uses `sorry`
+/root/cm2-evidence/stmt/Huffman.lean:158:16: warning: declaration uses `sorry`
+/root/cm2-evidence/stmt/Huffman.lean:163:16: warning: declaration uses `sorry`
+/root/cm2-evidence/stmt/Huffman.lean:170:16: warning: declaration uses `sorry`
+/root/cm2-evidence/stmt/Huffman.lean:178:16: warning: declaration uses `sorry`
+/root/cm2-evidence/stmt/Huffman.lean:186:16: warning: declaration uses `sorry`
+/root/cm2-evidence/stmt/Huffman.lean:192:16: warning: declaration uses `sorry`
+/root/cm2-evidence/stmt/Huffman.lean:202:8: warning: declaration uses `sorry`
+rc=0

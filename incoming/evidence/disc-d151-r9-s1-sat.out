@@ -1,0 +1,332 @@
+NONE private
+FULL lemma lemma
+NONE cpow_ofReal_mul_aux
+NONE p
+NONE ℝ
+NONE hp
+NONE z
+NONE ℂ
+NONE hz
+NONE w
+NONE by
+NONE have
+NONE hp'
+FULL Complex.ofReal_ne_zero Complex.ofReal_ne_zero
+NONE hp.ne'
+NONE rw
+FULL Complex.cpow_def_of_ne_zero Complex.cpow_def_of_ne_zero
+FULL mul_ne_zero mul_ne_zero
+FULL Complex.log_ofReal_mul Complex.log_ofReal_mul
+FULL Complex.exp_add Complex.exp_add
+FULL Complex.ofReal_log Complex.ofReal_log
+NONE hp.le
+FULL add_mul add_mul
+NONE charFun_map_eq_aux
+NONE Ω
+NONE Type
+FULL MeasurableSpace MeasurableSpace
+NONE P
+FULL Measure MeasureTheory.Measure
+NONE f
+NONE hf
+FULL Measurable Measurable
+NONE t
+FULL charFun MeasureTheory.charFun
+NONE P.map
+NONE ω
+FULL Complex.exp Complex.exp
+FULL Complex.I Complex.I
+NONE hc
+FULL Continuous Continuous
+NONE fun
+NONE x
+NONE fun_prop
+FULL charFun_apply_real MeasureTheory.charFun_apply_real
+NONE exact
+FULL integral_map MeasureTheory.integral_map
+NONE hf.aemeasurable
+NONE hc.aestronglyMeasurable
+NONE integral_exp_add_of_indep_aux
+FULL IsProbabilityMeasure MeasureTheory.IsProbabilityMeasure
+NONE A
+NONE B
+NONE hA
+NONE hB
+NONE h
+FULL IndepFun ProbabilityTheory.IndepFun
+NONE hprod
+FULL indepFun_iff_map_prod_eq_prod_map_map ProbabilityTheory.indepFun_iff_map_prod_eq_prod_map_map
+NONE hA.aemeasurable
+NONE hB.aemeasurable
+NONE hc2
+NONE hAB
+NONE h1
+NONE hAB.aemeasurable
+NONE hc2.aestronglyMeasurable
+FULL congr congr
+FULL funext funext
+NONE dsimp
+NONE only
+NONE push_cast
+NONE ring
+FULL integral_prod_mul MeasureTheory.integral_prod_mul
+NONE isProb_gamma_aux
+NONE a
+NONE r
+NONE ha
+NONE hr
+FULL gammaMeasure ProbabilityTheory.gammaMeasure
+FULL withDensity_apply MeasureTheory.withDensity_apply
+NONE _
+FULL MeasurableSet.univ MeasurableSet.univ
+FULL Measure.restrict_univ MeasureTheory.Measure.restrict_univ
+FULL lintegral_gammaPDF_eq_one ProbabilityTheory.lintegral_gammaPDF_eq_one
+NONE mgf_gammaMeasure_aux
+NONE s
+NONE hs
+FULL mgf ProbabilityTheory.mgf
+FULL id id
+NONE hm
+FULL gammaPDF ProbabilityTheory.gammaPDF
+FULL measurable_gammaPDFReal ProbabilityTheory.measurable_gammaPDFReal
+NONE ennreal_ofReal
+NONE hG
+FULL Real.Gamma Real.Gamma
+FULL Real.Gamma_pos_of_pos Real.Gamma_pos_of_pos
+NONE ne'
+NONE hpt
+NONE toReal
+FULL Real.exp Real.exp
+FULL Set.indicator Set.indicator
+FULL Set.Ici Set.Ici
+NONE intro
+FULL ENNReal.toReal_ofReal ENNReal.toReal_ofReal
+FULL gammaPDFReal_nonneg ProbabilityTheory.gammaPDFReal_nonneg
+FULL smul_eq_mul smul_eq_mul
+FULL by_cases by_cases
+NONE hx
+FULL Set.indicator_of_mem Set.indicator_of_mem
+FULL Set.mem_Ici Set.mem_Ici
+FULL gammaPDFReal ProbabilityTheory.gammaPDFReal
+FULL ite_eq_left ite_eq_left
+NONE he
+FULL Real.exp_add Real.exp_add
+NONE linear_combination
+FULL Set.indicator_of_notMem Set.indicator_of_notMem
+FULL ite_eq_right ite_eq_right
+NONE simp
+NONE change
+FULL integral_withDensity_eq_integral_toReal_smul integral_withDensity_eq_integral_toReal_smul
+FULL ae_of_all MeasureTheory.ae_of_all
+FULL ENNReal.ofReal_lt_top ENNReal.ofReal_lt_top
+NONE simp_rw
+FULL integral_indicator MeasureTheory.integral_indicator
+FULL measurableSet_Ici measurableSet_Ici
+FULL integral_Ici_eq_integral_Ioi MeasureTheory.integral_Ici_eq_integral_Ioi
+FULL integral_const_mul MeasureTheory.integral_const_mul
+FULL Real.integral_rpow_mul_exp_neg_mul_Ioi Real.integral_rpow_mul_exp_neg_mul_Ioi
+FULL sub_pos sub_pos
+FULL mul_comm mul_comm
+FULL mul_assoc mul_assoc
+FULL div_mul_cancel₀ div_mul_cancel₀
+NONE Iio_subset_integrableExpSet_gamma_aux
+FULL Set.Iio Set.Iio
+FULL integrableExpSet ProbabilityTheory.integrableExpSet
+NONE hs'
+FULL Integrable MeasureTheory.Integrable
+NONE refine
+FULL MeasureTheory.Integrable.of_integral_ne_zero MeasureTheory.Integrable.of_integral_ne_zero
+FULL mul_pos mul_pos
+FULL Real.rpow_pos_of_pos Real.rpow_pos_of_pos
+FULL one_div_pos one_div_pos
+NONE complexMGF_gammaMeasure_ofReal_aux
+FULL complexMGF ProbabilityTheory.complexMGF
+NONE hrs
+NONE le
+FULL complexMGF_ofReal ProbabilityTheory.complexMGF_ofReal
+FULL Complex.ofReal_mul Complex.ofReal_mul
+FULL Complex.ofReal_cpow Complex.ofReal_cpow
+NONE hr.le
+FULL rfl rfl
+NONE complexMGF_gammaMeasure_aux
+NONE z.re
+NONE hU
+FULL IsPreconnected IsPreconnected
+NONE w.re
+FULL convex_halfSpace_re_lt convex_halfSpace_re_lt
+NONE isPreconnected
+FULL AnalyticOnNhd AnalyticOnNhd
+FULL analyticOnNhd_complexMGF.mono ProbabilityTheory.analyticOnNhd_complexMGF
+NONE hw
+FULL interior_maximal interior_maximal
+FULL isOpen_Iio isOpen_Iio
+NONE hg
+NONE hw'
+NONE hre
+NONE re
+NONE simpa
+NONE using
+NONE hne
+FULL Complex.zero_re Complex.zero_re
+NONE at
+FULL lt_irrefl lt_irrefl
+NONE hslit
+FULL Complex.slitPlane Complex.slitPlane
+FULL Complex.mem_slitPlane_iff Complex.mem_slitPlane_iff
+FULL Or.inl Or.inl
+FULL one_div one_div
+FULL Complex.inv_re Complex.inv_re
+FULL div_pos div_pos
+FULL Complex.normSq_pos Complex.normSq_pos
+FULL analyticAt_const.fun_mul analyticAt_const
+FULL analyticAt_const.fun_div analyticAt_const
+FULL analyticAt_const.fun_sub analyticAt_const
+FULL analyticAt_id analyticAt_id
+NONE cpow
+FULL analyticAt_const analyticAt_const
+NONE h0
+NONE h_real
+NONE ᶠ
+NONE in
+NONE 𝓝
+FULL Filter.Eventually.frequently Filter.Eventually.frequently
+NONE filter_upwards
+FULL mem_nhdsWithin_of_mem_nhds mem_nhdsWithin_of_mem_nhds
+FULL Iio_mem_nhds Iio_mem_nhds
+NONE with
+NONE hfreq
+FULL Filter.frequently_iff_seq_forall Filter.frequently_iff_seq_forall
+NONE obtain
+NONE xs
+NONE hx_tendsto
+NONE hx_eq
+NONE n
+FULL tendsto_nhdsWithin_iff tendsto_nhdsWithin_iff
+NONE constructor
+FULL Filter.tendsto_ofReal_iff Filter.tendsto_ofReal_iff
+NONE hf.eqOn_of_preconnected_of_frequently_eq
+NONE charFun_gammaMeasure_aux
+NONE rwa
+FULL complexMGF_mul_I ProbabilityTheory.complexMGF_mul_I
+FULL aemeasurable_id aemeasurable_id
+FULL Measure.map_id MeasureTheory.Measure.map_id
+NONE sq_gauss_alg_aux
+NONE b
+NONE hb
+FULL Real.sqrt Real.sqrt
+NONE π
+NONE h12
+FULL norm_num norm_num
+NONE h12'
+NONE hb'
+FULL one_div_ne_zero one_div_ne_zero
+NONE hsplit
+NONE hsq
+FULL Real.sqrt_eq_rpow Real.sqrt_eq_rpow
+FULL positivity positivity
+NONE hs0
+FULL Complex.ofReal_inv Complex.ofReal_inv
+FULL inv_mul_cancel₀ inv_mul_cancel₀
+FULL one_mul one_mul
+NONE charFun_sq_gaussian_aux
+FULL gaussianReal ProbabilityTheory.gaussianReal
+NONE map
+FULL congrArg congrArg
+FULL Complex.re Complex.re
+NONE this
+FULL gaussianPDFReal ProbabilityTheory.gaussianPDFReal
+FULL NNReal.coe_one NNReal.coe_one
+FULL mul_one mul_one
+FULL sub_zero sub_zero
+FULL Complex.real_smul Complex.real_smul
+FULL Complex.ofReal_exp Complex.ofReal_exp
+FULL integral_gaussianReal_eq_integral_smul ProbabilityTheory.integral_gaussianReal_eq_integral_smul
+FULL one_ne_zero one_ne_zero
+FULL integral_congr_ae MeasureTheory.integral_congr_ae
+NONE trans
+FULL integral_gaussian_complex integral_gaussian_complex
+NONE integral_sq_eq_aux
+NONE Y
+NONE hY
+NONE hlaw
+FULL HasLaw ProbabilityTheory.HasLaw
+NONE hlaw.map_eq
+NONE hY.aemeasurable
+NONE theorem
+NONE hasLaw_sum_sq_gaussian
+NONE k
+NONE ℕ
+NONE hk
+NONE X
+FULL Fin Fin
+NONE hmeas
+NONE i
+NONE hind
+FULL iIndepFun ProbabilityTheory.iIndepFun
+NONE hindY
+NONE j
+NONE hind.comp
+FULL measurable_id.pow_const measurable_id
+NONE key
+FULL Finset Finset
+NONE s.card
+FULL Finset.induction_on Finset.induction_on
+NONE hi
+NONE ih
+NONE h2
+NONE hindY.indepFun_finsetSum_of_notMem
+NONE pow_const
+NONE h3
+NONE convert
+NONE all_goals
+FULL Finset.sum_apply Finset.sum_apply
+FULL Finset.sum_insert Finset.sum_insert
+FULL Finset.measurable_sum Finset.measurable_sum
+NONE h3.symm
+FULL Finset.card_insert_of_notMem Finset.card_insert_of_notMem
+NONE hmeasSum
+NONE hpos
+FULL Nat.cast_pos Nat.cast_pos
+FULL two_pos two_pos
+NONE hmeasSum.aemeasurable
+NONE apply
+FULL Measure.ext_of_charFun MeasureTheory.Measure.ext_of_charFun
+FULL Finset.univ Finset.univ
+FULL Finset.card_univ Finset.card_univ
+FULL Fintype.card_fin Fintype.card_fin
+FULL Complex.cpow_nat_mul Complex.cpow_nat_mul
+FULL mul_pow mul_pow
+NONE example
+FULL Measure.pi MeasureTheory.Measure.pi
+FULL measurable_pi_apply measurable_pi_apply
+FULL iIndepFun_pi ProbabilityTheory.iIndepFun_pi
+NONE aemeasurable
+FULL measurePreserving_eval MeasureTheory.measurePreserving_eval
+NONE map_eq
+NONE print
+NONE axioms
+/root/cm2-evidence/disc/d151-r9-s1-sat.lean:127:100: warning: This line exceeds the 100 character limit, please shorten it!
+You can use "string gaps" to format long strings: within a string quotation, using a '\' at the end of a line allows you to continue the string on the following line, removing all intervening whitespace.
+
+Note: This linter can be disabled with `set_option linter.style.longLine false`
+/root/cm2-evidence/disc/d151-r9-s1-sat.lean:135:100: warning: This line exceeds the 100 character limit, please shorten it!
+You can use "string gaps" to format long strings: within a string quotation, using a '\' at the end of a line allows you to continue the string on the following line, removing all intervening whitespace.
+
+Note: This linter can be disabled with `set_option linter.style.longLine false`
+/root/cm2-evidence/disc/d151-r9-s1-sat.lean:146:100: warning: This line exceeds the 100 character limit, please shorten it!
+You can use "string gaps" to format long strings: within a string quotation, using a '\' at the end of a line allows you to continue the string on the following line, removing all intervening whitespace.
+
+Note: This linter can be disabled with `set_option linter.style.longLine false`
+/root/cm2-evidence/disc/d151-r9-s1-sat.lean:167:100: warning: This line exceeds the 100 character limit, please shorten it!
+You can use "string gaps" to format long strings: within a string quotation, using a '\' at the end of a line allows you to continue the string on the following line, removing all intervening whitespace.
+
+Note: This linter can be disabled with `set_option linter.style.longLine false`
+/root/cm2-evidence/disc/d151-r9-s1-sat.lean:200:100: warning: This line exceeds the 100 character limit, please shorten it!
+You can use "string gaps" to format long strings: within a string quotation, using a '\' at the end of a line allows you to continue the string on the following line, removing all intervening whitespace.
+
+Note: This linter can be disabled with `set_option linter.style.longLine false`
+/root/cm2-evidence/disc/d151-r9-s1-sat.lean:215:100: warning: This line exceeds the 100 character limit, please shorten it!
+You can use "string gaps" to format long strings: within a string quotation, using a '\' at the end of a line allows you to continue the string on the following line, removing all intervening whitespace.
+
+Note: This linter can be disabled with `set_option linter.style.longLine false`
+rc=0

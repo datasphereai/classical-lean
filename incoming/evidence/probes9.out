@@ -1,0 +1,4 @@
+@dite_eq_left : ∀ {c : Prop} {h : Decidable c} (hc : c) {α : Sort u_1} {t : c → α} {e : ¬c → α}, dite c t e = t hc
+@dite_eq_right : ∀ {c : Prop} {h : Decidable c} (hnc : ¬c) {α : Sort u_1} {t : c → α} {e : ¬c → α}, dite c t e = e hnc
+Fintype.card_bool : Fintype.card Bool = 2
+rc=0

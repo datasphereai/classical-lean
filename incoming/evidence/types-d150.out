@@ -1,0 +1,43 @@
+/root/cm2-evidence/types/draft-150.lean:20:0: warning: `exists_symm_ginv` does not use the following hypothesis in its type:
+  • [DecidableEq n] (#3)
+
+Consider removing this hypothesis and using `classical` in the proof instead. For terms, consider using `open scoped Classical in` at the term level (not the command level).
+
+Note: This linter can be disabled with `set_option linter.unusedDecidableInType false`
+/root/cm2-evidence/types/draft-150.lean:85:0: warning: `exists_penrose` does not use the following hypothesis in its type:
+  • [DecidableEq n] (#5)
+
+Consider removing this hypothesis and using `classical` in the proof instead. For terms, consider using `open scoped Classical in` at the term level (not the command level).
+
+Note: This linter can be disabled with `set_option linter.unusedDecidableInType false`
+/root/cm2-evidence/types/draft-150.lean:110:8: warning: automatically included section variable(s) unused in theorem `_private._stdin.0.penrose_unique`:
+  [DecidableEq n]
+consider restructuring your `variable` declarations so that the variables are not in scope or explicitly omit them:
+  omit [DecidableEq n] in theorem ...
+
+Note: This linter can be disabled with `set_option linter.unusedSectionVars false`
+/root/cm2-evidence/types/draft-150.lean:109:0: warning: `penrose_unique` does not use the following hypothesis in its type:
+  • [DecidableEq n] (#5)
+
+Consider removing this hypothesis and using `classical` in the proof instead. For terms, consider using `open scoped Classical in` at the term level (not the command level).
+
+Note: This linter can be disabled with `set_option linter.unusedDecidableInType false`
+/root/cm2-evidence/types/draft-150.lean:191:0: warning: Setting options starting with 'debug', 'pp', 'profiler', 'trace' is only intended for development and not for final code. If you intend to submit this contribution to the Mathlib project, please remove 'set_option pp.fullNames'.
+
+Note: This linter can be disabled with `set_option linter.style.setOption false`
+@pinv : {m : Type u_3} → {n : Type u_4} → [Fintype m] → [Fintype n] → [DecidableEq n] → Matrix m n ℝ → Matrix n m ℝ
+def pinv.{u_1, u_2} : {m : Type u_1} →
+  {n : Type u_2} → [Fintype m] → [Fintype n] → [DecidableEq n] → Matrix m n ℝ → Matrix n m ℝ :=
+fun {m} {n} [Fintype m] [Fintype n] [DecidableEq n] A ↦ Classical.choose ⋯
+@pinv_spec : ∀ {m : Type u_3} {n : Type u_4} [inst : Fintype m] [inst_1 : Fintype n] [inst_2 : DecidableEq n]
+  (A : Matrix m n ℝ),
+  A * pinv A * A = A ∧ pinv A * A * pinv A = pinv A ∧ (A * pinv A)ᵀ = A * pinv A ∧ (pinv A * A)ᵀ = pinv A * A
+@pinv_unique : ∀ {m : Type u_3} {n : Type u_4} [inst : Fintype m] [inst_1 : Fintype n] [inst_2 : DecidableEq n]
+  {A : Matrix m n ℝ} {X : Matrix n m ℝ},
+  A * X * A = A → X * A * X = X → (A * X)ᵀ = A * X → (X * A)ᵀ = X * A → X = pinv A
+@pinv_residual_dotProduct_le : ∀ {m : Type u_3} {n : Type u_4} [inst : Fintype m] [inst_1 : Fintype n]
+  [inst_2 : DecidableEq n] (A : Matrix m n ℝ) (y : m → ℝ) (β : n → ℝ),
+  (y - A *ᵥ pinv A *ᵥ y) ⬝ᵥ (y - A *ᵥ pinv A *ᵥ y) ≤ (y - A *ᵥ β) ⬝ᵥ (y - A *ᵥ β)
+@pinv_eq_leastSquares : ∀ {m : Type u_3} {n : Type u_4} [inst : Fintype m] [inst_1 : Fintype n] [inst_2 : DecidableEq n]
+  {A : Matrix m n ℝ}, IsUnit (Aᵀ * A).det → pinv A = ClassicalLean.Statistics.leastSquares A
+rc=0

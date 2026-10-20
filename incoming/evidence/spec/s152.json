@@ -1,0 +1,7 @@
+{"ranges": [[20, 23], [36, 214]],
+ "edits": [[72, "by show", "by change"], [73, "by show", "by change"], [78, "push_neg at hneg", "push Not at hneg"],
+           [121, "push_neg at hcon", "push Not at hcon"], [131, "by show", "by change"], [132, "by show", "by change"],
+           [175, "push_neg at hc", "push Not at hc"], [202, "show f xbar", "change f xbar"],
+           [208, "ContinuousLinearMap.add_apply, ContinuousLinearMap.sum_apply", "add_apply, _root_.sum_apply"],
+           [209, "ContinuousLinearMap.smul_apply", "smul_apply"], [210, "ContinuousLinearMap.zero_apply", "zero_apply"]],
+ "tail": "/root/cm2-evidence/witness/w152.lean"}

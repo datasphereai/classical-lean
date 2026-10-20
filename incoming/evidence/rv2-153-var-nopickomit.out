@@ -1,0 +1,13 @@
+/root/cm2-review-10/var-nopickomit.lean:85:8: warning: automatically included section variable(s) unused in theorem `_private._stdin.0.ClassicalLean.InformationTheory.Huffman.pick_spec`:
+  [DecidableEq ι]
+consider restructuring your `variable` declarations so that the variables are not in scope or explicitly omit them:
+  omit [DecidableEq ι] in theorem ...
+
+Note: This linter can be disabled with `set_option linter.unusedSectionVars false`
+/root/cm2-review-10/var-nopickomit.lean:83:0: warning: `pick_spec` does not use the following hypothesis in its type:
+  • [DecidableEq ι] (#2)
+
+Consider removing this hypothesis and using `classical` in the proof instead. For terms, consider using `open scoped Classical in` at the term level (not the command level).
+
+Note: This linter can be disabled with `set_option linter.unusedDecidableInType false`
+rc=0

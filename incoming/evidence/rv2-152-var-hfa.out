@@ -1,0 +1,9 @@
+/root/cm2-review-8/var/hfa.lean:218:37: error: Application type mismatch: The argument
+  hfa
+has type
+  True
+but is expected to have type
+  HasGradientAt f a xbar
+in the application
+  hasGradientAt_iff_hasFDerivAt.mp hfa
+rc=1

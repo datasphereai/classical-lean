@@ -1,0 +1,14 @@
+/root/cm2-evidence/probes5.lean:6:8: error(lean.unknownIdentifier): Unknown identifier `hasGradientAt_iff_hasDerivAt`
+@hasDerivAt_id : ∀ {𝕜 : Type u_1} [inst : NontriviallyNormedField 𝕜] (x : 𝕜), HasDerivAt id 1 x
+@HasDerivAt.const_sub : ∀ {𝕜 : Type u_1} [inst : NontriviallyNormedField 𝕜] {F : Type u_2}
+  [inst_1 : NormedAddCommGroup F] [inst_2 : NormedSpace 𝕜 F] {f : 𝕜 → F} {f' : F} {x : 𝕜} (c : F),
+  HasDerivAt f f' x → HasDerivAt (fun x ↦ c - f x) (-f') x
+@HasDerivAt.sub_const : ∀ {𝕜 : Type u_1} [inst : NontriviallyNormedField 𝕜] {F : Type u_2}
+  [inst_1 : NormedAddCommGroup F] [inst_2 : NormedSpace 𝕜 F] {f : 𝕜 → F} {f' : F} {x : 𝕜} (c : F),
+  HasDerivAt f f' x → HasDerivAt (fun x ↦ f x - c) f' x
+/root/cm2-evidence/probes5.lean:10:8: error(lean.unknownIdentifier): Unknown identifier `hasDerivAt_pow`
+@convex_univ : ∀ {𝕜 : Type u_1} {E : Type u_2} [inst : Semiring 𝕜] [inst_1 : PartialOrder 𝕜] [inst_2 : AddCommMonoid E]
+  [inst_3 : SMul 𝕜 E], Convex 𝕜 Set.univ
+@isMinOn_iff : ∀ {α : Type u_1} {β : Type u_2} [inst : Preorder β] {f : α → β} {s : Set α} {a : α},
+  IsMinOn f s a ↔ ∀ x ∈ s, f a ≤ f x
+rc=1

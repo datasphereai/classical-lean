@@ -1,0 +1,118 @@
+/root/cm2-review-1/imp/i151-x9.lean:67:26: error(lean.unknownIdentifier): Unknown identifier `gammaMeasure`
+
+Note: It is not possible to treat `gammaMeasure` as an implicitly bound variable here because it has multiple characters while the `relaxedAutoImplicit` option is set to `false`.
+/root/cm2-review-1/imp/i151-x9.lean:68:10: error(lean.unknownIdentifier): Unknown identifier `gammaMeasure`
+/root/cm2-review-1/imp/i151-x9.lean:68:3: error: unsolved goals
+a r : ℝ
+ha : 0 < a
+hr : 0 < r
+⊢ sorry Set.univ = 1
+/root/cm2-review-1/imp/i151-x9.lean:74:12: error(lean.unknownIdentifier): Unknown identifier `gammaMeasure`
+
+Note: It is not possible to treat `gammaMeasure` as an implicitly bound variable here because it has multiple characters while the `relaxedAutoImplicit` option is set to `false`.
+/root/cm2-review-1/imp/i151-x9.lean:75:24: error(lean.unknownIdentifier): Unknown identifier `gammaPDF`
+/root/cm2-review-1/imp/i151-x9.lean:75:42: error(lean.unknownIdentifier): Unknown identifier `measurable_gammaPDFReal`
+/root/cm2-review-1/imp/i151-x9.lean:74:63: error: unsolved goals
+a r : ℝ
+ha : 0 < a
+hr : 0 < r
+s : ℝ
+hs : s < r
+⊢ mgf id sorry s = r ^ a * (1 / (r - s)) ^ a
+/root/cm2-review-1/imp/i151-x9.lean:99:37: error(lean.unknownIdentifier): Unknown identifier `gammaMeasure`
+
+Note: It is not possible to treat `gammaMeasure` as an implicitly bound variable here because it has multiple characters while the `relaxedAutoImplicit` option is set to `false`.
+/root/cm2-review-1/imp/i151-x9.lean:102:35: error(lean.unknownIdentifier): Unknown identifier `gammaMeasure`
+/root/cm2-review-1/imp/i151-x9.lean:103:4: error(lean.unknownIdentifier): Unknown identifier `mgf_gammaMeasure_aux`
+/root/cm2-review-1/imp/i151-x9.lean:99:58: error: unsolved goals
+a r : ℝ
+ha : 0 < a
+hr : 0 < r
+s : ℝ
+hs : s ∈ Set.Iio r
+hs' : s < r
+⊢ s ∈ integrableExpSet id sorry
+/root/cm2-review-1/imp/i151-x9.lean:113:19: error(lean.unknownIdentifier): Unknown identifier `gammaMeasure`
+
+Note: It is not possible to treat `gammaMeasure` as an implicitly bound variable here because it has multiple characters while the `relaxedAutoImplicit` option is set to `false`.
+/root/cm2-review-1/imp/i151-x9.lean:115:25: error(lean.unknownIdentifier): Unknown identifier `mgf_gammaMeasure_aux`
+/root/cm2-review-1/imp/i151-x9.lean:113:94: error: unsolved goals
+a r : ℝ
+ha : 0 < a
+hr : 0 < r
+s : ℝ
+hs : s < r
+hrs : 0 ≤ 1 / (r - s)
+⊢ ↑(mgf id sorry s) = ↑r ^ ↑a * (1 / (↑r - ↑s)) ^ ↑a
+/root/cm2-review-1/imp/i151-x9.lean:124:19: error(lean.unknownIdentifier): Unknown identifier `gammaMeasure`
+
+Note: It is not possible to treat `gammaMeasure` as an implicitly bound variable here because it has multiple characters while the `relaxedAutoImplicit` option is set to `false`.
+/root/cm2-review-1/imp/i151-x9.lean:126:44: error(lean.unknownIdentifier): Unknown identifier `gammaMeasure`
+/root/cm2-review-1/imp/i151-x9.lean:128:24: error(lean.unknownIdentifier): Unknown identifier `Iio_subset_integrableExpSet_gamma_aux`
+/root/cm2-review-1/imp/i151-x9.lean:124:94: error: unsolved goals
+a r : ℝ
+ha : 0 < a
+hr : 0 < r
+z : ℂ
+hz : z.re < r
+hU : IsPreconnected {w | w.re < r}
+⊢ complexMGF id sorry z = ↑r ^ ↑a * (1 / (↑r - z)) ^ ↑a
+/root/cm2-review-1/imp/i151-x9.lean:165:13: error(lean.unknownIdentifier): Unknown identifier `gammaMeasure`
+
+Note: It is not possible to treat `gammaMeasure` as an implicitly bound variable here because it has multiple characters while the `relaxedAutoImplicit` option is set to `false`.
+/root/cm2-review-1/imp/i151-x9.lean:168:12: error(lean.unknownIdentifier): Unknown identifier `complexMGF_gammaMeasure_aux`
+/root/cm2-review-1/imp/i151-x9.lean:166:79: error: unsolved goals
+a r : ℝ
+ha : 0 < a
+hr : 0 < r
+t : ℝ
+hz : (↑t * Complex.I).re < r
+⊢ charFun sorry t = ↑r ^ ↑a * (1 / (↑r - ↑t * Complex.I)) ^ ↑a
+/root/cm2-review-1/imp/i151-x9.lean:192:17: error(lean.unknownIdentifier): Unknown identifier `gammaMeasure`
+
+Note: It is not possible to treat `gammaMeasure` as an implicitly bound variable here because it has multiple characters while the `relaxedAutoImplicit` option is set to `false`.
+/root/cm2-review-1/imp/i151-x9.lean:210:4: error(lean.unknownIdentifier): Unknown identifier `charFun_gammaMeasure_aux`
+/root/cm2-review-1/imp/i151-x9.lean:192:52: error: unsolved goals
+t : ℝ
+hb : ↑(1 / 2) - ↑t * Complex.I ≠ 0
+hpt :
+  ∀ (x : ℝ),
+    gaussianPDFReal 0 1 x • Complex.exp (↑t * ↑(x ^ 2) * Complex.I) =
+      ↑(√(2 * π))⁻¹ * Complex.exp (-(↑(1 / 2) - ↑t * Complex.I) * ↑x ^ 2)
+⊢ ∫ (ω : ℝ), Complex.exp (↑t * ↑(ω ^ 2) * Complex.I) ∂gaussianReal 0 1 = charFun sorry t
+/root/cm2-review-1/imp/i151-x9.lean:220:17: error(lean.unknownIdentifier): Unknown identifier `gammaMeasure`
+
+Note: It is not possible to treat `gammaMeasure` as an implicitly bound variable here because it has multiple characters while the `relaxedAutoImplicit` option is set to `false`.
+/root/cm2-review-1/imp/i151-x9.lean:223:8: error(lean.unknownIdentifier): Unknown identifier `charFun_sq_gaussian_aux`
+/root/cm2-review-1/imp/i151-x9.lean:220:52: error: unsolved goals
+Ω : Type u_1
+inst✝ : MeasurableSpace Ω
+P : Measure Ω
+Y : Ω → ℝ
+hY : Measurable Y
+hlaw : HasLaw Y (gaussianReal 0 1) P
+t : ℝ
+hc : Continuous fun x ↦ Complex.exp (↑t * ↑(x ^ 2) * Complex.I)
+⊢ ∫ (ω : Ω), Complex.exp (↑t * ↑(Y ω ^ 2) * Complex.I) ∂P = charFun sorry t
+/root/cm2-review-1/imp/i151-x9.lean:233:38: error(lean.unknownIdentifier): Unknown identifier `gammaMeasure`
+
+Note: It is not possible to treat `gammaMeasure` as an implicitly bound variable here because it has multiple characters while the `relaxedAutoImplicit` option is set to `false`.
+/root/cm2-review-1/imp/i151-x9.lean:238:19: error(lean.unknownIdentifier): Unknown identifier `gammaMeasure`
+/root/cm2-review-1/imp/i151-x9.lean:233:79: error: unsolved goals
+Ω : Type u_1
+inst✝¹ : MeasurableSpace Ω
+P : Measure Ω
+inst✝ : IsProbabilityMeasure P
+k : ℕ
+hk : 0 < k
+X : Fin k → Ω → ℝ
+hmeas : ∀ (i : Fin k), Measurable (X i)
+hind : iIndepFun X P
+hlaw : ∀ (i : Fin k), HasLaw (X i) (gaussianReal 0 1) P
+hindY : iIndepFun (fun j ω ↦ X j ω ^ 2) P
+⊢ HasLaw (fun ω ↦ ∑ i, X i ω ^ 2) sorry P
+/root/cm2-review-1/imp/i151-x9.lean:271:48: error(lean.unknownIdentifier): Unknown identifier `gammaMeasure`
+
+Note: It is not possible to treat `gammaMeasure` as an implicitly bound variable here because it has multiple characters while the `relaxedAutoImplicit` option is set to `false`.
+/root/cm2-review-1/imp/i151-x9.lean:273:2: error(lean.unknownIdentifier): Unknown identifier `hasLaw_sum_sq_gaussian`
+rc=1

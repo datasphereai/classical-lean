@@ -1,0 +1,59 @@
+/root/cm2-review-1/types/d147.lean:12:4: warning: The `show` tactic should only be used to indicate intermediate goal states for readability.
+However, this tactic invocation changed the goal. Please use `change` instead for these purposes.
+
+Note: This linter can be disabled with `set_option linter.style.show false`
+/root/cm2-review-1/types/d147.lean:22:4: warning: The `show` tactic should only be used to indicate intermediate goal states for readability.
+However, this tactic invocation changed the goal. Please use `change` instead for these purposes.
+
+Note: This linter can be disabled with `set_option linter.style.show false`
+/root/cm2-review-1/types/d147.lean:128:8: warning: try 'simp' instead of 'simpa'
+
+Note: This linter can be disabled with `set_option linter.unnecessarySimpa false`
+/root/cm2-review-1/types/d147.lean:129:8: warning: this tactic is never executed
+
+Note: This linter can be disabled with `set_option linter.unreachableTactic false`
+/root/cm2-review-1/types/d147.lean:129:8: warning: Unused tactic linter: `(rw [hT.apply_eigenvectorBasis hn i]; rfl)` does nothing
+
+Note: This linter can be disabled with `set_option linter.unusedTactic false`
+/root/cm2-review-1/types/d147.lean:133:0: warning: Setting options starting with 'debug', 'pp', 'profiler', 'trace' is only intended for development and not for final code. If you intend to submit this contribution to the Mathlib project, please remove 'set_option pp.fullNames'.
+
+Note: This linter can be disabled with `set_option linter.style.setOption false`
+@pow_apply_eigen : ∀ {E : Type u_1} [inst : NormedAddCommGroup E] [inst_1 : InnerProductSpace ℝ E] (T : E →ₗ[ℝ] E)
+  (v : E) (c : ℝ), T v = c • v → ∀ (k : ℕ), (T ^ k) v = c ^ k • v
+@inner_pow_apply : ∀ {E : Type u_1} [inst : NormedAddCommGroup E] [inst_1 : InnerProductSpace ℝ E] {T : E →ₗ[ℝ] E},
+  T.IsSymmetric →
+    ∀ (u : E) (c : ℝ), T u = c • u → ∀ (y : E) (k : ℕ), Inner.inner ℝ u ((T ^ k) y) = c ^ k * Inner.inner ℝ u y
+@norm_pow_apply_le : ∀ {E : Type u_1} [inst : NormedAddCommGroup E] [inst_1 : InnerProductSpace ℝ E] (T : E →ₗ[ℝ] E)
+  {n : ℕ} (b : OrthonormalBasis (Fin n) ℝ E) (ev : Fin n → ℝ),
+  (∀ (i : Fin n), T (b i) = ev i • b i) →
+    ∀ (i₀ : Fin n) (μ : ℝ),
+      (∀ (i : Fin n), i ≠ i₀ → |ev i| ≤ μ) →
+        ∀ (w : E), Inner.inner ℝ (b i₀) w = 0 → ∀ (k : ℕ), ‖(T ^ k) w‖ ≤ (∑ i, |Inner.inner ℝ (b i) w|) * μ ^ k
+@power_aux : ∀ {E : Type u_1} [inst : NormedAddCommGroup E] [inst_1 : InnerProductSpace ℝ E] {T : E →ₗ[ℝ] E},
+  T.IsSymmetric →
+    ∀ {n : ℕ} (b : OrthonormalBasis (Fin n) ℝ E) (ev : Fin n → ℝ),
+      (∀ (i : Fin n), T (b i) = ev i • b i) →
+        ∀ (i₀ : Fin n) (μ : ℝ),
+          0 ≤ μ →
+            μ < |ev i₀| →
+              (∀ (i : Fin n), i ≠ i₀ → |ev i| ≤ μ) →
+                ∀ (x : E),
+                  Inner.inner ℝ (b i₀) x ≠ 0 →
+                    (∃ C,
+                        ∀ (k : ℕ), ‖(Inner.inner ℝ (b i₀) ((T ^ k) x))⁻¹ • (T ^ k) x - b i₀‖ ≤ C * (μ / |ev i₀|) ^ k) ∧
+                      Filter.Tendsto (fun k ↦ (Inner.inner ℝ (b i₀) ((T ^ k) x))⁻¹ • (T ^ k) x) Filter.atTop (𝓝 (b i₀))
+@tendsto_powerIterate : ∀ {E : Type u_1} [inst : NormedAddCommGroup E] [inst_1 : InnerProductSpace ℝ E]
+  [inst_2 : FiniteDimensional ℝ E] {T : E →ₗ[ℝ] E} (hT : T.IsSymmetric) {n : ℕ} (hn : Module.finrank ℝ E = n)
+  (i₀ i₁ : Fin n),
+  |hT.eigenvalues hn i₁| < |hT.eigenvalues hn i₀| →
+    (∀ (i : Fin n), i ≠ i₀ → |hT.eigenvalues hn i| ≤ |hT.eigenvalues hn i₁|) →
+      ∀ (x : E),
+        Inner.inner ℝ ((hT.eigenvectorBasis hn) i₀) x ≠ 0 →
+          (∃ C,
+              ∀ (k : ℕ),
+                ‖(Inner.inner ℝ ((hT.eigenvectorBasis hn) i₀) ((T ^ k) x))⁻¹ • (T ^ k) x -
+                      (hT.eigenvectorBasis hn) i₀‖ ≤
+                  C * (|hT.eigenvalues hn i₁| / |hT.eigenvalues hn i₀|) ^ k) ∧
+            Filter.Tendsto (fun k ↦ (Inner.inner ℝ ((hT.eigenvectorBasis hn) i₀) ((T ^ k) x))⁻¹ • (T ^ k) x)
+              Filter.atTop (𝓝 ((hT.eigenvectorBasis hn) i₀))
+rc=0

@@ -1,0 +1,4 @@
+/root/cm2-review-9/KKT-ctl-long.lean:30:100: warning: This line exceeds the 100 character limit, please shorten it!
+
+Note: This linter can be disabled with `set_option linter.style.longLine false`
+rc=0

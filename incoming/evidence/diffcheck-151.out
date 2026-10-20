@@ -1,0 +1,5 @@
+ ClassicalLean.lean                                 |   1 +
+ .../Probability/ChiSquared.lean                    |  92 ++++++--
+ incoming/d151-r9-s1.lean                           | 254 ---------------------
+ ...method-pseudoinverse-chi-squared-kkt-huffman.md |   9 +
+ 4 files changed, 82 insertions(+), 274 deletions(-)

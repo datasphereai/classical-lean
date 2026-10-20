@@ -1,0 +1,49 @@
+/root/cm2-review-1/types/s147.lean:61:14: warning: declaration uses `sorry`
+/root/cm2-review-1/types/s147.lean:68:14: warning: declaration uses `sorry`
+/root/cm2-review-1/types/s147.lean:75:14: warning: declaration uses `sorry`
+/root/cm2-review-1/types/s147.lean:85:14: warning: declaration uses `sorry`
+/root/cm2-review-1/types/s147.lean:103:8: warning: declaration uses `sorry`
+/root/cm2-review-1/types/s147.lean:120:0: warning: Setting options starting with 'debug', 'pp', 'profiler', 'trace' is only intended for development and not for final code. If you intend to submit this contribution to the Mathlib project, please remove 'set_option pp.fullNames'.
+
+Note: This linter can be disabled with `set_option linter.style.setOption false`
+@ClassicalLean.Analysis.PowerMethod.pow_apply_eigen : ∀ {E : Type u_1} [inst : NormedAddCommGroup E]
+  [inst_1 : InnerProductSpace ℝ E] (T : E →ₗ[ℝ] E) (v : E) (c : ℝ), T v = c • v → ∀ (k : ℕ), (T ^ k) v = c ^ k • v
+@ClassicalLean.Analysis.PowerMethod.inner_pow_apply : ∀ {E : Type u_1} [inst : NormedAddCommGroup E]
+  [inst_1 : InnerProductSpace ℝ E] {T : E →ₗ[ℝ] E},
+  T.IsSymmetric →
+    ∀ (u : E) (c : ℝ), T u = c • u → ∀ (y : E) (k : ℕ), Inner.inner ℝ u ((T ^ k) y) = c ^ k * Inner.inner ℝ u y
+@ClassicalLean.Analysis.PowerMethod.norm_pow_apply_le : ∀ {E : Type u_1} [inst : NormedAddCommGroup E]
+  [inst_1 : InnerProductSpace ℝ E] (T : E →ₗ[ℝ] E) {n : ℕ} (b : OrthonormalBasis (Fin n) ℝ E) (ev : Fin n → ℝ),
+  (∀ (i : Fin n), T (b i) = ev i • b i) →
+    ∀ (i₀ : Fin n) (μ : ℝ),
+      (∀ (i : Fin n), i ≠ i₀ → |ev i| ≤ μ) →
+        ∀ (w : E), Inner.inner ℝ (b i₀) w = 0 → ∀ (k : ℕ), ‖(T ^ k) w‖ ≤ (∑ i, |Inner.inner ℝ (b i) w|) * μ ^ k
+@ClassicalLean.Analysis.PowerMethod.power_aux : ∀ {E : Type u_1} [inst : NormedAddCommGroup E]
+  [inst_1 : InnerProductSpace ℝ E] {T : E →ₗ[ℝ] E},
+  T.IsSymmetric →
+    ∀ {n : ℕ} (b : OrthonormalBasis (Fin n) ℝ E) (ev : Fin n → ℝ),
+      (∀ (i : Fin n), T (b i) = ev i • b i) →
+        ∀ (i₀ : Fin n) (μ : ℝ),
+          0 ≤ μ →
+            μ < |ev i₀| →
+              (∀ (i : Fin n), i ≠ i₀ → |ev i| ≤ μ) →
+                ∀ (x : E),
+                  Inner.inner ℝ (b i₀) x ≠ 0 →
+                    (∃ C,
+                        ∀ (k : ℕ), ‖(Inner.inner ℝ (b i₀) ((T ^ k) x))⁻¹ • (T ^ k) x - b i₀‖ ≤ C * (μ / |ev i₀|) ^ k) ∧
+                      Filter.Tendsto (fun k ↦ (Inner.inner ℝ (b i₀) ((T ^ k) x))⁻¹ • (T ^ k) x) Filter.atTop (𝓝 (b i₀))
+@ClassicalLean.Analysis.PowerMethod.tendsto_powerIterate : ∀ {E : Type u_1} [inst : NormedAddCommGroup E]
+  [inst_1 : InnerProductSpace ℝ E] [inst_2 : FiniteDimensional ℝ E] {T : E →ₗ[ℝ] E} (hT : T.IsSymmetric) {n : ℕ}
+  (hn : Module.finrank ℝ E = n) (i₀ i₁ : Fin n),
+  |hT.eigenvalues hn i₁| < |hT.eigenvalues hn i₀| →
+    (∀ (i : Fin n), i ≠ i₀ → |hT.eigenvalues hn i| ≤ |hT.eigenvalues hn i₁|) →
+      ∀ (x : E),
+        Inner.inner ℝ ((hT.eigenvectorBasis hn) i₀) x ≠ 0 →
+          (∃ C,
+              ∀ (k : ℕ),
+                ‖(Inner.inner ℝ ((hT.eigenvectorBasis hn) i₀) ((T ^ k) x))⁻¹ • (T ^ k) x -
+                      (hT.eigenvectorBasis hn) i₀‖ ≤
+                  C * (|hT.eigenvalues hn i₁| / |hT.eigenvalues hn i₀|) ^ k) ∧
+            Filter.Tendsto (fun k ↦ (Inner.inner ℝ ((hT.eigenvectorBasis hn) i₀) ((T ^ k) x))⁻¹ • (T ^ k) x)
+              Filter.atTop (𝓝 ((hT.eigenvectorBasis hn) i₀))
+rc=0

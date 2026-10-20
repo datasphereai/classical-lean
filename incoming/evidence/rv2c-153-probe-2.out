@@ -1,0 +1,18 @@
+Lean.getMainModuleDoc : Lean.Environment → Lean.PersistentArray Lean.ModuleDoc
+Lean.ModuleDoc.doc : Lean.ModuleDoc → String
+@Lean.PersistentArray.toList : {α : Type u_1} → Lean.PersistentArray α → List α
+Lean.ConstantInfo.isDef : Lean.ConstantInfo → Bool
+@Lean.ConstantInfo.value! : Lean.ConstantInfo → optParam Bool false → Lean.Expr
+@Lean.findDocString? : Lean.Environment →
+  Lean.Name →
+    optParam Bool true →
+      optParam Lean.Options ∅ →
+        optParam Lean.Name Lean.Name.anonymous → optParam (List Lean.OpenDecl) [] → IO (Option String)
+String.intercalate : String → List String → String
+@Array.qsort : {α : Type u_1} →
+  (as : Array α) → autoParam (α → α → Bool) Array.qsort._auto_1 → optParam ℕ 0 → optParam ℕ (as.size - 1) → Array α
+@Array.push : {α : Type u_1} → Array α → α → Array α
+@Lean.SMap.map₂ : {α : Type u_1} →
+  {β : Type u_2} → [inst : BEq α] → [inst_1 : Hashable α] → Lean.SMap α β → Lean.PHashMap α β
+Lean.Expr.dbgToString : Lean.Expr → String
+rc=0

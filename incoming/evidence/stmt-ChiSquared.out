@@ -1,0 +1,16 @@
+/root/cm2-evidence/stmt/ChiSquared.lean:44:100: warning: This line exceeds the 100 character limit, please shorten it!
+
+Note: This linter can be disabled with `set_option linter.style.longLine false`
+/root/cm2-evidence/stmt/ChiSquared.lean:56:14: warning: declaration uses `sorry`
+/root/cm2-evidence/stmt/ChiSquared.lean:61:14: warning: declaration uses `sorry`
+/root/cm2-evidence/stmt/ChiSquared.lean:67:14: warning: declaration uses `sorry`
+/root/cm2-evidence/stmt/ChiSquared.lean:77:14: warning: declaration uses `sorry`
+/root/cm2-evidence/stmt/ChiSquared.lean:82:14: warning: declaration uses `sorry`
+/root/cm2-evidence/stmt/ChiSquared.lean:87:14: warning: declaration uses `sorry`
+/root/cm2-evidence/stmt/ChiSquared.lean:101:14: warning: declaration uses `sorry`
+/root/cm2-evidence/stmt/ChiSquared.lean:107:14: warning: declaration uses `sorry`
+/root/cm2-evidence/stmt/ChiSquared.lean:113:14: warning: declaration uses `sorry`
+/root/cm2-evidence/stmt/ChiSquared.lean:120:14: warning: declaration uses `sorry`
+/root/cm2-evidence/stmt/ChiSquared.lean:126:14: warning: declaration uses `sorry`
+/root/cm2-evidence/stmt/ChiSquared.lean:135:8: warning: declaration uses `sorry`
+rc=0

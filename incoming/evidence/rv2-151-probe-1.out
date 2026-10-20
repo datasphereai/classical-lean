@@ -1,0 +1,11 @@
+/root/cm2-review-7/probe1.lean:2:8: error(lean.unknownIdentifier): Unknown constant `Lean.ConstantInfo.getUsedConstants`
+Lean.privateToUserName : Lean.Name → Lean.Name
+Lean.ModuleIdx.toNat : Lean.ModuleIdx → ℕ
+Lean.EnvironmentHeader.moduleNames : Lean.EnvironmentHeader → Array Lean.Name
+@Lean.ConstantInfo.value? : Lean.ConstantInfo → optParam Bool false → Option Lean.Expr
+@ProbabilityTheory.isProbabilityMeasure_gammaMeasure : ∀ {a r : ℝ},
+  0 < a → 0 < r → MeasureTheory.IsProbabilityMeasure (ProbabilityTheory.gammaMeasure a r)
+/root/cm2-review-7/probe1.lean:8:8: error(lean.unknownIdentifier): Unknown identifier `ProbabilityTheory.eqOn_complexMGF_of_mgf'`
+ProbabilityTheory.gammaPDFReal : ℝ → ℝ → ℝ → ℝ
+Lean.Name.isPrefixOf : Lean.Name → Lean.Name → Bool
+rc=1

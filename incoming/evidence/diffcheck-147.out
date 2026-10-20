@@ -1,0 +1,4 @@
+ ClassicalLean.lean                                 |   1 +
+ .../Analysis/PowerMethod.lean                      | 101 +++++++++++++---
+ incoming/d147-r1-s2.lean                           | 131 ---------------------
+ 3 files changed, 86 insertions(+), 147 deletions(-)

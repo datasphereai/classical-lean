@@ -1,0 +1,18 @@
+Lean.Expr.getUsedConstants : Lean.Expr → Array Lean.Name
+@ProbabilityTheory.eqOn_complexMGF_of_mgf' : ∀ {Ω : Type u_1} {m : MeasurableSpace Ω} {X : Ω → ℝ}
+  {μ : MeasureTheory.Measure Ω} {Ω' : Type u_2} {mΩ' : MeasurableSpace Ω'} {Y : Ω' → ℝ} {μ' : MeasureTheory.Measure Ω'},
+  ProbabilityTheory.mgf X μ = ProbabilityTheory.mgf Y μ' →
+    (μ = 0 ↔ μ' = 0) →
+      Set.EqOn (ProbabilityTheory.complexMGF X μ) (ProbabilityTheory.complexMGF Y μ')
+        {z | z.re ∈ interior (ProbabilityTheory.integrableExpSet X μ)}
+@AnalyticOnNhd.eqOn_of_preconnected_of_frequently_eq : ∀ {𝕜 : Type u_1} [inst : NontriviallyNormedField 𝕜]
+  {E : Type u_2} [inst_1 : NormedAddCommGroup E] [inst_2 : NormedSpace 𝕜 E] {f g : 𝕜 → E} {z₀ : 𝕜} {U : Set 𝕜},
+  AnalyticOnNhd 𝕜 f U →
+    AnalyticOnNhd 𝕜 g U → IsPreconnected U → z₀ ∈ U → (∃ᶠ (z : 𝕜) in nhdsWithin z₀ {z₀}ᶜ, f z = g z) → Set.EqOn f g U
+@Filter.frequently_iff_seq_forall : ∀ {ι : Type u_1} {l : Filter ι} {p : ι → Prop} [l.IsCountablyGenerated],
+  (∃ᶠ (n : ι) in l, p n) ↔ ∃ ns, Filter.Tendsto ns Filter.atTop l ∧ ∀ (n : ℕ), p (ns n)
+@tendsto_nhdsWithin_iff : ∀ {α : Type u_1} {β : Type u_2} [inst : TopologicalSpace α] {a : α} {l : Filter β} {s : Set α}
+  {f : β → α}, Filter.Tendsto f l (nhdsWithin a s) ↔ Filter.Tendsto f l (nhds a) ∧ ∀ᶠ (n : β) in l, f n ∈ s
+@Filter.tendsto_ofReal_iff : ∀ {α : Type u_1} {l : Filter α} {f : α → ℝ} {x : ℝ},
+  Filter.Tendsto (fun x ↦ ↑(f x)) l (nhds ↑x) ↔ Filter.Tendsto f l (nhds x)
+rc=0

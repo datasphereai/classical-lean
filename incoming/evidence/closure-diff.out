@@ -1,0 +1,11 @@
+ClassicalLean.Algebra.Pseudoinverse
+ClassicalLean.Analysis.KKT
+ClassicalLean.Analysis.PowerMethod
+ClassicalLean.InformationTheory.Huffman
+ClassicalLean.Probability.ChiSquared
+Mathlib.Algebra.Order.Archimedean.Hom
+Mathlib.Algebra.Order.Archimedean.Real.Hom
+Mathlib.Algebra.Order.CompleteField
+Mathlib.Analysis.InnerProductSpace.Trace
+Mathlib.Probability.Distributions.Gamma
+BASE 5714 NEW 4728 NEW-NOT-IN-BASE 10

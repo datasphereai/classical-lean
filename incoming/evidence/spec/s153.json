@@ -1,0 +1,11 @@
+{"ranges": [[22, 29], [38, 38, "term"], [62, 62], [68, 68], [72, 72], [76, 77], [80, 81], [85, 86], [89, 90], [93, 94], [98, 100], [104, 106], [110, 110, "term"], [114, 115], [122, 136], [140, 144], [149, 160], [166, 179], [187, 263], [271, 339], [343, 357], [362, 382], [396, 418]],
+ "edits": [[22, "  have hs : s.Nonempty", "  classical\n  have hs : s.Nonempty"],
+           [68, "dif_pos h", "dite_eq_left h"], [72, "dif_neg h", "dite_eq_right h"],
+           [240, "push_neg at hc", "push Not at hc"],
+           [398, "ClassicalLean.Huffman.huffAux_kraft", "huffAux_kraft"],
+           [400, "ClassicalLean.Huffman.huffmanLength", "huffmanLength"],
+           [409, "ClassicalLean.Huffman.huffAux_opt", "huffAux_opt"],
+           [412, "ClassicalLean.Huffman.huffAux", "huffAux"],
+           [413, "ClassicalLean.Huffman.huffmanLength", "huffmanLength"],
+           [415, "ClassicalLean.Huffman.huffAux", "huffAux"]],
+ "tail": "/root/cm2-evidence/witness/w153.lean"}

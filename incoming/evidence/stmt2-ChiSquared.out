@@ -1,0 +1,13 @@
+/root/cm2-evidence/stmt/ChiSquared.lean:57:14: warning: declaration uses `sorry`
+/root/cm2-evidence/stmt/ChiSquared.lean:62:14: warning: declaration uses `sorry`
+/root/cm2-evidence/stmt/ChiSquared.lean:68:14: warning: declaration uses `sorry`
+/root/cm2-evidence/stmt/ChiSquared.lean:78:14: warning: declaration uses `sorry`
+/root/cm2-evidence/stmt/ChiSquared.lean:83:14: warning: declaration uses `sorry`
+/root/cm2-evidence/stmt/ChiSquared.lean:88:14: warning: declaration uses `sorry`
+/root/cm2-evidence/stmt/ChiSquared.lean:102:14: warning: declaration uses `sorry`
+/root/cm2-evidence/stmt/ChiSquared.lean:108:14: warning: declaration uses `sorry`
+/root/cm2-evidence/stmt/ChiSquared.lean:114:14: warning: declaration uses `sorry`
+/root/cm2-evidence/stmt/ChiSquared.lean:121:14: warning: declaration uses `sorry`
+/root/cm2-evidence/stmt/ChiSquared.lean:127:14: warning: declaration uses `sorry`
+/root/cm2-evidence/stmt/ChiSquared.lean:136:8: warning: declaration uses `sorry`
+rc=0

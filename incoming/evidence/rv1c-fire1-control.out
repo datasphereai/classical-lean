@@ -1,0 +1,45 @@
+/root/cm2-review-2/HuffmanFireControl.lean:64:16: warning: declaration uses `sorry`
+/root/cm2-review-2/HuffmanFireControl.lean:76:16: warning: declaration uses `sorry`
+/root/cm2-review-2/HuffmanFireControl.lean:104:16: warning: declaration uses `sorry`
+/root/cm2-review-2/HuffmanFireControl.lean:107:16: warning: declaration uses `sorry`
+/root/cm2-review-2/HuffmanFireControl.lean:113:16: warning: declaration uses `sorry`
+/root/cm2-review-2/HuffmanFireControl.lean:117:16: warning: declaration uses `sorry`
+/root/cm2-review-2/HuffmanFireControl.lean:121:16: warning: declaration uses `sorry`
+/root/cm2-review-2/HuffmanFireControl.lean:124:16: warning: declaration uses `sorry`
+/root/cm2-review-2/HuffmanFireControl.lean:128:16: warning: declaration uses `sorry`
+/root/cm2-review-2/HuffmanFireControl.lean:131:16: warning: declaration uses `sorry`
+/root/cm2-review-2/HuffmanFireControl.lean:134:16: warning: declaration uses `sorry`
+/root/cm2-review-2/HuffmanFireControl.lean:138:16: warning: declaration uses `sorry`
+/root/cm2-review-2/HuffmanFireControl.lean:142:16: warning: declaration uses `sorry`
+/root/cm2-review-2/HuffmanFireControl.lean:146:16: warning: declaration uses `sorry`
+/root/cm2-review-2/HuffmanFireControl.lean:151:16: warning: declaration uses `sorry`
+/root/cm2-review-2/HuffmanFireControl.lean:157:16: warning: declaration uses `sorry`
+/root/cm2-review-2/HuffmanFireControl.lean:161:16: warning: declaration uses `sorry`
+/root/cm2-review-2/HuffmanFireControl.lean:166:16: warning: declaration uses `sorry`
+/root/cm2-review-2/HuffmanFireControl.lean:173:16: warning: declaration uses `sorry`
+/root/cm2-review-2/HuffmanFireControl.lean:181:16: warning: declaration uses `sorry`
+/root/cm2-review-2/HuffmanFireControl.lean:189:16: warning: declaration uses `sorry`
+/root/cm2-review-2/HuffmanFireControl.lean:195:16: warning: declaration uses `sorry`
+/root/cm2-review-2/HuffmanFireControl.lean:205:8: warning: declaration uses `sorry`
+/root/cm2-review-2/HuffmanFireControl.lean:247:38: error: omega could not prove the goal:
+No usable constraints found. You may need to unfold definitions so `omega` can see linear arithmetic facts about `Nat` and `Int`, which may also involve multiplication, division, and modular remainder by constants.
+/root/cm2-review-2/HuffmanFireControl.lean:246:40: error: unsolved goals
+ι : Type u_1
+inst✝ : DecidableEq ι
+n : ℕ
+w : ι → ℝ
+s : Finset ι
+hs : #s = 2
+⊢ ∀ (h : 2 ≤ #s),
+    mergeLen (huffAux n (mergeW w (pick w s h).1 (pick w s h).2) (s.erase (pick w s h).2)) (pick w s h).1
+        (pick w s h).2 =
+      fun x ↦ 0
+/root/cm2-review-2/HuffmanFireControl.lean:287:38: error: Application type mismatch: The argument
+  rvMerges_eq (Fintype.card ?m.29) ?m.27 univ card_univ
+has type
+  rvMerges (Fintype.card ?m.29) ?m.27 univ = Fintype.card ?m.29 - 1
+but is expected to have type
+  rvMerges (Fintype.card ι) p univ = Fintype.card ι
+in the application
+  ⟨rvSteps_eq (Fintype.card ι) p univ card_univ, rvMerges_eq (Fintype.card ?m.29) ?m.27 univ card_univ⟩
+rc=1

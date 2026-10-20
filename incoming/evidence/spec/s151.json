@@ -1,0 +1,3 @@
+{"ranges": [[9, 12], [18, 21], [30, 52], [64, 84], [89, 97], [103, 107], [114, 150], [156, 158], [164, 175], [182, 203], [210, 214], [223, 254]],
+ "edits": [[245, "isProb_gamma_aux hpos", "ProbabilityTheory.isProbabilityMeasure_gammaMeasure hpos"]],
+ "tail": "/root/cm2-evidence/witness/w151.lean"}

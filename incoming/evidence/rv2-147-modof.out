@@ -1,0 +1,40 @@
+MODOF LinearMap.IsSymmetric.eigenvalues Mathlib.Analysis.InnerProductSpace.Spectrum
+MODOF LinearMap.IsSymmetric.eigenvectorBasis Mathlib.Analysis.InnerProductSpace.Spectrum
+MODOF LinearMap.IsSymmetric.apply_eigenvectorBasis Mathlib.Analysis.InnerProductSpace.Spectrum
+MODOF LinearMap.IsSymmetric.eigenvalues_antitone Mathlib.Analysis.InnerProductSpace.Spectrum
+MODOF LinearMap.IsSymmetric.re_trace_eq_sum_eigenvalues Mathlib.Analysis.InnerProductSpace.Trace
+MODOF tendsto_pow_atTop_nhds_zero_of_lt_one Mathlib.Analysis.SpecificLimits.Basic
+MODOF Matrix.isSymmetric_toEuclideanLin_iff Mathlib.Analysis.Matrix.Hermitian
+MODOF Matrix.ofLp_toLpLin Mathlib.Analysis.Normed.Lp.Matrix
+MODOF LinearMap.trace_eq_matrix_trace Mathlib.LinearAlgebra.Trace
+MODOF Real.ringHom_apply Mathlib.Algebra.Order.Archimedean.Real.Hom
+MODOF Matrix.toEuclideanLin Mathlib.Analysis.InnerProductSpace.PiL2
+MODOF EuclideanSpace.basisFun Mathlib.Analysis.InnerProductSpace.PiL2
+MODOF EuclideanSpace.basisFun_apply Mathlib.Analysis.InnerProductSpace.PiL2
+MODOF EuclideanSpace.basisFun_repr Mathlib.Analysis.InnerProductSpace.PiL2
+MODOF EuclideanSpace.inner_single_right Mathlib.Analysis.InnerProductSpace.PiL2
+MODOF EuclideanSpace.single Mathlib.Analysis.InnerProductSpace.PiL2
+MODOF finrank_euclideanSpace_fin Mathlib.Analysis.InnerProductSpace.PiL2
+MODOF Matrix.mulVec_single Mathlib.Data.Matrix.Mul
+MODOF PiLp.ofLp_single Mathlib.Analysis.Normed.Lp.PiLp
+MODOF Matrix.trace Mathlib.LinearAlgebra.Matrix.Trace
+MODOF LinearMap.toMatrix_apply Mathlib.LinearAlgebra.Matrix.ToLin
+MODOF OrthonormalBasis.coe_toBasis Mathlib.Analysis.InnerProductSpace.PiL2
+MODOF OrthonormalBasis.coe_toBasis_repr_apply Mathlib.Analysis.InnerProductSpace.PiL2
+MODOF RCLike.re_to_real Mathlib.Analysis.RCLike.Basic
+MODOF Matrix.col_apply Mathlib.LinearAlgebra.Matrix.Defs
+MODOF Matrix.diag_apply Mathlib.Data.Matrix.Diagonal
+MODOF squeeze_zero_norm Mathlib.Analysis.Normed.Group.Continuity
+MODOF tendsto_sub_nhds_zero_iff Mathlib.Topology.Algebra.Group.ContinuousDiv
+MODOF LinearMap.IsSymmetric Mathlib.Analysis.InnerProductSpace.Symmetric
+MODOF OrthonormalBasis.repr_apply_apply Mathlib.Analysis.InnerProductSpace.PiL2
+MODOF Matrix.toLin'_apply Mathlib.LinearAlgebra.Matrix.ToLin
+MODOF MulOpposite.op_one Mathlib.Algebra.Opposites
+MODOF Pi.smul_apply Mathlib.Algebra.Notation.Pi.Defs
+MODOF PiLp.smul_apply Mathlib.Analysis.Normed.Lp.PiLp
+MODOF OrthonormalBasis Mathlib.Analysis.InnerProductSpace.PiL2
+MODOF Matrix.mulVec Mathlib.Data.Matrix.Mul
+/root/cm2-review-3/modof.lean:12:100: warning: This line exceeds the 100 character limit, please shorten it!
+
+Note: This linter can be disabled with `set_option linter.style.longLine false`
+rc=0

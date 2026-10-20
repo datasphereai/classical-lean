@@ -1,0 +1,121 @@
+/root/cm2-review-5/files/ctl.lean:18:0: warning: `exists_symm_ginv` does not use the following hypothesis in its type:
+  • [DecidableEq n] (#3)
+
+Consider removing this hypothesis and using `classical` in the proof instead. For terms, consider using `open scoped Classical in` at the term level (not the command level).
+
+Note: This linter can be disabled with `set_option linter.unusedDecidableInType false`
+/root/cm2-review-5/files/ctl.lean:83:0: warning: `exists_penrose` does not use the following hypothesis in its type:
+  • [DecidableEq n] (#5)
+
+Consider removing this hypothesis and using `classical` in the proof instead. For terms, consider using `open scoped Classical in` at the term level (not the command level).
+
+Note: This linter can be disabled with `set_option linter.unusedDecidableInType false`
+/root/cm2-review-5/files/ctl.lean:108:8: warning: automatically included section variable(s) unused in theorem `_private._stdin.0.D150.penrose_unique`:
+  [DecidableEq n]
+consider restructuring your `variable` declarations so that the variables are not in scope or explicitly omit them:
+  omit [DecidableEq n] in theorem ...
+
+Note: This linter can be disabled with `set_option linter.unusedSectionVars false`
+/root/cm2-review-5/files/ctl.lean:107:0: warning: `penrose_unique` does not use the following hypothesis in its type:
+  • [DecidableEq n] (#5)
+
+Consider removing this hypothesis and using `classical` in the proof instead. For terms, consider using `open scoped Classical in` at the term level (not the command level).
+
+Note: This linter can be disabled with `set_option linter.unusedDecidableInType false`
+@D150.exists_symm_ginv : ∀ {n : Type u_1} [inst : Fintype n] [DecidableEq n] (M : Matrix n n ℝ),
+  Mᵀ = M → ∃ G, Gᵀ = G ∧ Commute M G ∧ M * G * M = M ∧ G * M * G = G
+@ClassicalLean.Algebra.Pseudoinverse.exists_symm_ginv : ∀ {n : Type u_1} [inst : Fintype n] (M : Matrix n n ℝ),
+  Mᵀ = M → ∃ G, Gᵀ = G ∧ Commute M G ∧ M * G * M = M ∧ G * M * G = G
+@D150.exists_penrose : ∀ {m : Type u_1} {n : Type u_2} [inst : Fintype m] [inst_1 : Fintype n] [DecidableEq n]
+  (A : Matrix m n ℝ), ∃ X, A * X * A = A ∧ X * A * X = X ∧ (A * X)ᵀ = A * X ∧ (X * A)ᵀ = X * A
+@ClassicalLean.Algebra.Pseudoinverse.exists_penrose : ∀ {m : Type u_1} {n : Type u_2} [inst : Fintype m]
+  [inst_1 : Fintype n] (A : Matrix m n ℝ), ∃ X, A * X * A = A ∧ X * A * X = X ∧ (A * X)ᵀ = A * X ∧ (X * A)ᵀ = X * A
+@D150.penrose_unique : ∀ {m : Type u_1} {n : Type u_2} [inst : Fintype m] [inst_1 : Fintype n] [DecidableEq n]
+  {A : Matrix m n ℝ} {X Y : Matrix n m ℝ},
+  A * X * A = A →
+    X * A * X = X →
+      (A * X)ᵀ = A * X → (X * A)ᵀ = X * A → A * Y * A = A → Y * A * Y = Y → (A * Y)ᵀ = A * Y → (Y * A)ᵀ = Y * A → X = Y
+@ClassicalLean.Algebra.Pseudoinverse.penrose_unique : ∀ {m : Type u_1} {n : Type u_2} [inst : Fintype m]
+  [inst_1 : Fintype n] {A : Matrix m n ℝ} {X Y : Matrix n m ℝ},
+  A * X * A = A →
+    X * A * X = X →
+      (A * X)ᵀ = A * X → (X * A)ᵀ = X * A → A * Y * A = A → Y * A * Y = Y → (A * Y)ᵀ = A * Y → (Y * A)ᵀ = Y * A → X = Y
+@D150.transpose_mulVec_sub_mulVec_pinv : ∀ {m : Type u_1} {n : Type u_2} [inst : Fintype m] [inst_1 : Fintype n]
+  [inst_2 : DecidableEq n] (A : Matrix m n ℝ) (y : m → ℝ), Aᵀ *ᵥ (y - A *ᵥ D150.pinv A *ᵥ y) = 0
+@ClassicalLean.Algebra.Pseudoinverse.transpose_mulVec_sub_mulVec_pinv : ∀ {m : Type u_1} {n : Type u_2}
+  [inst : Fintype m] [inst_1 : Fintype n] [inst_2 : DecidableEq n] (A : Matrix m n ℝ) (y : m → ℝ),
+  Aᵀ *ᵥ (y - A *ᵥ ClassicalLean.Algebra.Pseudoinverse.pinv A *ᵥ y) = 0
+@D150.pinv : {m : Type u_1} → {n : Type u_2} → [Fintype m] → [Fintype n] → [DecidableEq n] → Matrix m n ℝ → Matrix n m ℝ
+@ClassicalLean.Algebra.Pseudoinverse.pinv : {m : Type u_1} →
+  {n : Type u_2} → [Fintype m] → [Fintype n] → [DecidableEq n] → Matrix m n ℝ → Matrix n m ℝ
+@D150.pinv_spec : ∀ {m : Type u_1} {n : Type u_2} [inst : Fintype m] [inst_1 : Fintype n] [inst_2 : DecidableEq n]
+  (A : Matrix m n ℝ),
+  A * D150.pinv A * A = A ∧
+    D150.pinv A * A * D150.pinv A = D150.pinv A ∧
+      (A * D150.pinv A)ᵀ = A * D150.pinv A ∧ (D150.pinv A * A)ᵀ = D150.pinv A * A
+@ClassicalLean.Algebra.Pseudoinverse.pinv_spec : ∀ {m : Type u_1} {n : Type u_2} [inst : Fintype m] [inst_1 : Fintype n]
+  [inst_2 : DecidableEq n] (A : Matrix m n ℝ),
+  A * ClassicalLean.Algebra.Pseudoinverse.pinv A * A = A ∧
+    ClassicalLean.Algebra.Pseudoinverse.pinv A * A * ClassicalLean.Algebra.Pseudoinverse.pinv A =
+        ClassicalLean.Algebra.Pseudoinverse.pinv A ∧
+      (A * ClassicalLean.Algebra.Pseudoinverse.pinv A)ᵀ = A * ClassicalLean.Algebra.Pseudoinverse.pinv A ∧
+        (ClassicalLean.Algebra.Pseudoinverse.pinv A * A)ᵀ = ClassicalLean.Algebra.Pseudoinverse.pinv A * A
+@D150.pinv_unique : ∀ {m : Type u_1} {n : Type u_2} [inst : Fintype m] [inst_1 : Fintype n] [inst_2 : DecidableEq n]
+  {A : Matrix m n ℝ} {X : Matrix n m ℝ},
+  A * X * A = A → X * A * X = X → (A * X)ᵀ = A * X → (X * A)ᵀ = X * A → X = D150.pinv A
+@ClassicalLean.Algebra.Pseudoinverse.pinv_unique : ∀ {m : Type u_1} {n : Type u_2} [inst : Fintype m]
+  [inst_1 : Fintype n] [inst_2 : DecidableEq n] {A : Matrix m n ℝ} {X : Matrix n m ℝ},
+  A * X * A = A → X * A * X = X → (A * X)ᵀ = A * X → (X * A)ᵀ = X * A → X = ClassicalLean.Algebra.Pseudoinverse.pinv A
+@D150.pinv_residual_dotProduct_le : ∀ {m : Type u_1} {n : Type u_2} [inst : Fintype m] [inst_1 : Fintype n]
+  [inst_2 : DecidableEq n] (A : Matrix m n ℝ) (y : m → ℝ) (β : n → ℝ),
+  (y - A *ᵥ D150.pinv A *ᵥ y) ⬝ᵥ (y - A *ᵥ D150.pinv A *ᵥ y) ≤ (y - A *ᵥ β) ⬝ᵥ (y - A *ᵥ β)
+@ClassicalLean.Algebra.Pseudoinverse.pinv_residual_dotProduct_le : ∀ {m : Type u_1} {n : Type u_2} [inst : Fintype m]
+  [inst_1 : Fintype n] [inst_2 : DecidableEq n] (A : Matrix m n ℝ) (y : m → ℝ) (β : n → ℝ),
+  (y - A *ᵥ ClassicalLean.Algebra.Pseudoinverse.pinv A *ᵥ y) ⬝ᵥ
+      (y - A *ᵥ ClassicalLean.Algebra.Pseudoinverse.pinv A *ᵥ y) ≤
+    (y - A *ᵥ β) ⬝ᵥ (y - A *ᵥ β)
+@D150.pinv_eq_leastSquares : ∀ {m : Type u_1} {n : Type u_2} [inst : Fintype m] [inst_1 : Fintype n]
+  [inst_2 : DecidableEq n] {A : Matrix m n ℝ},
+  IsUnit (Aᵀ * A).det → D150.pinv A = ClassicalLean.Statistics.leastSquares A
+@ClassicalLean.Algebra.Pseudoinverse.pinv_eq_leastSquares : ∀ {m : Type u_1} {n : Type u_2} [inst : Fintype m]
+  [inst_1 : Fintype n] [inst_2 : DecidableEq n] {A : Matrix m n ℝ},
+  IsUnit (Aᵀ * A).det → ClassicalLean.Algebra.Pseudoinverse.pinv A = ClassicalLean.Statistics.leastSquares A
+TYPECMP ClassicalLean.Algebra.Pseudoinverse.pinv: eqv=true binders=true levels=true
+TYPECMP ClassicalLean.Algebra.Pseudoinverse.pinv_spec: eqv=true binders=true levels=true
+TYPECMP ClassicalLean.Algebra.Pseudoinverse.pinv_unique: eqv=true binders=true levels=true
+TYPECMP ClassicalLean.Algebra.Pseudoinverse.pinv_residual_dotProduct_le: eqv=true binders=true levels=true
+TYPECMP ClassicalLean.Algebra.Pseudoinverse.pinv_eq_leastSquares: eqv=true binders=true levels=true
+TYPECMP _private._stdin.0.ClassicalLean.Algebra.Pseudoinverse.exists_symm_ginv: eqv=false binders=false levels=true
+TYPECMP _private._stdin.0.ClassicalLean.Algebra.Pseudoinverse.exists_penrose: eqv=false binders=false levels=true
+TYPECMP _private._stdin.0.ClassicalLean.Algebra.Pseudoinverse.penrose_unique: eqv=false binders=false levels=true
+TYPECMP _private._stdin.0.ClassicalLean.Algebra.Pseudoinverse.transpose_mulVec_sub_mulVec_pinv: eqv=true binders=true levels=true
+/root/cm2-review-5/files/ctl.lean:485:100: warning: This line exceeds the 100 character limit, please shorten it!
+
+Note: This linter can be disabled with `set_option linter.style.longLine false`
+/root/cm2-review-5/files/ctl.lean:487:100: warning: This line exceeds the 100 character limit, please shorten it!
+
+Note: This linter can be disabled with `set_option linter.style.longLine false`
+/root/cm2-review-5/files/ctl.lean:488:100: warning: This line exceeds the 100 character limit, please shorten it!
+
+Note: This linter can be disabled with `set_option linter.style.longLine false`
+/root/cm2-review-5/files/ctl.lean:489:100: warning: This line exceeds the 100 character limit, please shorten it!
+
+Note: This linter can be disabled with `set_option linter.style.longLine false`
+/root/cm2-review-5/files/ctl.lean:490:100: warning: This line exceeds the 100 character limit, please shorten it!
+
+Note: This linter can be disabled with `set_option linter.style.longLine false`
+/root/cm2-review-5/files/ctl.lean:495:100: warning: This line exceeds the 100 character limit, please shorten it!
+
+Note: This linter can be disabled with `set_option linter.style.longLine false`
+/root/cm2-review-5/files/ctl.lean:496:100: warning: This line exceeds the 100 character limit, please shorten it!
+You can use "string gaps" to format long strings: within a string quotation, using a '\' at the end of a line allows you to continue the string on the following line, removing all intervening whitespace.
+
+Note: This linter can be disabled with `set_option linter.style.longLine false`
+@VarTest.f0 : {n : Type u_1} → n → n
+/root/cm2-review-5/files/ctl.lean:519:33: error: Type mismatch
+  rfl
+has type
+  ?m.12 = ?m.12
+but is expected to have type
+  D150.pinv A = Ctl.pinv3 A
+rc=1

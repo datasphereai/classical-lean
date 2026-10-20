@@ -1,0 +1,17 @@
+/root/cm2-review-4/simple-ctl.lean:17:13: error(lean.unknownIdentifier): Unknown identifier `hdom`
+/root/cm2-review-4/simple-ctl.lean:14:64: error: unsolved goals
+E : Type u_1
+inst✝² : NormedAddCommGroup E
+inst✝¹ : InnerProductSpace ℝ E
+inst✝ : FiniteDimensional ℝ E
+T : E →ₗ[ℝ] E
+hT : T.IsSymmetric
+n : ℕ
+hn : Module.finrank ℝ E = n
+i₀ i₁ : Fin n
+hgap : |hT.eigenvalues hn i₁| < |hT.eigenvalues hn i₀|
+i : Fin n
+h : hT.eigenvalues hn i = hT.eigenvalues hn i₀
+hi : ¬i = i₀
+⊢ False
+rc=1

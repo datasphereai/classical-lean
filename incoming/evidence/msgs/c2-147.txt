@@ -1,0 +1,53 @@
+CLOUD-MATH-2 item 147: the power method, new module ClassicalLean/Analysis/PowerMethod.lean; with job 1 (statement files and their review) and the scratch work on items 150 to 153
+
+No linter or option switched off or on in the module. Job 1's scratch type-dump files (never a
+module) set pp.fullNames; el.sh refused them first on the token set_option (types-draft-147 to
+types-draft-153, NOT RUN) until set_option and pp.fullNames were added to the allowlist with
+reasons (allowlist lines), as was this.symm.
+
+Job 1, as evidence.log shows it: the drafts' names resolved under their own open lines (disc-*),
+one probe file with 441 #check lines, rc 0 (probe-inputs, probe-file, probes), and later probe
+files (probes2, probes3, probes4, probes7, probes8, probes9 rc 0; probes5 and probes6 rc 1, names
+not reachable from item 152's imports); defining modules located (loc147, loc151, loc147b,
+loc151b); the drafts' types dumped with pp.fullNames (types-drafts, types-d147 to types-d153);
+targeted imports tried on scratch copies of the drafts (imports-scratch to imports-scratch-4;
+imports-147 rc 1 on Real.ringHom_apply, imports-147b rc 0, imports-151 rc 0, imports-152 rc 1,
+imports-152b rc 0); the five statement files elaborated, rc 0, only sorry warnings (stmt-*,
+stmt2-*, fix150-script, stmt3-Pseudoinverse) and hashed (stmt-files); their types dumped
+(types-stmt, types-s147 to types-s153, types-153b, types-d153b, types-s153b) and compared by
+typecmp.py: every main theorem and definition SAME (typecmp-147, -150, -151, -152, -153b);
+typecmp-153 rc 1 for the private pick alone, which drops an instance its value never used; the
+negative control with no name map rc 1 (typecmp-control). The statement review rv1-statements
+(brief by mkbrief.py from HANDOFF.md, briefcheck PASS: mkbrief-script, mkbrief-rv1,
+briefcheck-rv1, brief-rv1; the reviewer's own runs rv1-*; status-before-rv1, status-after-rv1
+unchanged; the report hashed equal to the value returned, review-rv1): VERDICT FINDINGS 1, MINOR,
+a Huffman docstring line; fixed (stmt-huffman-fix, stmt4-Huffman rc 0) and confirmed by a fresh
+reviewer, rv1c-confirm (task-rv1c, mkbrief-rv1c, briefcheck-rv1c, brief-rv1c, its runs rv1c-*,
+review-rv1c): VERDICT CONFIRMED. During rv1c the repository status changed by this session's own
+item 147 files (status-before-rv1c, status-after-rv1c), a miss recorded in the evidence folder.
+
+Item 147: witness written from epoch 1792523234 to 1792523335 (witness-start-147,
+witness-end-147); the module assembled by script from the reviewed statement file and the draft's
+proofs, with show to change twice, the try ring deleted and the first chain replaced by simp, the
+step that fires (mod147-a), el.sh rc 0 with no message (m147-a, m147-module); lake build of the
+module rc 0, 0 warning lines (build-147, build-147-warn); the vacuity gate, a copy of
+tools/VacuityGate.lean whose only change is its import line, PASS with 1 reviewed helper
+(vac-control-file, vac-control on the base; vac-147-file, vac-147); check_sorry PASS 131,
+check_records PASS 131 (sorry-147, checkrec-147). The cold review rv2-147 (task-rv2-147,
+mkbrief-rv2-147, briefcheck-rv2-147, brief-rv2-147, status-before-rv2-147; its runs rv2-147-*;
+review-rv2-147, status-after-rv2-147 unchanged): VERDICT FINDINGS 2, both MINOR, docstrings; fixed
+in docstrings only (mod147-fix, mod147-fix-2, mod147-fix-3; m147-module-2, m147-module-3,
+build-147-2, build-147-3 each with one long-line warning from the fix's own wrap, then
+m147-module-4 rc 0 with no message and build-147-4 0 warning lines, build-147-2-warn,
+build-147-3-warn, build-147-4-warn), with the credit wording of incoming/README.md; confirmed by a
+fresh reviewer, rv2c-147 (task-rv2c-147, mkbrief-rv2c-147, briefcheck-rv2c-147, brief-rv2c-147,
+status-before-rv2c-147; its runs rv2c-147-*, rv2c-147-simple refused by rule 37, NOT RUN;
+review-rv2c-147, status-after-rv2c-147 unchanged): VERDICT CONFIRMED. On the final text:
+vacuity gate copy PASS (vac-147-2), check_sorry PASS 131 (sorry-147-2), check_records PASS 131
+(checkrec-147-2); staged: the module, one import line in ClassicalLean.lean, and the draft and its
+witness start removed from incoming/ (diffcheck-147).
+
+Scratch work on items 150 to 153 in the same log lines, not in this commit: their witnesses
+(witness-start-150 to witness-end-153) and module candidates (mod150-a, m150-a, mod151-a, m151-a,
+mod152-a, m152-a rc 1 on the witness's gradient, t152-grad, t152-grad-1, mod152-b, m152-b,
+mod153-a, m153-a, mod-credit-fix), rc 0 except where named.

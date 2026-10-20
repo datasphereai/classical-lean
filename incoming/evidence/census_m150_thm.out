@@ -1,0 +1,11 @@
+CENSUS 10
+NAME ClassicalLean.Algebra.Pseudoinverse.pinv_residual_dotProduct_le
+NAME ClassicalLean.Algebra.Pseudoinverse.pinv_residual_dotProduct_le._abel_1_1
+NAME ClassicalLean.Algebra.Pseudoinverse.transpose_mulVec_sub_mulVec_pinv
+NAME ClassicalLean.Algebra.Pseudoinverse.pinv.congr_simp
+NAME ClassicalLean.Algebra.Pseudoinverse.pinv_eq_leastSquares
+NAME ClassicalLean.Algebra.Pseudoinverse.exists_symm_ginv
+NAME ClassicalLean.Algebra.Pseudoinverse.exists_penrose
+NAME ClassicalLean.Algebra.Pseudoinverse.pinv_spec
+NAME ClassicalLean.Algebra.Pseudoinverse.pinv_unique
+NAME ClassicalLean.Algebra.Pseudoinverse.penrose_unique

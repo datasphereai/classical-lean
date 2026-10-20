@@ -1,0 +1,16 @@
+49,52c49,52
+< and on `pick_spec`, so the private `pick`, whose value never used the instance, no longer takes
+< it (`huffAux` and `huffmanLength` take it, as in the draft, for `Finset.erase`); `dite_eq_left`
+< and `dite_eq_right` for the deprecated `dif_pos` and `dif_neg`; `push Not` for the deprecated
+< `push_neg`.
+---
+> and on `pick_spec`, so the private `pick`, which used the instance only inside the proof it gives
+> `Classical.choose`, no longer takes it (`huffAux` and `huffmanLength` take it, as in the draft,
+> for `Finset.erase` and `Function.update`); `dite_eq_left` and `dite_eq_right` for the deprecated
+> `dif_pos` and `dif_neg`; `push Not` for the deprecated `push_neg`.
+234c234,236
+< /-- Merging `a` (longest) and `b` (second longest) into one symbol of length `ℓ b - 1`. -/
+---
+> /-- Merging `a` (longest) and `b` (second longest): some lengths on `s.erase b` have Kraft sum at
+> most `1` and cost, plus `w a + w b`, at most the cost of `ℓ` (the proof gives the merged symbol
+> the length `ℓ b - 1`). -/
