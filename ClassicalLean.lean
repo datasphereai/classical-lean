@@ -135,6 +135,7 @@ import ClassicalLean.InformationTheory.HanInequality
 import ClassicalLean.Probability.PolyaUrn
 import ClassicalLean.Analysis.FrankWolfe
 import ClassicalLean.Analysis.PowerMethod
+import ClassicalLean.Algebra.Pseudoinverse
 
 /-!
 # ClassicalLean
