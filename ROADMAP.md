@@ -748,6 +748,33 @@ The witnesses of items 107 and 109 build independent, identically distributed dr
 `Measure.infinitePi` (fair coins on `ℕ → Bool`, uniform letters of `Fin 4`); item 106's equality
 uses the standard normal law, Mathlib's `gaussianReal 0 1`.
 
+### 1.25 Five items from below the plan's cut (order CLOUD-MATH-2, round 66; merged by MERGE-2, round 67)
+
+Items 147, 150, 151, 152 and 153 of MATH-PLAN-library-2 sit below the plan's cut. Their proofs
+were drafted and reviewed outside the library (the lane's API-CREDIT-1 work; item 151's by order
+CC-151's Claude Code session); order CLOUD-MATH-2 landed them as five new modules in a cloud
+session on the GitHub branch `cloud-math-2`, each with witnesses and a cold review, and order
+MERGE-2 merged that branch into `master` on DSMain. Narrowing: none; `tendsto_powerIterate` and
+`huffman_optimal` are wider than their plan rows:
+
+* `Analysis/PowerMethod` (item 147): the power method. For a symmetric linear map of a
+  finite-dimensional real inner product space whose eigenvalue `λ₀` is larger in absolute value
+  than the eigenvalue at every other index, the iterates `T ^ k x`, rescaled to unit component
+  along the top eigenvector, tend to it, with error at most `C (|λ₁|/|λ₀|)^k`
+  (`tendsto_powerIterate`); a symmetric matrix is the case `Matrix.toEuclideanLin A`.
+* `Algebra/Pseudoinverse` (item 150): the Moore–Penrose pseudoinverse `pinv`, its four equations
+  (`pinv_spec`), uniqueness (`pinv_unique`), least squares for every design, a rank-deficient one
+  included (`pinv_residual_dotProduct_le`), and `pinv A = (Aᵀ A)⁻¹ Aᵀ` at full column rank
+  (`pinv_eq_leastSquares`).
+* `Probability/ChiSquared` (item 151): the chi-squared law, the sum of squares of `k ≥ 1`
+  independent standard normals has the gamma law with shape `k/2` and rate `1/2`
+  (`hasLaw_sum_sq_gaussian`).
+* `Analysis/KKT` (item 152): the KKT conditions are necessary under Slater's condition for convex
+  problems differentiable at the minimiser, on a real Hilbert space (`exists_kkt_of_slater`).
+* `InformationTheory/Huffman` (item 153): Huffman's code (`huffmanLength`) has the least mean
+  length among injective prefix-free codes over a two-letter alphabet, for any nonnegative weights,
+  and such a code with Huffman's lengths exists (`huffman_optimal`).
+
 ## 2. Categories to add
 
 Tiered by how much work they do inside the system that already exists, not by how interesting

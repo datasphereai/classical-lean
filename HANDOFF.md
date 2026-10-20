@@ -337,6 +337,29 @@ import closure (4161 → 4162 modules) and seen by the root build inside `rootru
 `used-head-build`). Also new: rules 38 and 39 below (a fresh root build before any tool that imports
 `ClassicalLean`; run citations in commit messages written by script).
 
+**Dated 2026-10-20 UTC (order MERGE-2, round 67; branch `merge-2`, DSMain):** one merge lands order
+CLOUD-MATH-2 (round 66, written in a cloud session on the GitHub branch `cloud-math-2`, `284dd5f`)
+on top of RULES-1. Five new modules, items 147, 150, 151, 152 and 153 of MATH-PLAN-library-2 (below
+its cut), each unchanged by the merge: `Analysis/PowerMethod` (item 147, the power method: for a
+symmetric linear map with a strictly dominant eigenvalue, the rescaled iterates tend to its
+eigenvector at rate `(|λ₁|/|λ₀|)^k`, `tendsto_powerIterate`), `Algebra/Pseudoinverse` (item 150,
+the Moore–Penrose pseudoinverse `pinv`: its four equations, uniqueness, least squares for every
+design, and `(Aᵀ A)⁻¹ Aᵀ` at full column rank), `Probability/ChiSquared` (item 151, the sum of
+squares of `k ≥ 1` independent standard normals has the gamma law with shape `k/2` and rate `1/2`,
+`hasLaw_sum_sq_gaussian`), `Analysis/KKT` (item 152, the KKT conditions are necessary under
+Slater's condition for convex differentiable problems, `exists_kkt_of_slater`) and
+`InformationTheory/Huffman` (item 153, Huffman's code has the least mean length among prefix-free
+binary codes, `huffman_optimal`, with `huffmanLength`). The merge conflicted only in
+`records/CLAIMS.md` and `records/orders/INDEX.md`, resolved by taking the branch's file and
+appending MERGE-2's row. The cloud session's report, predictions and reviews
+went to the lane (`lean/CLOUD-MATH-2-REPORT.md`, `lean/CLOUD-MATH-2-PREDICTIONS.md`,
+`lean/CLOUD-MATH-2-reviews.md`) and `incoming/` left the tree; its toolkit and evidence stay in
+history at `284dd5f` (`git show 284dd5f:incoming/README.md`, `git archive 284dd5f incoming/tools`).
+This section names no other list of modules, so the five are named here. Counts predicted from the
+cloud tip's measured gates, to be re-measured by this order's gates on the clean tree (round 67's
+fragment): **135 modules, 3458 theorem constants (3379 + 79, round 66's censuses), `lake build` 4188
+jobs, 0 warnings** (five Mathlib modules more, round 66's import closure).
+
 ---
 
 ## 2. What I claimed, and what I actually checked
