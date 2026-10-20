@@ -1,4 +1,10 @@
-import ClassicalLean.Analysis.GradientDescent
+/-
+Copyright (c) 2026 Dustin Watkins. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Dustin Watkins, Claude (Anthropic)
+-/
+
+import Mathlib.Analysis.Calculus.FDeriv.Mul
 import Mathlib.Analysis.LocallyConvex.Separation
 import Mathlib.Analysis.Calculus.LocalExtr.Basic
 import Mathlib.Analysis.Calculus.Gradient.Basic
@@ -6,13 +12,38 @@ import Mathlib.Analysis.Calculus.Gradient.Basic
 /-!
 # Necessity of the KKT conditions under Slater's condition
 
-For a convex differentiable problem `min f` subject to `g i x ≤ 0`, if some point satisfies all
-constraints strictly, then every minimiser admits nonnegative multipliers satisfying
-complementary slackness and stationarity.
+* `exists_kkt_of_slater` — order CLOUD-MATH-2, item 152 of MATH-PLAN-library-2. For the convex
+  problem of minimising `f x` subject to `g i x ≤ 0` for `i` in a finite type, on a real Hilbert
+  space, with `f` and every `g i` convex and differentiable at a feasible minimiser `xbar`
+  (gradients `a` and `b i`): if some point satisfies every constraint strictly (Slater's
+  condition), there are multipliers `w i ≥ 0` with complementary slackness `w i * g i xbar = 0`
+  and stationarity `a + ∑ i, w i • b i = 0`.
+
+The proof. The set `C` of pairs `(t, v)` such that `f x < t` and `g i x < v i` for every `i`, for
+some `x`, is convex and open, and `(f xbar, 0)` lies outside it because `xbar` is a feasible
+minimiser; a continuous linear functional `φ` separates the point from `C`
+(`geometric_hahn_banach_point_open`). `φ` is nonnegative on pairs with nonnegative coordinates, so
+`φ (t, v) = l₀ * t + ∑ i, v i * λ i` with `l₀ ≥ 0` and every `λ i ≥ 0`, and
+`l₀ * f xbar ≤ l₀ * f x + ∑ i, λ i * g i x` for every `x`. Slater's point rules out `l₀ = 0`.
+With `w i = λ i / l₀`, `f xbar ≤ f x + ∑ i, w i * g i x` for every `x`; at `x = xbar`, with
+feasibility, this gives complementary slackness, so `xbar` minimises the Lagrangian
+`f + ∑ i, w i * g i` over the whole space; the Lagrangian's derivative at `xbar`, the functional of
+`a + ∑ i, w i • b i`, vanishes there (`IsLocalMin.hasFDerivAt_eq_zero`), and so does that vector.
+
+The proof is the draft `d152-r2-s1` (written by Claude Opus 5.5 through the Anthropic Batch API,
+the lane's API-CREDIT-1 work), adapted by the Claude Code cloud session that landed it (order
+CLOUD-MATH-2): the namespace and docstrings; `change` where a `show` changed the goal; `push Not`
+for the deprecated `push_neg`; the names Mathlib now gives four deprecated `ContinuousLinearMap`
+lemmas (`add_apply`, `_root_.sum_apply`, `smul_apply`, `zero_apply`); and the import of
+`Mathlib.Analysis.Calculus.FDeriv.Mul` (for `HasFDerivAt.const_mul`) in place of the draft's
+import of the library's `ClassicalLean.Analysis.GradientDescent`, none of whose declarations the
+proof uses.
 -/
 
 open Finset
 open scoped RealInnerProductSpace
+
+namespace ClassicalLean.Analysis.KKT
 
 /-- A strict convex combination inequality. -/
 private lemma convex_comb_lt {s t a b c d : ℝ} (hs : 0 ≤ s) (ht : 0 ≤ t) (hst : s + t = 1)
@@ -22,10 +53,11 @@ private lemma convex_comb_lt {s t a b c d : ℝ} (hs : 0 ≤ s) (ht : 0 ≤ t) (
     rw [← h, ht1]; linarith
   · nlinarith [mul_lt_mul_of_pos_left hab h, mul_le_mul_of_nonneg_left hcd.le ht]
 
-/-- **KKT conditions are necessary under Slater's condition.** Let `f` and every `g i` be convex
-on a real Hilbert space, with gradients `a` and `b i` at `xbar`. If `xbar` is feasible and
-minimises `f` over `{x | ∀ i, g i x ≤ 0}`, and some point satisfies every constraint strictly,
-then there are multipliers `w i ≥ 0` with `w i · g i xbar = 0` and `a + ∑ w i b i = 0`. -/
+/-- **KKT conditions are necessary under Slater's condition** (item 152 of MATH-PLAN-library-2).
+Let `f` and every `g i` be convex on a real Hilbert space, with gradients `a` and `b i` at `xbar`.
+If `xbar` is feasible and minimises `f` over `{x | ∀ i, g i x ≤ 0}`, and some point satisfies
+every constraint strictly, then there are multipliers `w i ≥ 0` with `w i · g i xbar = 0` and
+`a + ∑ w i b i = 0`. -/
 theorem exists_kkt_of_slater {E : Type*} [NormedAddCommGroup E] [InnerProductSpace ℝ E]
     [CompleteSpace E] {ι : Type*} [Fintype ι] {f : E → ℝ} {g : ι → E → ℝ} {xbar a : E}
     {b : ι → E} (hf : ConvexOn ℝ Set.univ f) (hg : ∀ i, ConvexOn ℝ Set.univ (g i))
@@ -69,13 +101,13 @@ theorem exists_kkt_of_slater {E : Type*} [NormedAddCommGroup E] [InnerProductSpa
     exact absurd hx1 (not_lt.mpr hle)
   obtain ⟨φ, hφ⟩ := geometric_hahn_banach_point_open hCconv hCopen hpC
   have z0mem : ((f xbar + 1, fun i => g i xbar + 1) : ℝ × (ι → ℝ)) ∈ C :=
-    (hmem _).mpr ⟨xbar, by show f xbar < f xbar + 1; linarith,
-      fun i => by show g i xbar < g i xbar + 1; linarith⟩
+    (hmem _).mpr ⟨xbar, by change f xbar < f xbar + 1; linarith,
+      fun i => by change g i xbar < g i xbar + 1; linarith⟩
   -- nonnegative directions
   have hdir : ∀ d : ℝ × (ι → ℝ), 0 ≤ d.1 → (∀ i, 0 ≤ d.2 i) → 0 ≤ φ d := by
     intro d hd1 hd2
     by_contra hneg
-    push_neg at hneg
+    push Not at hneg
     obtain ⟨z0, hz0⟩ : ∃ z0, z0 ∈ C := ⟨_, z0mem⟩
     have hlt := hφ z0 hz0
     obtain ⟨s, hs_def⟩ : ∃ s : ℝ, s = (φ z0 - φ (f xbar, 0)) / (-φ d) := ⟨_, rfl⟩
@@ -118,7 +150,7 @@ theorem exists_kkt_of_slater {E : Type*} [NormedAddCommGroup E] [InnerProductSpa
   have key : ∀ x, l0 * f xbar ≤ l0 * f x + ∑ i, lam i * g i x := by
     intro x
     by_contra hcon
-    push_neg at hcon
+    push Not at hcon
     have hT : 0 ≤ ∑ i, lam i := Finset.sum_nonneg fun i _ => hlam_nn i
     obtain ⟨δ, hδ⟩ : ∃ δ : ℝ, δ = l0 * f xbar - (l0 * f x + ∑ i, lam i * g i x) := ⟨_, rfl⟩
     have hδpos : 0 < δ := by rw [hδ]; linarith
@@ -128,8 +160,8 @@ theorem exists_kkt_of_slater {E : Type*} [NormedAddCommGroup E] [InnerProductSpa
     have hden' := hden.ne'
     have hεK : ε * (l0 + ∑ i, lam i + 1) = δ := by rw [hε]; field_simp
     have hzmem : ((f x + ε, fun i => g i x + ε) : ℝ × (ι → ℝ)) ∈ C :=
-      (hmem _).mpr ⟨x, by show f x < f x + ε; linarith,
-        fun i => by show g i x < g i x + ε; linarith⟩
+      (hmem _).mpr ⟨x, by change f x < f x + ε; linarith,
+        fun i => by change g i x < g i x + ε; linarith⟩
     have h3 := hφ _ hzmem
     simp only [hdec, Pi.zero_apply, zero_mul, Finset.sum_const_zero, add_zero] at h3
     have hs : ∑ i, (g i x + ε) * lam i = ∑ i, lam i * g i x + ε * ∑ i, lam i := by
@@ -172,7 +204,7 @@ theorem exists_kkt_of_slater {E : Type*} [NormedAddCommGroup E] [InnerProductSpa
       have hinv : l0 * l0⁻¹ = 1 := mul_inv_cancel₀ hne
       linear_combination (lam i * g i x) * hinv
     by_contra hc
-    push_neg at hc
+    push Not at hc
     have := mul_lt_mul_of_pos_left hc hl0pos
     linarith
   have hterm : ∀ i, w i * g i xbar ≤ 0 := fun i =>
@@ -199,16 +231,55 @@ theorem exists_kkt_of_slater {E : Type*} [NormedAddCommGroup E] [InnerProductSpa
   have hLD := hfa'.add hsumD
   have hloc : IsLocalMin (fun x => f x + ∑ i, w i * g i x) xbar := by
     refine Filter.Eventually.of_forall fun x => ?_
-    show f xbar + ∑ i, w i * g i xbar ≤ f x + ∑ i, w i * g i x
+    change f xbar + ∑ i, w i * g i xbar ≤ f x + ∑ i, w i * g i x
     rw [hsum0, add_zero]
     exact hLag x
   have hD := hloc.hasFDerivAt_eq_zero hLD
   have hc : ⟪a + ∑ i, w i • b i, a + ∑ i, w i • b i⟫ = 0 := by
     have h2 := congrArg (fun D : E →L[ℝ] ℝ => D (a + ∑ i, w i • b i)) hD
-    simp only [ContinuousLinearMap.add_apply, ContinuousLinearMap.sum_apply,
-      ContinuousLinearMap.smul_apply, InnerProductSpace.toDual_apply_apply, smul_eq_mul,
-      ContinuousLinearMap.zero_apply] at h2
+    simp only [add_apply, _root_.sum_apply,
+      smul_apply, InnerProductSpace.toDual_apply_apply, smul_eq_mul,
+      zero_apply] at h2
     rw [inner_add_left, sum_inner]
     simp only [real_inner_smul_left]
     exact h2
   exact inner_self_eq_zero.mp hc
+
+end ClassicalLean.Analysis.KKT
+
+/-- The hypotheses of `exists_kkt_of_slater` hold together: on the real line, minimise
+`f x = x * x` subject to the two constraints `1 - x ≤ 0` and `x - 2 ≤ 0` (`ι = Fin 2`). The
+minimiser is `xbar = 1`, where the first constraint is active and the second is not; the gradients
+there are `a = 2` and `b = (-1, 1)`; the point `3 / 2` satisfies both constraints strictly. -/
+example := ClassicalLean.Analysis.KKT.exists_kkt_of_slater (E := ℝ) (ι := Fin 2)
+    (f := fun x => x * x) (g := ![fun x => 1 - x, fun x => x - 2]) (xbar := 1) (a := 2)
+    (b := ![-1, 1])
+    ⟨convex_univ, fun x _ y _ s t hs ht hst => by
+      obtain rfl : t = 1 - s := by linarith
+      simp only [smul_eq_mul]
+      nlinarith [mul_nonneg (mul_nonneg hs ht) (sq_nonneg (x - y))]⟩
+    (fun i => by
+      fin_cases i
+      · refine ⟨convex_univ, fun x _ y _ s t _ _ hst => ?_⟩
+        simp only [Fin.zero_eta, Fin.isValue, Matrix.cons_val_zero, smul_eq_mul]
+        linarith
+      · refine ⟨convex_univ, fun x _ y _ s t _ _ hst => ?_⟩
+        simp only [Fin.mk_one, Fin.isValue, Matrix.cons_val_one, Matrix.cons_val_fin_one,
+          smul_eq_mul]
+        linarith)
+    (by
+      rw [hasGradientAt_iff_hasFDerivAt]
+      refine ((hasFDerivAt_id (1 : ℝ)).mul (hasFDerivAt_id (1 : ℝ))).congr_fderiv ?_
+      ext
+      simp
+      norm_num)
+    (fun i => by
+      fin_cases i
+      · simpa using ((hasDerivAt_id (1 : ℝ)).const_sub 1).hasGradientAt'
+      · simpa using ((hasDerivAt_id (1 : ℝ)).sub_const 2).hasGradientAt')
+    ⟨3 / 2, fun i => by fin_cases i <;> norm_num⟩
+    (fun i => by fin_cases i <;> norm_num)
+    (isMinOn_iff.mpr fun x hx => by
+      have h0 := hx 0
+      simp only [Matrix.cons_val_zero] at h0
+      nlinarith)

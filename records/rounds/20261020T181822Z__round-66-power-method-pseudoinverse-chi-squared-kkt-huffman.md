@@ -95,6 +95,18 @@ type comparison found every main theorem and definition the same as the draft's.
   The module's `lake build`: 0 warning lines (`build-151`). Its witness takes `k = 3`, from
   claude-ai's satisfiability check `d151-r9-s1-sat.lean`. Its review, `rv2-151`: CLEAN, so no
   confirming pass.
+* **152** (`d152-r2-s1.lean`). Lines 72, 73, 131, 132 and 202: `show` became `change` (each changed
+  the goal). Lines 78, 121 and 175: the deprecated `push_neg` became `push Not`. Lines 208 to 210:
+  the deprecated `ContinuousLinearMap.add_apply`, `sum_apply`, `smul_apply` and `zero_apply` became
+  the names the warnings give, `add_apply`, `_root_.sum_apply` (the module opens `Finset`),
+  `smul_apply` and `zero_apply`. Imports: the draft's import of the library's
+  `ClassicalLean.Analysis.GradientDescent`, none of whose declarations the proof uses, became
+  `Mathlib.Analysis.Calculus.FDeriv.Mul`, the file of `HasFDerivAt.const_mul`, which the proof had
+  taken through it (without it `imports-152` rc 1; with it `imports-152b` rc 0). The module's
+  `lake build`: 0 warning lines (`build-152-2`). Its witness is new (the item had no witness
+  start): minimise `x * x` on the real line subject to `1 - x ≤ 0` and `x - 2 ≤ 0`. Its review,
+  `rv2-152`, had one MINOR finding in the module docstring's proof sketch, fixed in the docstring
+  only and confirmed by a fresh reviewer (`rv2c-152`).
 
 ## Steps out of the order's sequence (rule 18)
 

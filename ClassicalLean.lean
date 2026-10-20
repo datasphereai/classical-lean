@@ -137,6 +137,7 @@ import ClassicalLean.Analysis.FrankWolfe
 import ClassicalLean.Analysis.PowerMethod
 import ClassicalLean.Algebra.Pseudoinverse
 import ClassicalLean.Probability.ChiSquared
+import ClassicalLean.Analysis.KKT
 
 /-!
 # ClassicalLean
