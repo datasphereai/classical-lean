@@ -397,78 +397,178 @@ end RelativeEntropy
 end ClassicalLean.Probability.LikelihoodScore
 
 open MeasureTheory ProbabilityTheory Filter in
-/-- The hypotheses of `measureReal_sum_ge_le_exp_neg_relEntropy` hold together: under the uniform
-probability on two points, the filtration that knows nothing at time `0` and everything from time
-`1` on, and the outcomes `W 1 = 1` at the point `0` and `0` at the point `1`, `W n = 0` otherwise:
-all in `[0, 1]`, adapted (`W 0` is a constant); given time `0`, the mean of `W 1` is `1/2`, at most
-`p₀ = 1/2`, and later outcomes are `0`; `p₀ = 1/2 ≤ q = 3/4 < 1`, with `N = 1`, where the event
-`3/4 ≤ W 1` is the point `0`, of chance `1/2`, not empty. -/
+/-- The hypotheses of `measureReal_sum_ge_le_exp_neg_relEntropy` hold together: two genuine
+fair coins, under the uniform probability on `Bool × Bool`, `W 1` is the first coordinate and
+`W 2` the second (each `1` on `true`, `0` on `false`), `W 0 = 0`, and every later outcome `W n`,
+`n ≥ 3`, is `1/2` when the first coin is `true` and `0` otherwise; time `0` knows nothing, time
+`1` knows the first coin, later times know everything. Given time `0` the mean of `W 1` is `1/2`;
+given the first coin the mean of the second is `1/2`, by independence of the coordinates; from
+time `2` on each later outcome is known, so its conditional mean is itself, at most `1/2`;
+`p₀ = 1/2 ≤ q = 3/4 < 1`, with `N = 2`, where the event `3/2 ≤ W 1 + W 2` is that both coins are
+`1`, of chance `1/4`. -/
 example := ClassicalLean.Probability.LikelihoodScore.measureReal_sum_ge_le_exp_neg_relEntropy
-  (p₀ := 1 / 2) (q := 3 / 4) (Ω := Fin 2) (μ := uniformOn Set.univ)
-  (𝒢 := ⟨fun n ↦ if n = 0 then ⊥ else (inferInstance : MeasurableSpace (Fin 2)),
+  (p₀ := 1 / 2) (q := 3 / 4) (Ω := Bool × Bool) (μ := uniformOn Set.univ)
+  (𝒢 := ⟨fun n ↦ if n = 0 then ⊥ else if n = 1 then
+      MeasurableSpace.comap (fun ω : Bool × Bool ↦ if ω.1 then (1 : ℝ) else 0) inferInstance
+      else (inferInstance : MeasurableSpace (Bool × Bool)),
     fun i j hij ↦ by
-      rcases i with _ | i
+      have hm : MeasurableSpace.comap (fun ω : Bool × Bool ↦ if ω.1 then (1 : ℝ) else 0)
+          inferInstance ≤ (inferInstance : MeasurableSpace (Bool × Bool)) :=
+        measurable_iff_comap_le.1 (measurable_of_finite _)
+      rcases i with _ | _ | i
       · exact bot_le
-      · rcases j with _ | j
+      · rcases j with _ | _ | j
+        · omega
+        · exact le_rfl
+        · exact hm
+      · rcases j with _ | _ | j
+        · omega
         · omega
         · exact le_rfl,
-    fun i ↦ by rcases i with _ | i; exacts [bot_le, le_rfl]⟩)
-  (W := fun n ω ↦ if n = 1 ∧ ω = 0 then 1 else 0)
+    fun i ↦ by
+      have hm : MeasurableSpace.comap (fun ω : Bool × Bool ↦ if ω.1 then (1 : ℝ) else 0)
+          inferInstance ≤ (inferInstance : MeasurableSpace (Bool × Bool)) :=
+        measurable_iff_comap_le.1 (measurable_of_finite _)
+      rcases i with _ | _ | i
+      · exact bot_le
+      · exact hm
+      · exact le_rfl⟩)
+  (W := fun n ω ↦ if n = 1 then (if ω.1 then 1 else 0) else
+    if n = 2 then (if ω.2 then 1 else 0) else
+    if n = 0 then 0 else (if ω.1 then 1 / 2 else 0))
   (fun n ↦ by
-    rcases n with _ | n
-    · exact (stronglyMeasurable_const : StronglyMeasurable[⊥] fun _ : Fin 2 ↦ (0 : ℝ))
-    · exact (StronglyMeasurable.of_discrete :
-        StronglyMeasurable[(inferInstance : MeasurableSpace (Fin 2))] (_ : Fin 2 → ℝ)))
+    rcases n with _ | _ | n
+    · exact (stronglyMeasurable_const : StronglyMeasurable[⊥] fun _ : Bool × Bool ↦ (0 : ℝ))
+    · exact (measurable_iff_comap_le.2 le_rfl :
+        Measurable[MeasurableSpace.comap (fun ω : Bool × Bool ↦ if ω.1 then (1 : ℝ) else 0)
+          inferInstance] fun ω : Bool × Bool ↦ if ω.1 then (1 : ℝ) else 0).stronglyMeasurable
+    · exact ((measurable_of_finite _).stronglyMeasurable :
+        StronglyMeasurable[(inferInstance : MeasurableSpace (Bool × Bool))]
+          (_ : Bool × Bool → ℝ)))
   (fun _ _ ↦ by split_ifs <;> norm_num) (fun _ _ ↦ by split_ifs <;> norm_num)
   (fun n ↦ by
-    rcases n with _ | n
+    have hμ : ∀ x : Bool × Bool, (uniformOn Set.univ : Measure (Bool × Bool)).real {x} = 1 / 4 :=
+      fun x ↦ by simp [uniformOn_univ, Measure.real]
+    rcases n with _ | _ | n
     · change condExp ⊥ (uniformOn Set.univ) _ ≤ᵐ[uniformOn Set.univ] _
       rw [condExp_bot]
       refine Eventually.of_forall fun ω ↦ ?_
       rw [integral_fintype Integrable.of_finite]
-      simp [uniformOn_univ, Measure.real]
-    · change condExp (inferInstance : MeasurableSpace (Fin 2)) (uniformOn Set.univ) _ ≤ᵐ[_] _
-      rw [condExp_of_stronglyMeasurable le_rfl StronglyMeasurable.of_discrete
+      simp [hμ, Fintype.sum_prod_type]; norm_num
+    · classical
+      have hm : MeasurableSpace.comap (fun ω : Bool × Bool ↦ if ω.1 then (1 : ℝ) else 0)
+          inferInstance ≤ (inferInstance : MeasurableSpace (Bool × Bool)) :=
+        measurable_iff_comap_le.1 (measurable_of_finite _)
+      change condExp (MeasurableSpace.comap (fun ω : Bool × Bool ↦ if ω.1 then (1 : ℝ) else 0)
+          inferInstance) (uniformOn Set.univ) (fun ω : Bool × Bool ↦ if ω.2 then (1 : ℝ) else 0)
+          ≤ᵐ[uniformOn Set.univ] fun _ ↦ (1 / 2 : ℝ)
+      refine EventuallyEq.le (EventuallyEq.symm ?_)
+      refine ae_eq_condExp_of_forall_setIntegral_eq hm Integrable.of_finite
+        (fun s _ _ ↦ (integrable_const _).integrableOn) (fun s hs _ ↦ ?_)
+        stronglyMeasurable_const.aestronglyMeasurable
+      obtain ⟨t, -, rfl⟩ := MeasurableSpace.measurableSet_comap.mp hs
+      have hmeas : MeasurableSet ((fun ω : Bool × Bool ↦ if ω.1 then (1 : ℝ) else 0) ⁻¹' t) :=
+        hm _ hs
+      rw [← integral_indicator hmeas, ← integral_indicator hmeas,
+        integral_fintype Integrable.of_finite, integral_fintype Integrable.of_finite]
+      simp only [hμ, Fintype.sum_prod_type, Fintype.sum_bool, Set.indicator_apply,
+        Set.mem_preimage, smul_eq_mul]
+      by_cases h0 : (0 : ℝ) ∈ t <;> by_cases h1 : (1 : ℝ) ∈ t <;> simp [h0, h1] <;> norm_num
+    · change condExp (inferInstance : MeasurableSpace (Bool × Bool)) (uniformOn Set.univ)
+        (fun ω : Bool × Bool ↦ if ω.1 then (1 / 2 : ℝ) else 0) ≤ᵐ[uniformOn Set.univ] _
+      rw [condExp_of_stronglyMeasurable le_rfl
+        (measurable_of_finite
+          (fun ω : Bool × Bool ↦ if ω.1 then (1 / 2 : ℝ) else 0)).stronglyMeasurable
         Integrable.of_finite]
-      exact Eventually.of_forall fun ω ↦ by simp)
-  (by norm_num) (by norm_num) (by norm_num) (by norm_num) (N := 1)
+      exact Eventually.of_forall fun ω ↦ by rcases ω with ⟨_ | _, _⟩ <;> norm_num)
+  (by norm_num) (by norm_num) (by norm_num) (by norm_num) (N := 2)
 
 open MeasureTheory ProbabilityTheory Filter in
-/-- The hypotheses of `measureReal_sum_ge_le_exp_neg_sq` hold together: under the uniform
-probability on two points, the filtration that knows nothing at time `0` and everything from time
-`1` on, and the outcomes `W 1 = 1` at the point `0` and `0` at the point `1`, `W n = 0` otherwise:
-all in `[0, 1]`, adapted (`W 0` is a constant); given time `0`, the mean of `W 1` is `1/2`, at most
-`p₀ = 1/2`, and later outcomes are `0`; `p₀ = 1/2 ≤ q = 3/4 < 1`, with `N = 1`, where the event
-`3/4 ≤ W 1` is the point `0`, of chance `1/2`, not empty. -/
+/-- The hypotheses of `measureReal_sum_ge_le_exp_neg_sq` hold together: two genuine fair
+coins, under the uniform probability on `Bool × Bool`, `W 1` is the first coordinate and `W 2`
+the second (each `1` on `true`, `0` on `false`), `W 0 = 0`, and every later outcome `W n`,
+`n ≥ 3`, is `1/2` when the first coin is `true` and `0` otherwise; time `0` knows nothing, time
+`1` knows the first coin, later times know everything. Given time `0` the mean of `W 1` is `1/2`;
+given the first coin the mean of the second is `1/2`, by independence of the coordinates; from
+time `2` on each later outcome is known, so its conditional mean is itself, at most `1/2`;
+`p₀ = 1/2 ≤ q = 3/4 < 1`, with `N = 2`, where the event `3/2 ≤ W 1 + W 2` is that both coins are
+`1`, of chance `1/4`. -/
 example := ClassicalLean.Probability.LikelihoodScore.measureReal_sum_ge_le_exp_neg_sq
-  (p₀ := 1 / 2) (q := 3 / 4) (Ω := Fin 2) (μ := uniformOn Set.univ)
-  (𝒢 := ⟨fun n ↦ if n = 0 then ⊥ else (inferInstance : MeasurableSpace (Fin 2)),
+  (p₀ := 1 / 2) (q := 3 / 4) (Ω := Bool × Bool) (μ := uniformOn Set.univ)
+  (𝒢 := ⟨fun n ↦ if n = 0 then ⊥ else if n = 1 then
+      MeasurableSpace.comap (fun ω : Bool × Bool ↦ if ω.1 then (1 : ℝ) else 0) inferInstance
+      else (inferInstance : MeasurableSpace (Bool × Bool)),
     fun i j hij ↦ by
-      rcases i with _ | i
+      have hm : MeasurableSpace.comap (fun ω : Bool × Bool ↦ if ω.1 then (1 : ℝ) else 0)
+          inferInstance ≤ (inferInstance : MeasurableSpace (Bool × Bool)) :=
+        measurable_iff_comap_le.1 (measurable_of_finite _)
+      rcases i with _ | _ | i
       · exact bot_le
-      · rcases j with _ | j
+      · rcases j with _ | _ | j
+        · omega
+        · exact le_rfl
+        · exact hm
+      · rcases j with _ | _ | j
+        · omega
         · omega
         · exact le_rfl,
-    fun i ↦ by rcases i with _ | i; exacts [bot_le, le_rfl]⟩)
-  (W := fun n ω ↦ if n = 1 ∧ ω = 0 then 1 else 0)
+    fun i ↦ by
+      have hm : MeasurableSpace.comap (fun ω : Bool × Bool ↦ if ω.1 then (1 : ℝ) else 0)
+          inferInstance ≤ (inferInstance : MeasurableSpace (Bool × Bool)) :=
+        measurable_iff_comap_le.1 (measurable_of_finite _)
+      rcases i with _ | _ | i
+      · exact bot_le
+      · exact hm
+      · exact le_rfl⟩)
+  (W := fun n ω ↦ if n = 1 then (if ω.1 then 1 else 0) else
+    if n = 2 then (if ω.2 then 1 else 0) else
+    if n = 0 then 0 else (if ω.1 then 1 / 2 else 0))
   (fun n ↦ by
-    rcases n with _ | n
-    · exact (stronglyMeasurable_const : StronglyMeasurable[⊥] fun _ : Fin 2 ↦ (0 : ℝ))
-    · exact (StronglyMeasurable.of_discrete :
-        StronglyMeasurable[(inferInstance : MeasurableSpace (Fin 2))] (_ : Fin 2 → ℝ)))
+    rcases n with _ | _ | n
+    · exact (stronglyMeasurable_const : StronglyMeasurable[⊥] fun _ : Bool × Bool ↦ (0 : ℝ))
+    · exact (measurable_iff_comap_le.2 le_rfl :
+        Measurable[MeasurableSpace.comap (fun ω : Bool × Bool ↦ if ω.1 then (1 : ℝ) else 0)
+          inferInstance] fun ω : Bool × Bool ↦ if ω.1 then (1 : ℝ) else 0).stronglyMeasurable
+    · exact ((measurable_of_finite _).stronglyMeasurable :
+        StronglyMeasurable[(inferInstance : MeasurableSpace (Bool × Bool))]
+          (_ : Bool × Bool → ℝ)))
   (fun _ _ ↦ by split_ifs <;> norm_num) (fun _ _ ↦ by split_ifs <;> norm_num)
   (fun n ↦ by
-    rcases n with _ | n
+    have hμ : ∀ x : Bool × Bool, (uniformOn Set.univ : Measure (Bool × Bool)).real {x} = 1 / 4 :=
+      fun x ↦ by simp [uniformOn_univ, Measure.real]
+    rcases n with _ | _ | n
     · change condExp ⊥ (uniformOn Set.univ) _ ≤ᵐ[uniformOn Set.univ] _
       rw [condExp_bot]
       refine Eventually.of_forall fun ω ↦ ?_
       rw [integral_fintype Integrable.of_finite]
-      simp [uniformOn_univ, Measure.real]
-    · change condExp (inferInstance : MeasurableSpace (Fin 2)) (uniformOn Set.univ) _ ≤ᵐ[_] _
-      rw [condExp_of_stronglyMeasurable le_rfl StronglyMeasurable.of_discrete
+      simp [hμ, Fintype.sum_prod_type]; norm_num
+    · classical
+      have hm : MeasurableSpace.comap (fun ω : Bool × Bool ↦ if ω.1 then (1 : ℝ) else 0)
+          inferInstance ≤ (inferInstance : MeasurableSpace (Bool × Bool)) :=
+        measurable_iff_comap_le.1 (measurable_of_finite _)
+      change condExp (MeasurableSpace.comap (fun ω : Bool × Bool ↦ if ω.1 then (1 : ℝ) else 0)
+          inferInstance) (uniformOn Set.univ) (fun ω : Bool × Bool ↦ if ω.2 then (1 : ℝ) else 0)
+          ≤ᵐ[uniformOn Set.univ] fun _ ↦ (1 / 2 : ℝ)
+      refine EventuallyEq.le (EventuallyEq.symm ?_)
+      refine ae_eq_condExp_of_forall_setIntegral_eq hm Integrable.of_finite
+        (fun s _ _ ↦ (integrable_const _).integrableOn) (fun s hs _ ↦ ?_)
+        stronglyMeasurable_const.aestronglyMeasurable
+      obtain ⟨t, -, rfl⟩ := MeasurableSpace.measurableSet_comap.mp hs
+      have hmeas : MeasurableSet ((fun ω : Bool × Bool ↦ if ω.1 then (1 : ℝ) else 0) ⁻¹' t) :=
+        hm _ hs
+      rw [← integral_indicator hmeas, ← integral_indicator hmeas,
+        integral_fintype Integrable.of_finite, integral_fintype Integrable.of_finite]
+      simp only [hμ, Fintype.sum_prod_type, Fintype.sum_bool, Set.indicator_apply,
+        Set.mem_preimage, smul_eq_mul]
+      by_cases h0 : (0 : ℝ) ∈ t <;> by_cases h1 : (1 : ℝ) ∈ t <;> simp [h0, h1] <;> norm_num
+    · change condExp (inferInstance : MeasurableSpace (Bool × Bool)) (uniformOn Set.univ)
+        (fun ω : Bool × Bool ↦ if ω.1 then (1 / 2 : ℝ) else 0) ≤ᵐ[uniformOn Set.univ] _
+      rw [condExp_of_stronglyMeasurable le_rfl
+        (measurable_of_finite
+          (fun ω : Bool × Bool ↦ if ω.1 then (1 / 2 : ℝ) else 0)).stronglyMeasurable
         Integrable.of_finite]
-      exact Eventually.of_forall fun ω ↦ by simp)
-  (by norm_num) (by norm_num) (by norm_num) (by norm_num) (N := 1)
+      exact Eventually.of_forall fun ω ↦ by rcases ω with ⟨_ | _, _⟩ <;> norm_num)
+  (by norm_num) (by norm_num) (by norm_num) (by norm_num) (N := 2)
 
 open MeasureTheory ProbabilityTheory Filter in
 /-- The hypotheses of `measureReal_sum_ge_le_exp_neg_relEntropy'` hold together: at `q = 1`,

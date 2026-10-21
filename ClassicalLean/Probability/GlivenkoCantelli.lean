@@ -452,3 +452,20 @@ example := ClassicalLean.Probability.eventually_lt_sup_abs_empiricalCDF_sub_of_t
     rw [hu, probReal_univ]
     simp [Measure.real, Measure.dirac_apply' _ measurableSet_Iic]⟩
   (c := fun n ↦ 1 / ((n : ℝ) + 1)) tendsto_one_div_add_atTop_nhds_zero_nat
+
+/-- The hypotheses of `tendsto_sup_abs_empiricalCDF_sub` hold together: fair coins `ω i` on
+`ℕ → Bool` under `Measure.infinitePi` of the uniform law on `Bool`, `X i ω = 1` when `ω i` is
+true and `0` otherwise (independent, identically distributed, not constant). -/
+example := ClassicalLean.Probability.tendsto_sup_abs_empiricalCDF_sub (Ω := ℕ → Bool)
+  (μ := Measure.infinitePi fun _ : ℕ ↦ uniformOn (Set.univ : Set Bool))
+  (X := fun i ω ↦ if ω i then 1 else 0)
+  ((measurable_of_finite fun b : Bool ↦ if b then (1 : ℝ) else 0).comp (measurable_pi_apply 0))
+  (fun i j hij ↦ (iIndepFun_infinitePi (P := fun _ : ℕ ↦ uniformOn (Set.univ : Set Bool))
+    (X := fun _ b ↦ if b then (1 : ℝ) else 0)
+    fun _ ↦ measurable_of_finite _).indepFun hij)
+  (fun i ↦ (show IdentDistrib (fun ω : ℕ → Bool ↦ ω i) (fun ω : ℕ → Bool ↦ ω 0)
+      (Measure.infinitePi fun _ : ℕ ↦ uniformOn (Set.univ : Set Bool))
+      (Measure.infinitePi fun _ : ℕ ↦ uniformOn (Set.univ : Set Bool)) from
+    ⟨(measurable_pi_apply i).aemeasurable, (measurable_pi_apply 0).aemeasurable, by
+      rw [Measure.infinitePi_map_eval, Measure.infinitePi_map_eval]⟩).comp
+    (measurable_of_finite fun b : Bool ↦ if b then (1 : ℝ) else 0))

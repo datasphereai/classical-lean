@@ -696,3 +696,72 @@ example := ClassicalLean.Probability.EffectiveSampleSize.variance_average_le_of_
     norm_num
     rfl)
   (n := 3)
+
+/-- The hypotheses of `variance_average_eq_of_steady` hold together: on `ℕ → ℝ`, the product of
+the Gaussian laws `N(0, 4/3)` for coordinate `0` and `N(0, 1)` for every later one
+(`Measure.infinitePi`, a probability measure, whose instance Lean finds); the noises `Z i` the
+coordinates, independent (`iIndepFun_infinitePi`); the recursion `x (t + 1) = x t / 2 + Z (t + 1)`
+started at `x 0 = Z 0`, so `a = 1/2` (and `a² ≠ 1`), `s = 1`, and the start has the steady
+variance `4/3 = 1 / (1 - 1/4)`; `n = 3`. -/
+example := ClassicalLean.Probability.EffectiveSampleSize.variance_average_eq_of_steady
+  (Ω := ℕ → ℝ)
+  (μ := Measure.infinitePi fun i : ℕ ↦
+    gaussianReal 0 (if i = 0 then (⟨4 / 3, by norm_num⟩ : NNReal) else 1))
+  (Z := fun i ω ↦ ω i)
+  (x := fun t ↦ Nat.rec (motive := fun _ ↦ (ℕ → ℝ) → ℝ) (fun ω ↦ ω 0)
+    (fun k xk ω ↦ 1 / 2 * xk ω + ω (k + 1)) t)
+  (a := 1 / 2) (s := 1)
+  (fun i ↦ measurable_pi_apply i)
+  (fun i ↦ by
+    have h : MemLp id 2 ((Measure.infinitePi fun i : ℕ ↦
+        gaussianReal 0 (if i = 0 then (⟨4 / 3, by norm_num⟩ : NNReal) else 1)).map
+          (fun ω ↦ ω i)) := by
+      rw [Measure.infinitePi_map_eval]
+      exact memLp_id_gaussianReal' 2 (by norm_num)
+    exact (memLp_map_measure_iff aestronglyMeasurable_id (measurable_pi_apply i).aemeasurable).mp h)
+  (iIndepFun_infinitePi (X := fun _ ↦ id) fun _ ↦ measurable_id)
+  rfl (fun _ _ ↦ rfl) (by norm_num)
+  (fun t ↦ by
+    rw [← variance_id_map (measurable_pi_apply (t + 1)).aemeasurable, Measure.infinitePi_map_eval,
+      variance_id_gaussianReal]
+    simp)
+  (by
+    change Var[fun ω : ℕ → ℝ ↦ ω 0; _] = _
+    rw [← variance_id_map (measurable_pi_apply 0).aemeasurable, Measure.infinitePi_map_eval,
+      variance_id_gaussianReal]
+    norm_num
+    rfl)
+  (n := 3)
+
+/-- The hypotheses of `variance_average_le_of_steady` hold together: the same product of Gaussian
+laws on `ℕ → ℝ` (a probability measure, whose instance Lean finds), the same independent noises
+and recursion, so `0 ≤ a = 1/2 < 1`, `s = 1` and the steady start `4/3`; `n = 3`. -/
+example := ClassicalLean.Probability.EffectiveSampleSize.variance_average_le_of_steady
+  (Ω := ℕ → ℝ)
+  (μ := Measure.infinitePi fun i : ℕ ↦
+    gaussianReal 0 (if i = 0 then (⟨4 / 3, by norm_num⟩ : NNReal) else 1))
+  (Z := fun i ω ↦ ω i)
+  (x := fun t ↦ Nat.rec (motive := fun _ ↦ (ℕ → ℝ) → ℝ) (fun ω ↦ ω 0)
+    (fun k xk ω ↦ 1 / 2 * xk ω + ω (k + 1)) t)
+  (a := 1 / 2) (s := 1)
+  (fun i ↦ measurable_pi_apply i)
+  (fun i ↦ by
+    have h : MemLp id 2 ((Measure.infinitePi fun i : ℕ ↦
+        gaussianReal 0 (if i = 0 then (⟨4 / 3, by norm_num⟩ : NNReal) else 1)).map
+          (fun ω ↦ ω i)) := by
+      rw [Measure.infinitePi_map_eval]
+      exact memLp_id_gaussianReal' 2 (by norm_num)
+    exact (memLp_map_measure_iff aestronglyMeasurable_id (measurable_pi_apply i).aemeasurable).mp h)
+  (iIndepFun_infinitePi (X := fun _ ↦ id) fun _ ↦ measurable_id)
+  rfl (fun _ _ ↦ rfl) (by norm_num) (by norm_num)
+  (fun t ↦ by
+    rw [← variance_id_map (measurable_pi_apply (t + 1)).aemeasurable, Measure.infinitePi_map_eval,
+      variance_id_gaussianReal]
+    simp)
+  (by
+    change Var[fun ω : ℕ → ℝ ↦ ω 0; _] = _
+    rw [← variance_id_map (measurable_pi_apply 0).aemeasurable, Measure.infinitePi_map_eval,
+      variance_id_gaussianReal]
+    norm_num
+    rfl)
+  (n := 3)
