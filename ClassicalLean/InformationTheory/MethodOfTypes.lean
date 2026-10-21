@@ -30,6 +30,18 @@ import Mathlib.Probability.HasLawExists
   points of `E` (review r57): there Lean's `relEntropy` is a junk value that can be negative
   (`((−1, −1) ‖ (1/2, 1/2))` gives `−2 log 2`), which would only have weakened the bound. The
   matching lower bound (for open `E`) is not proved.
+* `le_measureReal_empirical_eq` — order LEAN-34, item 122: **Sanov's theorem, lower half, for
+  one type class**: if `q` is a type of `n` draws and `q i = 0` wherever `p i = 0`, the chance
+  that the type equals `q` is at least `(n + 1)^(−K) exp (−n D(q ‖ p))`. GENERALIZED against the
+  plan's row: `p ≥ 0` only, not a probability vector. The hypothesis `q i = 0` wherever
+  `p i = 0` is Lean's form of `D(q ‖ p) < ∞`: where it fails the true bound is `0`, but Lean's
+  `relEntropy` is finite there, so without it the bound is false (`p = (1, 0)`, `q = (0, 1)`,
+  `n = 1`). The proof is the draft `d122-r5-s1`
+  (written by Claude Opus 5.5 through the Anthropic Batch API, the lane's API-CREDIT-1 work),
+  adapted by order LEAN-34's session: inside this namespace, the draft's `variable` line dropped,
+  Mathlib's `Fin.consEquiv` and `Finset.prod_le_prod` in place of two of its helpers, and its
+  ℕ product lemma proved from this module's `prod_eq_prod_pow_typeCount`. Its witness is at the
+  end of the file.
 * `tendsto_neg_log_div_shannonEntropy` — order LEAN-32, item 109, **the asymptotic equipartition
   property**: for pairwise independent, identically distributed draws `X 0, X 1, …` with law `p`
   on the finite alphabet `α`, `−(1/n) ∑_{i<n} log p (X i) → H(p)` almost surely, `H` the
@@ -137,6 +149,175 @@ theorem empirical_nonneg {n : ℕ} (ω : Fin n → α) (i : α) : 0 ≤ empirica
 theorem sum_empirical {n : ℕ} (hn : n ≠ 0) (ω : Fin n → α) : ∑ i, empirical ω i = 1 := by
   simp only [empirical, ← sum_div, ← Nat.cast_sum, sum_typeCount]
   exact div_self (Nat.cast_ne_zero.2 hn)
+
+/-- The number of sequences of `n` draws with counts `c`. -/
+private def cnt (n : ℕ) (c : α → ℕ) : ℕ :=
+  (univ.filter fun ω : Fin n → α => typeCount ω = c).card
+
+omit [Fintype α] in
+private theorem typeCount_cons {n : ℕ} (a : α) (ω : Fin n → α) (i : α) :
+    typeCount (Fin.cons a ω : Fin (n + 1) → α) i = typeCount ω i + if a = i then 1 else 0 := by
+  simp only [typeCount, card_filter, Fin.sum_univ_succ, Fin.cons_zero, Fin.cons_succ]
+  exact add_comm _ _
+
+private theorem prod_eq_prod_pow_typeCount_nat {n : ℕ} (ω : Fin n → α) (f : α → ℕ) :
+    ∏ j, f (ω j) = ∏ i, f i ^ typeCount ω i := by
+  exact_mod_cast prod_eq_prod_pow_typeCount ω (fun i => (f i : ℝ))
+
+/-- `k ↦ N^k / k!` is largest at `k = N`. -/
+private theorem pow_mul_factorial_le (N c : ℕ) :
+    N ^ c * N.factorial ≤ N ^ N * c.factorial := by
+  rcases le_total c N with hcN | hNc
+  · have h1 := Nat.factorial_mul_descFactorial (show N - c ≤ N from Nat.sub_le N c)
+    rw [Nat.sub_sub_self hcN] at h1
+    have h2 := Nat.descFactorial_le_pow N (N - c)
+    have h3 : N ^ N = N ^ c * N ^ (N - c) := by rw [← pow_add, Nat.add_sub_of_le hcN]
+    calc N ^ c * N.factorial = N ^ c * (c.factorial * N.descFactorial (N - c)) := by rw [h1]
+      _ ≤ N ^ c * (c.factorial * N ^ (N - c)) :=
+          Nat.mul_le_mul le_rfl (Nat.mul_le_mul le_rfl h2)
+      _ = N ^ N * c.factorial := by rw [h3]; ring
+  · have h := Nat.factorial_mul_pow_sub_le_factorial hNc
+    have h3 : N ^ c = N ^ N * N ^ (c - N) := by rw [← pow_add, Nat.add_sub_of_le hNc]
+    calc N ^ c * N.factorial = N ^ N * (N.factorial * N ^ (c - N)) := by rw [h3]; ring
+      _ ≤ N ^ N * c.factorial := Nat.mul_le_mul le_rfl h
+
+/-- The size of a type class is the multinomial coefficient. -/
+private theorem cnt_mul_prod_factorial (n : ℕ) :
+    ∀ c : α → ℕ, ∑ i, c i = n → cnt n c * ∏ i, (c i).factorial = n.factorial := by
+  induction n with
+  | zero =>
+    intro c h
+    have hc : ∀ i, c i = 0 := fun i => Finset.sum_eq_zero_iff.1 h i (mem_univ i)
+    have hall : ∀ ω : Fin 0 → α, typeCount ω = c := fun ω => funext fun i => by
+      rw [hc i]; simp [typeCount]
+    have : cnt 0 c = 1 := by
+      rw [cnt, filter_true_of_mem fun ω _ => hall ω, card_univ]; simp
+    simp [this, hc]
+  | succ n ih =>
+    intro c h
+    have hsum : cnt (n + 1) c = ∑ a, ∑ ω : Fin n → α,
+        if (fun i => typeCount ω i + if a = i then 1 else 0) = c then 1 else 0 := by
+      rw [cnt, card_filter]
+      rw [(Fintype.sum_equiv (Fin.consEquiv fun _ => α)
+        (fun x => if typeCount ((Fin.consEquiv fun _ => α) x) = c then 1 else 0)
+        (fun ω => if typeCount ω = c then 1 else 0) fun x => rfl).symm, Fintype.sum_prod_type]
+      refine sum_congr rfl fun a _ => sum_congr rfl fun ω _ => ?_
+      show (if typeCount ((Fin.consEquiv fun _ => α) (a, ω)) = c then 1 else 0) =
+        (if (fun i => typeCount ω i + if a = i then 1 else 0) = c then 1 else 0)
+      rw [show typeCount ((Fin.consEquiv fun _ => α) (a, ω)) =
+          (fun i => typeCount ω i + if a = i then 1 else 0)
+        from funext fun i => typeCount_cons a ω i]
+    have per : ∀ a, (∑ ω : Fin n → α,
+        if (fun i => typeCount ω i + if a = i then 1 else 0) = c then 1 else 0) *
+          ∏ i, (c i).factorial = c a * n.factorial := by
+      intro a
+      rcases Nat.eq_zero_or_pos (c a) with h0 | hpos
+      · rw [h0, zero_mul]
+        have hno : ∀ ω : Fin n → α,
+            ¬ ((fun i => typeCount ω i + if a = i then 1 else 0) = c) := fun ω hω => by
+          have h' : typeCount ω a + (if a = a then 1 else 0) = c a := congrFun hω a
+          rw [ite_eq_left rfl] at h'
+          omega
+        rw [sum_eq_zero fun ω _ => ite_eq_right (hno ω), zero_mul]
+      · obtain ⟨c', hc'⟩ : ∃ c' : α → ℕ, c' = fun i => c i - if a = i then 1 else 0 := ⟨_, rfl⟩
+        have hc'a : ∀ i, c' i = c i - if a = i then 1 else 0 := fun i => by rw [hc']
+        have key : ∀ ω : Fin n → α,
+            ((fun i => typeCount ω i + if a = i then 1 else 0) = c) ↔ typeCount ω = c' := by
+          intro ω
+          constructor
+          · intro hω
+            funext i
+            have h1 : typeCount ω i + (if a = i then 1 else 0) = c i := congrFun hω i
+            rw [hc'a]
+            split_ifs at h1 ⊢ <;> omega
+          · intro hω
+            funext i
+            have h1 : typeCount ω i = c' i := congrFun hω i
+            rw [hc'a] at h1
+            change typeCount ω i + (if a = i then 1 else 0) = c i
+            split_ifs at h1 ⊢ with hai
+            · subst hai; omega
+            · omega
+        have hsumc' : ∑ i, c' i = n := by
+          have hsplit : ∀ i, c i = c' i + if a = i then 1 else 0 := fun i => by
+            rw [hc'a]
+            split_ifs with hai
+            · subst hai; omega
+            · omega
+          have h2 : ∑ i, c i = ∑ i, c' i + 1 := by
+            rw [sum_congr rfl fun i _ => hsplit i, sum_add_distrib]
+            simp
+          omega
+        have hcnt : (∑ ω : Fin n → α,
+            if (fun i => typeCount ω i + if a = i then 1 else 0) = c then 1 else 0) =
+              cnt n c' := by
+          rw [cnt, card_filter]
+          refine sum_congr rfl fun ω _ => ?_
+          by_cases hω : typeCount ω = c'
+          · rw [ite_eq_left ((key ω).2 hω), ite_eq_left hω]
+          · rw [ite_eq_right (mt (key ω).1 hω), ite_eq_right hω]
+        have hprod : ∏ i, (c i).factorial = c a * ∏ i, (c' i).factorial := by
+          rw [← mul_prod_erase univ (fun i => (c i).factorial) (mem_univ a),
+            ← mul_prod_erase univ (fun i => (c' i).factorial) (mem_univ a)]
+          have hca' : c' a = c a - 1 := by rw [hc'a, ite_eq_left rfl]
+          have hrest : ∏ i ∈ univ.erase a, (c i).factorial =
+              ∏ i ∈ univ.erase a, (c' i).factorial :=
+            prod_congr rfl fun i hi => by
+              rw [hc'a, ite_eq_right (Ne.symm (ne_of_mem_erase hi)), Nat.sub_zero]
+          rw [hrest, hca']
+          obtain ⟨m, hm⟩ : ∃ m, c a = m + 1 := ⟨c a - 1, by omega⟩
+          rw [hm, Nat.add_sub_cancel, Nat.factorial_succ]
+          ring
+        rw [hcnt, hprod, ← mul_assoc, mul_comm (cnt n c') (c a), mul_assoc, ih c' hsumc']
+    rw [hsum, sum_mul, sum_congr rfl fun a _ => per a, ← sum_mul, h, Nat.factorial_succ]
+
+/-- Under `q = N / n`, the class of `N` is at least as likely as any other class. -/
+private theorem cnt_mul_le (n : ℕ) (c N : α → ℕ) (hc : ∑ i, c i = n) (hN : ∑ i, N i = n) :
+    cnt n c * ∏ i, N i ^ c i ≤ cnt n N * ∏ i, N i ^ N i := by
+  have Ac := cnt_mul_prod_factorial n c hc
+  have AN := cnt_mul_prod_factorial n N hN
+  have hB : (∏ i, N i ^ c i) * ∏ i, (N i).factorial ≤
+      (∏ i, N i ^ N i) * ∏ i, (c i).factorial := by
+    rw [← prod_mul_distrib, ← prod_mul_distrib]
+    exact Finset.prod_le_prod fun i _ => pow_mul_factorial_le (N i) (c i)
+  have hpos : 0 < (∏ i, (N i).factorial) * ∏ i, (c i).factorial :=
+    Nat.mul_pos (prod_pos fun i _ => Nat.factorial_pos _) (prod_pos fun i _ => Nat.factorial_pos _)
+  refine le_of_mul_le_mul_right ?_ hpos
+  calc cnt n c * (∏ i, N i ^ c i) * ((∏ i, (N i).factorial) * ∏ i, (c i).factorial)
+      = (cnt n c * ∏ i, (c i).factorial) * ((∏ i, N i ^ c i) * ∏ i, (N i).factorial) := by
+        ring
+    _ ≤ (cnt n c * ∏ i, (c i).factorial) * ((∏ i, N i ^ N i) * ∏ i, (c i).factorial) :=
+        Nat.mul_le_mul le_rfl hB
+    _ = cnt n N * (∏ i, N i ^ N i) * ((∏ i, (N i).factorial) * ∏ i, (c i).factorial) := by
+        rw [Ac, ← AN]; ring
+
+/-- `n^n = ∑ over sequences of ∏ N(ω j)`, grouped by type and bounded by the largest class. -/
+private theorem pow_le_card_types (n : ℕ) (N : α → ℕ) (hN : ∑ i, N i = n) :
+    n ^ n ≤ (n + 1) ^ Fintype.card α * (cnt n N * ∏ i, N i ^ N i) := by
+  have h1 : n ^ n = ∑ ω : Fin n → α, ∏ j, N (ω j) := by
+    rw [← Fintype.prod_sum (fun (_ : Fin n) (i : α) => N i)]
+    simp [hN]
+  rw [h1, sum_congr rfl fun ω _ => prod_eq_prod_pow_typeCount_nat ω N]
+  rw [sum_comp (fun c : α → ℕ => ∏ i, N i ^ c i) (typeCount : (Fin n → α) → α → ℕ)]
+  have hle : ∀ b ∈ univ.image (typeCount : (Fin n → α) → α → ℕ),
+      (univ.filter fun ω : Fin n → α => typeCount ω = b).card • (∏ i, N i ^ b i) ≤
+        cnt n N * ∏ i, N i ^ N i := by
+    intro b hb
+    obtain ⟨ω, -, rfl⟩ := mem_image.1 hb
+    rw [smul_eq_mul]
+    exact cnt_mul_le n (typeCount ω) N (sum_typeCount ω) hN
+  refine le_trans (sum_le_sum hle) ?_
+  have hsub : univ.image (typeCount : (Fin n → α) → α → ℕ) ⊆
+      Fintype.piFinset fun _ : α => range (n + 1) := by
+    intro b hb
+    obtain ⟨ω, -, rfl⟩ := mem_image.1 hb
+    exact Fintype.mem_piFinset.2 fun i => mem_range.2 (Nat.lt_succ_of_le (typeCount_le ω i))
+  have hcard : (univ.image (typeCount : (Fin n → α) → α → ℕ)).card ≤
+      (n + 1) ^ Fintype.card α := by
+    calc _ ≤ (Fintype.piFinset fun _ : α => range (n + 1)).card := card_le_card hsub
+      _ = (n + 1) ^ Fintype.card α := by rw [Fintype.card_piFinset]; simp
+  rw [sum_const, smul_eq_mul]
+  exact Nat.mul_le_mul hcard le_rfl
 
 variable [MeasurableSpace α] [MeasurableSingletonClass α]
 
@@ -317,6 +498,99 @@ theorem tendsto_neg_log_div_shannonEntropy {Ω : Type*} [MeasurableSpace Ω] {μ
   simp only [Function.comp_apply, smul_eq_mul, Finset.sum_neg_distrib]
   ring
 
+/-- **Sanov's theorem, lower half, for one type class** (item 122 of MATH-PLAN-library-2; the
+draft `d122-r5-s1`, written by Claude Opus 5.5 through the Anthropic Batch API, the lane's
+API-CREDIT-1 work, adapted by order LEAN-34's session). If `q` is a type of `n` draws and
+`q i = 0` wherever `p i = 0`, the chance that `n` draws from `p` have type `q` is at least
+`(n + 1)^(−K) exp (−n D(q ‖ p))`, with `K = card α`. GENERALIZED against the plan's row (review r3
+of the API-credit drafts): `p` need only be nonnegative, not a probability vector. The hypothesis
+`hpq` is Lean's form of `D(q ‖ p) < ∞`: where it fails the true bound is `0`, but Lean's
+`relEntropy` is finite there, so without it the bound is false (`p = (1, 0)`, `q = (0, 1)`,
+`n = 1`). -/
+theorem le_measureReal_empirical_eq
+    {p : α → ℝ} (hp0 : ∀ i, 0 ≤ p i) (n : ℕ) (q : α → ℝ)
+    (hq : ∃ ω₀ : Fin n → α, empirical ω₀ = q) (hpq : ∀ i, p i = 0 → q i = 0) :
+    ((n : ℝ) + 1) ^ (-(Fintype.card α : ℝ)) * exp (-(n * relEntropy q p)) ≤
+      (draws n p).real {ω | empirical ω = q} := by
+  obtain ⟨ω₀, rfl⟩ := hq
+  rcases Nat.eq_zero_or_pos n with rfl | hn
+  · have hset : {ω : Fin 0 → α | empirical ω = empirical ω₀} = ↑(univ : Finset (Fin 0 → α)) := by
+      rw [coe_univ]
+      exact Set.eq_univ_of_forall fun ω => by
+        change empirical ω = empirical ω₀
+        rw [Subsingleton.elim ω ω₀]
+    rw [hset, measureReal_draws hp0]
+    simp
+  have hiff : ∀ ω : Fin n → α, empirical ω = empirical ω₀ ↔ typeCount ω = typeCount ω₀ := by
+    intro ω
+    constructor
+    · intro h
+      funext i
+      have := congrFun h i
+      simp only [empirical] at this
+      exact_mod_cast (div_left_inj' (Nat.cast_ne_zero.2 hn.ne')).1 this
+    · intro h
+      funext i
+      simp only [empirical, h]
+  have hset : {ω : Fin n → α | empirical ω = empirical ω₀} =
+      ↑(univ.filter fun ω : Fin n → α => typeCount ω = typeCount ω₀) := by
+    ext ω
+    simp only [Set.mem_ofPred_eq, mem_coe, mem_filter, mem_univ, true_and]
+    exact hiff ω
+  have hterm : ∀ ω ∈ univ.filter (fun ω : Fin n → α => typeCount ω = typeCount ω₀),
+      ∏ j, p (ω j) = ∏ i, p i ^ typeCount ω₀ i := by
+    intro ω hω
+    rw [prod_eq_prod_pow_typeCount ω p, (mem_filter.1 hω).2]
+  rw [hset, measureReal_draws hp0, sum_congr rfl hterm, sum_const, nsmul_eq_mul]
+  have hcnt : (univ.filter fun ω : Fin n → α => typeCount ω = typeCount ω₀).card =
+      cnt n (typeCount ω₀) := rfl
+  have hsupp : ∀ i, 0 < typeCount ω₀ i → p i ≠ 0 := fun i hi hpi =>
+    (show (0 : ℝ) < empirical ω₀ i by
+      unfold empirical; exact div_pos (Nat.cast_pos.2 hi) (Nat.cast_pos.2 hn)).ne' (hpq i hpi)
+  -- `p^N = q^N · exp (−n D(q ‖ p))` on the class
+  have hkey : ∏ i, p i ^ typeCount ω₀ i =
+      (∏ i, empirical ω₀ i ^ typeCount ω₀ i) * exp (-(n * relEntropy (empirical ω₀) p)) := by
+    have hD : (n : ℝ) * relEntropy (empirical ω₀) p =
+        ∑ i, (typeCount ω₀ i : ℝ) * Real.log (empirical ω₀ i / p i) := by
+      rw [relEntropy, mul_sum]
+      refine sum_congr rfl fun i _ ↦ ?_
+      rw [empirical, ← mul_assoc, mul_div_cancel₀ _ (Nat.cast_ne_zero.2 hn.ne')]
+    rw [hD, ← sum_neg_distrib, exp_sum, ← prod_mul_distrib]
+    refine prod_congr rfl fun i _ ↦ ?_
+    rcases Nat.eq_zero_or_pos (typeCount ω₀ i) with h0 | hpos
+    · simp [h0]
+    have hpi : 0 < p i := lt_of_le_of_ne (hp0 i) (Ne.symm (hsupp i hpos))
+    have hqi : 0 < empirical ω₀ i := by
+      unfold empirical; exact div_pos (Nat.cast_pos.2 hpos) (Nat.cast_pos.2 hn)
+    rw [show -((typeCount ω₀ i : ℝ) * Real.log (empirical ω₀ i / p i)) =
+        (typeCount ω₀ i : ℝ) * Real.log (p i / empirical ω₀ i) by
+      rw [show Real.log (empirical ω₀ i / p i) = -Real.log (p i / empirical ω₀ i) by
+        rw [← Real.log_inv, inv_div]]
+      ring, ← Real.log_pow, exp_log (pow_pos (div_pos hpi hqi) _),
+      div_pow, mul_div_cancel₀ _ (pow_pos hqi _).ne']
+  have hQ : ∏ i, empirical ω₀ i ^ typeCount ω₀ i =
+      (∏ i, (typeCount ω₀ i : ℝ) ^ typeCount ω₀ i) / (n : ℝ) ^ n := by
+    simp only [empirical, div_pow]
+    rw [prod_div_distrib, prod_pow_eq_pow_sum, sum_typeCount]
+  have hM := pow_le_card_types n (typeCount ω₀) (sum_typeCount ω₀)
+  have hMr : (n : ℝ) ^ n ≤ ((n : ℝ) + 1) ^ Fintype.card α *
+      ((cnt n (typeCount ω₀) : ℝ) * ∏ i, (typeCount ω₀ i : ℝ) ^ typeCount ω₀ i) := by
+    exact_mod_cast hM
+  rw [hcnt, hkey, hQ, Real.rpow_neg (show (0 : ℝ) ≤ (n : ℝ) + 1 by positivity),
+    Real.rpow_natCast]
+  generalize (∏ i, (typeCount ω₀ i : ℝ) ^ typeCount ω₀ i) = X at hMr ⊢
+  generalize ((cnt n (typeCount ω₀) : ℕ) : ℝ) = C at hMr ⊢
+  have hE := exp_pos (-(n * relEntropy (empirical ω₀) p))
+  have hnn : (0 : ℝ) < (n : ℝ) ^ n := pow_pos (Nat.cast_pos.2 hn) n
+  have hK : (0 : ℝ) < ((n : ℝ) + 1) ^ Fintype.card α := pow_pos (by positivity) _
+  have h1 : (((n : ℝ) + 1) ^ Fintype.card α)⁻¹ ≤ C * (X / (n : ℝ) ^ n) := by
+    rw [mul_div_assoc', le_div_iff₀ hnn]
+    calc (((n : ℝ) + 1) ^ Fintype.card α)⁻¹ * (n : ℝ) ^ n
+        ≤ (((n : ℝ) + 1) ^ Fintype.card α)⁻¹ * (((n : ℝ) + 1) ^ Fintype.card α * (C * X)) :=
+          mul_le_mul_of_nonneg_left hMr (inv_nonneg.2 hK.le)
+      _ = C * X := inv_mul_cancel_left₀ hK.ne' _
+  exact (mul_le_mul_of_nonneg_right h1 hE.le).trans_eq (mul_assoc _ _ _)
+
 end ClassicalLean.InformationTheory
 
 open ClassicalLean.Simplex in
@@ -360,3 +634,18 @@ example := ClassicalLean.InformationTheory.tendsto_neg_log_div_shannonEntropy (�
         ext k; fin_cases k <;> simp]
       rw [measureReal_def, uniformOn_univ, Measure.count_apply_finset]
       norm_num)
+
+/-- The hypotheses of `le_measureReal_empirical_eq` hold together: three letters; the law
+`p = (1/3, 2/3, 0)`, nonnegative, with a letter of chance `0`; `n = 2` draws; the vector
+`q = (1/2, 1/2, 0)`, the type of the draws `ω₀ = (0, 1)`; and `q i = 0` wherever `p i = 0`, which
+acts at the third letter, where both vanish. -/
+example := ClassicalLean.InformationTheory.le_measureReal_empirical_eq (α := Fin 3)
+  (p := ![1 / 3, 2 / 3, 0]) (fun i ↦ by fin_cases i <;> norm_num) (n := 2)
+  (q := ![1 / 2, 1 / 2, 0])
+  ⟨![0, 1], by
+    funext i
+    fin_cases i <;>
+      simp only [ClassicalLean.InformationTheory.empirical,
+        ClassicalLean.InformationTheory.typeCount, Finset.card_filter, Fin.sum_univ_two] <;>
+      norm_num⟩
+  (fun i h ↦ by fin_cases i <;> simp_all)
