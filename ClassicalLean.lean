@@ -141,6 +141,7 @@ import ClassicalLean.Analysis.KKT
 import ClassicalLean.InformationTheory.Huffman
 import ClassicalLean.Analysis.SubgradientMethod
 import ClassicalLean.Probability.EfronStein
+import ClassicalLean.InformationTheory.ChannelCapacity
 
 /-!
 # ClassicalLean

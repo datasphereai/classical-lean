@@ -115,6 +115,15 @@ and the assembler printed each one. Line numbers below are the draft's.
   lines (`build-121`, `build-121-warn`). Its two witnesses are new (the item had no witness
   start): two coordinates in `Fin 2` with the weights `(1/4, 3/4)` and `(1/2, 1/2)`,
   `f = x 0 + 2 * x 1`, and `c = (1, 2)`. Its review, `rv2-121`: CLEAN, so no confirming pass.
+* **130** (`d130-r1-s1.lean`). Lines 23, 25, 27, 29, 35, 97 and 117: `show` became `change` (each
+  changed the goal). Lines 24 and 30: the deprecated `if_pos` became `ite_eq_left`; lines 26 and
+  28: `if_neg` became `ite_eq_right` (`assemble-130`, 11 edits). The private `bscJoint` and its
+  five lemmas are inside `ClassicalLean.InformationTheory.ChannelCapacity` with the two main
+  theorems; `open ClassicalLean.Simplex` stays above the namespace; no name needed
+  `ClassicalLean.Simplex.` in full (job 1's type comparison). Its two imports are the draft's. The
+  module's `lake build`: 0 warning lines (`build-130`, `build-130-warn`). Its two witnesses are
+  new (the item had no witness start): `ε = 1 / 4`, and for `mutualInfo_bsc_le` the input
+  `(1 / 3, 2 / 3)`. Its review, `rv2-130`: CLEAN, so no confirming pass.
 
 ## Steps out of the order's sequence (rule 18)
 
