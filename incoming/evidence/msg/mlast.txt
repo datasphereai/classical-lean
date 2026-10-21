@@ -1,0 +1,22 @@
+CLOUD-MATH-3 close: the report, the reviews and the evidence in incoming/; round 68 completed, the CLAIMS row closed, the INDEX row's state
+
+No linter or option switched off or on. No .lean file in this commit.
+
+incoming/REPORT.md (the report), incoming/reviews/ (the eight review reports), incoming/evidence/
+(the session's evidence folder, every file, none over 1 MB); round 68's fragment completed with the
+commits, the census counts, the verdicts, the witnesses' times, both end checks and the misses;
+the CLAIMS row closed; the INDEX row's state set.
+
+What evidence.log shows since the predictions' commit: End check 1 on the clean tree at 8d3b810,
+every command as predicted: lake build rc 0, 4193 jobs (ec1-build), 0 lines with warning:
+(ec1-build-warn, grep rc 1 on no match); the axiom gate PASS 3517, 0 scoped exceptions
+(ec1-axiom); check_sorry PASS 140 (ec1-sorry); the vacuity gate PASS, 1 reviewed helper, 0
+VACUOUS-PENDING, rule 5 out on 0 (ec1-vacuity); check_records PASS 140 (ec1-records); the rules
+drift check PASS no drift (ec1-drift). End check 2: citecheck OK for all seven commits after
+313e9a7 (citecheck). git ls-remote origin master 04e4a38, as at the start (lsremote-end). The
+final statements printed by script (report-stmts); the report filled from it and from citecheck's
+output (fill-report); round 68's quotes checked, the planted misquote reported rc 1, the real ones
+OK (quotes-r68-manifest, quotes-r68-g-planted, quotes-r68-g); the reviews copied, each equal to
+its saved report (copy-reviews); the records files, the report and the reviews hashed
+(records-last); check_records PASS 140 (checkrec-last); this message hashed (msg-last); the
+evidence folder copied into incoming/evidence/ (copy-evidence).

@@ -1,0 +1,7 @@
+NAME ClassicalLean.InformationTheory.ChannelCapacity.bscJoint_nonneg
+NAME ClassicalLean.InformationTheory.ChannelCapacity.bscJoint_output_half
+NAME ClassicalLean.InformationTheory.ChannelCapacity.bscJoint_values
+NAME ClassicalLean.InformationTheory.ChannelCapacity.mul_mul_log_mul
+NAME ClassicalLean.InformationTheory.ChannelCapacity.mutualInfo_bscJoint
+NAME ClassicalLean.InformationTheory.ChannelCapacity.mutualInfo_bsc_half
+NAME ClassicalLean.InformationTheory.ChannelCapacity.mutualInfo_bsc_le

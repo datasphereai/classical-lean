@@ -1,0 +1,57 @@
+MODOF Eq.trans Init.Prelude
+MODOF Equiv.left_inv Mathlib.Logic.Equiv.Defs
+MODOF Equiv.right_inv Mathlib.Logic.Equiv.Defs
+MODOF Equiv.sum_comp Mathlib.Algebra.BigOperators.Group.Finset.Defs
+MODOF Fin Init.Prelude
+MODOF Fin.cons Mathlib.Data.Fin.Tuple.Basic
+MODOF Fin.cons_succ Mathlib.Data.Fin.Tuple.Basic
+MODOF Fin.cons_update Mathlib.Data.Fin.Tuple.Basic
+MODOF Fin.cons_zero Mathlib.Data.Fin.Tuple.Basic
+MODOF Fin.prod_univ_succ Mathlib.Algebra.BigOperators.Fin
+MODOF Fin.succ Init.Data.Fin.Basic
+MODOF Fin.sum_univ_succ Mathlib.Algebra.BigOperators.Fin
+MODOF Fin.tail Mathlib.Data.Fin.Tuple.Basic
+MODOF Fin.update_cons_zero Mathlib.Data.Fin.Tuple.Basic
+MODOF Finset Mathlib.Data.Finset.Defs
+MODOF Finset.exists_min_image Mathlib.Data.Finset.Max
+MODOF Finset.mem_univ Mathlib.Data.Fintype.Defs
+MODOF Finset.mul_sum Mathlib.Algebra.BigOperators.Ring.Finset
+MODOF Finset.not_nonempty_iff_eq_empty Mathlib.Data.Finset.Empty
+MODOF Finset.prod_nonneg Mathlib.Algebra.Order.BigOperators.GroupWithZero.Finset
+MODOF Finset.sum_add_distrib Mathlib.Algebra.BigOperators.Group.Finset.Basic
+MODOF Finset.sum_comm Mathlib.Algebra.BigOperators.Group.Finset.Sigma
+MODOF Finset.sum_congr Mathlib.Algebra.BigOperators.Group.Finset.Basic
+MODOF Finset.sum_empty Mathlib.Algebra.BigOperators.Group.Finset.Defs
+MODOF Finset.sum_le_sum Mathlib.Algebra.Order.BigOperators.Group.Finset
+MODOF Finset.sum_mul Mathlib.Algebra.BigOperators.Ring.Finset
+MODOF Finset.sum_nonneg Mathlib.Algebra.Order.BigOperators.Group.Finset
+MODOF Finset.sum_sub_distrib Mathlib.Algebra.BigOperators.Group.Finset.Defs
+MODOF Finset.univ Mathlib.Data.Fintype.Defs
+MODOF Fintype Mathlib.Data.Fintype.Defs
+MODOF Fintype.sum_prod_type Mathlib.Data.Fintype.BigOperators
+MODOF Fintype.sum_unique Mathlib.Algebra.BigOperators.Group.Finset.Basic
+MODOF Function.update Mathlib.Logic.Function.Basic
+MODOF LE.le.trans Mathlib.Order.Basic
+MODOF Nonempty Init.Prelude
+MODOF Trans.trans Init.Prelude
+MODOF add_le_add Mathlib.Algebra.Order.Monoid.Unbundled.Basic
+MODOF le_abs_self Mathlib.Algebra.Order.Group.Unbundled.Abs
+MODOF le_of_eq Mathlib.Order.Defs.PartialOrder
+MODOF mul_add Mathlib.Algebra.Ring.Defs
+MODOF mul_le_mul_of_nonneg_left Mathlib.Algebra.Order.GroupWithZero.Defs
+MODOF mul_nonneg Mathlib.Algebra.Order.GroupWithZero.Basic
+MODOF mul_one Mathlib.Algebra.Group.Monoid
+MODOF one_mul Mathlib.Algebra.Group.Monoid
+MODOF rfl Init.Prelude
+MODOF sq_nonneg Mathlib.Algebra.Order.Ring.Unbundled.Basic
+MODOF sub_nonneg Mathlib.Algebra.Order.Group.Unbundled.Basic
+MODOF sub_zero Mathlib.Algebra.Group.Basic
+MODOF zero_ne_one Mathlib.Algebra.NeZero
+MINIMAL Mathlib.Algebra.BigOperators.Fin
+MINIMAL Mathlib.Algebra.Order.BigOperators.GroupWithZero.Finset
+MINIMAL Mathlib.Algebra.Order.BigOperators.Group.Finset
+MINIMAL Mathlib.Algebra.Order.Ring.Unbundled.Basic
+/root/cm3-evidence/imports/loc121.lean:6:100: warning: This line exceeds the 100 character limit, please shorten it!
+
+Note: This linter can be disabled with `set_option linter.style.longLine false`
+rc=0

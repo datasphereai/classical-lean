@@ -1,0 +1,2 @@
+/-- **The uniform input attains the capacity** `log 2 - h(ε)` of the binary symmetric channel.
+Item 130 of MATH-PLAN-library-2 (order CLOUD-MATH-3). -/

@@ -1,0 +1,9 @@
+/root/cm3-evidence/mod/EfronStein.lean:353:20: error: unknown tactic
+/root/cm3-evidence/mod/EfronStein.lean:353:16: error: unsolved goals
+i a : Fin 2
+⊢ 0 ≤ ![![1 / 4, 3 / 4], ![1 / 2, 1 / 2]] i a
+/root/cm3-evidence/mod/EfronStein.lean:362:20: error: unknown tactic
+/root/cm3-evidence/mod/EfronStein.lean:362:16: error: unsolved goals
+i a : Fin 2
+⊢ 0 ≤ ![![1 / 4, 3 / 4], ![1 / 2, 1 / 2]] i a
+rc=1

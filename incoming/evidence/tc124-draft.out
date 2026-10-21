@@ -1,0 +1,72 @@
+/root/cm3-evidence/typecmp/tc124-draft.lean:14:6: warning: this tactic is never executed
+
+Note: This linter can be disabled with `set_option linter.unreachableTactic false`
+/root/cm3-evidence/typecmp/tc124-draft.lean:14:6: warning: Unused tactic linter: `(convert h1 using 1; ring)` does nothing
+
+Note: This linter can be disabled with `set_option linter.unusedTactic false`
+/root/cm3-evidence/typecmp/tc124-draft.lean:131:8: warning: The `show` tactic should only be used to indicate intermediate goal states for readability.
+However, this tactic invocation changed the goal. Please use `change` instead for these purposes.
+
+Note: This linter can be disabled with `set_option linter.style.show false`
+/root/cm3-evidence/typecmp/tc124-draft.lean:194:4: warning: `push_neg` has been deprecated. Prefer using `push Not` instead.
+If you'd rather continue using `push_neg` in your project, you can implement it as follows:
+```
+open Lean.Parser.Tactic in
+macro "push_neg" cfg:optConfig loc:(location)? : tactic =>
+  `(tactic| push $cfg:optConfig Not $[$loc]?)
+```
+/root/cm3-evidence/typecmp/tc124-draft.lean:146:8: warning: this tactic is never executed
+
+Note: This linter can be disabled with `set_option linter.unreachableTactic false`
+/root/cm3-evidence/typecmp/tc124-draft.lean:147:8: warning: this tactic is never executed
+
+Note: This linter can be disabled with `set_option linter.unreachableTactic false`
+/root/cm3-evidence/typecmp/tc124-draft.lean:148:8: warning: this tactic is never executed
+
+Note: This linter can be disabled with `set_option linter.unreachableTactic false`
+/root/cm3-evidence/typecmp/tc124-draft.lean:164:8: warning: this tactic is never executed
+
+Note: This linter can be disabled with `set_option linter.unreachableTactic false`
+/root/cm3-evidence/typecmp/tc124-draft.lean:178:8: warning: this tactic is never executed
+
+Note: This linter can be disabled with `set_option linter.unreachableTactic false`
+/root/cm3-evidence/typecmp/tc124-draft.lean:199:8: warning: this tactic is never executed
+
+Note: This linter can be disabled with `set_option linter.unreachableTactic false`
+/root/cm3-evidence/typecmp/tc124-draft.lean:226:6: warning: this tactic is never executed
+
+Note: This linter can be disabled with `set_option linter.unreachableTactic false`
+/root/cm3-evidence/typecmp/tc124-draft.lean:146:8: warning: Unused tactic linter: `exact hind.mgf_sum (fun i => (hmeas i).aemeasurable) s` does nothing
+
+Note: This linter can be disabled with `set_option linter.unusedTactic false`
+/root/cm3-evidence/typecmp/tc124-draft.lean:147:8: warning: Unused tactic linter: `exact hind.mgf_sum hmeas` does nothing
+
+Note: This linter can be disabled with `set_option linter.unusedTactic false`
+/root/cm3-evidence/typecmp/tc124-draft.lean:148:8: warning: Unused tactic linter: `exact hind.mgf_sum (fun i => (hmeas i).aemeasurable)` does nothing
+
+Note: This linter can be disabled with `set_option linter.unusedTactic false`
+/root/cm3-evidence/typecmp/tc124-draft.lean:164:8: warning: Unused tactic linter: `exact Filter.eventually_all_finset.mpr hb` does nothing
+
+Note: This linter can be disabled with `set_option linter.unusedTactic false`
+/root/cm3-evidence/typecmp/tc124-draft.lean:178:8: warning: Unused tactic linter: `exact (by simpa [Measure.real] using measure_ge_le_exp_mul_mgf t hl hSint)` does nothing
+
+Note: This linter can be disabled with `set_option linter.unusedTactic false`
+/root/cm3-evidence/typecmp/tc124-draft.lean:199:8: warning: Unused tactic linter: `(rw [div_nonneg_iff]; right; exact ⟨by nlinarith, by linarith⟩)` does nothing
+
+Note: This linter can be disabled with `set_option linter.unusedTactic false`
+/root/cm3-evidence/typecmp/tc124-draft.lean:226:6: warning: Unused tactic linter: `field_simp` does nothing
+
+Note: This linter can be disabled with `set_option linter.unusedTactic false`
+@measureReal_sum_ge_le_bernstein : ∀ {Ω : Type u_1} {ι : Type u_2} [inst : MeasurableSpace Ω]
+  {μ : MeasureTheory.Measure Ω} [MeasureTheory.IsProbabilityMeasure μ] {X : ι → Ω → ℝ} (s : Finset ι),
+  ProbabilityTheory.iIndepFun X μ →
+    (∀ (i : ι), Measurable (X i)) →
+      (∀ i ∈ s, MeasureTheory.Integrable (X i) μ) →
+        (∀ i ∈ s, MeasureTheory.Integrable (fun ω ↦ X i ω ^ 2) μ) →
+          (∀ i ∈ s, ∫ (ω : Ω), X i ω ∂μ = 0) →
+            ∀ {b v t : ℝ},
+              0 ≤ b →
+                (∀ i ∈ s, ∀ᵐ (ω : Ω) ∂μ, X i ω ≤ b) →
+                  ∑ i ∈ s, ∫ (ω : Ω), X i ω ^ 2 ∂μ ≤ v →
+                    0 ≤ t → μ.real {ω | t ≤ ∑ i ∈ s, X i ω} ≤ Real.exp (-t ^ 2 / (2 * (v + b * t / 3)))
+rc=0

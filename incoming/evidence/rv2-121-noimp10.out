@@ -1,0 +1,430 @@
+/root/cm3-review-4/noimp10.lean:59:60: error(lean.synthInstanceFailed): failed to synthesize instance of type class
+  HMul ℝ ℝ ?m.10
+
+Hint: Type class instance resolution failures can be inspected with the `set_option trace.Meta.synthInstance true` command.
+/root/cm3-review-4/noimp10.lean:59:55: error(lean.synthInstanceFailed): failed to synthesize instance of type class
+  AddCommMonoid ℝ
+
+Hint: Type class instance resolution failures can be inspected with the `set_option trace.Meta.synthInstance true` command.
+/root/cm3-review-4/noimp10.lean:62:66: error(lean.synthInstanceFailed): failed to synthesize instance of type class
+  HSub ℝ ℝ ?m.15
+
+Hint: Type class instance resolution failures can be inspected with the `set_option trace.Meta.synthInstance true` command.
+/root/cm3-review-4/noimp10.lean:62:54: error(lean.synthInstanceFailed): failed to synthesize instance of type class
+  AddCommMonoid ℝ
+
+Hint: Type class instance resolution failures can be inspected with the `set_option trace.Meta.synthInstance true` command.
+/root/cm3-review-4/noimp10.lean:66:2: error(lean.synthInstanceFailed): failed to synthesize instance of type class
+  CommMonoid ℝ
+
+Hint: Type class instance resolution failures can be inspected with the `set_option trace.Meta.synthInstance true` command.
+/root/cm3-review-4/noimp10.lean:83:72: error(lean.synthInstanceFailed): failed to synthesize instance of type class
+  AddCommMonoid ℝ
+
+Hint: Type class instance resolution failures can be inspected with the `set_option trace.Meta.synthInstance true` command.
+/root/cm3-review-4/noimp10.lean:84:26: error(lean.synthInstanceFailed): failed to synthesize instance of type class
+  HSub ℝ ℝ ?m.22
+
+Hint: Type class instance resolution failures can be inspected with the `set_option trace.Meta.synthInstance true` command.
+/root/cm3-review-4/noimp10.lean:84:53: error(lean.synthInstanceFailed): failed to synthesize instance of type class
+  HSub ℝ ℝ ?m.34
+
+Hint: Type class instance resolution failures can be inspected with the `set_option trace.Meta.synthInstance true` command.
+/root/cm3-review-4/noimp10.lean:84:14: error(lean.synthInstanceFailed): failed to synthesize instance of type class
+  AddCommMonoid ℝ
+
+Hint: Type class instance resolution failures can be inspected with the `set_option trace.Meta.synthInstance true` command.
+/root/cm3-review-4/noimp10.lean:85:17: error(lean.synthInstanceFailed): failed to synthesize instance of type class
+  HMul ℝ ℝ ?m.48
+
+Hint: Type class instance resolution failures can be inspected with the `set_option trace.Meta.synthInstance true` command.
+/root/cm3-review-4/noimp10.lean:85:12: error(lean.synthInstanceFailed): failed to synthesize instance of type class
+  AddCommMonoid ℝ
+
+Hint: Type class instance resolution failures can be inspected with the `set_option trace.Meta.synthInstance true` command.
+/root/cm3-review-4/noimp10.lean:102:67: error(lean.synthInstanceFailed): failed to synthesize instance of type class
+  AddCommMonoid ℝ
+
+Hint: Type class instance resolution failures can be inspected with the `set_option trace.Meta.synthInstance true` command.
+/root/cm3-review-4/noimp10.lean:103:27: error(lean.synthInstanceFailed): failed to synthesize instance of type class
+  HSub ℝ ℝ ?m.25
+
+Hint: Type class instance resolution failures can be inspected with the `set_option trace.Meta.synthInstance true` command.
+/root/cm3-review-4/noimp10.lean:103:4: error(lean.synthInstanceFailed): failed to synthesize instance of type class
+  LE ℝ
+
+Hint: Type class instance resolution failures can be inspected with the `set_option trace.Meta.synthInstance true` command.
+/root/cm3-review-4/noimp10.lean:103:15: error(lean.synthInstanceFailed): failed to synthesize instance of type class
+  AddCommMonoid ℝ
+
+Hint: Type class instance resolution failures can be inspected with the `set_option trace.Meta.synthInstance true` command.
+/root/cm3-review-4/noimp10.lean:108:76: error(lean.synthInstanceFailed): failed to synthesize instance of type class
+  LE ℝ
+
+Hint: Type class instance resolution failures can be inspected with the `set_option trace.Meta.synthInstance true` command.
+/root/cm3-review-4/noimp10.lean:109:4: error(lean.synthInstanceFailed): failed to synthesize instance of type class
+  LE ℝ
+
+Hint: Type class instance resolution failures can be inspected with the `set_option trace.Meta.synthInstance true` command.
+/root/cm3-review-4/noimp10.lean:108:76: error(lean.synthInstanceFailed): failed to synthesize instance of type class
+  OfNat ℝ 0
+numerals are polymorphic in Lean, but the numeral `0` cannot be used in a context where the expected type is
+  ℝ
+due to the absence of the instance above
+
+Hint: Type class instance resolution failures can be inspected with the `set_option trace.Meta.synthInstance true` command.
+/root/cm3-review-4/noimp10.lean:109:4: error(lean.synthInstanceFailed): failed to synthesize instance of type class
+  OfNat ℝ 0
+numerals are polymorphic in Lean, but the numeral `0` cannot be used in a context where the expected type is
+  ℝ
+due to the absence of the instance above
+
+Hint: Type class instance resolution failures can be inspected with the `set_option trace.Meta.synthInstance true` command.
+/root/cm3-review-4/noimp10.lean:112:76: error(lean.synthInstanceFailed): failed to synthesize instance of type class
+  LE ℝ
+
+Hint: Type class instance resolution failures can be inspected with the `set_option trace.Meta.synthInstance true` command.
+/root/cm3-review-4/noimp10.lean:113:11: error(lean.synthInstanceFailed): failed to synthesize instance of type class
+  AddCommMonoid ℝ
+
+Hint: Type class instance resolution failures can be inspected with the `set_option trace.Meta.synthInstance true` command.
+/root/cm3-review-4/noimp10.lean:113:48: error(lean.synthInstanceFailed): failed to synthesize instance of type class
+  HMul ℝ ℝ ?m.36
+
+Hint: Type class instance resolution failures can be inspected with the `set_option trace.Meta.synthInstance true` command.
+/root/cm3-review-4/noimp10.lean:113:27: error(lean.synthInstanceFailed): failed to synthesize instance of type class
+  LE ℝ
+
+Hint: Type class instance resolution failures can be inspected with the `set_option trace.Meta.synthInstance true` command.
+/root/cm3-review-4/noimp10.lean:112:76: error(lean.synthInstanceFailed): failed to synthesize instance of type class
+  OfNat ℝ 0
+numerals are polymorphic in Lean, but the numeral `0` cannot be used in a context where the expected type is
+  ℝ
+due to the absence of the instance above
+
+Hint: Type class instance resolution failures can be inspected with the `set_option trace.Meta.synthInstance true` command.
+/root/cm3-review-4/noimp10.lean:113:43: error(lean.synthInstanceFailed): failed to synthesize instance of type class
+  AddCommMonoid ℝ
+
+Hint: Type class instance resolution failures can be inspected with the `set_option trace.Meta.synthInstance true` command.
+/root/cm3-review-4/noimp10.lean:113:27: error(lean.synthInstanceFailed): failed to synthesize instance of type class
+  HPow ℝ ℕ ℝ
+
+Hint: Type class instance resolution failures can be inspected with the `set_option trace.Meta.synthInstance true` command.
+/root/cm3-review-4/noimp10.lean:113:54: error(lean.synthInstanceFailed): failed to synthesize instance of type class
+  HPow ℝ ℕ ℝ
+
+Hint: Type class instance resolution failures can be inspected with the `set_option trace.Meta.synthInstance true` command.
+/root/cm3-review-4/noimp10.lean:114:33: error(lean.synthInstanceFailed): failed to synthesize instance of type class
+  OfNat ℝ 0
+numerals are polymorphic in Lean, but the numeral `0` cannot be used in a context where the expected type is
+  ℝ
+due to the absence of the instance above
+
+Hint: Type class instance resolution failures can be inspected with the `set_option trace.Meta.synthInstance true` command.
+/root/cm3-review-4/noimp10.lean:123:16: error(lean.synthInstanceFailed): failed to synthesize instance of type class
+  LE ℝ
+
+Hint: Type class instance resolution failures can be inspected with the `set_option trace.Meta.synthInstance true` command.
+/root/cm3-review-4/noimp10.lean:123:32: error(lean.synthInstanceFailed): failed to synthesize instance of type class
+  AddCommMonoid ℝ
+
+Hint: Type class instance resolution failures can be inspected with the `set_option trace.Meta.synthInstance true` command.
+/root/cm3-review-4/noimp10.lean:123:58: error(lean.synthInstanceFailed): failed to synthesize instance of type class
+  LE ℝ
+
+Hint: Type class instance resolution failures can be inspected with the `set_option trace.Meta.synthInstance true` command.
+/root/cm3-review-4/noimp10.lean:123:74: error(lean.synthInstanceFailed): failed to synthesize instance of type class
+  AddCommMonoid ℝ
+
+Hint: Type class instance resolution failures can be inspected with the `set_option trace.Meta.synthInstance true` command.
+/root/cm3-review-4/noimp10.lean:125:26: error(lean.synthInstanceFailed): failed to synthesize instance of type class
+  HMul ℝ ℝ ?m.44
+
+Hint: Type class instance resolution failures can be inspected with the `set_option trace.Meta.synthInstance true` command.
+/root/cm3-review-4/noimp10.lean:125:21: error(lean.synthInstanceFailed): failed to synthesize instance of type class
+  AddCommMonoid ℝ
+
+Hint: Type class instance resolution failures can be inspected with the `set_option trace.Meta.synthInstance true` command.
+/root/cm3-review-4/noimp10.lean:125:46: error(lean.synthInstanceFailed): failed to synthesize instance of type class
+  HMul ℝ ℝ ?m.57
+
+Hint: Type class instance resolution failures can be inspected with the `set_option trace.Meta.synthInstance true` command.
+/root/cm3-review-4/noimp10.lean:125:4: error(lean.synthInstanceFailed): failed to synthesize instance of type class
+  LE ℝ
+
+Hint: Type class instance resolution failures can be inspected with the `set_option trace.Meta.synthInstance true` command.
+/root/cm3-review-4/noimp10.lean:123:16: error(lean.synthInstanceFailed): failed to synthesize instance of type class
+  OfNat ℝ 0
+numerals are polymorphic in Lean, but the numeral `0` cannot be used in a context where the expected type is
+  ℝ
+due to the absence of the instance above
+
+Hint: Type class instance resolution failures can be inspected with the `set_option trace.Meta.synthInstance true` command.
+/root/cm3-review-4/noimp10.lean:123:58: error(lean.synthInstanceFailed): failed to synthesize instance of type class
+  OfNat ℝ 0
+numerals are polymorphic in Lean, but the numeral `0` cannot be used in a context where the expected type is
+  ℝ
+due to the absence of the instance above
+
+Hint: Type class instance resolution failures can be inspected with the `set_option trace.Meta.synthInstance true` command.
+/root/cm3-review-4/noimp10.lean:125:41: error(lean.synthInstanceFailed): failed to synthesize instance of type class
+  AddCommMonoid ℝ
+
+Hint: Type class instance resolution failures can be inspected with the `set_option trace.Meta.synthInstance true` command.
+/root/cm3-review-4/noimp10.lean:126:41: error(lean.synthInstanceFailed): failed to synthesize instance of type class
+  HMul ℝ ℝ ?m.77
+
+Hint: Type class instance resolution failures can be inspected with the `set_option trace.Meta.synthInstance true` command.
+/root/cm3-review-4/noimp10.lean:126:36: error(lean.synthInstanceFailed): failed to synthesize instance of type class
+  AddCommMonoid ℝ
+
+Hint: Type class instance resolution failures can be inspected with the `set_option trace.Meta.synthInstance true` command.
+/root/cm3-review-4/noimp10.lean:126:64: error(lean.synthInstanceFailed): failed to synthesize instance of type class
+  HMul ℝ ℝ ?m.90
+
+Hint: Type class instance resolution failures can be inspected with the `set_option trace.Meta.synthInstance true` command.
+/root/cm3-review-4/noimp10.lean:126:59: error(lean.synthInstanceFailed): failed to synthesize instance of type class
+  AddCommMonoid ℝ
+
+Hint: Type class instance resolution failures can be inspected with the `set_option trace.Meta.synthInstance true` command.
+/root/cm3-review-4/noimp10.lean:128:2: error: No goals to be solved
+/root/cm3-review-4/noimp10.lean:152:79: error(lean.synthInstanceFailed): failed to synthesize instance of type class
+  LE ℝ
+
+Hint: Type class instance resolution failures can be inspected with the `set_option trace.Meta.synthInstance true` command.
+/root/cm3-review-4/noimp10.lean:153:11: error(lean.synthInstanceFailed): failed to synthesize instance of type class
+  AddCommMonoid ℝ
+
+Hint: Type class instance resolution failures can be inspected with the `set_option trace.Meta.synthInstance true` command.
+/root/cm3-review-4/noimp10.lean:153:47: error(lean.synthInstanceFailed): failed to synthesize instance of type class
+  HSub ℝ ℝ ?m.24
+
+Hint: Type class instance resolution failures can be inspected with the `set_option trace.Meta.synthInstance true` command.
+/root/cm3-review-4/noimp10.lean:153:46: error(lean.synthInstanceFailed): failed to synthesize instance of type class
+  LE ℝ
+
+Hint: Type class instance resolution failures can be inspected with the `set_option trace.Meta.synthInstance true` command.
+/root/cm3-review-4/noimp10.lean:153:65: error(lean.synthInstanceFailed): failed to synthesize instance of type class
+  LE ℝ
+
+Hint: Type class instance resolution failures can be inspected with the `set_option trace.Meta.synthInstance true` command.
+/root/cm3-review-4/noimp10.lean:152:79: error(lean.synthInstanceFailed): failed to synthesize instance of type class
+  OfNat ℝ 0
+numerals are polymorphic in Lean, but the numeral `0` cannot be used in a context where the expected type is
+  ℝ
+due to the absence of the instance above
+
+Hint: Type class instance resolution failures can be inspected with the `set_option trace.Meta.synthInstance true` command.
+/root/cm3-review-4/noimp10.lean:153:46: error(lean.synthInstanceFailed): failed to synthesize instance of type class
+  Lattice ℝ
+
+Hint: Type class instance resolution failures can be inspected with the `set_option trace.Meta.synthInstance true` command.
+/root/cm3-review-4/noimp10.lean:153:46: error(lean.synthInstanceFailed): failed to synthesize instance of type class
+  AddGroup ℝ
+
+Hint: Type class instance resolution failures can be inspected with the `set_option trace.Meta.synthInstance true` command.
+/root/cm3-review-4/noimp10.lean:153:76: error(lean.synthInstanceFailed): failed to synthesize instance of type class
+  HPow ℝ ℕ ℝ
+
+Hint: Type class instance resolution failures can be inspected with the `set_option trace.Meta.synthInstance true` command.
+/root/cm3-review-4/noimp10.lean:153:76: error(lean.synthInstanceFailed): failed to synthesize instance of type class
+  HDiv ℝ ℕ ℝ
+
+Hint: Type class instance resolution failures can be inspected with the `set_option trace.Meta.synthInstance true` command.
+/root/cm3-review-4/noimp10.lean:159:25: error(lean.synthInstanceFailed): failed to synthesize instance of type class
+  LinearOrder ℝ
+
+Hint: Type class instance resolution failures can be inspected with the `set_option trace.Meta.synthInstance true` command.
+/root/cm3-review-4/noimp10.lean:159:9: error: Tactic `rcases` failed: `x✝ : Sort u_5` is not an inductive datatype
+/root/cm3-review-4/noimp10.lean:171:18: error(lean.synthInstanceFailed): failed to synthesize instance of type class
+  LE ℝ
+
+Hint: Type class instance resolution failures can be inspected with the `set_option trace.Meta.synthInstance true` command.
+/root/cm3-review-4/noimp10.lean:171:46: error(lean.synthInstanceFailed): failed to synthesize instance of type class
+  LE ℝ
+
+Hint: Type class instance resolution failures can be inspected with the `set_option trace.Meta.synthInstance true` command.
+/root/cm3-review-4/noimp10.lean:171:18: error(lean.synthInstanceFailed): failed to synthesize instance of type class
+  OfNat ℝ 0
+numerals are polymorphic in Lean, but the numeral `0` cannot be used in a context where the expected type is
+  ℝ
+due to the absence of the instance above
+
+Hint: Type class instance resolution failures can be inspected with the `set_option trace.Meta.synthInstance true` command.
+/root/cm3-review-4/noimp10.lean:171:46: error(lean.synthInstanceFailed): failed to synthesize instance of type class
+  OfNat ℝ 0
+numerals are polymorphic in Lean, but the numeral `0` cannot be used in a context where the expected type is
+  ℝ
+due to the absence of the instance above
+
+Hint: Type class instance resolution failures can be inspected with the `set_option trace.Meta.synthInstance true` command.
+/root/cm3-review-4/noimp10.lean:183:4: error(lean.synthInstanceFailed): failed to synthesize instance of type class
+  AddCommMonoid ℝ
+
+Hint: Type class instance resolution failures can be inspected with the `set_option trace.Meta.synthInstance true` command.
+/root/cm3-review-4/noimp10.lean:183:26: error(lean.synthInstanceFailed): failed to synthesize instance of type class
+  AddCommMonoid ℝ
+
+Hint: Type class instance resolution failures can be inspected with the `set_option trace.Meta.synthInstance true` command.
+/root/cm3-review-4/noimp10.lean:183:15: error(lean.synthInstanceFailed): failed to synthesize instance of type class
+  AddCommMonoid ℝ
+
+Hint: Type class instance resolution failures can be inspected with the `set_option trace.Meta.synthInstance true` command.
+/root/cm3-review-4/noimp10.lean:184:7: error(lean.synthInstanceFailed): failed to synthesize instance of type class
+  AddCommMonoid ℝ
+
+Hint: Type class instance resolution failures can be inspected with the `set_option trace.Meta.synthInstance true` command.
+/root/cm3-review-4/noimp10.lean:184:18: error(lean.synthInstanceFailed): failed to synthesize instance of type class
+  AddCommMonoid ℝ
+
+Hint: Type class instance resolution failures can be inspected with the `set_option trace.Meta.synthInstance true` command.
+/root/cm3-review-4/noimp10.lean:185:19: error(lean.synthInstanceFailed): failed to synthesize instance of type class
+  AddCommMonoid ℝ
+
+Hint: Type class instance resolution failures can be inspected with the `set_option trace.Meta.synthInstance true` command.
+/root/cm3-review-4/noimp10.lean:185:8: error(lean.synthInstanceFailed): failed to synthesize instance of type class
+  AddCommMonoid ℝ
+
+Hint: Type class instance resolution failures can be inspected with the `set_option trace.Meta.synthInstance true` command.
+/root/cm3-review-4/noimp10.lean:187:19: error(lean.synthInstanceFailed): failed to synthesize instance of type class
+  AddCommMonoid ℝ
+
+Hint: Type class instance resolution failures can be inspected with the `set_option trace.Meta.synthInstance true` command.
+/root/cm3-review-4/noimp10.lean:187:8: error(lean.synthInstanceFailed): failed to synthesize instance of type class
+  AddCommMonoid ℝ
+
+Hint: Type class instance resolution failures can be inspected with the `set_option trace.Meta.synthInstance true` command.
+/root/cm3-review-4/noimp10.lean:184:46: error(lean.synthInstanceFailed): failed to synthesize instance of type class
+  AddCommMonoid ℝ
+
+Hint: Type class instance resolution failures can be inspected with the `set_option trace.Meta.synthInstance true` command.
+/root/cm3-review-4/noimp10.lean:191:41: error(lean.synthInstanceFailed): failed to synthesize instance of type class
+  HMul ℝ ℝ ?m.26
+
+Hint: Type class instance resolution failures can be inspected with the `set_option trace.Meta.synthInstance true` command.
+/root/cm3-review-4/noimp10.lean:192:13: warning: declaration uses `sorry`
+/root/cm3-review-4/noimp10.lean:196:9: error(lean.synthInstanceFailed): failed to synthesize instance of type class
+  HMul ℝ ℝ ?m.22
+
+Hint: Type class instance resolution failures can be inspected with the `set_option trace.Meta.synthInstance true` command.
+/root/cm3-review-4/noimp10.lean:197:50: error(lean.synthInstanceFailed): failed to synthesize instance of type class
+  HMul ℝ ℝ ?m.47
+
+Hint: Type class instance resolution failures can be inspected with the `set_option trace.Meta.synthInstance true` command.
+/root/cm3-review-4/noimp10.lean:198:6: error(lean.unknownIdentifier): Unknown identifier `sum_cons`
+/root/cm3-review-4/noimp10.lean:197:78: error: unsolved goals
+ℝ : Type u_2
+n : ℕ
+Ω : Fin (n + 1) → Type u_1
+inst✝ : (i : Fin (n + 1)) → Fintype (Ω i)
+p : (i : Fin (n + 1)) → Ω i → ℝ
+h : ((i : Fin (n + 1)) → Ω i) → ℝ
+⊢ ∑ x, sorry = ∑ y, weight (fun i ↦ p i.succ) y * ∑ a, sorry
+/root/cm3-review-4/noimp10.lean:206:30: error(lean.synthInstanceFailed): failed to synthesize instance of type class
+  AddCommMonoid ℝ
+
+Hint: Type class instance resolution failures can be inspected with the `set_option trace.Meta.synthInstance true` command.
+/root/cm3-review-4/noimp10.lean:206:48: error(lean.synthInstanceFailed): failed to synthesize instance of type class
+  AddCommMonoid ℝ
+
+Hint: Type class instance resolution failures can be inspected with the `set_option trace.Meta.synthInstance true` command.
+/root/cm3-review-4/noimp10.lean:214:14: error(lean.unknownIdentifier): Unknown identifier `sum_weight_cons`
+/root/cm3-review-4/noimp10.lean:228:2: error(lean.unknownIdentifier): Unknown identifier `sum_weight_cons`
+/root/cm3-review-4/noimp10.lean:232:51: error(lean.synthInstanceFailed): failed to synthesize instance of type class
+  AddCommMonoid ℝ
+
+Hint: Type class instance resolution failures can be inspected with the `set_option trace.Meta.synthInstance true` command.
+/root/cm3-review-4/noimp10.lean:233:51: error(lean.synthInstanceFailed): failed to synthesize instance of type class
+  HMul ℝ ℝ ?m.48
+
+Hint: Type class instance resolution failures can be inspected with the `set_option trace.Meta.synthInstance true` command.
+/root/cm3-review-4/noimp10.lean:237:20: error(lean.synthInstanceFailed): failed to synthesize instance of type class
+  HSub ℝ ℝ ?m.102
+
+Hint: Type class instance resolution failures can be inspected with the `set_option trace.Meta.synthInstance true` command.
+/root/cm3-review-4/noimp10.lean:236:27: error(lean.synthInstanceFailed): failed to synthesize instance of type class
+  AddCommMonoid ℝ
+
+Hint: Type class instance resolution failures can be inspected with the `set_option trace.Meta.synthInstance true` command.
+/root/cm3-review-4/noimp10.lean:238:4: error(lean.unknownIdentifier): Unknown identifier `sum_weight_cons`
+/root/cm3-review-4/noimp10.lean:235:57: error: unsolved goals
+ℝ : Type u_2
+n : ℕ
+Ω : Fin (n + 1) → Type u_1
+inst✝ : (i : Fin (n + 1)) → Fintype (Ω i)
+p : (i : Fin (n + 1)) → Ω i → ℝ
+f : ((i : Fin (n + 1)) → Ω i) → ℝ
+hp1 : sorry = 1
+⊢ variance p f = ∑ y, sorry + variance (fun j ↦ p j.succ) (marg p f)
+/root/cm3-review-4/noimp10.lean:249:51: error(lean.synthInstanceFailed): failed to synthesize instance of type class
+  AddCommMonoid ℝ
+
+Hint: Type class instance resolution failures can be inspected with the `set_option trace.Meta.synthInstance true` command.
+/root/cm3-review-4/noimp10.lean:251:6: error(lean.synthInstanceFailed): failed to synthesize instance of type class
+  HMul ℝ ℝ ?m.54
+
+Hint: Type class instance resolution failures can be inspected with the `set_option trace.Meta.synthInstance true` command.
+/root/cm3-review-4/noimp10.lean:250:32: error(lean.synthInstanceFailed): failed to synthesize instance of type class
+  AddCommMonoid ℝ
+
+Hint: Type class instance resolution failures can be inspected with the `set_option trace.Meta.synthInstance true` command.
+/root/cm3-review-4/noimp10.lean:253:50: error(lean.synthInstanceFailed): failed to synthesize instance of type class
+  HMul ℝ ℝ ?m.99
+
+Hint: Type class instance resolution failures can be inspected with the `set_option trace.Meta.synthInstance true` command.
+/root/cm3-review-4/noimp10.lean:252:40: error(lean.synthInstanceFailed): failed to synthesize instance of type class
+  AddCommMonoid ℝ
+
+Hint: Type class instance resolution failures can be inspected with the `set_option trace.Meta.synthInstance true` command.
+/root/cm3-review-4/noimp10.lean:254:4: error(lean.unknownIdentifier): Unknown identifier `sum_weight_cons`
+/root/cm3-review-4/noimp10.lean:251:87: error: unsolved goals
+ℝ : Type u_2
+n : ℕ
+Ω : Fin (n + 1) → Type u_1
+inst✝ : (i : Fin (n + 1)) → Fintype (Ω i)
+p : (i : Fin (n + 1)) → Ω i → ℝ
+f : ((i : Fin (n + 1)) → Ω i) → ℝ
+hp1 : sorry = 1
+⊢ expect p (coordVar p 0 f) = ∑ y, sorry
+/root/cm3-review-4/noimp10.lean:264:58: error(lean.synthInstanceFailed): failed to synthesize instance of type class
+  LE ℝ
+
+Hint: Type class instance resolution failures can be inspected with the `set_option trace.Meta.synthInstance true` command.
+/root/cm3-review-4/noimp10.lean:265:16: error(lean.synthInstanceFailed): failed to synthesize instance of type class
+  AddCommMonoid ℝ
+
+Hint: Type class instance resolution failures can be inspected with the `set_option trace.Meta.synthInstance true` command.
+/root/cm3-review-4/noimp10.lean:266:4: error(lean.synthInstanceFailed): failed to synthesize instance of type class
+  LE ℝ
+
+Hint: Type class instance resolution failures can be inspected with the `set_option trace.Meta.synthInstance true` command.
+/root/cm3-review-4/noimp10.lean:264:58: error(lean.synthInstanceFailed): failed to synthesize instance of type class
+  OfNat ℝ 0
+numerals are polymorphic in Lean, but the numeral `0` cannot be used in a context where the expected type is
+  ℝ
+due to the absence of the instance above
+
+Hint: Type class instance resolution failures can be inspected with the `set_option trace.Meta.synthInstance true` command.
+/root/cm3-review-4/noimp10.lean:269:50: error(lean.synthInstanceFailed): failed to synthesize instance of type class
+  HMul ℝ ℝ ?m.95
+
+Hint: Type class instance resolution failures can be inspected with the `set_option trace.Meta.synthInstance true` command.
+/root/cm3-review-4/noimp10.lean:268:45: error(lean.synthInstanceFailed): failed to synthesize instance of type class
+  AddCommMonoid ℝ
+
+Hint: Type class instance resolution failures can be inspected with the `set_option trace.Meta.synthInstance true` command.
+/root/cm3-review-4/noimp10.lean:270:4: error(lean.unknownIdentifier): Unknown identifier `sum_weight_cons`
+/root/cm3-review-4/noimp10.lean:267:42: error: unsolved goals
+ℝ : Type u_2
+n : ℕ
+Ω : Fin (n + 1) → Type u_1
+inst✝ : (i : Fin (n + 1)) → Fintype (Ω i)
+p : (i : Fin (n + 1)) → Ω i → ℝ
+f : ((i : Fin (n + 1)) → Ω i) → ℝ
+hp0 : (i : Fin (n + 1)) → Ω i → sorry
+hp1 : ∀ (i : Fin (n + 1)), sorry = 1
+i : Fin n
+⊢ sorry
+/root/cm3-review-4/noimp10.lean:287:32: error: maximum number of errors (100; from option `maxErrors`) reached, exiting
+rc=1

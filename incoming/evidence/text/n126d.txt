@@ -1,0 +1,2 @@
+so `F = 1 / 2`, and `k = 2`, is claude-ai's start for the order (`w126-tail.lean`), with the
+theorem called by its full name; it is why the file imports

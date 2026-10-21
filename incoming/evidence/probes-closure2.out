@@ -1,0 +1,6 @@
+Lean.Environment.header : Lean.Environment → Lean.EnvironmentHeader
+Lean.EnvironmentHeader.moduleNames : Lean.EnvironmentHeader → Array Lean.Name
+@Lean.getEnv : {m : Type → Type} → [self : Lean.MonadEnv m] → m Lean.Environment
+@Lean.logInfo : {m : Type → Type} →
+  [Monad m] → [Lean.MonadLog m] → [Lean.AddMessageContext m] → [Lean.MonadOptions m] → Lean.MessageData → m Unit
+rc=0

@@ -1,0 +1,13 @@
+{"edits": [
+ [23, "show p 0", "change p 0"],
+ [24, "if_pos rfl", "ite_eq_left rfl"],
+ [25, "show p 0", "change p 0"],
+ [26, "if_neg h01", "ite_eq_right h01"],
+ [27, "show p 1", "change p 1"],
+ [28, "if_neg h01.symm", "ite_eq_right h01.symm"],
+ [29, "show p 1", "change p 1"],
+ [30, "if_pos rfl", "ite_eq_left rfl"],
+ [35, "show 0 ≤", "change 0 ≤"],
+ [97, "show mutualInfo", "change mutualInfo"],
+ [117, "show mutualInfo", "change mutualInfo"]
+], "tail": null}

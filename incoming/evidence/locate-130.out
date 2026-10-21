@@ -1,0 +1,29 @@
+MODOF ClassicalLean.Simplex.mutualInfo ClassicalLean.InformationTheory.MutualInformation
+MODOF ClassicalLean.Simplex.mutualInfo_eq_shannonEntropy_add_shannonEntropy_sub_shannonEntropy ClassicalLean.InformationTheory.MutualInformation
+MODOF ClassicalLean.Simplex.shannonEntropy ClassicalLean.InformationTheory.Entropy
+MODOF ClassicalLean.Simplex.shannonEntropy_le_log_card ClassicalLean.InformationTheory.Entropy
+MODOF Eq.symm Init.Prelude
+MODOF Fin Init.Prelude
+MODOF Fin.forall_fin_two Init.Data.Fin.Lemmas
+MODOF Fin.sum_univ_two Mathlib.Algebra.BigOperators.Fin
+MODOF Finset.sum_nonneg Mathlib.Algebra.Order.BigOperators.Group.Finset
+MODOF Fintype.card_fin Mathlib.Data.Fintype.Card
+MODOF Fintype.sum_prod_type Mathlib.Data.Fintype.BigOperators
+MODOF Nat.cast_ofNat Mathlib.Data.Nat.Cast.Defs
+MODOF Ne.symm Init.Core
+MODOF Real.binEntropy Mathlib.Analysis.SpecialFunctions.BinaryEntropy
+MODOF Real.log Mathlib.Analysis.SpecialFunctions.Log.Basic
+MODOF Real.log_inv Mathlib.Analysis.SpecialFunctions.Log.Basic
+MODOF Real.log_mul Mathlib.Analysis.SpecialFunctions.Log.Basic
+MODOF eq_or_ne Mathlib.Basic.Logic.Basic
+MODOF funext Init.Prelude
+MODOF ite_eq_left Init.Core
+MODOF ite_eq_right Init.Core
+MODOF mul_nonneg Mathlib.Algebra.Order.GroupWithZero.Basic
+MODOF rfl Init.Prelude
+MINIMAL ClassicalLean.InformationTheory.MutualInformation
+MINIMAL Mathlib.Analysis.SpecialFunctions.BinaryEntropy
+/root/cm3-evidence/imports/loc130.lean:7:100: warning: This line exceeds the 100 character limit, please shorten it!
+
+Note: This linter can be disabled with `set_option linter.style.longLine false`
+rc=0

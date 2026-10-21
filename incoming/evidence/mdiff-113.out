@@ -1,0 +1,5 @@
+35c35,36
+< change.
+---
+> change. The witness at the end of the file, `f y = y ^ 2 / 2` on the real line with the step
+> `η = 1 / 2`, is new: the item had no witness start.

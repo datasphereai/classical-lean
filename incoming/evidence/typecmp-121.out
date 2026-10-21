@@ -1,0 +1,9 @@
+SAME ClassicalLean.Probability.EfronStein.wmean
+SAME ClassicalLean.Probability.EfronStein.wvar
+SAME ClassicalLean.Probability.EfronStein.weight
+SAME ClassicalLean.Probability.EfronStein.expect
+SAME ClassicalLean.Probability.EfronStein.variance
+SAME ClassicalLean.Probability.EfronStein.coordVar
+SAME ClassicalLean.Probability.EfronStein.variance_le_sum_variance_coord
+SAME ClassicalLean.Probability.EfronStein.variance_le_sum_sq_div_four
+TYPECMP 8/8

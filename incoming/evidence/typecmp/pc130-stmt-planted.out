@@ -1,0 +1,10 @@
+/root/cm3-evidence/typecmp/pc130-stmt.lean:52:16: warning: declaration uses `sorry`
+/root/cm3-evidence/typecmp/pc130-stmt.lean:57:16: warning: declaration uses `sorry`
+/root/cm3-evidence/typecmp/pc130-stmt.lean:62:16: warning: declaration uses `sorry`
+/root/cm3-evidence/typecmp/pc130-stmt.lean:67:16: warning: declaration uses `sorry`
+/root/cm3-evidence/typecmp/pc130-stmt.lean:74:16: warning: declaration uses `sorry`
+/root/cm3-evidence/typecmp/pc130-stmt.lean:82:8: warning: declaration uses `sorry`
+/root/cm3-evidence/typecmp/pc130-stmt.lean:90:8: warning: declaration uses `sorry`
+private def ClassicalLean.InformationTheory.ChannelCapacity.bscJoint : ℝ → (Fin 2 → ℝ) → Fin 2 × Fin 2 → ℝ :=
+fun ε p ab ↦ p ab.1 * if ab.1 = ab.2 then ε else ε
+rc=0

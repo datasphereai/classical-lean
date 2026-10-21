@@ -1,0 +1,9 @@
+/root/cm3-review-4/w2bad.lean:366:20: error: unsolved goals
+case «1».«0».«1»
+x : Fin 2 → Fin 2
+⊢ False
+
+case «1».«1».«0»
+x : Fin 2 → Fin 2
+⊢ False
+rc=1

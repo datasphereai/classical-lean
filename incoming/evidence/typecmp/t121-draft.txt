@@ -1,0 +1,16 @@
+set_option pp.fullNames true in
+#check @EfronStein.wmean
+set_option pp.fullNames true in
+#check @EfronStein.wvar
+set_option pp.fullNames true in
+#check @EfronStein.weight
+set_option pp.fullNames true in
+#check @EfronStein.expect
+set_option pp.fullNames true in
+#check @EfronStein.variance
+set_option pp.fullNames true in
+#check @EfronStein.coordVar
+set_option pp.fullNames true in
+#check @variance_le_sum_variance_coord
+set_option pp.fullNames true in
+#check @variance_le_sum_sq_div_four

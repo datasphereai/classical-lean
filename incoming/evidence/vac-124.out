@@ -1,0 +1,5 @@
+/root/cm3-evidence/vac/Vac124.lean:839:0: error: vacuity gate FAIL — 1 problem(s) (name, statement sha256); rule 5 ran out of its 400000 heartbeats on 0 theorems:
+  ClassicalLean.Simplex.orderedSimplex_subset_closedSimplex (stale entry in tools/vacuity_reviewed.txt)
+
+A statement is vacuous here if its conclusion is `True`; is one of its own hypotheses (`P → P`); follows from one hypothesis by applying it, with that hypothesis's premises met by the other hypotheses (`(∀ a, Q a → P a) → Q a → P a`, also through `⊆` and named definitions; a flag labelled `old case 3 only` matched a hypothesis's conclusion without meeting its premises); or is `∃ y, y = e` with `e` independent of `y` (provable by `⟨e, rfl⟩` for any `e`); or its hypotheses contradict each other (rule 5: `contradiction`, `linarith`, `omega`, `norm_num` or `decide` proves `False` from them).
+Such a theorem builds green and is sorry-free while proving nothing. State a real conclusion over real objects, or delete it. A deliberate helper that applies a hypothesis can go on tools/vacuity_reviewed.txt under its name and statement hash, after review.

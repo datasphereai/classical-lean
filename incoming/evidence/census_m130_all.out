@@ -1,0 +1,10 @@
+ALLCONST 9
+CONST ClassicalLean.InformationTheory.ChannelCapacity.mutualInfo_bsc_half
+CONST _private._stdin.0.ClassicalLean.InformationTheory.ChannelCapacity.bscJoint_nonneg
+CONST ClassicalLean.InformationTheory.ChannelCapacity.mutualInfo_bsc_le
+CONST _private._stdin.0.ClassicalLean.InformationTheory.ChannelCapacity.mul_mul_log_mul
+CONST Real.binEntropy.eq_1
+CONST _private._stdin.0.ClassicalLean.InformationTheory.ChannelCapacity.bscJoint_values
+CONST _private._stdin.0.ClassicalLean.InformationTheory.ChannelCapacity.mutualInfo_bscJoint
+CONST _private._stdin.0.ClassicalLean.InformationTheory.ChannelCapacity.bscJoint_output_half
+CONST _private._stdin.0.ClassicalLean.InformationTheory.ChannelCapacity.bscJoint

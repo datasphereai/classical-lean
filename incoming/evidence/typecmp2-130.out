@@ -1,0 +1,9 @@
+SAME ClassicalLean.InformationTheory.ChannelCapacity.bscJoint
+SAME ClassicalLean.InformationTheory.ChannelCapacity.bscJoint_values
+SAME ClassicalLean.InformationTheory.ChannelCapacity.bscJoint_nonneg
+SAME ClassicalLean.InformationTheory.ChannelCapacity.mul_mul_log_mul
+SAME ClassicalLean.InformationTheory.ChannelCapacity.mutualInfo_bscJoint
+SAME ClassicalLean.InformationTheory.ChannelCapacity.bscJoint_output_half
+SAME ClassicalLean.InformationTheory.ChannelCapacity.mutualInfo_bsc_le
+SAME ClassicalLean.InformationTheory.ChannelCapacity.mutualInfo_bsc_half
+TYPECMP 8/8
