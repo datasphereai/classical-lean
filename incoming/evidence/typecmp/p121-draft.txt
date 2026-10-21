@@ -1,0 +1,12 @@
+set_option pp.fullNames true in
+#print EfronStein.wmean
+set_option pp.fullNames true in
+#print EfronStein.wvar
+set_option pp.fullNames true in
+#print EfronStein.weight
+set_option pp.fullNames true in
+#print EfronStein.expect
+set_option pp.fullNames true in
+#print EfronStein.variance
+set_option pp.fullNames true in
+#print EfronStein.coordVar

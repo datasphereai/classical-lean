@@ -169,3 +169,93 @@ and the assembler printed each one. Line numbers below are the draft's.
   are equal.
 
 ## Completed after the work
+
+All five items are closed; no narrowing; no item undone; no entry added to
+`tools/vacuity_reviewed.txt`. Report: `incoming/REPORT.md`; reviews: `incoming/reviews/`;
+evidence: `incoming/evidence/` (no file over 1 MB, so none left out; one copied file,
+`scripts/__pycache__/pcopy.cpython-313.pyc`, a Python bytecode cache, is kept out of the commit by
+the repository's `.gitignore`; the report gives its size and sha256).
+
+**Commits** (branch `cloud-math-3`, each pushed with `git push origin cloud-math-3`):
+
+* `65c8797` — records first (the order's copy, its INDEX row, the CLAIMS row, this fragment's first
+  part, MERGE-2's push in its two rows);
+* `36eca2c` — item 113, `ClassicalLean/Analysis/SubgradientMethod.lean` (with job 1);
+* `334dd98` — item 121, `ClassicalLean/Probability/EfronStein.lean`;
+* `4a6dce7` — item 130, `ClassicalLean/InformationTheory/ChannelCapacity.lean`;
+* `7d05b24` — item 124, `ClassicalLean/Probability/BernsteinInequality.lean`;
+* `102383e` — item 126, `ClassicalLean/Probability/OrderStatistics.lean`;
+* `8d3b810` — `incoming/PREDICTIONS.md`;
+* the commit that carries this section — the report, the reviews, the evidence, the CLAIMS row
+  closed and the INDEX row's state (its own hash cannot be written in it).
+
+Each landing commit added its module's import line at the end of `ClassicalLean.lean`'s import
+block (landing order: SubgradientMethod, EfronStein, ChannelCapacity, BernsteinInequality,
+OrderStatistics) and removed its draft, and its witness start where it had one, from `incoming/`.
+
+**The modules and their theorem-constant counts**, from `census.sh` on each final module file
+(rule 27: the axiom gate's predicate, user names under `ClassicalLean`, private ones and
+auxiliaries included); their total, 59, plus the base's 3458 is the axiom gate's 3517 below:
+
+| module | item | theorem constants |
+|---|---|---|
+| `ClassicalLean/Analysis/SubgradientMethod.lean` | 113 | 2 (1 written, 1 `_abel` auxiliary) |
+| `ClassicalLean/Probability/EfronStein.lean` | 121 | 24 (18 written, 3 `_proof_`, 2 `_simp_`, `weight.eq_1`) |
+| `ClassicalLean/InformationTheory/ChannelCapacity.lean` | 130 | 7 (7 written) |
+| `ClassicalLean/Probability/BernsteinInequality.lean` | 124 | 6 (6 written) |
+| `ClassicalLean/Probability/OrderStatistics.lean` | 126 | 20 (4 written, 4 `_proof_`, 12 `_simp_`) |
+| **five modules** | | **59** |
+
+**Main theorems and their verdicts** (each docstring names its item of MATH-PLAN-library-2):
+113 `min_sub_le_of_subgradient` GENERALIZED (no convexity asked, only the subgradient inequality at
+the iterates); 121 `variance_le_sum_variance_coord` and `variance_le_sum_sq_div_four` FAITHFUL,
+with the definitions `wmean`, `wvar`, `weight`, `expect`, `variance` and `coordVar`; 130
+`mutualInfo_bsc_le` and `mutualInfo_bsc_half` FAITHFUL; 124 `measureReal_sum_ge_le_bernstein`
+FAITHFUL; 126 `measureReal_orderStat_le` FAITHFUL, with the definition `orderStat`. Each under its
+module's namespace.
+
+**Witnesses** (rule 4; seven, after each module's last line; epoch seconds from `date +%s` through
+`ev.sh`): 113 from 1792545066 to 1792545131; 121 (two) from 1792545205 to 1792545287; 130 (two)
+from 1792545453 to 1792545473; 124 from 1792545485 to 1792545512; 126 from 1792545512 to
+1792545525. All within their limits (1800 seconds; 3600 for 124 and 126).
+
+**Reviews** (`incoming/reviews/`, each by a fresh subagent; each report returned only its sha256,
+checked equal by `hl.sh` before it was opened; each brief built by script from `HANDOFF.md` and the
+order's copy, `briefcheck.py` PASS, hashed before it was sent): job 1's statement review
+`rv1-statements`, FINDINGS 1 (MINOR), confirmed `rv1c-confirm`; `rv2-113` CLEAN; `rv2-121` CLEAN;
+`rv2-130` CLEAN; `rv2-124` FINDINGS 1 (MINOR), confirmed `rv2c-124`; `rv2-126` CLEAN. Both
+findings were in docstrings; one fix-and-confirm round each. Every module reviewer checked that no
+main theorem's conclusion is a recursive predicate that is `True` everywhere: none is.
+
+**End check 1** (the clean tree at `8d3b810`, the predictions committed first; no fix or undo
+followed, so it ran once):
+
+| command | predicted | measured |
+|---|---|---|
+| `lake build` | rc 0, 4193 jobs, 0 warnings | rc 0, `Build completed successfully (4193 jobs).`, 0 `warning:` lines (`ec1-build`, `ec1-build-warn`) |
+| `lake env lean tools/AxiomGate.lean` | PASS 3517 | PASS 3517, 0 scoped exceptions (`ec1-axiom`) |
+| `python3 -I tools/check_sorry.py` | PASS 140 | PASS 140 (`ec1-sorry`) |
+| `lake env lean tools/VacuityGate.lean` | PASS, 1 reviewed helper, 0 VACUOUS-PENDING, rule 5 out on 0 | the same (`ec1-vacuity`) |
+| `python3 -I tools/check_records.py` | PASS 140, 1 exemption | the same (`ec1-records`) |
+| `python3 tools/compile_rules.py drift records/rules.toml HANDOFF.md` | `PASS no drift` | `PASS no drift` (`ec1-drift`) |
+
+**End check 2** (`citecheck.py` over every commit after `313e9a7`): `OK` for all seven, `65c8797`,
+`36eca2c`, `334dd98`, `4a6dce7`, `7d05b24`, `102383e` and `8d3b810` (`citecheck`).
+
+`git ls-remote origin master` at the start and at the end (`lsremote-start`, `lsremote-end`):
+`04e4a3842055026616256cf549ded9bf4bcfdd96`. CI: success on `313e9a7` and `65c8797`; the runs on
+`36eca2c`, `334dd98`, `4a6dce7`, `7d05b24` and `102383e` were cancelled by the next push, as the
+workflow's `concurrency` setting does; the run on `8d3b810` was in progress when this was written;
+the run on the last commit is read after its push, and its result is in the session's final
+message. CI was read through the GitHub tools for its runs' status only, never a log; those reads
+are not in `evidence.log`.
+
+**Misses** (each also in the report): the tool tests' first run on a tree that held this
+fragment's order copy (above); the label `records-113` used twice, for a `check_records` run and
+then a hash of this fragment (`hl.sh` does not refuse a used label); a few logged predictions that
+were wrong guesses, each named where it is cited (`closure-base-kinds`); failed runs that were my
+own errors and were re-run under new labels (`mkprobes-*`, a relative path; `probes-closure`, a
+wrong name; `disc-*`, which read no theorem body; three import sets of 121 that were too small);
+some fix files hashed only after the confirming pass noticed them (`fix-files-late`); and module
+copies into the tree made by `cp`, checked equal afterwards by `cmp` (`moddiff-*`), not written
+through the helper.

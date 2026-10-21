@@ -1,0 +1,14 @@
+@RCLike.inner_apply : ∀ {𝕜 : Type u_1} [inst : RCLike 𝕜] (x y : 𝕜), inner 𝕜 x y = y * (starRingEnd 𝕜) x
+@conj_trivial : ∀ {R : Type u_1} [inst : CommSemiring R] [inst_1 : StarRing R] [TrivialStar R] (a : R),
+  (starRingEnd R) a = a
+Real.norm_eq_abs : ∀ (r : ℝ), ‖r‖ = |r|
+@abs_of_pos : ∀ {α : Type u_1} [inst : Lattice α] [inst_1 : AddGroup α] {a : α} [AddLeftMono α], 0 < a → |a| = a
+@pow_le_one₀ : ∀ {M₀ : Type u_1} [inst : MonoidWithZero M₀] [inst_1 : Preorder M₀] {a : M₀} [PosMulMono M₀] {n : ℕ},
+  0 ≤ a → a ≤ 1 → a ^ n ≤ 1
+@smul_eq_mul : ∀ {α : Type u_1} [inst : Mul α] (a b : α), a • b = a * b
+@pow_succ : ∀ {M : Type u_1} [inst : Monoid M] (a : M) (n : ℕ), a ^ (n + 1) = a ^ n * a
+@sq_nonneg : ∀ {R : Type u_1} [inst : Semiring R] [inst_1 : LinearOrder R] [ExistsAddOfLE R] [PosMulMono R]
+  [AddLeftMono R] (a : R), 0 ≤ a ^ 2
+@pow_pos : ∀ {M₀ : Type u_1} [inst : MonoidWithZero M₀] [inst_1 : PartialOrder M₀] {a : M₀} [PosMulStrictMono M₀]
+  [ZeroLEOneClass M₀], 0 < a → ∀ (n : ℕ), 0 < a ^ n
+rc=0

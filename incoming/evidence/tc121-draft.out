@@ -1,0 +1,49 @@
+/root/cm3-evidence/typecmp/tc121-draft.lean:81:6: warning: The `show` tactic should only be used to indicate intermediate goal states for readability.
+However, this tactic invocation changed the goal. Please use `change` instead for these purposes.
+
+Note: This linter can be disabled with `set_option linter.style.show false`
+/root/cm3-evidence/typecmp/tc121-draft.lean:93:8: warning: The `show` tactic should only be used to indicate intermediate goal states for readability.
+However, this tactic invocation changed the goal. Please use `change` instead for these purposes.
+
+Note: This linter can be disabled with `set_option linter.style.show false`
+/root/cm3-evidence/typecmp/tc121-draft.lean:207:4: warning: The `show` tactic should only be used to indicate intermediate goal states for readability.
+However, this tactic invocation changed the goal. Please use `change` instead for these purposes.
+
+Note: This linter can be disabled with `set_option linter.style.show false`
+/root/cm3-evidence/typecmp/tc121-draft.lean:220:2: warning: The `show` tactic should only be used to indicate intermediate goal states for readability.
+However, this tactic invocation changed the goal. Please use `change` instead for these purposes.
+
+Note: This linter can be disabled with `set_option linter.style.show false`
+/root/cm3-evidence/typecmp/tc121-draft.lean:228:4: warning: The `show` tactic should only be used to indicate intermediate goal states for readability.
+However, this tactic invocation changed the goal. Please use `change` instead for these purposes.
+
+Note: This linter can be disabled with `set_option linter.style.show false`
+/root/cm3-evidence/typecmp/tc121-draft.lean:241:6: warning: The `show` tactic should only be used to indicate intermediate goal states for readability.
+However, this tactic invocation changed the goal. Please use `change` instead for these purposes.
+
+Note: This linter can be disabled with `set_option linter.style.show false`
+@EfronStein.wmean : {α : Type u_1} → [Fintype α] → (α → ℝ) → (α → ℝ) → ℝ
+@EfronStein.wvar : {α : Type u_1} → [Fintype α] → (α → ℝ) → (α → ℝ) → ℝ
+@EfronStein.weight : {n : ℕ} → {Ω : Fin n → Type u_1} → ((i : Fin n) → Ω i → ℝ) → ((i : Fin n) → Ω i) → ℝ
+@EfronStein.expect : {n : ℕ} →
+  {Ω : Fin n → Type u_1} → [(i : Fin n) → Fintype (Ω i)] → ((i : Fin n) → Ω i → ℝ) → (((i : Fin n) → Ω i) → ℝ) → ℝ
+@EfronStein.variance : {n : ℕ} →
+  {Ω : Fin n → Type u_1} → [(i : Fin n) → Fintype (Ω i)] → ((i : Fin n) → Ω i → ℝ) → (((i : Fin n) → Ω i) → ℝ) → ℝ
+@EfronStein.coordVar : {n : ℕ} →
+  {Ω : Fin n → Type u_1} →
+    [(i : Fin n) → Fintype (Ω i)] →
+      ((i : Fin n) → Ω i → ℝ) → Fin n → (((i : Fin n) → Ω i) → ℝ) → ((i : Fin n) → Ω i) → ℝ
+@variance_le_sum_variance_coord : ∀ {n : ℕ} {Ω : Fin n → Type u_1} [inst : (i : Fin n) → Fintype (Ω i)]
+  (p : (i : Fin n) → Ω i → ℝ),
+  (∀ (i : Fin n) (a : Ω i), 0 ≤ p i a) →
+    (∀ (i : Fin n), ∑ a, p i a = 1) →
+      ∀ (f : ((i : Fin n) → Ω i) → ℝ), EfronStein.variance p f ≤ ∑ i, EfronStein.expect p (EfronStein.coordVar p i f)
+@variance_le_sum_sq_div_four : ∀ {n : ℕ} {Ω : Fin n → Type u_1} [inst : (i : Fin n) → Fintype (Ω i)]
+  (p : (i : Fin n) → Ω i → ℝ),
+  (∀ (i : Fin n) (a : Ω i), 0 ≤ p i a) →
+    (∀ (i : Fin n), ∑ a, p i a = 1) →
+      ∀ (f : ((i : Fin n) → Ω i) → ℝ) (c : Fin n → ℝ),
+        (∀ (i : Fin n) (x : (i : Fin n) → Ω i) (a b : Ω i),
+            |f (Function.update x i a) - f (Function.update x i b)| ≤ c i) →
+          EfronStein.variance p f ≤ ∑ i, c i ^ 2 / 4
+rc=0

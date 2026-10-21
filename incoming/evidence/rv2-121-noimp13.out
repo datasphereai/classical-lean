@@ -1,0 +1,91 @@
+/root/cm3-review-4/noimp13.lean:90:7: error: unknown tactic
+/root/cm3-review-4/noimp13.lean:87:85: error: unsolved goals
+α : Type u_1
+inst✝ : Fintype α
+r h : α → ℝ
+hr1 : ∑ a, r a = 1
+m : ℝ
+hμ : ∑ a, r a * h a = wmean r h
+a : α
+x✝ : a ∈ Finset.univ
+⊢ r a * (h a - wmean r h) = r a * h a - r a * wmean r h
+/root/cm3-review-4/noimp13.lean:86:48: error: unsolved goals
+α : Type u_1
+inst✝ : Fintype α
+r h : α → ℝ
+hr1 : ∑ a, r a = 1
+m : ℝ
+hμ : ∑ a, r a * h a = wmean r h
+this : ∑ a, r a * (h a - wmean r h) = ∑ a, r a * h a - (∑ a, r a) * wmean r h
+⊢ ∑ a, r a * (h a - wmean r h) = 0
+/root/cm3-review-4/noimp13.lean:84:75: error: unsolved goals
+α : Type u_1
+inst✝ : Fintype α
+r h : α → ℝ
+hr1 : ∑ a, r a = 1
+m : ℝ
+hμ : ∑ a, r a * h a = wmean r h
+h2 : ∑ a, r a * (h a - wmean r h) = 0
+⊢ ∑ a, r a * (h a - m) ^ 2 = wvar r h + (wmean r h - m) ^ 2
+/root/cm3-review-4/noimp13.lean:136:7: error: unknown tactic
+/root/cm3-review-4/noimp13.lean:132:54: error: unsolved goals
+α : Type u_1
+β : Type u_2
+inst✝¹ : Fintype α
+inst✝ : Fintype β
+q : α → ℝ
+r : β → ℝ
+hq0 : ∀ (a : α), 0 ≤ q a
+hq1 : ∑ a, q a = 1
+hr0 : ∀ (b : β), 0 ≤ r b
+hr1 : ∑ b, r b = 1
+H : α → β → ℝ
+step1 : (wvar r fun b ↦ ∑ a, q a * H a b) ≤ ∑ a, r a * (∑ a_1, q a_1 * H a_1 a - ∑ a, q a * wmean r (H a)) ^ 2
+b : β
+a : α
+x✝ : a ∈ Finset.univ
+⊢ q a * H a b - q a * wmean r (H a) = q a * (H a b - wmean r (H a))
+/root/cm3-review-4/noimp13.lean:129:50: error: unsolved goals
+α : Type u_1
+β : Type u_2
+inst✝¹ : Fintype α
+inst✝ : Fintype β
+q : α → ℝ
+r : β → ℝ
+hq0 : ∀ (a : α), 0 ≤ q a
+hq1 : ∑ a, q a = 1
+hr0 : ∀ (b : β), 0 ≤ r b
+hr1 : ∑ b, r b = 1
+H : α → β → ℝ
+step1 : (wvar r fun b ↦ ∑ a, q a * H a b) ≤ ∑ a, r a * (∑ a_1, q a_1 * H a_1 a - ∑ a, q a * wmean r (H a)) ^ 2
+b : β
+e : ∑ a, q a * H a b - ∑ a, q a * wmean r (H a) = wmean q fun a ↦ H a b - wmean r (H a)
+⊢ (∑ a, q a * H a b - ∑ a, q a * wmean r (H a)) ^ 2 ≤ ∑ a, q a * (H a b - wmean r (H a)) ^ 2
+/root/cm3-review-4/noimp13.lean:125:68: error: unsolved goals
+α : Type u_1
+β : Type u_2
+inst✝¹ : Fintype α
+inst✝ : Fintype β
+q : α → ℝ
+r : β → ℝ
+hq0 : ∀ (a : α), 0 ≤ q a
+hq1 : ∑ a, q a = 1
+hr0 : ∀ (b : β), 0 ≤ r b
+hr1 : ∑ b, r b = 1
+H : α → β → ℝ
+step1 : (wvar r fun b ↦ ∑ a, q a * H a b) ≤ ∑ a, r a * (∑ a_1, q a_1 * H a_1 a - ∑ a, q a * wmean r (H a)) ^ 2
+step2 : ∀ (b : β), (∑ a, q a * H a b - ∑ a, q a * wmean r (H a)) ^ 2 ≤ ∑ a, q a * (H a b - wmean r (H a)) ^ 2
+⊢ ∑ a, r a * (∑ a_1, q a_1 * H a_1 a - ∑ a, q a * wmean r (H a)) ^ 2 ≤ ∑ a, q a * wvar r (H a)
+/root/cm3-review-4/noimp13.lean:203:3: error: unknown tactic
+/root/cm3-review-4/noimp13.lean:197:78: error: unsolved goals
+n : ℕ
+Ω : Fin (n + 1) → Type u_1
+inst✝ : (i : Fin (n + 1)) → Fintype (Ω i)
+p : (i : Fin (n + 1)) → Ω i → ℝ
+h : ((i : Fin (n + 1)) → Ω i) → ℝ
+y : (i : Fin n) → Ω i.succ
+x✝¹ : y ∈ Finset.univ
+a : Ω 0
+x✝ : a ∈ Finset.univ
+⊢ p 0 a * weight (fun i ↦ p i.succ) y * h (Fin.cons a y) = weight (fun i ↦ p i.succ) y * (p 0 a * h (Fin.cons a y))
+rc=1

@@ -1,0 +1,430 @@
+/root/cm3-evidence/disc/disc126.lean:169:0: warning: Definition `disc_w1` is a proposition; use `theorem` instead of `def`
+
+Note: This linter can be disabled with `set_option linter.defProp false`
+NONE noncomputable
+NONE def
+LOCAL orderStat orderStat
+NONE n
+NONE ℕ
+NONE v
+FULL Fin Fin
+NONE ℝ
+NONE k
+FULL Tuple.sort Tuple.sort
+NONE private
+FULL lemma lemma
+LOCAL orderStat_le_iff _private._stdin.0.orderStat_le_iff
+NONE x
+NONE k.val
+FULL Finset.univ.filter Finset.univ
+NONE fun
+NONE i
+FULL card Finset.card
+NONE by
+NONE obtain
+NONE m
+FULL rfl rfl
+NONE have
+NONE k.isLt
+NONE omega
+NONE unfold
+FULL set MonadStateOf.set
+NONE σ
+NONE with
+NONE hσ
+NONE hmono
+FULL Monotone Monotone
+FULL Tuple.monotone_sort Tuple.monotone_sort
+NONE hmap
+NONE j
+FULL map Finset.map
+NONE σ.toEmbedding
+FULL ext Finset.ext
+NONE simp
+NONE only
+FULL Finset.mem_map Finset.mem_map
+FULL Finset.mem_filter Finset.mem_filter
+FULL Finset.mem_univ Finset.mem_univ
+FULL true_and true_and
+FULL Equiv.coe_toEmbedding Equiv.coe_toEmbedding
+NONE constructor
+NONE rintro
+NONE hj
+NONE exact
+NONE intro
+NONE hi
+NONE σ.symm
+NONE simpa
+NONE using
+NONE hcard
+NONE rw
+FULL Finset.card_map Finset.card_map
+NONE hk
+NONE hsub
+FULL Finset.Iic Finset.Iic
+FULL Finset.mem_Iic Finset.mem_Iic
+NONE at
+NONE _
+FULL le_trans le_trans
+FULL Finset.card_le_card Finset.card_le_card
+FULL Fin.card_Iic Fin.card_Iic
+NONE this
+FULL by_contra by_contra
+NONE hlt
+NONE push
+FULL Not Not
+FULL Finset.Iio Finset.Iio
+FULL Finset.mem_Iio Finset.mem_Iio
+NONE hjk
+FULL not_lt not_lt
+FULL lt_of_lt_of_le lt_of_lt_of_le
+FULL Fin.card_Iio Fin.card_Iio
+NONE prod_ite_mem_eq
+NONE S
+FULL Finset Finset
+NONE a
+NONE b
+NONE if
+NONE then
+NONE else
+NONE S.card
+NONE h1
+FULL Finset.prod_congr Finset.prod_congr
+FULL ite_eq_left ite_eq_left
+FULL Finset.prod_const Finset.prod_const
+NONE h2
+NONE Sᶜ
+FULL ite_eq_right ite_eq_right
+FULL Finset.mem_compl Finset.mem_compl
+FULL Finset.card_compl Finset.card_compl
+FULL Fintype.card_fin Fintype.card_fin
+FULL Finset.prod_mul_prod_compl Finset.prod_mul_prod_compl
+LOCAL sum_filter_card _private._stdin.0.sum_filter_card
+FULL Finset.univ Finset.univ
+FULL filter Finset.filter
+FULL Finset.Icc Finset.Icc
+NONE n.choose
+FULL Finset.sum_filter Finset.sum_filter
+FULL Finset.powerset_univ Finset.powerset_univ
+FULL Finset.sum_powerset_apply_card Finset.sum_powerset_apply_card
+NONE f
+FULL Finset.card_univ Finset.card_univ
+NONE hIcc
+FULL Finset.range Finset.range
+FULL Finset.mem_Icc Finset.mem_Icc
+FULL Finset.mem_range Finset.mem_range
+NONE refine
+FULL Finset.sum_congr Finset.sum_congr
+NONE split_ifs
+NONE h
+FULL nsmul_eq_mul nsmul_eq_mul
+NONE ring
+NONE theorem
+LOCAL measureReal_orderStat_le measureReal_orderStat_le
+NONE Ω
+NONE Type
+FULL MeasurableSpace MeasurableSpace
+NONE μ
+FULL Measure MeasureTheory.Measure
+FULL IsProbabilityMeasure MeasureTheory.IsProbabilityMeasure
+NONE X
+NONE hX
+FULL Measurable Measurable
+NONE hind
+FULL iIndepFun ProbabilityTheory.iIndepFun
+NONE F
+NONE hF
+NONE μ.real
+NONE ω
+NONE hkn
+NONE hev
+FULL Set.mem_ofPred_eq Set.mem_ofPred_eq
+NONE change
+FULL Nat.sub_add_cancel Nat.sub_add_cancel
+NONE let
+NONE A
+FULL Set Set
+FULL Set.Iic Set.Iic
+FULL Set.Ioi Set.Ioi
+NONE E
+NONE hmemE
+FULL Set.mem_iInter Set.mem_iInter
+FULL Set.mem_preimage Set.mem_preimage
+FULL true_implies true_implies
+FULL by_cases by_cases
+NONE hiS
+FULL Set.mem_Iic Set.mem_Iic
+FULL Set.mem_Ioi Set.mem_Ioi
+NONE h'
+FULL absurd absurd
+FULL not_le not_le
+NONE hA
+FULL MeasurableSet MeasurableSet
+FULL measurableSet_Iic measurableSet_Iic
+FULL measurableSet_Ioi measurableSet_Ioi
+NONE hE
+FULL Finset.measurableSet_biInter Finset.measurableSet_biInter
+NONE T
+NONE hU
+FULL Set.mem_iUnion Set.mem_iUnion
+FULL exists_prop exists_prop
+NONE hS
+NONE hωS
+NONE hdisj
+FULL Set.PairwiseDisjoint Set.PairwiseDisjoint
+NONE S'
+NONE hne
+FULL Set.disjoint_left Set.disjoint_left
+FULL symm.trans symm
+NONE hpiece
+NONE toReal
+NONE hind.measure_inter_preimage_eq_mul
+NONE hc
+NONE ᶜ
+FULL measureReal_compl MeasureTheory.measureReal_compl
+FULL measurableSet_le measurableSet_le
+FULL measurable_const measurable_const
+FULL measureReal_def MeasureTheory.measureReal_def
+FULL measure_univ MeasureTheory.IsProbabilityMeasure.measure_univ
+FULL ENNReal.toReal_one ENNReal.toReal_one
+FULL ENNReal.toReal_prod ENNReal.toReal_prod
+FULL measure_biUnion_finset MeasureTheory.measure_biUnion_finset
+FULL ENNReal.toReal_sum ENNReal.toReal_sum
+FULL measure_ne_top MeasureTheory.measure_ne_top
+NONE example
+FULL Measure.pi MeasureTheory.Measure.pi
+FULL bernoulliMeasure ProbabilityTheory.bernoulliMeasure
+FULL norm_num norm_num
+FULL measurable_pi_apply measurable_pi_apply
+FULL iIndepFun_pi ProbabilityTheory.iIndepFun_pi
+FULL aemeasurable_id aemeasurable_id
+NONE real
+FULL Function.eval Function.eval
+FULL measurePreserving_eval MeasureTheory.measurePreserving_eval
+NONE measureReal_preimage
+FULL measurableSet_Iic.nullMeasurableSet measurableSet_Iic
+FULL bernoulliMeasure_real_apply ProbabilityTheory.bernoulliMeasure_real_apply
+USED ProbabilityTheory.bernoulliMeasure_real_apply
+USED Finset.fintype
+USED Eq.mpr
+USED MeasureTheory.MeasurePreserving.measureReal_preimage
+USED NonAssocSemiring.toAddCommMonoidWithOne
+USED ite_eq_left_of_eq_true
+USED False
+USED Subtype.mk.congr_simp
+USED ite_eq_right_of_eq_false
+USED instClosedIicTopology
+USED Real.partialOrder
+USED Real.instLE
+USED Real
+USED MeasureTheory.Measure
+USED Nat.choose
+USED instHDiv
+USED Mathlib.Meta.NormNum.IsNat.to_isNNRat
+USED GroupWithZero.toDivisionMonoid
+USED Equiv.instEquivLike
+USED HMul.hMul
+USED GroupWithZero.toDivInvMonoid
+USED Real.lattice
+USED Finset.univ
+USED DivInvOneMonoid.toInvOneClass
+USED eq_false
+USED FloorRing.toFloorSemiring
+USED Real.instZero
+USED AddGroupWithOne.toAddGroup
+USED congrArg
+USED Set.ofPred
+USED instHasSolidNormReal
+USED Set.iInter
+USED Finset
+USED Real.instDivInvMonoid
+USED Real.instSub
+USED MeasurableSet.nullMeasurableSet
+USED instDecidableEqFin
+USED Nat.instAtLeastTwoHAddOfNat
+USED Measurable
+USED AddGroupWithOne.toAddMonoidWithOne
+USED Mathlib.Meta.NormNum.IsRat.to_isNNRat
+USED MeasureTheory.Measure.real
+USED HSub.hSub
+USED ProbabilityTheory.iIndepFun_pi
+USED PseudoMetricSpace.toUniformSpace
+USED DivisionSemiring.toGroupWithZero
+USED Preorder.toLE
+USED Set.mem_Iic._simp_2
+USED Nat.instLocallyFiniteOrder
+USED Finset.map
+USED Membership.mem
+USED DivisionMonoid.toDivInvOneMonoid
+USED Exists
+USED Field.toDivisionRing
+USED MeasureTheory.measurePreserving_eval
+USED DivisionRing.toDivisionSemiring
+USED unitInterval.toNNReal
+USED Real.semiring
+USED Set.Elem
+USED Fin.mk
+USED measurable_pi_apply
+USED id
+USED Subtype
+USED HDiv.hDiv
+USED Nat.instStarOrderedRing
+USED Real.instFloorRing
+USED measurableSet_Iic
+USED AddMonoidWithOne.toNatCast
+USED Real.normedAddCommGroup
+USED Nat.instStarRing
+USED instSubNat
+USED NNReal
+USED Int.ofNat
+USED DivisionRing.toRing
+USED Real.instRing
+USED instOfNatNat
+USED Int
+USED AddCommMonoidWithOne.toAddMonoidWithOne
+USED Mathlib.Meta.NormNum.isNat_ofNat
+USED Mathlib.Meta.NormNum.IsNNRat.to_eq
+USED Mathlib.Meta.NormNum.isNNRat_inv_pos
+USED LE.le
+USED Mathlib.Meta.NormNum.IsNNRat.to_isRat
+USED instLENat
+USED Function.eval
+USED Finset.Icc
+USED ProbabilityTheory.iIndepFun
+USED Fin.val
+USED Nat.instAddMonoidWithOne
+USED Nat.cast
+USED Field.toSemifield
+USED NPow.toPow
+USED Fin.fintype
+USED Function.Embedding
+USED instDistribOfSemiring
+USED Mathlib.Meta.NormNum.isRat_le_false
+USED Finset.prod
+USED Subtype.mk
+USED Finset.range
+USED Real.instOne
+USED SubNegMonoid.toSub
+USED AddMonoidWithOne.toOne
+USED MeasurableSpace
+USED Mathlib.Meta.NormNum.isRat_le_true
+USED Real.instMonoid
+USED Bool.true
+USED instHAdd
+USED BorelSpace.opensMeasurable
+USED And
+USED Iff
+USED Real.measurableSpace
+USED instHSub
+USED Mathlib.Meta.NormNum.instAtLeastTwo
+USED Inv.inv
+USED Semifield.toDivisionSemiring
+USED Fintype
+USED AddGroup.toSubNegMonoid
+USED HPow.hPow
+USED Set.preimage
+USED Finset.instSetLike
+USED Distrib.toMul
+USED HAdd.hAdd
+USED Nat.instNeZeroSucc
+USED Nat.instPreorder
+USED Equiv.Perm
+USED Set.decidableMemIic
+USED MeasurableSpace.pi
+USED DecidablePred
+USED Nat
+USED Real.instMul
+USED And.intro
+USED congr
+USED Real.instDivisionRing
+USED MeasureTheory.IsProbabilityMeasure
+USED LT.lt
+USED Nat.instCommSemiring
+USED True
+USED eq_self
+USED ProbabilityTheory.bernoulliMeasure
+USED DivInvMonoid.toDiv
+USED Nat.instPartialOrder
+USED Decidable.byContradiction
+USED eq_true
+USED Finset.card
+USED DivisionSemiring.toSemiring
+USED StarOrderedRing.toIsOrderedRing
+USED Bool
+USED of_eq_true
+USED Nat.decLt
+USED Eq.ndrec
+USED Real.instAddCommMonoid
+USED LocallyFiniteOrder
+USED One.toOfNat1
+USED instAddNat
+USED Nat.instSemiring
+USED Zero.toOfNat0
+USED Eq.refl
+USED Real.decidableLE
+USED Mathlib.Meta.NormNum.isNNRat_mul
+USED congrFun'
+USED Real.pseudoMetricSpace
+USED MeasureTheory.Measure.pi
+USED Set.Iic
+USED InvOneClass.toInv
+USED HasSolidNorm.orderClosedTopology
+USED Nat.mul
+USED instHPow
+USED Nat.cast_zero
+USED instLTNat
+USED Real.borelSpace
+USED Real.instIsOrderedAddMonoid
+USED aemeasurable_id
+USED Function.instFunLikeEmbedding
+USED Finset.decidableMem
+USED OfNat.ofNat
+USED Mathlib.Meta.NormNum.isRat_sub
+USED FloorSemiring.instCharZero
+USED unitInterval.symm
+USED Fin
+USED Subtype.val
+USED Finset.filter
+USED UniformSpace.toTopologicalSpace
+USED Real.instField
+USED Semiring.toNonAssocSemiring
+USED Ring.toSemiring
+USED Eq
+USED Set.instMembership
+USED Nat.cast_one
+USED DFunLike.coe
+USED Mathlib.Meta.NormNum.isNNRat_div
+USED NNReal.toReal
+USED Set.iUnion
+USED unitInterval
+USED Ring.toAddGroupWithOne
+USED instOfNatAtLeastTwo
+USED Not
+USED Monoid.toNPow
+USED SetLike.instMembership
+USED Finset.sum
+USED Nat.decLe
+USED Mathlib.Meta.NormNum.isNat_le_true
+USED Tuple.sort
+USED MeasureTheory.Measure.pi.instIsProbabilityMeasure
+USED Real.instPreorder
+USED Real.linearOrder
+USED Preorder
+USED Eq.trans
+USED EquivLike.toFunLike
+USED True.intro
+USED Real.instCommMonoid
+USED instHMul
+USED Real.instNatCast
+USED ite
+USED Real.instIsStrictOrderedRing
+USED ProbabilityTheory.instIsProbabilityMeasureBernoulliMeasure
+USED Set
+/root/cm3-evidence/disc/disc126.lean:391:100: warning: This line exceeds the 100 character limit, please shorten it!
+You can use "string gaps" to format long strings: within a string quotation, using a '\' at the end of a line allows you to continue the string on the following line, removing all intervening whitespace.
+
+Note: This linter can be disabled with `set_option linter.style.longLine false`
+/root/cm3-evidence/disc/disc126.lean:407:100: warning: This line exceeds the 100 character limit, please shorten it!
+
+Note: This linter can be disabled with `set_option linter.style.longLine false`
+rc=0

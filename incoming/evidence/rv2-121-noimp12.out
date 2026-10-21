@@ -1,0 +1,73 @@
+/root/cm3-review-4/noimp12.lean:106:3: error: unknown tactic
+/root/cm3-review-4/noimp12.lean:103:43: error: unsolved goals
+α : Type u_1
+inst✝ : Fintype α
+r h : α → ℝ
+hr1 : ∑ a, r a = 1
+m : ℝ
+this : 0 ≤ (wmean r h - m) ^ 2
+⊢ wvar r h ≤ wvar r h + (wmean r h - m) ^ 2
+/root/cm3-review-4/noimp12.lean:118:3: error: unknown tactic
+/root/cm3-review-4/noimp12.lean:113:65: error: unsolved goals
+α : Type u_1
+inst✝ : Fintype α
+r h : α → ℝ
+hr0 : ∀ (a : α), 0 ≤ r a
+hr1 : ∑ a, r a = 1
+e : ∑ x, r x * h x ^ 2 = wvar r h + wmean r h ^ 2
+this : 0 ≤ wvar r h
+⊢ wmean r h ^ 2 ≤ wvar r h + wmean r h ^ 2
+/root/cm3-review-4/noimp12.lean:164:5: error: unknown tactic
+/root/cm3-review-4/noimp12.lean:160:60: error: unsolved goals
+α : Type u_1
+inst✝ : Fintype α
+r h : α → ℝ
+hr0 : ∀ (a : α), 0 ≤ r a
+hr1 : ∑ a, r a = 1
+c : ℝ
+hc : ∀ (a b : α), |h a - h b| ≤ c
+hne : Finset.univ.Nonempty
+a0 : α
+ha0 : ∀ x' ∈ Finset.univ, h a0 ≤ h x'
+a : α
+h1 : h a0 ≤ h a
+h2 : h a - h a0 ≤ c
+⊢ (h a - (h a0 + c / 2)) ^ 2 ≤ c ^ 2 / 4
+/root/cm3-review-4/noimp12.lean:153:89: error: unsolved goals
+α : Type u_1
+inst✝ : Fintype α
+r h : α → ℝ
+hr0 : ∀ (a : α), 0 ≤ r a
+hr1 : ∑ a, r a = 1
+c : ℝ
+hc : ∀ (a b : α), |h a - h b| ≤ c
+hne : Finset.univ.Nonempty
+a0 : α
+ha0 : ∀ x' ∈ Finset.univ, h a0 ≤ h x'
+key : ∀ (a : α), (h a - (h a0 + c / 2)) ^ 2 ≤ c ^ 2 / 4
+⊢ wvar r h ≤ c ^ 2 / 4
+/root/cm3-review-4/noimp12.lean:353:16: error: unsolved goals
+case «0».«0»
+⊢ 0 ≤ 1 / 4
+
+case «0».«1»
+⊢ 0 ≤ 3 / 4
+
+case «1».«0»
+⊢ 0 ≤ 1 / 2
+
+case «1».«1»
+⊢ 0 ≤ 1 / 2
+/root/cm3-review-4/noimp12.lean:362:16: error: unsolved goals
+case «0».«0»
+⊢ 0 ≤ 1 / 4
+
+case «0».«1»
+⊢ 0 ≤ 3 / 4
+
+case «1».«0»
+⊢ 0 ≤ 1 / 2
+
+case «1».«1»
+⊢ 0 ≤ 1 / 2
+rc=1

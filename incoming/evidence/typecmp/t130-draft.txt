@@ -1,0 +1,16 @@
+set_option pp.fullNames true in
+#check @bscJoint
+set_option pp.fullNames true in
+#check @bscJoint_values
+set_option pp.fullNames true in
+#check @bscJoint_nonneg
+set_option pp.fullNames true in
+#check @mul_mul_log_mul
+set_option pp.fullNames true in
+#check @mutualInfo_bscJoint
+set_option pp.fullNames true in
+#check @bscJoint_output_half
+set_option pp.fullNames true in
+#check @mutualInfo_bsc_le
+set_option pp.fullNames true in
+#check @mutualInfo_bsc_half

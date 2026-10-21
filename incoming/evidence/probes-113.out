@@ -1,0 +1,44 @@
+Finset.card_range : ∀ (n : ℕ), (Finset.range n).card = n
+@Finset.inf' : {α : Type u_1} → {β : Type u_2} → [SemilatticeInf α] → (s : Finset β) → s.Nonempty → (β → α) → α
+@Finset.inf'_le : ∀ {α : Type u_1} {β : Type u_2} [inst : SemilatticeInf α] {s : Finset β} (f : β → α) {b : β}
+  (h : b ∈ s), s.inf' ⋯ f ≤ f b
+@Finset.mem_range : ∀ {n m : ℕ}, m ∈ Finset.range n ↔ m < n
+Finset.range : ℕ → Finset ℕ
+@Finset.sum_const : ∀ {ι : Type u_1} {M : Type u_2} {s : Finset ι} [inst : AddCommMonoid M] (b : M),
+  ∑ _x ∈ s, b = s.card • b
+@Finset.sum_le_sum : ∀ {ι : Type u_1} {N : Type u_2} [inst : AddCommMonoid N] [inst_1 : Preorder N] {f g : ι → N}
+  {s : Finset ι} [AddLeftMono N], (∀ i ∈ s, f i ≤ g i) → ∑ i ∈ s, f i ≤ ∑ i ∈ s, g i
+@Finset.sum_range_succ : ∀ {M : Type u_1} [inst : AddCommMonoid M] (f : ℕ → M) (n : ℕ),
+  ∑ x ∈ Finset.range (n + 1), f x = ∑ x ∈ Finset.range n, f x + f n
+InnerProductSpace : (𝕜 : Type u_1) → (E : Type u_2) → [RCLike 𝕜] → [SeminormedAddCommGroup E] → Type (max u_1 u_2)
+@LE.le : {α : Type u_1} → [self : LE α] → α → α → Prop
+@LT.lt.le : ∀ {α : Type u_1} [inst : Preorder α] {a b : α}, a < b → a ≤ b
+NormedAddCommGroup : Type u_1 → Type u_1
+Real.norm_eq_abs : ∀ (r : ℝ), ‖r‖ = |r|
+@inner_sub_left : ∀ {𝕜 : Type u_1} {E : Type u_2} [inst : RCLike 𝕜] [inst_1 : SeminormedAddCommGroup E]
+  [inst_2 : InnerProductSpace 𝕜 E] (x y z : E), inner 𝕜 (x - y) z = inner 𝕜 x z - inner 𝕜 y z
+@inner_sub_right : ∀ {𝕜 : Type u_1} {E : Type u_2} [inst : RCLike 𝕜] [inst_1 : SeminormedAddCommGroup E]
+  [inst_2 : InnerProductSpace 𝕜 E] (x y z : E), inner 𝕜 x (y - z) = inner 𝕜 x y - inner 𝕜 x z
+@le_div_iff₀ : ∀ {G₀ : Type u_1} [inst : GroupWithZero G₀] [inst_1 : PartialOrder G₀] [MulPosReflectLT G₀] {a b c : G₀},
+  0 < c → (a ≤ b / c ↔ a * c ≤ b)
+@mul_le_mul_of_nonneg_left : ∀ {α : Type u_1} [inst : Mul α] [inst_1 : Zero α] [inst_2 : Preorder α] {a b c : α}
+  [PosMulMono α], b ≤ c → 0 ≤ a → a * b ≤ a * c
+@mul_pos : ∀ {α : Type u_1} [inst : MulZeroClass α] {a b : α} [inst_1 : Preorder α] [PosMulStrictMono α],
+  0 < a → 0 < b → 0 < a * b
+@mul_pow : ∀ {M : Type u_1} [inst : CommMonoid M] (a b : M) (n : ℕ), (a * b) ^ n = a ^ n * b ^ n
+@norm_nonneg : ∀ {E : Type u_1} [inst : SeminormedAddGroup E] (a : E), 0 ≤ ‖a‖
+@norm_smul : ∀ {α : Type u_1} {β : Type u_2} [inst : Norm α] [inst_1 : Norm β] [inst_2 : SMul α β] [NormSMulClass α β]
+  (r : α) (x : β), ‖r • x‖ = ‖r‖ * ‖x‖
+@norm_sub_sq_real : ∀ {F : Type u_1} [inst : SeminormedAddCommGroup F] [inst_1 : InnerProductSpace ℝ F] (x y : F),
+  ‖x - y‖ ^ 2 = ‖x‖ ^ 2 - 2 * inner ℝ x y + ‖y‖ ^ 2
+@nsmul_eq_mul : ∀ {α : Type u_1} [inst : NonAssocSemiring α] (n : ℕ) (a : α), n • a = ↑n * a
+@real_inner_comm : ∀ {F : Type u_1} [inst : SeminormedAddCommGroup F] [inst_1 : InnerProductSpace ℝ F] (x y : F),
+  inner ℝ y x = inner ℝ x y
+@real_inner_smul_right : ∀ {F : Type u_1} [inst : SeminormedAddCommGroup F] [inst_1 : InnerProductSpace ℝ F] (x y : F)
+  (r : ℝ), inner ℝ x (r • y) = r * inner ℝ x y
+@sq_abs : ∀ {α : Type u_1} [inst : Ring α] [inst_1 : LinearOrder α] (a : α), |a| ^ 2 = a ^ 2
+@sq_nonneg : ∀ {R : Type u_1} [inst : Semiring R] [inst_1 : LinearOrder R] [ExistsAddOfLE R] [PosMulMono R]
+  [AddLeftMono R] (a : R), 0 ≤ a ^ 2
+@two_pos : ∀ {α : Type u_1} [inst : AddMonoidWithOne α] [inst_1 : PartialOrder α] [ZeroLEOneClass α] [NeZero 1]
+  [AddLeftMono α], 0 < 2
+rc=0

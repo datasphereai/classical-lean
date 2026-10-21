@@ -1,0 +1,2 @@
+/root/cm3-review-4/noimp9.lean:172:2: error(lean.unknownIdentifier): Unknown constant `Finset.prod_nonneg`
+rc=1

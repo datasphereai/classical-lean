@@ -1,0 +1,16 @@
+set_option pp.fullNames true in
+#check @ClassicalLean.InformationTheory.ChannelCapacity.bscJoint
+set_option pp.fullNames true in
+#check @ClassicalLean.InformationTheory.ChannelCapacity.bscJoint_values
+set_option pp.fullNames true in
+#check @ClassicalLean.InformationTheory.ChannelCapacity.bscJoint_nonneg
+set_option pp.fullNames true in
+#check @ClassicalLean.InformationTheory.ChannelCapacity.mul_mul_log_mul
+set_option pp.fullNames true in
+#check @ClassicalLean.InformationTheory.ChannelCapacity.mutualInfo_bscJoint
+set_option pp.fullNames true in
+#check @ClassicalLean.InformationTheory.ChannelCapacity.bscJoint_output_half
+set_option pp.fullNames true in
+#check @ClassicalLean.InformationTheory.ChannelCapacity.mutualInfo_bsc_le
+set_option pp.fullNames true in
+#check @ClassicalLean.InformationTheory.ChannelCapacity.mutualInfo_bsc_half

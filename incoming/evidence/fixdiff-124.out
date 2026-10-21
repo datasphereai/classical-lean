@@ -1,0 +1,6 @@
+39,40c39,40
+< is claude-ai's start for the order (`incoming/witness-starts/w124-tail.lean`); it is why the file
+< imports `Mathlib.Probability.Distributions.Bernoulli`.
+---
+> is claude-ai's start for the order (`w124-tail.lean`), with the theorem called by its full name;
+> it is why the file imports `Mathlib.Probability.Distributions.Bernoulli`.

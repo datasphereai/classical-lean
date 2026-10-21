@@ -1,0 +1,43 @@
+/root/cm3-review-6/rv2-124-clear.lean:312:12: error(lean.unknownIdentifier): Unknown identifier `hind.mgf_sum`
+/root/cm3-review-6/rv2-124-clear.lean:403:42: error(lean.unknownIdentifier): Unknown identifier `hmeas`
+/root/cm3-review-6/rv2-124-clear.lean:427:25: error(lean.unknownIdentifier): Unknown identifier `hmeas`
+/root/cm3-review-6/rv2-124-clear.lean:436:6: error: `fun_prop` was unable to prove `Measurable (∑ i ∈ s, X i)`
+
+Issues:
+  No theorems found for `X` in order to prove `Measurable fun a1 ↦ X i a1`
+/root/cm3-review-6/rv2-124-clear.lean:525:39: error(lean.unknownIdentifier): Unknown identifier `hint`
+/root/cm3-review-6/rv2-124-clear.lean:536:72: error(lean.unknownIdentifier): Unknown identifier `hint`
+/root/cm3-review-6/rv2-124-clear.lean:641:58: error(lean.unknownIdentifier): Unknown identifier `hint2`
+/root/cm3-review-6/rv2-124-clear.lean:767:50: error(lean.unknownIdentifier): Unknown identifier `hmean`
+/root/cm3-review-6/rv2-124-clear.lean:878:33: error(lean.unknownIdentifier): Unknown identifier `hb0`
+/root/cm3-review-6/rv2-124-clear.lean:979:24: error(lean.unknownIdentifier): Unknown identifier `hb`
+/root/cm3-review-6/rv2-124-clear.lean:991:24: error(lean.unknownIdentifier): Unknown identifier `hb`
+/root/cm3-review-6/rv2-124-clear.lean:1013:49: error(lean.unknownIdentifier): Unknown identifier `hb`
+/root/cm3-review-6/rv2-124-clear.lean:1124:79: error(lean.unknownIdentifier): Unknown identifier `hv`
+/root/cm3-review-6/rv2-124-clear.lean:1150:87: error(lean.unknownIdentifier): Unknown identifier `hv`
+/root/cm3-review-6/rv2-124-clear.lean:1080:83: error: unsolved goals
+Ω : Type u_1
+ι : Type u_2
+inst✝¹ : MeasurableSpace Ω
+μ : Measure Ω
+inst✝ : IsProbabilityMeasure μ
+X : ι → Ω → ℝ
+s : Finset ι
+hind : iIndepFun X μ
+hmeas : ∀ (i : ι), Measurable (X i)
+hint : ∀ i ∈ s, Integrable (X i) μ
+hint2 : ∀ i ∈ s, Integrable (fun ω ↦ X i ω ^ 2) μ
+hmean : ∀ i ∈ s, ∫ (ω : Ω), X i ω ∂μ = 0
+b v t : ℝ
+hb0 : 0 ≤ b
+hb : ∀ i ∈ s, ∀ᵐ (ω : Ω) ∂μ, X i ω ≤ b
+ht : 0 ≤ t
+hgen :
+  ∀ (l : ℝ), 0 ≤ l → l * b < 3 → μ.real {ω | t ≤ ∑ i ∈ s, X i ω} ≤ Real.exp (-l * t + l ^ 2 / (2 * (1 - l * b / 3)) * v)
+⊢ μ.real {ω | t ≤ ∑ i ∈ s, X i ω} ≤ Real.exp (-t ^ 2 / (2 * (v + b * t / 3)))
+/root/cm3-review-6/rv2-124-clear.lean:1266:24: error(lean.unknownIdentifier): Unknown identifier `ht`
+/root/cm3-review-6/rv2-124-clear.lean:1268:8: error: Invalid rewrite argument: The pattern to be substituted is a metavariable (`?m.1548`) in this equality
+  ?m.1548 = ?m.1547
+/root/cm3-review-6/rv2-124-clear.lean:1278:58: error(lean.unknownIdentifier): Unknown identifier `ht`
+/root/cm3-review-6/rv2-124-clear.lean:1289:38: error(lean.unknownIdentifier): Unknown identifier `ht`
+rc=1

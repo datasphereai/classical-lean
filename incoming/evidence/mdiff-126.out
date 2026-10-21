@@ -1,0 +1,6 @@
+33,34c33,34
+< so `F = 1 / 2`, and `k = 2`, is claude-ai's start for the order
+< (`incoming/witness-starts/w126-tail.lean`); it is why the file imports
+---
+> so `F = 1 / 2`, and `k = 2`, is claude-ai's start for the order (`w126-tail.lean`), with the
+> theorem called by its full name; it is why the file imports

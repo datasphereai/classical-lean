@@ -1,0 +1,2 @@
+set_option pp.fullNames true in
+#check @ClassicalLean.Analysis.SubgradientMethod.min_sub_le_of_subgradient

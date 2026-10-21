@@ -1,0 +1,10 @@
+FIELD-LOCAL S.card: Finset.card Fintype.card
+FIELD-LOCAL hind.measure_inter_preimage_eq_mul: ProbabilityTheory.iIndepFun.measure_inter_preimage_eq_mul
+FIELD-LOCAL k.isLt: Fin.isLt
+FIELD-LOCAL k.val: Fin.val Subtype.val
+FIELD measureReal_preimage: MeasureTheory.MeasurePreserving.measureReal_preimage
+FIELD-LOCAL n.choose: Nat.choose
+FIELD-LOCAL μ.real: MeasureTheory.Measure.real
+FIELD-LOCAL σ.symm: Eq.symm Equiv.symm unitInterval.symm
+FIELD-LOCAL σ.toEmbedding: Equiv.toEmbedding
+/root/cm3-evidence/probes/p126.lean: 101 probes, 0 uncleared

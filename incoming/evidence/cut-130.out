@@ -1,0 +1,12 @@
+draft 23: 'show p 0' -> 'change p 0'
+draft 24: 'if_pos rfl' -> 'ite_eq_left rfl'
+draft 25: 'show p 0' -> 'change p 0'
+draft 26: 'if_neg h01' -> 'ite_eq_right h01'
+draft 27: 'show p 1' -> 'change p 1'
+draft 28: 'if_neg h01.symm' -> 'ite_eq_right h01.symm'
+draft 29: 'show p 1' -> 'change p 1'
+draft 30: 'if_pos rfl' -> 'ite_eq_left rfl'
+draft 35: 'show 0 ≤' -> 'change 0 ≤'
+draft 97: 'show mutualInfo' -> 'change mutualInfo'
+draft 117: 'show mutualInfo' -> 'change mutualInfo'
+/root/cm3-evidence/cut/d130.lean: 11 edits

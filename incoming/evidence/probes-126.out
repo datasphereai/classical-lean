@@ -1,0 +1,160 @@
+ENNReal.toReal_one : ENNReal.toReal 1 = 1
+@ENNReal.toReal_prod : ∀ {ι : Type u_1} (s : Finset ι) (f : ι → ENNReal), (∏ i ∈ s, f i).toReal = ∏ i ∈ s, (f i).toReal
+@ENNReal.toReal_sum : ∀ {α : Type u_1} {s : Finset α} {f : α → ENNReal},
+  (∀ a ∈ s, f a ≠ ⊤) → (∑ a ∈ s, f a).toReal = ∑ a ∈ s, (f a).toReal
+@Eq.symm : ∀ {α : Sort u_1} {a b : α}, a = b → b = a
+@Eq.trans : ∀ {α : Sort u_1} {a b c : α}, a = b → b = c → a = c
+@Equiv.coe_toEmbedding : ∀ {α : Sort u_1} {β : Sort u_2} (f : α ≃ β), ⇑f.toEmbedding = ⇑f
+@Equiv.symm : {α : Sort u_1} → {β : Sort u_2} → α ≃ β → β ≃ α
+@Equiv.toEmbedding : {α : Sort u_1} → {β : Sort u_2} → α ≃ β → α ↪ β
+Fin : ℕ → Type
+@Fin.card_Iic : ∀ {n : ℕ} (b : Fin n), (Finset.Iic b).card = ↑b + 1
+@Fin.card_Iio : ∀ {n : ℕ} (b : Fin n), (Finset.Iio b).card = ↑b
+@Fin.isLt : ∀ {n : ℕ} (self : Fin n), ↑self < n
+@Fin.val : {n : ℕ} → Fin n → ℕ
+Finset : Type u_1 → Type u_1
+@Finset.Icc : {α : Type u_1} → [inst : Preorder α] → [LocallyFiniteOrder α] → α → α → Finset α
+@Finset.Iic : {α : Type u_1} → [inst : Preorder α] → [LocallyFiniteOrderBot α] → α → Finset α
+@Finset.Iio : {α : Type u_1} → [inst : Preorder α] → [LocallyFiniteOrderBot α] → α → Finset α
+@Finset.card : {α : Type u_1} → Finset α → ℕ
+@Finset.card_compl : ∀ {α : Type u_1} [inst : DecidableEq α] [inst_1 : Fintype α] (s : Finset α),
+  sᶜ.card = Fintype.card α - s.card
+@Finset.card_le_card : ∀ {α : Type u_1} {s t : Finset α}, s ⊆ t → s.card ≤ t.card
+@Finset.card_map : ∀ {α : Type u_1} {β : Type u_2} {s : Finset α} (f : α ↪ β), (Finset.map f s).card = s.card
+@Finset.card_univ : ∀ {α : Type u_1} [inst : Fintype α], Finset.univ.card = Fintype.card α
+@Finset.filter : {α : Type u_1} → (p : α → Prop) → [DecidablePred p] → Finset α → Finset α
+@Finset.map : {α : Type u_1} → {β : Type u_2} → (α ↪ β) → Finset α → Finset β
+@Finset.measurableSet_biInter : ∀ {α : Type u_1} {β : Type u_2} {m : MeasurableSpace α} {f : β → Set α} (s : Finset β),
+  (∀ b ∈ s, MeasurableSet (f b)) → MeasurableSet (⋂ b ∈ s, f b)
+@Finset.mem_Icc : ∀ {α : Type u_1} [inst : Preorder α] [inst_1 : LocallyFiniteOrder α] {a b x : α},
+  x ∈ Finset.Icc a b ↔ a ≤ x ∧ x ≤ b
+@Finset.mem_Iic : ∀ {α : Type u_1} [inst : Preorder α] [inst_1 : LocallyFiniteOrderBot α] {a x : α},
+  x ∈ Finset.Iic a ↔ x ≤ a
+@Finset.mem_Iio : ∀ {α : Type u_1} [inst : Preorder α] [inst_1 : LocallyFiniteOrderBot α] {a x : α},
+  x ∈ Finset.Iio a ↔ x < a
+@Finset.mem_compl : ∀ {α : Type u_1} {s : Finset α} [inst : Fintype α] [inst_1 : DecidableEq α] {a : α}, a ∈ sᶜ ↔ a ∉ s
+@Finset.mem_filter : ∀ {α : Type u_1} {p : α → Prop} [inst : DecidablePred p] {s : Finset α} {a : α},
+  a ∈ Finset.filter p s ↔ a ∈ s ∧ p a
+@Finset.mem_map : ∀ {α : Type u_1} {β : Type u_2} {f : α ↪ β} {s : Finset α} {b : β},
+  b ∈ Finset.map f s ↔ ∃ a ∈ s, f a = b
+@Finset.mem_range : ∀ {n m : ℕ}, m ∈ Finset.range n ↔ m < n
+@Finset.mem_univ : ∀ {α : Type u_1} [inst : Fintype α] (x : α), x ∈ Finset.univ
+@Finset.powerset_univ : ∀ {α : Type u_1} [inst : Fintype α], Finset.univ.powerset = Finset.univ
+@Finset.prod_congr : ∀ {ι : Type u_1} {M : Type u_2} {s₁ s₂ : Finset ι} [inst : CommMonoid M] {f g : ι → M},
+  s₁ = s₂ → (∀ x ∈ s₂, f x = g x) → s₁.prod f = s₂.prod g
+@Finset.prod_const : ∀ {ι : Type u_1} {M : Type u_2} {s : Finset ι} [inst : CommMonoid M] (b : M),
+  ∏ _x ∈ s, b = b ^ s.card
+@Finset.prod_mul_prod_compl : ∀ {ι : Type u_1} {M : Type u_2} [inst : CommMonoid M] [inst_1 : Fintype ι]
+  [inst_2 : DecidableEq ι] (s : Finset ι) (f : ι → M), (∏ i ∈ s, f i) * ∏ i ∈ sᶜ, f i = ∏ i, f i
+Finset.range : ℕ → Finset ℕ
+@Finset.sum_congr : ∀ {ι : Type u_1} {M : Type u_2} {s₁ s₂ : Finset ι} [inst : AddCommMonoid M] {f g : ι → M},
+  s₁ = s₂ → (∀ x ∈ s₂, f x = g x) → s₁.sum f = s₂.sum g
+@Finset.sum_filter : ∀ {ι : Type u_1} {M : Type u_2} {s : Finset ι} [inst : AddCommMonoid M] (p : ι → Prop)
+  [inst_1 : DecidablePred p] (f : ι → M), ∑ a ∈ s with p a, f a = ∑ a ∈ s, if p a then f a else 0
+@Finset.sum_powerset_apply_card : ∀ {α : Type u_1} {β : Type u_2} [inst : AddCommMonoid α] (f : ℕ → α) {x : Finset β},
+  ∑ m ∈ x.powerset, f m.card = ∑ m ∈ Finset.range (x.card + 1), x.card.choose m • f m
+@Finset.univ : {α : Type u_1} → [Fintype α] → Finset α
+Fintype.card : (α : Type u_1) → [Fintype α] → ℕ
+Fintype.card_fin : ∀ (n : ℕ), Fintype.card (Fin n) = n
+@Function.eval : {α : Sort u_1} → {β : α → Sort u_2} → (x : α) → ((x : α) → β x) → β x
+@Measurable : {α : Type u_1} → {β : Type u_2} → [MeasurableSpace α] → [MeasurableSpace β] → (α → β) → Prop
+@MeasurableSet : {α : Type u_1} → [MeasurableSpace α] → Set α → Prop
+MeasurableSpace : Type u_1 → Type u_1
+@MeasureTheory.IsProbabilityMeasure : {α : Type u_1} → {m0 : MeasurableSpace α} → MeasureTheory.Measure α → Prop
+@MeasureTheory.measure_univ : ∀ {α : Type u_1} {m0 : MeasurableSpace α} {μ : MeasureTheory.Measure α}
+  [self : MeasureTheory.IsProbabilityMeasure μ], μ Set.univ = 1
+MeasureTheory.Measure : (α : Type u_1) → [MeasurableSpace α] → Type u_1
+@MeasureTheory.Measure.pi : {ι : Type u_1} →
+  {α : ι → Type u_2} →
+    [Fintype ι] →
+      [inst : (i : ι) → MeasurableSpace (α i)] →
+        ((i : ι) → MeasureTheory.Measure (α i)) → MeasureTheory.Measure ((i : ι) → α i)
+@MeasureTheory.Measure.real : {α : Type u_1} → {m : MeasurableSpace α} → MeasureTheory.Measure α → Set α → ℝ
+@MeasureTheory.MeasurePreserving.measureReal_preimage : ∀ {α : Type u_1} {β : Type u_2} [inst : MeasurableSpace α]
+  [inst_1 : MeasurableSpace β] {μa : MeasureTheory.Measure α} {μb : MeasureTheory.Measure β} {f : α → β},
+  MeasureTheory.MeasurePreserving f μa μb →
+    ∀ {s : Set β}, MeasureTheory.NullMeasurableSet s μb → μa.real (f ⁻¹' s) = μb.real s
+@MeasureTheory.measurePreserving_eval : ∀ {ι : Type u_1} {α : ι → Type u_2} [inst : Fintype ι]
+  [inst_1 : (i : ι) → MeasurableSpace (α i)] (μ : (i : ι) → MeasureTheory.Measure (α i))
+  [∀ (i : ι), MeasureTheory.IsProbabilityMeasure (μ i)] (i : ι),
+  MeasureTheory.MeasurePreserving (Function.eval i) (MeasureTheory.Measure.pi μ) (μ i)
+@MeasureTheory.measureReal_compl : ∀ {α : Type u_1} {x : MeasurableSpace α} {μ : MeasureTheory.Measure α} {s : Set α}
+  [MeasureTheory.IsFiniteMeasure μ], MeasurableSet s → μ.real sᶜ = μ.real Set.univ - μ.real s
+@MeasureTheory.measureReal_def : ∀ {α : Type u_1} {m : MeasurableSpace α} (μ : MeasureTheory.Measure α) (s : Set α),
+  μ.real s = (μ s).toReal
+@MeasureTheory.measure_biUnion_finset : ∀ {α : Type u_1} {ι : Type u_2} {m : MeasurableSpace α}
+  {μ : MeasureTheory.Measure α} {s : Finset ι} {f : ι → Set α},
+  (↑s).PairwiseDisjoint f → (∀ b ∈ s, MeasurableSet (f b)) → μ (⋃ b ∈ s, f b) = ∑ p ∈ s, μ (f p)
+@MeasureTheory.measure_ne_top : ∀ {α : Type u_1} {m0 : MeasurableSpace α} (μ : MeasureTheory.Measure α)
+  [MeasureTheory.IsFiniteMeasure μ] (s : Set α), μ s ≠ ⊤
+@Monotone : {α : Type u_1} → {β : Type u_2} → [Preorder α] → [Preorder β] → (α → β) → Prop
+Nat.choose : ℕ → ℕ → ℕ
+@Nat.sub_add_cancel : ∀ {n m : ℕ}, m ≤ n → n - m + m = n
+Not : Prop → Prop
+@ProbabilityTheory.bernoulliMeasure : {X : Type u_1} →
+  [inst : MeasurableSpace X] → X → X → ↑unitInterval → MeasureTheory.Measure X
+@ProbabilityTheory.bernoulliMeasure_real_apply : ∀ {X : Type u_1} [inst : MeasurableSpace X] {x y : X}
+  (p : ↑unitInterval) {s : Set X},
+  MeasurableSet s →
+    ∀ [inst_1 : DecidablePred fun x ↦ x ∈ s],
+      (ProbabilityTheory.bernoulliMeasure x y p).real s =
+        if x ∈ s then if y ∈ s then 1 else ↑(unitInterval.toNNReal p)
+        else if y ∈ s then ↑(unitInterval.toNNReal (unitInterval.symm p)) else 0
+@ProbabilityTheory.iIndepFun : {Ω : Type u_1} →
+  {ι : Type u_2} →
+    {_mΩ : MeasurableSpace Ω} →
+      {β : ι → Type u_3} →
+        [m : (x : ι) → MeasurableSpace (β x)] →
+          ((x : ι) → Ω → β x) → autoParam (MeasureTheory.Measure Ω) ProbabilityTheory.iIndepFun._auto_1 → Prop
+@ProbabilityTheory.iIndepFun.measure_inter_preimage_eq_mul : ∀ {Ω : Type u_1} {_mΩ : MeasurableSpace Ω}
+  {μ : MeasureTheory.Measure Ω} {ι : Type u_2} {β : ι → Type u_3} {m : (x : ι) → MeasurableSpace (β x)}
+  {f : (i : ι) → Ω → β i},
+  ProbabilityTheory.iIndepFun f μ →
+    ∀ (S : Finset ι) {sets : (i : ι) → Set (β i)},
+      (∀ i ∈ S, MeasurableSet (sets i)) → μ (⋂ i ∈ S, f i ⁻¹' sets i) = ∏ i ∈ S, μ (f i ⁻¹' sets i)
+@ProbabilityTheory.iIndepFun_pi : ∀ {ι : Type u_1} [inst : Fintype ι] {Ω : ι → Type u_2}
+  {mΩ : (i : ι) → MeasurableSpace (Ω i)} {μ : (i : ι) → MeasureTheory.Measure (Ω i)}
+  [∀ (i : ι), MeasureTheory.IsProbabilityMeasure (μ i)] {𝓧 : ι → Type u_3} [inst_2 : (i : ι) → MeasurableSpace (𝓧 i)]
+  {X : (i : ι) → Ω i → 𝓧 i},
+  (∀ (i : ι), AEMeasurable (X i) (μ i)) → ProbabilityTheory.iIndepFun (fun i ω ↦ X i (ω i)) (MeasureTheory.Measure.pi μ)
+Set : Type u_1 → Type u_1
+@Set.Iic : {α : Type u_1} → [Preorder α] → α → Set α
+@Set.Ioi : {α : Type u_1} → [Preorder α] → α → Set α
+@Set.PairwiseDisjoint : {α : Type u_1} →
+  {ι : Type u_2} → [inst : PartialOrder α] → [OrderBot α] → Set ι → (ι → α) → Prop
+@Set.disjoint_left : ∀ {α : Type u_1} {s t : Set α}, Disjoint s t ↔ ∀ ⦃a : α⦄, a ∈ s → a ∉ t
+@Set.mem_Iic : ∀ {α : Type u_1} [inst : Preorder α] {b x : α}, x ∈ Set.Iic b ↔ x ≤ b
+@Set.mem_Ioi : ∀ {α : Type u_1} [inst : Preorder α] {b x : α}, x ∈ Set.Ioi b ↔ b < x
+@Set.mem_iInter : ∀ {α : Type u_1} {ι : Sort u_2} {x : α} {s : ι → Set α}, x ∈ ⋂ i, s i ↔ ∀ (i : ι), x ∈ s i
+@Set.mem_iUnion : ∀ {α : Type u_1} {ι : Sort u_2} {x : α} {s : ι → Set α}, x ∈ ⋃ i, s i ↔ ∃ i, x ∈ s i
+@Set.mem_ofPred_eq : ∀ {α : Type u_1} {x : α} {p : α → Prop}, (x ∈ {y | p y}) = p x
+@Set.mem_preimage : ∀ {α : Type u_1} {β : Type u_2} {f : α → β} {s : Set β} {a : α}, a ∈ f ⁻¹' s ↔ f a ∈ s
+@Subtype.val : {α : Sort u_1} → {p : α → Prop} → Subtype p → α
+@Tuple.monotone_sort : ∀ {n : ℕ} {α : Type u_1} [inst : LinearOrder α] (f : Fin n → α), Monotone (f ∘ ⇑(Tuple.sort f))
+@Tuple.sort : {n : ℕ} → {α : Type u_1} → [LinearOrder α] → (Fin n → α) → Equiv.Perm (Fin n)
+@absurd : {a : Prop} → {b : Sort u_1} → a → ¬a → b
+@aemeasurable_id : ∀ {α : Type u_1} {m : MeasurableSpace α} {μ : MeasureTheory.Measure α}, AEMeasurable id μ
+@exists_prop : ∀ {b a : Prop}, (∃ (_ : a), b) ↔ a ∧ b
+@ite_eq_left : ∀ {c : Prop} {h : Decidable c}, c → ∀ {α : Sort u_1} {t e : α}, (if c then t else e) = t
+@ite_eq_right : ∀ {c : Prop} {h : Decidable c}, ¬c → ∀ {α : Sort u_1} {t e : α}, (if c then t else e) = e
+@le_trans : ∀ {α : Type u_1} [inst : Preorder α] {a b c : α}, a ≤ b → b ≤ c → a ≤ c
+@lt_of_lt_of_le : ∀ {α : Type u_1} [inst : Preorder α] {a b c : α}, a < b → b ≤ c → a < c
+@measurableSet_Iic : ∀ {α : Type u_1} [inst : TopologicalSpace α] {mα : MeasurableSpace α} [OpensMeasurableSpace α]
+  [inst_2 : Preorder α] {a : α} [ClosedIicTopology α], MeasurableSet (Set.Iic a)
+@measurableSet_Ioi : ∀ {α : Type u_1} [inst : TopologicalSpace α] {mα : MeasurableSpace α} [OpensMeasurableSpace α]
+  [inst_2 : LinearOrder α] {a : α} [ClosedIicTopology α], MeasurableSet (Set.Ioi a)
+@measurableSet_le : ∀ {α : Type u_1} {δ : Type u_2} [inst : TopologicalSpace α] {mα : MeasurableSpace α}
+  [OpensMeasurableSpace α] {mδ : MeasurableSpace δ} [inst_2 : PartialOrder α] [OrderClosedTopology α]
+  [SecondCountableTopology α] {f g : δ → α}, Measurable f → Measurable g → MeasurableSet {a | f a ≤ g a}
+@measurable_const : ∀ {α : Type u_1} {β : Type u_2} {x : MeasurableSpace α} {x_1 : MeasurableSpace β} {a : α},
+  Measurable fun x ↦ a
+@measurable_pi_apply : ∀ {δ : Type u_1} {X : δ → Type u_2} [inst : (a : δ) → MeasurableSpace (X a)] (a : δ),
+  Measurable fun f ↦ f a
+@not_le : ∀ {α : Type u_1} [inst : LinearOrder α] {a b : α}, ¬a ≤ b ↔ b < a
+@not_lt : ∀ {α : Type u_1} [inst : LinearOrder α] {a b : α}, ¬a < b ↔ b ≤ a
+@nsmul_eq_mul : ∀ {α : Type u_1} [inst : NonAssocSemiring α] (n : ℕ) (a : α), n • a = ↑n * a
+@rfl : ∀ {α : Sort u_1} {a : α}, a = a
+true_and : ∀ (p : Prop), (True ∧ p) = p
+true_implies : ∀ (p : Prop), (True → p) = p
+unitInterval.symm : ↑unitInterval → ↑unitInterval
+rc=0

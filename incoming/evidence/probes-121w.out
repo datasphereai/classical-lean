@@ -1,0 +1,12 @@
+@Fin.sum_univ_two : ∀ {M : Type u_1} [inst : AddCommMonoid M] (f : Fin 2 → M), ∑ i, f i = f 0 + f 1
+@Function.update : {α : Sort u_1} →
+  {β : α → Sort u_2} → [DecidableEq α] → ((a : α) → β a) → (a' : α) → β a' → (a : α) → β a
+@Function.update_self : ∀ {α : Sort u_1} {β : α → Sort u_2} [inst : DecidableEq α] (a : α) (v : β a)
+  (f : (a : α) → β a), Function.update f a v a = v
+@Function.update_of_ne : ∀ {α : Sort u_1} {β : α → Sort u_2} [inst : DecidableEq α] {a a' : α},
+  a ≠ a' → ∀ (v : β a') (f : (a : α) → β a), Function.update f a' v a = f a
+@Matrix.cons_val_zero : ∀ {α : Type u_1} {m : ℕ} (x : α) (u : Fin m → α), Matrix.vecCons x u 0 = x
+@Matrix.cons_val_one : ∀ {α : Type u_1} {m : ℕ} (x : α) (u : Fin m.succ → α), Matrix.vecCons x u 1 = u 0
+@Matrix.head_cons : ∀ {α : Type u_1} {m : ℕ} (x : α) (u : Fin m → α), Matrix.vecHead (Matrix.vecCons x u) = x
+Fin.isValue : Lean.Meta.Simp.DSimproc
+rc=0

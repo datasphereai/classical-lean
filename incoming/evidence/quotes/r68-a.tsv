@@ -1,0 +1,5 @@
+; pushed by Dustin: DSMain's master ref written 2026-10-20 19:18:05 EDT, GitHub master equal (`04e4a38`)	/home/user/classical-lean/records/orders/20261021T002100Z__claude-ai__order-cloudmath3-subgradient-efron-stein-bernstein-order-statistics-bsc.md
+Build completed successfully (4188 jobs).	/root/cm3-evidence/start-build.out
+axiom gate PASS — 3458 theorem constant(s) under [ClassicalLean], every one depending only on a subset of [propext, Classical.choice, Quot.sound]; 0 scoped exceptions	/root/cm3-evidence/start-axiom.out
+repo-still-clean	/root/cm3-evidence/ctools-test-dirty-tree.out
+BAD=0	/root/cm3-evidence/ctools-test.out

@@ -1,0 +1,299 @@
+/root/cm3-review-4/noimp7.lean:71:2: error(lean.synthInstanceFailed): failed to synthesize instance of type class
+  Fintype ((i : Fin n) → Ω i)
+
+Hint: Type class instance resolution failures can be inspected with the `set_option trace.Meta.synthInstance true` command.
+/root/cm3-review-4/noimp7.lean:76:2: error(lean.synthInstanceFailed): failed to synthesize instance of type class
+  Fintype ((i : Fin n) → Ω i)
+
+Hint: Type class instance resolution failures can be inspected with the `set_option trace.Meta.synthInstance true` command.
+/root/cm3-review-4/noimp7.lean:88:10: error(lean.unknownIdentifier): Unknown constant `Finset.sum_mul`
+/root/cm3-review-4/noimp7.lean:95:8: error(lean.unknownIdentifier): Unknown constant `Finset.mul_sum`
+/root/cm3-review-4/noimp7.lean:142:19: error(lean.unknownIdentifier): Unknown constant `Finset.mul_sum`
+/root/cm3-review-4/noimp7.lean:142:8: error: `simp` made no progress
+/root/cm3-review-4/noimp7.lean:159:25: error(lean.unknownIdentifier): Unknown constant `Finset.exists_min_image`
+/root/cm3-review-4/noimp7.lean:159:9: error: Tactic `rcases` failed: `x✝ : ?m.87` is not an inductive datatype
+/root/cm3-review-4/noimp7.lean:183:6: error(lean.synthInstanceFailed): failed to synthesize instance of type class
+  Fintype ((i : Fin (n + 1)) → Ω i)
+
+Hint: Type class instance resolution failures can be inspected with the `set_option trace.Meta.synthInstance true` command.
+/root/cm3-review-4/noimp7.lean:183:28: error(lean.synthInstanceFailed): failed to synthesize instance of type class
+  Fintype ((i : Fin n) → Ω i.succ)
+
+Hint: Type class instance resolution failures can be inspected with the `set_option trace.Meta.synthInstance true` command.
+/root/cm3-review-4/noimp7.lean:184:9: error(lean.synthInstanceFailed): failed to synthesize instance of type class
+  Fintype ((i : Fin (n + 1)) → Ω i)
+
+Hint: Type class instance resolution failures can be inspected with the `set_option trace.Meta.synthInstance true` command.
+/root/cm3-review-4/noimp7.lean:184:20: error(lean.synthInstanceFailed): failed to synthesize instance of type class
+  Fintype (Ω 0 × ((i : Fin n) → Ω i.succ))
+
+Hint: Type class instance resolution failures can be inspected with the `set_option trace.Meta.synthInstance true` command.
+/root/cm3-review-4/noimp7.lean:185:21: error(lean.synthInstanceFailed): failed to synthesize instance of type class
+  Fintype ((i : Fin n) → Ω i.succ)
+
+Hint: Type class instance resolution failures can be inspected with the `set_option trace.Meta.synthInstance true` command.
+/root/cm3-review-4/noimp7.lean:187:21: error(lean.synthInstanceFailed): failed to synthesize instance of type class
+  Fintype ((i : Fin n) → Ω i.succ)
+
+Hint: Type class instance resolution failures can be inspected with the `set_option trace.Meta.synthInstance true` command.
+/root/cm3-review-4/noimp7.lean:184:46: error(lean.synthInstanceFailed): failed to synthesize instance of type class
+  Fintype (Ω 0 × ((i : Fin n) → Ω i.succ))
+
+Hint: Type class instance resolution failures can be inspected with the `set_option trace.Meta.synthInstance true` command.
+/root/cm3-review-4/noimp7.lean:186:12: error(lean.unknownIdentifier): Unknown constant `Fintype.sum_prod_type`
+/root/cm3-review-4/noimp7.lean:185:77: error: unsolved goals
+n : ℕ
+Ω : Fin (n + 1) → Type u_1
+inst✝ : (i : Fin (n + 1)) → Fintype (Ω i)
+F : ((i : Fin (n + 1)) → Ω i) → ℝ
+⊢ ∑ z, F ((consEquiv' Ω) z) = ∑ a, ∑ y ∈ sorry, F ((consEquiv' Ω) (a, y))
+/root/cm3-review-4/noimp7.lean:183:77: error: unsolved goals
+n : ℕ
+Ω : Fin (n + 1) → Type u_1
+inst✝ : (i : Fin (n + 1)) → Fintype (Ω i)
+F : ((i : Fin (n + 1)) → Ω i) → ℝ
+⊢ Fintype (Ω 0 × ((i : Fin n) → Ω i.succ))
+/root/cm3-review-4/noimp7.lean:192:21: error(lean.unknownIdentifier): Unknown constant `Fin.prod_univ_succ`
+/root/cm3-review-4/noimp7.lean:191:89: error: unsolved goals
+n : ℕ
+Ω : Fin (n + 1) → Type u_1
+p : (i : Fin (n + 1)) → Ω i → ℝ
+a : Ω 0
+y : (i : Fin n) → Ω i.succ
+⊢ ∏ i, p i (Fin.cons a y i) = p 0 a * ∏ x, p x.succ (y x)
+/root/cm3-review-4/noimp7.lean:192:41: warning: This simp argument is unused:
+  Fin.cons_zero
+
+Hint: Omit it from the simp argument list.
+  [apply] simp only [weight, Fin.prod_univ_succ, Fin.cons_succ]
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+/root/cm3-review-4/noimp7.lean:192:56: warning: This simp argument is unused:
+  Fin.cons_succ
+
+Hint: Omit it from the simp argument list.
+  [apply] simp only [weight, Fin.prod_univ_succ, Fin.cons_zero]
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+/root/cm3-review-4/noimp7.lean:196:6: error(lean.synthInstanceFailed): failed to synthesize instance of type class
+  Fintype ((i : Fin (n + 1)) → Ω i)
+
+Hint: Type class instance resolution failures can be inspected with the `set_option trace.Meta.synthInstance true` command.
+/root/cm3-review-4/noimp7.lean:196:30: error(lean.synthInstanceFailed): failed to synthesize instance of type class
+  Fintype ((i : Fin n) → Ω i.succ)
+
+Hint: Type class instance resolution failures can be inspected with the `set_option trace.Meta.synthInstance true` command.
+/root/cm3-review-4/noimp7.lean:198:6: error(lean.unknownIdentifier): Unknown identifier `sum_cons`
+/root/cm3-review-4/noimp7.lean:197:78: error: unsolved goals
+n : ℕ
+Ω : Fin (n + 1) → Type u_1
+inst✝ : (i : Fin (n + 1)) → Fintype (Ω i)
+p : (i : Fin (n + 1)) → Ω i → ℝ
+h : ((i : Fin (n + 1)) → Ω i) → ℝ
+⊢ ∑ x, weight p x * h x = ∑ y ∈ sorry, weight (fun i ↦ p i.succ) y * ∑ a, p 0 a * h (Fin.cons a y)
+/root/cm3-review-4/noimp7.lean:206:50: error(lean.synthInstanceFailed): failed to synthesize instance of type class
+  Fintype ((i : Fin n) → Ω i)
+
+Hint: Type class instance resolution failures can be inspected with the `set_option trace.Meta.synthInstance true` command.
+/root/cm3-review-4/noimp7.lean:214:14: error(lean.unknownIdentifier): Unknown identifier `sum_weight_cons`
+/root/cm3-review-4/noimp7.lean:228:2: error(lean.unknownIdentifier): Unknown identifier `sum_weight_cons`
+/root/cm3-review-4/noimp7.lean:233:22: error(lean.synthInstanceFailed): failed to synthesize instance of type class
+  Fintype ((i : Fin n) → Ω i.succ)
+
+Hint: Type class instance resolution failures can be inspected with the `set_option trace.Meta.synthInstance true` command.
+/root/cm3-review-4/noimp7.lean:236:29: error(lean.synthInstanceFailed): failed to synthesize instance of type class
+  Fintype ((i : Fin n) → Ω i.succ)
+
+Hint: Type class instance resolution failures can be inspected with the `set_option trace.Meta.synthInstance true` command.
+/root/cm3-review-4/noimp7.lean:238:4: error(lean.unknownIdentifier): Unknown identifier `sum_weight_cons`
+/root/cm3-review-4/noimp7.lean:250:34: error(lean.synthInstanceFailed): failed to synthesize instance of type class
+  Fintype ((i : Fin n) → Ω i.succ)
+
+Hint: Type class instance resolution failures can be inspected with the `set_option trace.Meta.synthInstance true` command.
+/root/cm3-review-4/noimp7.lean:252:42: error(lean.synthInstanceFailed): failed to synthesize instance of type class
+  Fintype ((i : Fin n) → Ω i.succ)
+
+Hint: Type class instance resolution failures can be inspected with the `set_option trace.Meta.synthInstance true` command.
+/root/cm3-review-4/noimp7.lean:254:4: error(lean.unknownIdentifier): Unknown identifier `sum_weight_cons`
+/root/cm3-review-4/noimp7.lean:261:19: error(lean.unknownIdentifier): Unknown constant `Finset.sum_mul`
+/root/cm3-review-4/noimp7.lean:251:87: error: unsolved goals
+n : ℕ
+Ω : Fin (n + 1) → Type u_1
+inst✝ : (i : Fin (n + 1)) → Fintype (Ω i)
+p : (i : Fin (n + 1)) → Ω i → ℝ
+f : ((i : Fin (n + 1)) → Ω i) → ℝ
+hp1 : ∑ a, p 0 a = 1
+e1 : expect p (coordVar p 0 f) = ∑ y ∈ sorry, weight (fun j ↦ p j.succ) y * ∑ a, p 0 a * coordVar p 0 f (Fin.cons a y)
+y : (i : Fin n) → Ω i.succ
+x✝ : y ∈ sorry
+e3 : ∀ (a : Ω 0), coordVar p 0 f (Fin.cons a y) = wvar (p 0) fun b ↦ f (Fin.cons b y)
+⊢ (weight (fun j ↦ p j.succ) y * ∑ x, p 0 x * wvar (p 0) fun b ↦ f (Fin.cons b y)) =
+    weight (fun j ↦ p j.succ) y * wvar (p 0) fun b ↦ f (Fin.cons b y)
+/root/cm3-review-4/noimp7.lean:261:35: warning: This simp argument is unused:
+  hp1
+
+Hint: Omit it from the simp argument list.
+  [apply] simp only [e3, ← Finset.sum_mul, one_mul]
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+/root/cm3-review-4/noimp7.lean:261:40: warning: This simp argument is unused:
+  one_mul
+
+Hint: Omit it from the simp argument list.
+  [apply] simp only [e3, ← Finset.sum_mul, hp1]
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+/root/cm3-review-4/noimp7.lean:268:47: error(lean.synthInstanceFailed): failed to synthesize instance of type class
+  Fintype ((j : Fin n) → Ω j.succ)
+
+Hint: Type class instance resolution failures can be inspected with the `set_option trace.Meta.synthInstance true` command.
+/root/cm3-review-4/noimp7.lean:270:4: error(lean.unknownIdentifier): Unknown identifier `sum_weight_cons`
+/root/cm3-review-4/noimp7.lean:272:11: error(lean.synthInstanceFailed): failed to synthesize instance of type class
+  Fintype ((j : Fin n) → Ω j.succ)
+
+Hint: Type class instance resolution failures can be inspected with the `set_option trace.Meta.synthInstance true` command.
+/root/cm3-review-4/noimp7.lean:293:6: error: 'change' tactic failed, pattern
+  ∑ x, weight p x * (f x - ∑ y, weight p y * f y) ^ 2 = 0
+is not definitionally equal to target
+  variance p f = 0
+/root/cm3-review-4/noimp7.lean:308:36: error(lean.unknownIdentifier): Unknown constant `Fin.sum_univ_succ`
+/root/cm3-review-4/noimp7.lean:333:12: error(lean.synthInstanceFailed): failed to synthesize instance of type class
+  Fintype ((i : Fin n) → Ω i)
+
+Hint: Type class instance resolution failures can be inspected with the `set_option trace.Meta.synthInstance true` command.
+/root/cm3-review-4/noimp7.lean:334:12: error(lean.synthInstanceFailed): failed to synthesize instance of type class
+  Fintype ((i : Fin n) → Ω i)
+
+Hint: Type class instance resolution failures can be inspected with the `set_option trace.Meta.synthInstance true` command.
+/root/cm3-review-4/noimp7.lean:341:16: error(lean.unknownIdentifier): Unknown constant `Finset.sum_mul`
+/root/cm3-review-4/noimp7.lean:340:25: error: unsolved goals
+n : ℕ
+Ω : Fin n → Type u
+inst✝ : (i : Fin n) → Fintype (Ω i)
+p : (i : Fin n) → Ω i → ℝ
+hp0 : ∀ (i : Fin n) (a : Ω i), 0 ≤ p i a
+hp1 : ∀ (i : Fin n), ∑ a, p i a = 1
+f : ((i : Fin n) → Ω i) → ℝ
+c : Fin n → ℝ
+hc : ∀ (i : Fin n) (x : (i : Fin n) → Ω i) (a b : Ω i), |f (Function.update x i a) - f (Function.update x i b)| ≤ c i
+i : Fin n
+⊢ ∑ x, weight p x * (c i ^ 2 / 4) = c i ^ 2 / 4
+/root/cm3-review-4/noimp7.lean:333:48: error: Type mismatch
+  rfl
+has type
+  ?m.141 = ?m.141
+but is expected to have type
+  expect p (coordVar p i f) = ∑ x, weight p x * coordVar p i f x
+/root/cm3-review-4/noimp7.lean:352:46: error: Application type mismatch: The argument
+  [1 / 4, 3 / 4]
+has type
+  List ?m.29
+but is expected to have type
+  Bool
+in the application
+  ![1 / 4, 3 / 4]
+/root/cm3-review-4/noimp7.lean:352:63: error: Application type mismatch: The argument
+  [1 / 2, 1 / 2]
+has type
+  List ?m.49
+but is expected to have type
+  Bool
+in the application
+  ![1 / 2, 1 / 2]
+/root/cm3-review-4/noimp7.lean:353:16: error: unsolved goals
+case «0».«0»
+⊢ 0 ≤ sorry ()
+
+case «0».«1»
+⊢ 0 ≤ sorry ()
+
+case «1».«0»
+⊢ 0 ≤ sorry ()
+
+case «1».«1»
+⊢ 0 ≤ sorry ()
+/root/cm3-review-4/noimp7.lean:354:43: error(lean.unknownIdentifier): Unknown constant `Fin.sum_univ_two`
+/root/cm3-review-4/noimp7.lean:354:43: error(lean.unknownIdentifier): Unknown constant `Fin.sum_univ_two`
+/root/cm3-review-4/noimp7.lean:354:14: error: unsolved goals
+case «0»
+⊢ 2 * sorry () = 1
+
+case «1»
+⊢ 2 * sorry () = 1
+/root/cm3-review-4/noimp7.lean:361:46: error: Application type mismatch: The argument
+  [1 / 4, 3 / 4]
+has type
+  List ?m.29
+but is expected to have type
+  Bool
+in the application
+  ![1 / 4, 3 / 4]
+/root/cm3-review-4/noimp7.lean:361:63: error: Application type mismatch: The argument
+  [1 / 2, 1 / 2]
+has type
+  List ?m.49
+but is expected to have type
+  Bool
+in the application
+  ![1 / 2, 1 / 2]
+/root/cm3-review-4/noimp7.lean:364:65: error: Application type mismatch: The argument
+  [1, 2]
+has type
+  List ?m.81
+but is expected to have type
+  Bool
+in the application
+  ![1, 2]
+/root/cm3-review-4/noimp7.lean:362:16: error: unsolved goals
+case «0».«0»
+⊢ 0 ≤ sorry ()
+
+case «0».«1»
+⊢ 0 ≤ sorry ()
+
+case «1».«0»
+⊢ 0 ≤ sorry ()
+
+case «1».«1»
+⊢ 0 ≤ sorry ()
+/root/cm3-review-4/noimp7.lean:363:43: error(lean.unknownIdentifier): Unknown constant `Fin.sum_univ_two`
+/root/cm3-review-4/noimp7.lean:363:43: error(lean.unknownIdentifier): Unknown constant `Fin.sum_univ_two`
+/root/cm3-review-4/noimp7.lean:363:14: error: unsolved goals
+case «0»
+⊢ 2 * sorry () = 1
+
+case «1»
+⊢ 2 * sorry () = 1
+/root/cm3-review-4/noimp7.lean:365:20: error: unsolved goals
+case «0».«0».«0»
+x : Fin 2 → Fin 2
+⊢ 0 ≤ sorry () 0
+
+case «0».«0».«1»
+x : Fin 2 → Fin 2
+⊢ 1 ≤ sorry () 0
+
+case «0».«1».«0»
+x : Fin 2 → Fin 2
+⊢ 1 ≤ sorry () 0
+
+case «0».«1».«1»
+x : Fin 2 → Fin 2
+⊢ 0 ≤ sorry () 0
+
+case «1».«0».«0»
+x : Fin 2 → Fin 2
+⊢ 0 ≤ sorry () 1
+
+case «1».«0».«1»
+x : Fin 2 → Fin 2
+⊢ 2 ≤ sorry () 1
+
+case «1».«1».«0»
+x : Fin 2 → Fin 2
+⊢ 2 ≤ sorry () 1
+
+case «1».«1».«1»
+x : Fin 2 → Fin 2
+⊢ 0 ≤ sorry () 1
+rc=1

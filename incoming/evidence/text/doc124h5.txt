@@ -1,0 +1,2 @@
+
+/-- On a finite set, a product of nonnegative factors is at most the product of larger ones. -/

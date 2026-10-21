@@ -1,0 +1,36 @@
+CLOUD-MATH-3 item 124: Bernstein's inequality (new module Probability/BernsteinInequality)
+
+No linter or option switched off or on.
+
+The new module ClassicalLean/Probability/BernsteinInequality.lean (namespace
+ClassicalLean.Probability.BernsteinInequality): measureReal_sum_ge_le_bernstein, item 124 of
+MATH-PLAN-library-2, FAITHFUL; the draft d124-r4-s2's proofs with every first chain cut to the
+branch that fires (fun_prop in hSmeas), one show changed to change and push_neg changed to push
+Not; docstrings for the theorem and its five private lemmas; four targeted imports, Bernoulli's for
+the witness; the witness, claude-ai's start with the theorem's full name. Its import line at the
+end of ClassicalLean.lean's import block; the draft and its witness start removed from incoming/;
+round 68's fragment gains item 124 and one more step out of sequence.
+
+What evidence.log shows since item 130's commit: the module placed in the tree, el.sh on it rc 0,
+no message (m124-module); lake build ClassicalLean.Probability.BernsteinInequality rc 0
+(build-124), 0 lines with warning: (build-124-warn, grep rc 1 on no match); the vacuity gate's copy
+importing only this module: rc 1 on its one expected problem, the list's entry for a theorem
+outside this module's imports, and nothing of this module flagged (vac-124); check_sorry PASS 139
+(sorry-124); check_records PASS 139 (checkrec-124, checkrec2-124); no change to the statement file
+for the module (mdiff-124, empty), the module in the tree equal to the assembled one
+(moddiff-124), the witness the start with the full name (wdiff-124); the brief built by script,
+briefcheck PASS, hashed (filltask-rv2-124, brief-rv2-124, briefcheck-rv2-124, brief-rv2-124-hash);
+the module review rv2-124, its sha256 equal to the reviewer's (review-rv2-124): FINDINGS 1, MINOR,
+the module docstring's path into incoming/; the reviewer's fire tests (rv2-124-hsmeas,
+rv2-124-clear, rv2-124-noimp1 to rv2-124-noimp4); the fix in that docstring sentence only
+(mkstmt-124-fix, assemble2-124, fixdiff-124), the fixed module rc 0 with no message
+(m124-module2), rebuilt rc 0 (build2-124) with 0 lines with warning: (build2-124-warn), equal to
+the reassembled file (moddiff2-124), its files hashed (fix-124-files, fix-files-late); the
+confirming pass rv2c-124 CONFIRMED, its sha256 equal to the reviewer's (review-rv2c-124), its brief
+built and checked (task-rv2c-124, brief-rv2c-124, briefcheck-rv2c-124, brief-rv2c-124-hash); the
+tree's status the same before and after each review (status-before-rv2-124, status-after-rv2-124,
+status-before-rv2c-124, status-after-rv2c-124); item 126's module docstring fixed the same way and
+the module reassembled and elaborated rc 0 in the evidence folder, not the tree (mkstmt-126m,
+assemble2-126, m126-b); round 68's quotes checked, the planted misquote reported rc 1, the real
+ones OK (quotes-r68-e-planted, quotes-r68-e); the fragment hashed (frag-124). The witness's times,
+1792545485 to 1792545512, are in item 113's commit's range (w124-start, w124-end).

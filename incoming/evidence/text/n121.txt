@@ -1,0 +1,4 @@
+`change` where a `show` changed the goal. The two witnesses at the end of the file are new (the item
+had no witness start): two coordinates with values in `Fin 2` and different weights, and
+`f = x 0 + 2 * x 1`.
+-/

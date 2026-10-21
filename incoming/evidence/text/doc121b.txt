@@ -1,0 +1,3 @@
+/-- **Bounded differences.** Item 121 of MATH-PLAN-library-2 (order CLOUD-MATH-3). If changing
+coordinate `i` alone moves `f` by at most `c i`, then the variance of `f` under the product of the
+probability vectors `p i` is at most `∑ i, c i ^ 2 / 4`. -/

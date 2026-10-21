@@ -1,0 +1,145 @@
+NONE private
+NONE noncomputable
+NONE def
+LOCAL bscJoint _private._stdin.0.bscJoint
+NONE ε
+NONE ℝ
+NONE p
+FULL Fin Fin
+NONE fun
+NONE ab
+NONE if
+NONE then
+NONE else
+NONE theorem
+LOCAL bscJoint_values _private._stdin.0.bscJoint_values
+NONE by
+NONE have
+NONE h01
+FULL decide Decidable.decide
+NONE refine
+NONE change
+NONE _
+NONE rw
+FULL ite_eq_left ite_eq_left
+FULL rfl rfl
+FULL ite_eq_right ite_eq_right
+NONE h01.symm
+LOCAL bscJoint_nonneg _private._stdin.0.bscJoint_nonneg
+NONE hε0
+NONE hε1
+NONE hp0
+NONE a
+NONE intro
+NONE exact
+FULL mul_nonneg mul_nonneg
+NONE split_ifs
+NONE linarith
+LOCAL mul_mul_log_mul _private._stdin.0.mul_mul_log_mul
+NONE x
+NONE y
+FULL Real.log Real.log
+NONE rcases
+FULL eq_or_ne eq_or_ne
+NONE with
+NONE hx
+NONE simp
+NONE hy
+FULL Real.log_mul Real.log_mul
+NONE ring
+LOCAL mutualInfo_bscJoint _private._stdin.0.mutualInfo_bscJoint
+NONE hp1
+FULL mutualInfo ClassicalLean.Simplex.mutualInfo
+FULL shannonEntropy ClassicalLean.Simplex.shannonEntropy
+NONE b
+FULL Real.binEntropy Real.binEntropy
+NONE obtain
+NONE e00
+NONE e01
+NONE e10
+NONE e11
+NONE hP0
+NONE h1
+NONE h
+FULL Fin.sum_univ_two Fin.sum_univ_two
+NONE at
+NONE hrow'
+FULL Fin.forall_fin_two.mpr Fin.forall_fin_two
+NONE hrow
+FULL funext funext
+NONE hp'
+NONE only
+NONE hPH
+FULL Fintype.sum_prod_type Fintype.sum_prod_type
+NONE hb
+FULL Real.log_inv Real.log_inv
+FULL mutualInfo_eq_shannonEntropy_add_shannonEntropy_sub_shannonEntropy ClassicalLean.Simplex.mutualInfo_eq_shannonEntropy_add_shannonEntropy_sub_shannonEntropy
+LOCAL bscJoint_output_half _private._stdin.0.bscJoint_output_half
+NONE hp
+NONE hv
+LOCAL mutualInfo_bsc_le mutualInfo_bsc_le
+NONE hY0
+FULL Finset.sum_nonneg Finset.sum_nonneg
+NONE hY1
+NONE linear_combination
+NONE hY
+FULL shannonEntropy_le_log_card ClassicalLean.Simplex.shannonEntropy_le_log_card
+FULL Fintype.card_fin Fintype.card_fin
+FULL Nat.cast_ofNat Nat.cast_ofNat
+LOCAL mutualInfo_bsc_half mutualInfo_bsc_half
+FULL norm_num norm_num
+USED ClassicalLean.Simplex.shannonEntropy
+USED Real.instLE
+USED Real
+USED instHDiv
+USED HMul.hMul
+USED Finset.univ
+USED Real.instZero
+USED Real.instInv
+USED Real.instDivInvMonoid
+USED Real.instSub
+USED instDecidableEqFin
+USED Nat.instAtLeastTwoHAddOfNat
+USED HSub.hSub
+USED Real.binEntropy
+USED Fin.instOfNat
+USED HDiv.hDiv
+USED Prod.mk
+USED instOfNatNat
+USED LE.le
+USED Real.log
+USED ClassicalLean.Simplex.mutualInfo
+USED Prod.fst
+USED Fin.fintype
+USED Real.instAdd
+USED Real.instOne
+USED instHAdd
+USED And
+USED instHSub
+USED Inv.inv
+USED HAdd.hAdd
+USED Nat.instNeZeroSucc
+USED Nat
+USED Real.instMul
+USED DivInvMonoid.toDiv
+USED Real.instAddCommMonoid
+USED One.toOfNat1
+USED Zero.toOfNat0
+USED Prod
+USED OfNat.ofNat
+USED Fin
+USED Eq
+USED Prod.snd
+USED instOfNatAtLeastTwo
+USED Finset.sum
+USED instHMul
+USED Real.instNatCast
+USED ite
+/root/cm3-evidence/disc/disc130.lean:203:100: warning: This line exceeds the 100 character limit, please shorten it!
+You can use "string gaps" to format long strings: within a string quotation, using a '\' at the end of a line allows you to continue the string on the following line, removing all intervening whitespace.
+
+Note: This linter can be disabled with `set_option linter.style.longLine false`
+/root/cm3-evidence/disc/disc130.lean:232:100: warning: This line exceeds the 100 character limit, please shorten it!
+
+Note: This linter can be disabled with `set_option linter.style.longLine false`
+rc=0

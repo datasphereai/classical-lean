@@ -1,0 +1,8 @@
+1,2d0
+< 
+< 
+6c4,5
+< example := measureReal_orderStat_le (Ω := Fin 3 → ℝ) (n := 3)
+---
+> example := ClassicalLean.Probability.OrderStatistics.measureReal_orderStat_le
+>     (Ω := Fin 3 → ℝ) (n := 3)

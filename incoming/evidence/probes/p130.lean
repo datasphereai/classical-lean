@@ -1,0 +1,26 @@
+import Mathlib
+import ClassicalLean.InformationTheory.MutualInformation
+
+#check @ClassicalLean.Simplex.mutualInfo
+#check @ClassicalLean.Simplex.mutualInfo_eq_shannonEntropy_add_shannonEntropy_sub_shannonEntropy
+#check @ClassicalLean.Simplex.shannonEntropy
+#check @ClassicalLean.Simplex.shannonEntropy_le_log_card
+#check @Eq.symm
+#check @Fin
+#check @Fin.forall_fin_two
+#check @Fin.sum_univ_two
+#check @Finset.sum_nonneg
+#check @Fintype.card_fin
+#check @Fintype.sum_prod_type
+#check @Nat.cast_ofNat
+#check @Ne.symm
+#check @Real.binEntropy
+#check @Real.log
+#check @Real.log_inv
+#check @Real.log_mul
+#check @eq_or_ne
+#check @funext
+#check @ite_eq_left
+#check @ite_eq_right
+#check @mul_nonneg
+#check @rfl

@@ -1,0 +1,19 @@
+draft 81: 'show _ =' -> 'change _ ='
+draft 93: 'show _ =' -> 'change _ ='
+draft 207: 'show wvar' -> 'change wvar'
+draft 220: 'show ∑ y' -> 'change ∑ y'
+draft 228: 'show wvar' -> 'change wvar'
+draft 241: 'show ∑ x' -> 'change ∑ x'
+draft 268: 'EfronStein.es_aux' -> 'es_aux'
+draft 278: 'EfronStein.expect p (EfronStein.coordVar p i f)' -> 'expect p (coordVar p i f)'
+draft 280: 'EfronStein.expect p (EfronStein.coordVar p i f)' -> 'expect p (coordVar p i f)'
+draft 281: 'EfronStein.weight p x * EfronStein.coordVar p i f x' -> 'weight p x * coordVar p i f x'
+draft 282: 'EfronStein.weight p x' -> 'weight p x'
+draft 285: '(EfronStein.wvar_le_of_bdd' -> '(wvar_le_of_bdd'
+draft 287: '(EfronStein.weight_nonneg' -> '(weight_nonneg'
+draft 289: 'EfronStein.sum_weight' -> 'sum_weight'
+stmt 187: `:= by` -> `:=` (term proof, draft lines 268 to 268)
+stmt 151: `:= by` -> `:=` (term proof, draft lines 176 to 176)
+stmt 114: `:= by` -> `:=` (term proof, draft lines 120 to 120)
+stmt 92: `:= by` -> `:=` (term proof, draft lines 59 to 59)
+/root/cm3-evidence/mod/EfronStein.lean: 18 proofs filled

@@ -1,0 +1,46 @@
+/root/cm3-evidence/typecmp/tc121-stmt.lean:81:14: warning: declaration uses `sorry`
+/root/cm3-evidence/typecmp/tc121-stmt.lean:85:14: warning: declaration uses `sorry`
+/root/cm3-evidence/typecmp/tc121-stmt.lean:89:14: warning: declaration uses `sorry`
+/root/cm3-evidence/typecmp/tc121-stmt.lean:93:14: warning: declaration uses `sorry`
+/root/cm3-evidence/typecmp/tc121-stmt.lean:98:14: warning: declaration uses `sorry`
+/root/cm3-evidence/typecmp/tc121-stmt.lean:106:14: warning: declaration uses `sorry`
+/root/cm3-evidence/typecmp/tc121-stmt.lean:110:14: warning: declaration uses `sorry`
+/root/cm3-evidence/typecmp/tc121-stmt.lean:121:14: warning: declaration uses `sorry`
+/root/cm3-evidence/typecmp/tc121-stmt.lean:126:14: warning: declaration uses `sorry`
+/root/cm3-evidence/typecmp/tc121-stmt.lean:131:14: warning: declaration uses `sorry`
+/root/cm3-evidence/typecmp/tc121-stmt.lean:137:16: warning: declaration uses `sorry`
+/root/cm3-evidence/typecmp/tc121-stmt.lean:146:14: warning: declaration uses `sorry`
+/root/cm3-evidence/typecmp/tc121-stmt.lean:152:14: warning: declaration uses `sorry`
+/root/cm3-evidence/typecmp/tc121-stmt.lean:159:14: warning: declaration uses `sorry`
+/root/cm3-evidence/typecmp/tc121-stmt.lean:165:14: warning: declaration uses `sorry`
+/root/cm3-evidence/typecmp/tc121-stmt.lean:172:16: warning: declaration uses `sorry`
+/root/cm3-evidence/typecmp/tc121-stmt.lean:181:8: warning: declaration uses `sorry`
+/root/cm3-evidence/typecmp/tc121-stmt.lean:190:8: warning: declaration uses `sorry`
+@ClassicalLean.Probability.EfronStein.wmean : {α : Type u_1} → [Fintype α] → (α → ℝ) → (α → ℝ) → ℝ
+@ClassicalLean.Probability.EfronStein.wvar : {α : Type u_1} → [Fintype α] → (α → ℝ) → (α → ℝ) → ℝ
+@ClassicalLean.Probability.EfronStein.weight : {n : ℕ} →
+  {Ω : Fin n → Type u_1} → ((i : Fin n) → Ω i → ℝ) → ((i : Fin n) → Ω i) → ℝ
+@ClassicalLean.Probability.EfronStein.expect : {n : ℕ} →
+  {Ω : Fin n → Type u_1} → [(i : Fin n) → Fintype (Ω i)] → ((i : Fin n) → Ω i → ℝ) → (((i : Fin n) → Ω i) → ℝ) → ℝ
+@ClassicalLean.Probability.EfronStein.variance : {n : ℕ} →
+  {Ω : Fin n → Type u_1} → [(i : Fin n) → Fintype (Ω i)] → ((i : Fin n) → Ω i → ℝ) → (((i : Fin n) → Ω i) → ℝ) → ℝ
+@ClassicalLean.Probability.EfronStein.coordVar : {n : ℕ} →
+  {Ω : Fin n → Type u_1} →
+    [(i : Fin n) → Fintype (Ω i)] →
+      ((i : Fin n) → Ω i → ℝ) → Fin n → (((i : Fin n) → Ω i) → ℝ) → ((i : Fin n) → Ω i) → ℝ
+@ClassicalLean.Probability.EfronStein.variance_le_sum_variance_coord : ∀ {n : ℕ} {Ω : Fin n → Type u_1}
+  [inst : (i : Fin n) → Fintype (Ω i)] (p : (i : Fin n) → Ω i → ℝ),
+  (∀ (i : Fin n) (a : Ω i), 0 ≤ p i a) →
+    (∀ (i : Fin n), ∑ a, p i a = 1) →
+      ∀ (f : ((i : Fin n) → Ω i) → ℝ),
+        ClassicalLean.Probability.EfronStein.variance p f ≤
+          ∑ i, ClassicalLean.Probability.EfronStein.expect p (ClassicalLean.Probability.EfronStein.coordVar p i f)
+@ClassicalLean.Probability.EfronStein.variance_le_sum_sq_div_four : ∀ {n : ℕ} {Ω : Fin n → Type u_1}
+  [inst : (i : Fin n) → Fintype (Ω i)] (p : (i : Fin n) → Ω i → ℝ),
+  (∀ (i : Fin n) (a : Ω i), 0 ≤ p i a) →
+    (∀ (i : Fin n), ∑ a, p i a = 1) →
+      ∀ (f : ((i : Fin n) → Ω i) → ℝ) (c : Fin n → ℝ),
+        (∀ (i : Fin n) (x : (i : Fin n) → Ω i) (a b : Ω i),
+            |f (Function.update x i a) - f (Function.update x i b)| ≤ c i) →
+          ClassicalLean.Probability.EfronStein.variance p f ≤ ∑ i, c i ^ 2 / 4
+rc=0

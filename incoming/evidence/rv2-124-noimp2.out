@@ -1,0 +1,6 @@
+/root/cm3-review-6/rv2-124-noimp2.lean:53:70: error(lean.unknownIdentifier): Unknown constant `Real.hasDerivAt_exp`
+/root/cm3-review-6/rv2-124-noimp2.lean:69:41: error(lean.invalidField): Invalid field `exp`: The environment does not contain `HasFDerivAtFilter.exp`, so it is not possible to project the field `exp` from an expression
+  HasDerivAt.neg (hasDerivAt_id' x)
+of type
+  HasFDerivAtFilter (-fun x ↦ x) (ContinuousLinearMap.toSpanSingleton ℝ (-1)) (nhds x ×ˢ pure x)
+rc=1

@@ -1,0 +1,74 @@
+### 113, ClassicalLean/Analysis/SubgradientMethod.lean
+theorem min_sub_le_of_subgradient {E : Type*} [NormedAddCommGroup E] [InnerProductSpace ℝ E]
+    (f : E → ℝ) (x g : ℕ → E) (z : E) (η G : ℝ) (T : ℕ)
+    (hη : 0 < η) (hT : 0 < T)
+    (hsub : ∀ n y, f (x n) + ⟪g n, y - x n⟫_ℝ ≤ f y)
+    (hg : ∀ n, ‖g n‖ ≤ G)
+    (hstep : ∀ n, x (n + 1) = x n - η • g n) :
+    (Finset.range T).inf' ⟨0, Finset.mem_range.mpr hT⟩ (fun n => f (x n)) - f z
+      ≤ (‖x 0 - z‖ ^ 2 + η ^ 2 * G ^ 2 * T) / (2 * η * T)
+
+### 121, ClassicalLean/Probability/EfronStein.lean
+def wmean {α : Type*} [Fintype α] (r h : α → ℝ) : ℝ := ∑ a, r a * h a
+
+def wvar {α : Type*} [Fintype α] (r h : α → ℝ) : ℝ := ∑ a, r a * (h a - wmean r h) ^ 2
+
+def weight {n : ℕ} {Ω : Fin n → Type*} (p : ∀ i, Ω i → ℝ) (x : ∀ i, Ω i) : ℝ :=
+  ∏ i, p i (x i)
+
+def expect {n : ℕ} {Ω : Fin n → Type*} [∀ i, Fintype (Ω i)] (p : ∀ i, Ω i → ℝ)
+    (f : (∀ i, Ω i) → ℝ) : ℝ :=
+  wmean (weight p) f
+
+def variance {n : ℕ} {Ω : Fin n → Type*} [∀ i, Fintype (Ω i)] (p : ∀ i, Ω i → ℝ)
+    (f : (∀ i, Ω i) → ℝ) : ℝ :=
+  wvar (weight p) f
+
+def coordVar {n : ℕ} {Ω : Fin n → Type*} [∀ i, Fintype (Ω i)] (p : ∀ i, Ω i → ℝ)
+    (i : Fin n) (f : (∀ i, Ω i) → ℝ) (x : ∀ i, Ω i) : ℝ :=
+  wvar (p i) (fun a => f (Function.update x i a))
+
+theorem variance_le_sum_variance_coord {n : ℕ} {Ω : Fin n → Type u} [∀ i, Fintype (Ω i)]
+    (p : ∀ i, Ω i → ℝ) (hp0 : ∀ i a, 0 ≤ p i a) (hp1 : ∀ i, ∑ a, p i a = 1)
+    (f : (∀ i, Ω i) → ℝ) :
+    variance p f ≤ ∑ i, expect p (coordVar p i f)
+
+theorem variance_le_sum_sq_div_four {n : ℕ} {Ω : Fin n → Type u} [∀ i, Fintype (Ω i)]
+    (p : ∀ i, Ω i → ℝ) (hp0 : ∀ i a, 0 ≤ p i a) (hp1 : ∀ i, ∑ a, p i a = 1)
+    (f : (∀ i, Ω i) → ℝ) (c : Fin n → ℝ)
+    (hc : ∀ i (x : ∀ i, Ω i) (a b : Ω i),
+      |f (Function.update x i a) - f (Function.update x i b)| ≤ c i) :
+    variance p f ≤ ∑ i, c i ^ 2 / 4
+
+### 130, ClassicalLean/InformationTheory/ChannelCapacity.lean
+theorem mutualInfo_bsc_le {ε : ℝ} (hε0 : 0 ≤ ε) (hε1 : ε ≤ 1) {p : Fin 2 → ℝ}
+    (hp0 : ∀ a, 0 ≤ p a) (hp1 : ∑ a, p a = 1) :
+    mutualInfo (fun ab : Fin 2 × Fin 2 => p ab.1 * (if ab.1 = ab.2 then 1 - ε else ε))
+      ≤ Real.log 2 - Real.binEntropy ε
+
+theorem mutualInfo_bsc_half {ε : ℝ} (hε0 : 0 ≤ ε) (hε1 : ε ≤ 1) :
+    mutualInfo (fun ab : Fin 2 × Fin 2 => (1 / 2 : ℝ) * (if ab.1 = ab.2 then 1 - ε else ε))
+      = Real.log 2 - Real.binEntropy ε
+
+### 124, ClassicalLean/Probability/BernsteinInequality.lean
+theorem measureReal_sum_ge_le_bernstein {Ω ι : Type*} [MeasurableSpace Ω] {μ : Measure Ω}
+    [IsProbabilityMeasure μ] {X : ι → Ω → ℝ} (s : Finset ι)
+    (hind : iIndepFun X μ) (hmeas : ∀ i, Measurable (X i))
+    (hint : ∀ i ∈ s, Integrable (X i) μ)
+    (hint2 : ∀ i ∈ s, Integrable (fun ω => X i ω ^ 2) μ)
+    (hmean : ∀ i ∈ s, ∫ ω, X i ω ∂μ = 0) {b v t : ℝ} (hb0 : 0 ≤ b)
+    (hb : ∀ i ∈ s, ∀ᵐ ω ∂μ, X i ω ≤ b)
+    (hv : ∑ i ∈ s, ∫ ω, X i ω ^ 2 ∂μ ≤ v) (ht : 0 ≤ t) :
+    μ.real {ω | t ≤ ∑ i ∈ s, X i ω} ≤ Real.exp (-t ^ 2 / (2 * (v + b * t / 3)))
+
+### 126, ClassicalLean/Probability/OrderStatistics.lean
+noncomputable def orderStat {n : ℕ} (v : Fin n → ℝ) (k : Fin n) : ℝ :=
+  v (Tuple.sort v k)
+
+theorem measureReal_orderStat_le {Ω : Type*} [MeasurableSpace Ω] {μ : Measure Ω}
+    [IsProbabilityMeasure μ] {n : ℕ} {X : Fin n → Ω → ℝ} (hX : ∀ i, Measurable (X i))
+    (hind : iIndepFun X μ) {x F : ℝ} (hF : ∀ i, μ.real {ω | X i ω ≤ x} = F)
+    (k : ℕ) (hk : 1 ≤ k) (hkn : k ≤ n) :
+    μ.real {ω | orderStat (fun i => X i ω) ⟨k - 1, by omega⟩ ≤ x}
+      = ∑ j ∈ Finset.Icc k n, (n.choose j : ℝ) * F ^ j * (1 - F) ^ (n - j)
+

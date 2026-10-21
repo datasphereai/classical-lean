@@ -1,0 +1,79 @@
+@Eq.trans : ∀ {α : Sort u_1} {a b c : α}, a = b → b = c → a = c
+@Equiv.left_inv : ∀ {α : Sort u_1} {β : Sort u_2} (self : α ≃ β), Function.LeftInverse self.invFun self.toFun
+@Equiv.right_inv : ∀ {α : Sort u_1} {β : Sort u_2} (self : α ≃ β), Function.RightInverse self.invFun self.toFun
+@Equiv.sum_comp : ∀ {ι : Type u_1} {κ : Type u_2} {M : Type u_3} [inst : Fintype ι] [inst_1 : Fintype κ]
+  [inst_2 : AddCommMonoid M] (e : ι ≃ κ) (g : κ → M), ∑ i, g (e i) = ∑ i, g i
+Fin : ℕ → Type
+@Fin.cons : {n : ℕ} → {α : Fin (n + 1) → Sort u_1} → α 0 → ((i : Fin n) → α i.succ) → (i : Fin (n + 1)) → α i
+@Fin.cons_succ : ∀ {n : ℕ} {α : Fin (n + 1) → Sort u_1} (x : α 0) (p : (i : Fin n) → α i.succ) (i : Fin n),
+  Fin.cons x p i.succ = p i
+@Fin.cons_update : ∀ {n : ℕ} {α : Fin (n + 1) → Sort u_1} (x : α 0) (p : (i : Fin n) → α i.succ) (i : Fin n)
+  (y : α i.succ), Fin.cons x (Function.update p i y) = Function.update (Fin.cons x p) i.succ y
+@Fin.cons_zero : ∀ {n : ℕ} {α : Fin (n + 1) → Sort u_1} (x : α 0) (p : (i : Fin n) → α i.succ), Fin.cons x p 0 = x
+@Fin.prod_univ_succ : ∀ {M : Type u_1} [inst : CommMonoid M] {n : ℕ} (f : Fin (n + 1) → M),
+  ∏ i, f i = f 0 * ∏ i, f i.succ
+@Fin.succ : {n : ℕ} → Fin n → Fin (n + 1)
+@Fin.sum_univ_succ : ∀ {M : Type u_1} [inst : AddCommMonoid M] {n : ℕ} (f : Fin (n + 1) → M),
+  ∑ i, f i = f 0 + ∑ i, f i.succ
+@Fin.tail : {n : ℕ} → {α : Fin (n + 1) → Sort u_1} → ((i : Fin (n + 1)) → α i) → (i : Fin n) → α i.succ
+@Fin.update_cons_zero : ∀ {n : ℕ} {α : Fin (n + 1) → Sort u_1} (x : α 0) (p : (i : Fin n) → α i.succ) (z : α 0),
+  Function.update (Fin.cons x p) 0 z = Fin.cons z p
+Finset : Type u_1 → Type u_1
+@Finset.exists_min_image : ∀ {α : Type u_1} {β : Type u_2} [inst : LinearOrder α] (s : Finset β) (f : β → α),
+  s.Nonempty → ∃ x ∈ s, ∀ x' ∈ s, f x ≤ f x'
+@Finset.mem_univ : ∀ {α : Type u_1} [inst : Fintype α] (x : α), x ∈ Finset.univ
+@Finset.mul_sum : ∀ {ι : Type u_1} {R : Type u_2} [inst : NonUnitalNonAssocSemiring R] (s : Finset ι) (f : ι → R)
+  (a : R), a * ∑ i ∈ s, f i = ∑ i ∈ s, a * f i
+@Finset.not_nonempty_iff_eq_empty : ∀ {α : Type u_1} {s : Finset α}, ¬s.Nonempty ↔ s = ∅
+@Finset.prod_nonneg : ∀ {ι : Type u_1} {R : Type u_2} [inst : CommMonoidWithZero R] [inst_1 : Preorder R]
+  [ZeroLEOneClass R] [PosMulMono R] {f : ι → R} {s : Finset ι}, (∀ i ∈ s, 0 ≤ f i) → 0 ≤ ∏ i ∈ s, f i
+@Finset.sum_add_distrib : ∀ {ι : Type u_1} {M : Type u_2} {s : Finset ι} [inst : AddCommMonoid M] {f g : ι → M},
+  ∑ x ∈ s, (f x + g x) = ∑ x ∈ s, f x + ∑ x ∈ s, g x
+@Finset.sum_comm : ∀ {α : Type u_1} {β : Type u_2} {γ : Type u_3} [inst : AddCommMonoid β] {s : Finset γ} {t : Finset α}
+  {f : γ → α → β}, ∑ x ∈ s, ∑ y ∈ t, f x y = ∑ y ∈ t, ∑ x ∈ s, f x y
+@Finset.sum_congr : ∀ {ι : Type u_1} {M : Type u_2} {s₁ s₂ : Finset ι} [inst : AddCommMonoid M] {f g : ι → M},
+  s₁ = s₂ → (∀ x ∈ s₂, f x = g x) → s₁.sum f = s₂.sum g
+@Finset.sum_empty : ∀ {ι : Type u_1} {M : Type u_2} {f : ι → M} [inst : AddCommMonoid M], ∑ x ∈ ∅, f x = 0
+@Finset.sum_le_sum : ∀ {ι : Type u_1} {N : Type u_2} [inst : AddCommMonoid N] [inst_1 : Preorder N] {f g : ι → N}
+  {s : Finset ι} [AddLeftMono N], (∀ i ∈ s, f i ≤ g i) → ∑ i ∈ s, f i ≤ ∑ i ∈ s, g i
+@Finset.sum_mul : ∀ {ι : Type u_1} {R : Type u_2} [inst : NonUnitalNonAssocSemiring R] (s : Finset ι) (f : ι → R)
+  (a : R), (∑ i ∈ s, f i) * a = ∑ i ∈ s, f i * a
+@Finset.sum_nonneg : ∀ {ι : Type u_1} {N : Type u_2} [inst : AddCommMonoid N] [inst_1 : Preorder N] {f : ι → N}
+  {s : Finset ι} [AddLeftMono N], (∀ i ∈ s, 0 ≤ f i) → 0 ≤ ∑ i ∈ s, f i
+@Finset.sum_sub_distrib : ∀ {ι : Type u_1} {G : Type u_2} {s : Finset ι} [inst : SubtractionCommMonoid G] (f g : ι → G),
+  ∑ x ∈ s, (f x - g x) = ∑ x ∈ s, f x - ∑ x ∈ s, g x
+@Finset.univ : {α : Type u_1} → [Fintype α] → Finset α
+Fintype : Type u_1 → Type u_1
+@Fintype.sum_prod_type : ∀ {γ : Type u_1} {α₁ : Type u_2} {α₂ : Type u_3} [inst : Fintype α₁] [inst_1 : Fintype α₂]
+  [inst_2 : AddCommMonoid γ] (f : α₁ × α₂ → γ), ∑ x, f x = ∑ x, ∑ y, f (x, y)
+@Fintype.sum_unique : ∀ {M : Type u_1} {ι : Type u_2} [inst : Fintype ι] [inst_1 : AddCommMonoid M] [inst_2 : Unique ι]
+  (f : ι → M), ∑ x, f x = f default
+@Function.update : {α : Sort u_1} →
+  {β : α → Sort u_2} → [DecidableEq α] → ((a : α) → β a) → (a' : α) → β a' → (a : α) → β a
+@LE.le.trans : ∀ {α : Type u_1} [inst : Preorder α] {a b c : α}, a ≤ b → b ≤ c → a ≤ c
+Nonempty : Sort u_1 → Prop
+@Trans.trans : {α : Sort u_4} →
+  {β : Sort u_5} →
+    {γ : Sort u_6} →
+      {r : α → β → Sort u_1} →
+        {s : β → γ → Sort u_2} →
+          {t : outParam (α → γ → Sort u_3)} → [self : Trans r s t] → {a : α} → {b : β} → {c : γ} → r a b → s b c → t a c
+@add_le_add : ∀ {α : Type u_1} {a b c d : α} [inst : Add α] [inst_1 : Preorder α] [AddLeftMono α] [AddRightMono α],
+  a ≤ b → c ≤ d → a + c ≤ b + d
+@le_abs_self : ∀ {α : Type u_1} [inst : Lattice α] [inst_1 : AddGroup α] (a : α), a ≤ |a|
+@le_of_eq : ∀ {α : Type u_1} [inst : Preorder α] {a b : α}, a = b → a ≤ b
+@mul_add : ∀ {R : Type u_1} [inst : Mul R] [inst_1 : Add R] [LeftDistribClass R] (a b c : R),
+  a * (b + c) = a * b + a * c
+@mul_le_mul_of_nonneg_left : ∀ {α : Type u_1} [inst : Mul α] [inst_1 : Zero α] [inst_2 : Preorder α] {a b c : α}
+  [PosMulMono α], b ≤ c → 0 ≤ a → a * b ≤ a * c
+@mul_nonneg : ∀ {α : Type u_1} [inst : MulZeroClass α] {a b : α} [inst_1 : Preorder α] [PosMulMono α],
+  0 ≤ a → 0 ≤ b → 0 ≤ a * b
+@mul_one : ∀ {M : Type u_1} [inst : MulOneClass M] (a : M), a * 1 = a
+@one_mul : ∀ {M : Type u_1} [inst : MulOneClass M] (a : M), 1 * a = a
+@rfl : ∀ {α : Sort u_1} {a : α}, a = a
+@sq_nonneg : ∀ {R : Type u_1} [inst : Semiring R] [inst_1 : LinearOrder R] [ExistsAddOfLE R] [PosMulMono R]
+  [AddLeftMono R] (a : R), 0 ≤ a ^ 2
+@sub_nonneg : ∀ {α : Type u_1} [inst : AddGroup α] [inst_1 : LE α] [AddRightMono α] {a b : α}, 0 ≤ a - b ↔ b ≤ a
+@sub_zero : ∀ {G : Type u_1} [inst : SubNegZeroMonoid G] (a : G), a - 0 = a
+@zero_ne_one : ∀ {α : Type u_1} [inst : Zero α] [inst_1 : One α] [NeZero 1], 0 ≠ 1
+rc=0

@@ -1,0 +1,2 @@
+`ite_eq_right` for the deprecated `if_pos` and `if_neg`. Its two imports were already targeted.
+The two witnesses at the end of the file, at `ε = 1 / 4`, are new: the item had no witness start.

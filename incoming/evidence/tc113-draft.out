@@ -1,0 +1,9 @@
+@min_sub_le_of_subgradient : ∀ {E : Type u_1} [inst : NormedAddCommGroup E] [inst_1 : InnerProductSpace ℝ E] (f : E → ℝ)
+  (x g : ℕ → E) (z : E) (η G : ℝ) (T : ℕ),
+  0 < η →
+    ∀ (hT : 0 < T),
+      (∀ (n : ℕ) (y : E), f (x n) + ⟪g n, y - x n⟫_ℝ ≤ f y) →
+        (∀ (n : ℕ), ‖g n‖ ≤ G) →
+          (∀ (n : ℕ), x (n + 1) = x n - η • g n) →
+            ((Finset.range T).inf' ⋯ fun n ↦ f (x n)) - f z ≤ (‖x 0 - z‖ ^ 2 + η ^ 2 * G ^ 2 * ↑T) / (2 * η * ↑T)
+rc=0

@@ -1,0 +1,914 @@
+2026-10-21T00:23:10Z	tools-test-dirty-tree	rc=0	pred=sha256	cmd=sha256sum /root/cm3-evidence/ctools-test-dirty-tree.out :: 655061a598aac923cd0189c510af5ea466789bbff88f61881b40820f10198b0c
+2026-10-21T00:23:28Z	tools-test	rc=0	pred=sha256	cmd=sha256sum /root/cm3-evidence/ctools-test.out :: 3fc1b6ebabad26085aca2e48e5d356e703eba48cfcc011dc7671f973b47cc700
+2026-10-21T00:25:15Z	lsremote-start	rc=0	pred=04e4a38 (master at the start)	cmd=git ls-remote origin master :: out lsremote-start.out sha256 f99e8575b6a00062099dde607b47c88d5932507a38ecdb61e3a6f61fd7818aa1
+2026-10-21T00:25:15Z	round68-free	rc=1	pred=no round-68 file on origin/master	cmd=bash -c git ls-tree --name-only origin/master records/rounds/ | grep -c round-68 :: out round68-free.out sha256 9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa
+2026-10-21T00:28:44Z	cut-113	rc=0	pred=cut draft written, every edit applied	cmd=python3 -I /root/cm3-evidence/scripts/cut.py /home/user/classical-lean/incoming/d113-r1-s1.lean /root/cm3-evidence/spec/c113.json /root/cm3-evidence/cut/d113.lean :: out cut-113.out sha256 f33094df8e20d79385bb1eaec3559130261732c660d9f1bacda5eae454f30a3b
+2026-10-21T00:28:44Z	cut-121	rc=0	pred=cut draft written, every edit applied	cmd=python3 -I /root/cm3-evidence/scripts/cut.py /home/user/classical-lean/incoming/d121-r3-s1.lean /root/cm3-evidence/spec/c121.json /root/cm3-evidence/cut/d121.lean :: out cut-121.out sha256 72cf0ad5eb2a9f9a78630c7bf0f341877e746c70c3017bc802ca7d2b3a004203
+2026-10-21T00:28:45Z	cut-130	rc=0	pred=cut draft written, every edit applied	cmd=python3 -I /root/cm3-evidence/scripts/cut.py /home/user/classical-lean/incoming/d130-r1-s1.lean /root/cm3-evidence/spec/c130.json /root/cm3-evidence/cut/d130.lean :: out cut-130.out sha256 f595c32bd9066d4359829acb39f637094a99c7691c246b8c377769a0b34b1b19
+2026-10-21T00:28:45Z	cut-124	rc=0	pred=cut draft written, every edit applied	cmd=python3 -I /root/cm3-evidence/scripts/cut.py /home/user/classical-lean/incoming/d124-r4-s2.lean /root/cm3-evidence/spec/c124.json /root/cm3-evidence/cut/d124.lean :: out cut-124.out sha256 4ec34232081945cc79549298322c3cbf33ce4d0e683666696a38294a8399a294
+2026-10-21T00:28:45Z	cut-126	rc=0	pred=cut draft written, every edit applied	cmd=python3 -I /root/cm3-evidence/scripts/cut.py /home/user/classical-lean/incoming/d126-r2-s2.lean /root/cm3-evidence/spec/c126.json /root/cm3-evidence/cut/d126.lean :: out cut-126.out sha256 a9f18ab6d0f21f6deb33084ce67cea79a21178c3157855c67d29f584e5631142
+2026-10-21T00:29:24Z	closure-base-file	rc=0	pred=sha256	cmd=sha256sum /root/cm3-evidence/closure-base.lean :: fcd6f23b1ae3e148538c3dd378c0f031e0b1a8c7d7afe33bdefb23b64aab5ab8
+2026-10-21T00:29:25Z	start-build	rc=0	pred=4188 jobs, 0 errors	cmd=lake build :: out start-build.out sha256 fc222e5e79b8ab612600de50708c268b54a36807ad71779bd629fd4e5c8e21e8
+2026-10-21T00:29:37Z	start-build-warn	rc=1	pred=0 lines with warning: (grep rc 1 on no match)	cmd=grep -c warning: /root/cm3-evidence/start-build.out :: out start-build-warn.out sha256 9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa
+2026-10-21T00:29:48Z	start-axiom	rc=0	pred=PASS 3458	cmd=lake env lean tools/AxiomGate.lean :: out start-axiom.out sha256 e9d34566414038232213b337131f67602bb084fc0c6221512d54dd102c7364d7
+2026-10-21T00:29:58Z	closure-base-build	rc=0	pred=root build before closure-base	cmd=rootrun build: nice -n 10 lake build :: head 313e9a7009d025ebeddd84dd804a65ae605be672 jobs 4188 warnings 0 :: out closure-base-build.out sha256 f9e406ec1eeda9642fa07d8a8ced1d9b73579793ce5caab54208be2c6bda113f
+2026-10-21T00:30:05Z	closure-base	rc=0	pred=MOD lines for the library's closure	cmd=rootrun lake env lean /root/cm3-evidence/closure-base.lean :: head 313e9a7009d025ebeddd84dd804a65ae605be672 :: out closure-base.out sha256 06cf48aa2f0ab6b537f27cb91ce4cec2da25d1585816048a66a47a28363e6f07
+2026-10-21T00:30:23Z	rule38-order	rc=0	pred=ORDER OK: build line before command line, same head	cmd=/root/cm3-evidence/scripts/rule38order.sh closure-base :: out rule38-order.out sha256 29e3bf54418dede9f28646c081416f2b3d82bd8c55ecb84bed0fc7ba0eb275a0
+2026-10-21T00:30:23Z	closure-base-count	rc=0	pred=about 5714 MOD lines (CLOUD-MATH-2's count at 4d99afd; the cut adds modules)	cmd=grep -c MOD  /root/cm3-evidence/closure-base.out :: out closure-base-count.out sha256 67500ae174639bb135b2c888c60744ac2fefb5c07f2813ce224bc90fae39315c
+2026-10-21T00:30:24Z	closure-base-kinds	rc=0	pred=ClassicalLean modules: 136 plus the root	cmd=bash -c grep -o 'MOD ClassicalLean[^ ]*' /root/cm3-evidence/closure-base.out | wc -l :: out closure-base-kinds.out sha256 748ea33db356501af68a9e37a1583cfa57192a894aab2a692c5475f031d1e81a
+2026-10-21T00:31:46Z	quotecheck-script	rc=0	pred=sha256	cmd=sha256sum /root/cm3-evidence/scripts/quotecheck.py :: 9bd90a470dec8405e0ca2cc1c2738ce48e657375f9b32fb68e58f29c9becd64b
+2026-10-21T00:31:46Z	quotecheck-script	rc=0	pred=sha256	cmd=sha256sum /root/cm3-evidence/quotes/r68-a.tsv :: 0abc53a31f74194c72e0432d58a78235f6d8f910ff8cbf91e0685f0c5cd5b888
+2026-10-21T00:31:46Z	quotecheck-script	rc=0	pred=sha256	cmd=sha256sum /root/cm3-evidence/quotes/r68-a-planted.tsv :: 7fdba2402d01702a840b04842301fa6803129786a82cbba4cd283beaea482614
+2026-10-21T00:31:46Z	quotes-r68-a-planted	rc=1	pred=rc 1: the planted misquote reported MISQUOTE	cmd=python3 -I /root/cm3-evidence/scripts/quotecheck.py /home/user/classical-lean/records/rounds/20261021T002200Z__round-68-subgradient-efron-stein-bernstein-order-statistics-bsc.md /root/cm3-evidence/quotes/r68-a-planted.tsv :: out quotes-r68-a-planted.out sha256 1de873abbdc385462d0288d93fec005af1bc4280604727cbccabb1987a4dfefb
+2026-10-21T00:31:46Z	quotes-r68-a	rc=0	pred=rc 0: every quote OK	cmd=python3 -I /root/cm3-evidence/scripts/quotecheck.py /home/user/classical-lean/records/rounds/20261021T002200Z__round-68-subgradient-efron-stein-bernstein-order-statistics-bsc.md /root/cm3-evidence/quotes/r68-a.tsv :: out quotes-r68-a.out sha256 86f98f0f7cdaf63373e78ed253e8b17adec2509aea27bab6b04c1349a6628967
+2026-10-21T00:31:55Z	records-first	rc=0	pred=sha256	cmd=sha256sum records/orders/20261021T002100Z__claude-ai__order-cloudmath3-subgradient-efron-stein-bernstein-order-statistics-bsc.md :: 3cdbc3931e1041f288611c70e74db8cabe00bac62336d93452f1be9c1241cd58
+2026-10-21T00:31:55Z	records-first	rc=0	pred=sha256	cmd=sha256sum records/orders/INDEX.md :: a5faae59d81de3428cae0dad331c25c3e6aa73a3856fecf2207cdee9972b471e
+2026-10-21T00:31:55Z	records-first	rc=0	pred=sha256	cmd=sha256sum records/CLAIMS.md :: 3aee12fbf0239df7315afc1080829d56d9d745aeff68668c9f4a0629f461d760
+2026-10-21T00:31:55Z	records-first	rc=0	pred=sha256	cmd=sha256sum records/rounds/20261021T002200Z__round-68-subgradient-efron-stein-bernstein-order-statistics-bsc.md :: fae4b612a7d632527c4e6d2d259dbc7ccc19597eac738109d851f77e798f9f49
+2026-10-21T00:31:55Z	records-first	rc=0	pred=sha256	cmd=sha256sum /root/cm3-evidence/scripts/cut.py :: 8302772ed9a8546f0441c42dffc9bd60d8a487e6c54a6e3d01b504a54cc404fb
+2026-10-21T00:31:55Z	records-first	rc=0	pred=sha256	cmd=sha256sum /root/cm3-evidence/scripts/mkdisc3.py :: 4ec8bf604071dc957371e5ee1da0762b37817dfa2a478c5ad0e18b58f7471e6b
+2026-10-21T00:31:55Z	records-first	rc=0	pred=sha256	cmd=sha256sum /root/cm3-evidence/scripts/mkprobes3.py :: b5c3fe65d39447c32ad8c66adba862cf9fcbbe6948b5cfc4b8d52ef99c52723d
+2026-10-21T00:31:55Z	records-first	rc=0	pred=sha256	cmd=sha256sum /root/cm3-evidence/scripts/rule38order.sh :: 4491953fec06fa0234406c03176db362d6d8a1842dd81eda1442b8ebd2708b81
+2026-10-21T00:31:55Z	records-first	rc=0	pred=sha256	cmd=sha256sum /root/cm3-evidence/scripts/finishmsg.sh :: 2ca8c8e003e3b2a2085b4333fa572bae24d332e5e6d58cceac8044cfa3902fd5
+2026-10-21T00:31:55Z	checkrec-first	rc=0	pred=PASS 135	cmd=python3 -I tools/check_records.py :: out checkrec-first.out sha256 a5ef8dbb78afdb92da76e89a47b81723ebb5453c398a2d9c8b97d03181541528
+2026-10-21T00:32:19Z	msg-records-first	rc=0	pred=sha256	cmd=sha256sum /root/cm3-evidence/msg/m-records-first.txt :: 8bb960fa6c947e96b39ac82a6a676af936d12a7c05af61038d7e9738112bf1bd
+2026-10-21T00:32:19Z	commit-msg-records-first	rc=0	pred=sha256	cmd=sha256sum /root/cm3-evidence/msg/m-records-first.final :: e48ac563ffc2523d6587f7407876b578d8cfe376970adf0f9c628edb81c5bbc9
+COMMIT 65c8797
+2026-10-21T00:32:36Z	allowlist	rc=0	pred=sha256	cmd=sha256sum /root/cm3-evidence/allowlist.txt :: 42d56556b5a3d6e0070f11f8e645718f4a50f04044374c2106962926f833bcd2
+2026-10-21T00:32:53Z	disc-113	rc=0	pred=compile-fix run	cmd=el.sh /root/cm3-evidence/disc/disc113.lean (probe run, not subject to rule 37) :: out disc-113.out sha256 399a21457245d1227e4e8bad36dd5100f2d9dd8c86201bad5b1bc5b4c8b4e81a
+2026-10-21T00:33:05Z	disc-121	rc=0	pred=compile-fix run	cmd=el.sh /root/cm3-evidence/disc/disc121.lean (probe run, not subject to rule 37) :: out disc-121.out sha256 941534ec8cf6125d4f1fd041ed4c4067c5ed650769cf54bbe5c0012daff6fc18
+2026-10-21T00:33:12Z	disc-130	rc=0	pred=compile-fix run	cmd=el.sh /root/cm3-evidence/disc/disc130.lean (probe run, not subject to rule 37) :: out disc-130.out sha256 2c813a0321b6d2f6645174c69a7a19ddad1a5bbc597bb0ad2c8812ecdf4d3806
+2026-10-21T00:33:28Z	disc-124	rc=0	pred=compile-fix run	cmd=el.sh /root/cm3-evidence/disc/disc124.lean (probe run, not subject to rule 37) :: out disc-124.out sha256 2a46f394f1880e4198fadd10c3d3eb71690e06a2b71c9076d07b280c5c2dab9b
+2026-10-21T00:33:40Z	disc-126	rc=0	pred=compile-fix run	cmd=el.sh /root/cm3-evidence/disc/disc126.lean (probe run, not subject to rule 37) :: out disc-126.out sha256 ab511d0503466c0bc005c08c145fb59f3500c68d0409541d0f60aeff2e438237
+2026-10-21T00:35:26Z	disc2-124	rc=0	pred=compile-fix run	cmd=el.sh /root/cm3-evidence/disc/disc124-b.lean (probe run, not subject to rule 37) :: out disc2-124.out sha256 2ee3d59e24b3151ee19a92c55e78f5b545bd4e42b2d039592c7c7e21b12ad7ef
+2026-10-21T00:35:46Z	disc2-113	rc=0	pred=compile-fix run	cmd=el.sh /root/cm3-evidence/disc/disc113-b.lean (probe run, not subject to rule 37) :: out disc2-113.out sha256 20664945aa55f62525d691240be3099e07c4e97694a72dffab779c702f85488d
+2026-10-21T00:35:58Z	disc2-121	rc=0	pred=compile-fix run	cmd=el.sh /root/cm3-evidence/disc/disc121-b.lean (probe run, not subject to rule 37) :: out disc2-121.out sha256 91ac4d49441ab4006b2a2d653db5020d07596975feec827a3eb86659e6b30ef9
+2026-10-21T00:36:04Z	disc2-130	rc=0	pred=compile-fix run	cmd=el.sh /root/cm3-evidence/disc/disc130-b.lean (probe run, not subject to rule 37) :: out disc2-130.out sha256 8509da00e156bc071e97d973816ae9373a5614dd6ea75c5db13cf343031fc429
+2026-10-21T00:36:18Z	disc2-126	rc=0	pred=compile-fix run	cmd=el.sh /root/cm3-evidence/disc/disc126-b.lean (probe run, not subject to rule 37) :: out disc2-126.out sha256 20018e5fd0b1eaf3748c8631d9a45ebc83bf673354544ee576c12d6ec10a91c8
+2026-10-21T00:37:38Z	mkprobes-113	rc=2	pred=0 uncleared	cmd=python3 -I scripts/mkprobes3.py probes/p113.lean Mathlib cut/d113.lean disc2-113.out :: out mkprobes-113.out sha256 98891c2aec9a1c7a5493a4b5243b5450e4c706af39644a1bae1643e467d47d52
+2026-10-21T00:37:38Z	mkprobes-121	rc=2	pred=0 uncleared	cmd=python3 -I scripts/mkprobes3.py probes/p121.lean Mathlib cut/d121.lean disc2-121.out probes/e121.txt :: out mkprobes-121.out sha256 98891c2aec9a1c7a5493a4b5243b5450e4c706af39644a1bae1643e467d47d52
+2026-10-21T00:37:38Z	mkprobes-124	rc=2	pred=0 uncleared	cmd=python3 -I scripts/mkprobes3.py probes/p124.lean Mathlib cut/d124.lean disc2-124.out probes/e124.txt :: out mkprobes-124.out sha256 98891c2aec9a1c7a5493a4b5243b5450e4c706af39644a1bae1643e467d47d52
+2026-10-21T00:37:38Z	mkprobes-126	rc=2	pred=0 uncleared	cmd=python3 -I scripts/mkprobes3.py probes/p126.lean Mathlib cut/d126.lean disc2-126.out probes/e126.txt :: out mkprobes-126.out sha256 98891c2aec9a1c7a5493a4b5243b5450e4c706af39644a1bae1643e467d47d52
+2026-10-21T00:37:38Z	mkprobes-130	rc=2	pred=0 uncleared	cmd=python3 -I scripts/mkprobes3.py probes/p130.lean Mathlib,ClassicalLean.InformationTheory.MutualInformation cut/d130.lean disc2-130.out :: out mkprobes-130.out sha256 98891c2aec9a1c7a5493a4b5243b5450e4c706af39644a1bae1643e467d47d52
+2026-10-21T00:37:45Z	mkprobes2-113	rc=0	pred=0 uncleared	cmd=python3 -I /root/cm3-evidence/scripts/mkprobes3.py /root/cm3-evidence/probes/p113.lean Mathlib /root/cm3-evidence/cut/d113.lean /root/cm3-evidence/disc2-113.out :: out mkprobes2-113.out sha256 6d5b0a44a694e7611ec44a018e85d179ee6f9a59799035498df25cdaa6687a3d
+2026-10-21T00:37:45Z	mkprobes2-121	rc=0	pred=0 uncleared	cmd=python3 -I /root/cm3-evidence/scripts/mkprobes3.py /root/cm3-evidence/probes/p121.lean Mathlib /root/cm3-evidence/cut/d121.lean /root/cm3-evidence/disc2-121.out /root/cm3-evidence/probes/e121.txt :: out mkprobes2-121.out sha256 960896848f90bd518bad3f6314851c3aee8468909c3baec6d664d57f4ad28b4e
+2026-10-21T00:37:45Z	mkprobes2-124	rc=0	pred=0 uncleared	cmd=python3 -I /root/cm3-evidence/scripts/mkprobes3.py /root/cm3-evidence/probes/p124.lean Mathlib /root/cm3-evidence/cut/d124.lean /root/cm3-evidence/disc2-124.out /root/cm3-evidence/probes/e124.txt :: out mkprobes2-124.out sha256 d09a6187ea50cbbce8ac516d03443f8c1b3db77d5ccb30ae8251e5c243a7273e
+2026-10-21T00:37:45Z	mkprobes2-126	rc=0	pred=0 uncleared	cmd=python3 -I /root/cm3-evidence/scripts/mkprobes3.py /root/cm3-evidence/probes/p126.lean Mathlib /root/cm3-evidence/cut/d126.lean /root/cm3-evidence/disc2-126.out /root/cm3-evidence/probes/e126.txt :: out mkprobes2-126.out sha256 3ed596615160ea2673f060aa5a12563aa8705db10c5338f2df5f4b79b3f14a55
+2026-10-21T00:37:45Z	mkprobes2-130	rc=0	pred=0 uncleared	cmd=python3 -I /root/cm3-evidence/scripts/mkprobes3.py /root/cm3-evidence/probes/p130.lean Mathlib,ClassicalLean.InformationTheory.MutualInformation /root/cm3-evidence/cut/d130.lean /root/cm3-evidence/disc2-130.out :: out mkprobes2-130.out sha256 bcf2c8d921dd61a9f8eb2136deaf6910daa8339882a538e7f996f862f3dec9dc
+2026-10-21T00:37:51Z	allowlist	rc=0	pred=sha256	cmd=sha256sum /root/cm3-evidence/allowlist.txt :: 8e4094a3d6c19fecac847bb254081baf52300898fa447758124f4ea2ffe0c893
+2026-10-21T00:38:02Z	probes-113	rc=0	pred=compile-fix run	cmd=el.sh /root/cm3-evidence/probes/p113.lean (probe run, not subject to rule 37) :: out probes-113.out sha256 30711a9a4ed1a681ef4aba4e74c6703c10f8b1680b1fc0ab30d5b65607af66e0
+2026-10-21T00:38:02Z	probes-113	rc=0	pred=probe	cmd=PROBED Finset.card_range
+2026-10-21T00:38:02Z	probes-113	rc=0	pred=probe	cmd=PROBED Finset.inf'
+2026-10-21T00:38:02Z	probes-113	rc=0	pred=probe	cmd=PROBED Finset.inf'_le
+2026-10-21T00:38:02Z	probes-113	rc=0	pred=probe	cmd=PROBED Finset.mem_range
+2026-10-21T00:38:02Z	probes-113	rc=0	pred=probe	cmd=PROBED Finset.range
+2026-10-21T00:38:02Z	probes-113	rc=0	pred=probe	cmd=PROBED Finset.sum_const
+2026-10-21T00:38:02Z	probes-113	rc=0	pred=probe	cmd=PROBED Finset.sum_le_sum
+2026-10-21T00:38:02Z	probes-113	rc=0	pred=probe	cmd=PROBED Finset.sum_range_succ
+2026-10-21T00:38:02Z	probes-113	rc=0	pred=probe	cmd=PROBED InnerProductSpace
+2026-10-21T00:38:02Z	probes-113	rc=0	pred=probe	cmd=PROBED LE.le
+2026-10-21T00:38:02Z	probes-113	rc=0	pred=probe	cmd=PROBED LT.lt.le
+2026-10-21T00:38:02Z	probes-113	rc=0	pred=probe	cmd=PROBED NormedAddCommGroup
+2026-10-21T00:38:02Z	probes-113	rc=0	pred=probe	cmd=PROBED Real.norm_eq_abs
+2026-10-21T00:38:02Z	probes-113	rc=0	pred=probe	cmd=PROBED inner_sub_left
+2026-10-21T00:38:02Z	probes-113	rc=0	pred=probe	cmd=PROBED inner_sub_right
+2026-10-21T00:38:02Z	probes-113	rc=0	pred=probe	cmd=PROBED le_div_iff₀
+2026-10-21T00:38:02Z	probes-113	rc=0	pred=probe	cmd=PROBED mul_le_mul_of_nonneg_left
+2026-10-21T00:38:02Z	probes-113	rc=0	pred=probe	cmd=PROBED mul_pos
+2026-10-21T00:38:02Z	probes-113	rc=0	pred=probe	cmd=PROBED mul_pow
+2026-10-21T00:38:02Z	probes-113	rc=0	pred=probe	cmd=PROBED norm_nonneg
+2026-10-21T00:38:02Z	probes-113	rc=0	pred=probe	cmd=PROBED norm_smul
+2026-10-21T00:38:02Z	probes-113	rc=0	pred=probe	cmd=PROBED norm_sub_sq_real
+2026-10-21T00:38:02Z	probes-113	rc=0	pred=probe	cmd=PROBED nsmul_eq_mul
+2026-10-21T00:38:02Z	probes-113	rc=0	pred=probe	cmd=PROBED real_inner_comm
+2026-10-21T00:38:02Z	probes-113	rc=0	pred=probe	cmd=PROBED real_inner_smul_right
+2026-10-21T00:38:02Z	probes-113	rc=0	pred=probe	cmd=PROBED sq_abs
+2026-10-21T00:38:02Z	probes-113	rc=0	pred=probe	cmd=PROBED sq_nonneg
+2026-10-21T00:38:02Z	probes-113	rc=0	pred=probe	cmd=PROBED two_pos
+2026-10-21T00:38:14Z	probes-121	rc=0	pred=compile-fix run	cmd=el.sh /root/cm3-evidence/probes/p121.lean (probe run, not subject to rule 37) :: out probes-121.out sha256 d9b70dc29188a6bf16227733c571112b9afbab40c5b6cab5ed9ae81caa3d4003
+2026-10-21T00:38:14Z	probes-121	rc=0	pred=probe	cmd=PROBED Eq.trans
+2026-10-21T00:38:14Z	probes-121	rc=0	pred=probe	cmd=PROBED Equiv.left_inv
+2026-10-21T00:38:14Z	probes-121	rc=0	pred=probe	cmd=PROBED Equiv.right_inv
+2026-10-21T00:38:14Z	probes-121	rc=0	pred=probe	cmd=PROBED Equiv.sum_comp
+2026-10-21T00:38:14Z	probes-121	rc=0	pred=probe	cmd=PROBED Fin
+2026-10-21T00:38:14Z	probes-121	rc=0	pred=probe	cmd=PROBED Fin.cons
+2026-10-21T00:38:14Z	probes-121	rc=0	pred=probe	cmd=PROBED Fin.cons_succ
+2026-10-21T00:38:14Z	probes-121	rc=0	pred=probe	cmd=PROBED Fin.cons_update
+2026-10-21T00:38:14Z	probes-121	rc=0	pred=probe	cmd=PROBED Fin.cons_zero
+2026-10-21T00:38:14Z	probes-121	rc=0	pred=probe	cmd=PROBED Fin.prod_univ_succ
+2026-10-21T00:38:14Z	probes-121	rc=0	pred=probe	cmd=PROBED Fin.succ
+2026-10-21T00:38:14Z	probes-121	rc=0	pred=probe	cmd=PROBED Fin.sum_univ_succ
+2026-10-21T00:38:14Z	probes-121	rc=0	pred=probe	cmd=PROBED Fin.tail
+2026-10-21T00:38:14Z	probes-121	rc=0	pred=probe	cmd=PROBED Fin.update_cons_zero
+2026-10-21T00:38:14Z	probes-121	rc=0	pred=probe	cmd=PROBED Finset
+2026-10-21T00:38:14Z	probes-121	rc=0	pred=probe	cmd=PROBED Finset.exists_min_image
+2026-10-21T00:38:14Z	probes-121	rc=0	pred=probe	cmd=PROBED Finset.mem_univ
+2026-10-21T00:38:14Z	probes-121	rc=0	pred=probe	cmd=PROBED Finset.mul_sum
+2026-10-21T00:38:14Z	probes-121	rc=0	pred=probe	cmd=PROBED Finset.not_nonempty_iff_eq_empty
+2026-10-21T00:38:14Z	probes-121	rc=0	pred=probe	cmd=PROBED Finset.prod_nonneg
+2026-10-21T00:38:14Z	probes-121	rc=0	pred=probe	cmd=PROBED Finset.sum_add_distrib
+2026-10-21T00:38:14Z	probes-121	rc=0	pred=probe	cmd=PROBED Finset.sum_comm
+2026-10-21T00:38:14Z	probes-121	rc=0	pred=probe	cmd=PROBED Finset.sum_congr
+2026-10-21T00:38:14Z	probes-121	rc=0	pred=probe	cmd=PROBED Finset.sum_empty
+2026-10-21T00:38:14Z	probes-121	rc=0	pred=probe	cmd=PROBED Finset.sum_le_sum
+2026-10-21T00:38:14Z	probes-121	rc=0	pred=probe	cmd=PROBED Finset.sum_mul
+2026-10-21T00:38:14Z	probes-121	rc=0	pred=probe	cmd=PROBED Finset.sum_nonneg
+2026-10-21T00:38:14Z	probes-121	rc=0	pred=probe	cmd=PROBED Finset.sum_sub_distrib
+2026-10-21T00:38:14Z	probes-121	rc=0	pred=probe	cmd=PROBED Finset.univ
+2026-10-21T00:38:14Z	probes-121	rc=0	pred=probe	cmd=PROBED Fintype
+2026-10-21T00:38:14Z	probes-121	rc=0	pred=probe	cmd=PROBED Fintype.sum_prod_type
+2026-10-21T00:38:14Z	probes-121	rc=0	pred=probe	cmd=PROBED Fintype.sum_unique
+2026-10-21T00:38:14Z	probes-121	rc=0	pred=probe	cmd=PROBED Function.update
+2026-10-21T00:38:14Z	probes-121	rc=0	pred=probe	cmd=PROBED LE.le.trans
+2026-10-21T00:38:14Z	probes-121	rc=0	pred=probe	cmd=PROBED Nonempty
+2026-10-21T00:38:14Z	probes-121	rc=0	pred=probe	cmd=PROBED Trans.trans
+2026-10-21T00:38:14Z	probes-121	rc=0	pred=probe	cmd=PROBED add_le_add
+2026-10-21T00:38:14Z	probes-121	rc=0	pred=probe	cmd=PROBED le_abs_self
+2026-10-21T00:38:14Z	probes-121	rc=0	pred=probe	cmd=PROBED le_of_eq
+2026-10-21T00:38:14Z	probes-121	rc=0	pred=probe	cmd=PROBED mul_add
+2026-10-21T00:38:14Z	probes-121	rc=0	pred=probe	cmd=PROBED mul_le_mul_of_nonneg_left
+2026-10-21T00:38:14Z	probes-121	rc=0	pred=probe	cmd=PROBED mul_nonneg
+2026-10-21T00:38:14Z	probes-121	rc=0	pred=probe	cmd=PROBED mul_one
+2026-10-21T00:38:14Z	probes-121	rc=0	pred=probe	cmd=PROBED one_mul
+2026-10-21T00:38:14Z	probes-121	rc=0	pred=probe	cmd=PROBED rfl
+2026-10-21T00:38:14Z	probes-121	rc=0	pred=probe	cmd=PROBED sq_nonneg
+2026-10-21T00:38:14Z	probes-121	rc=0	pred=probe	cmd=PROBED sub_nonneg
+2026-10-21T00:38:14Z	probes-121	rc=0	pred=probe	cmd=PROBED sub_zero
+2026-10-21T00:38:14Z	probes-121	rc=0	pred=probe	cmd=PROBED zero_ne_one
+2026-10-21T00:38:25Z	probes-130	rc=0	pred=compile-fix run	cmd=el.sh /root/cm3-evidence/probes/p130.lean (probe run, not subject to rule 37) :: out probes-130.out sha256 4982907ea5e42400dfb85cc9b72cf5b682421d7b996f64ff8448e76447ca19e1
+2026-10-21T00:38:25Z	probes-130	rc=0	pred=probe	cmd=PROBED ClassicalLean.Simplex.mutualInfo
+2026-10-21T00:38:25Z	probes-130	rc=0	pred=probe	cmd=PROBED ClassicalLean.Simplex.mutualInfo_eq_shannonEntropy_add_shannonEntropy_sub_shannonEntropy
+2026-10-21T00:38:25Z	probes-130	rc=0	pred=probe	cmd=PROBED ClassicalLean.Simplex.shannonEntropy
+2026-10-21T00:38:25Z	probes-130	rc=0	pred=probe	cmd=PROBED ClassicalLean.Simplex.shannonEntropy_le_log_card
+2026-10-21T00:38:25Z	probes-130	rc=0	pred=probe	cmd=PROBED Eq.symm
+2026-10-21T00:38:25Z	probes-130	rc=0	pred=probe	cmd=PROBED Fin
+2026-10-21T00:38:25Z	probes-130	rc=0	pred=probe	cmd=PROBED Fin.forall_fin_two
+2026-10-21T00:38:25Z	probes-130	rc=0	pred=probe	cmd=PROBED Fin.sum_univ_two
+2026-10-21T00:38:25Z	probes-130	rc=0	pred=probe	cmd=PROBED Finset.sum_nonneg
+2026-10-21T00:38:25Z	probes-130	rc=0	pred=probe	cmd=PROBED Fintype.card_fin
+2026-10-21T00:38:25Z	probes-130	rc=0	pred=probe	cmd=PROBED Fintype.sum_prod_type
+2026-10-21T00:38:25Z	probes-130	rc=0	pred=probe	cmd=PROBED Nat.cast_ofNat
+2026-10-21T00:38:25Z	probes-130	rc=0	pred=probe	cmd=PROBED Ne.symm
+2026-10-21T00:38:25Z	probes-130	rc=0	pred=probe	cmd=PROBED Real.binEntropy
+2026-10-21T00:38:25Z	probes-130	rc=0	pred=probe	cmd=PROBED Real.log
+2026-10-21T00:38:25Z	probes-130	rc=0	pred=probe	cmd=PROBED Real.log_inv
+2026-10-21T00:38:25Z	probes-130	rc=0	pred=probe	cmd=PROBED Real.log_mul
+2026-10-21T00:38:25Z	probes-130	rc=0	pred=probe	cmd=PROBED eq_or_ne
+2026-10-21T00:38:25Z	probes-130	rc=0	pred=probe	cmd=PROBED funext
+2026-10-21T00:38:25Z	probes-130	rc=0	pred=probe	cmd=PROBED ite_eq_left
+2026-10-21T00:38:25Z	probes-130	rc=0	pred=probe	cmd=PROBED ite_eq_right
+2026-10-21T00:38:25Z	probes-130	rc=0	pred=probe	cmd=PROBED mul_nonneg
+2026-10-21T00:38:25Z	probes-130	rc=0	pred=probe	cmd=PROBED rfl
+2026-10-21T00:38:36Z	probes-124	rc=0	pred=compile-fix run	cmd=el.sh /root/cm3-evidence/probes/p124.lean (probe run, not subject to rule 37) :: out probes-124.out sha256 09f39e4ff94c1e42cb7d38df4c47f8f530a10221db6aff2af30ab851b389a028
+2026-10-21T00:38:36Z	probes-124	rc=0	pred=probe	cmd=PROBED Antitone
+2026-10-21T00:38:36Z	probes-124	rc=0	pred=probe	cmd=PROBED Differentiable
+2026-10-21T00:38:36Z	probes-124	rc=0	pred=probe	cmd=PROBED Differentiable.continuous
+2026-10-21T00:38:36Z	probes-124	rc=0	pred=probe	cmd=PROBED Differentiable.differentiableOn
+2026-10-21T00:38:36Z	probes-124	rc=0	pred=probe	cmd=PROBED Filter.eventually_all_finset
+2026-10-21T00:38:36Z	probes-124	rc=0	pred=probe	cmd=PROBED Fin
+2026-10-21T00:38:36Z	probes-124	rc=0	pred=probe	cmd=PROBED Fin.sum_univ_two
+2026-10-21T00:38:36Z	probes-124	rc=0	pred=probe	cmd=PROBED Finset
+2026-10-21T00:38:36Z	probes-124	rc=0	pred=probe	cmd=PROBED Finset.card
+2026-10-21T00:38:36Z	probes-124	rc=0	pred=probe	cmd=PROBED Finset.induction_on
+2026-10-21T00:38:36Z	probes-124	rc=0	pred=probe	cmd=PROBED Finset.mem_insert_of_mem
+2026-10-21T00:38:36Z	probes-124	rc=0	pred=probe	cmd=PROBED Finset.mem_insert_self
+2026-10-21T00:38:36Z	probes-124	rc=0	pred=probe	cmd=PROBED Finset.mul_sum
+2026-10-21T00:38:36Z	probes-124	rc=0	pred=probe	cmd=PROBED Finset.prod_insert
+2026-10-21T00:38:36Z	probes-124	rc=0	pred=probe	cmd=PROBED Finset.prod_nonneg
+2026-10-21T00:38:36Z	probes-124	rc=0	pred=probe	cmd=PROBED Finset.sum_apply
+2026-10-21T00:38:36Z	probes-124	rc=0	pred=probe	cmd=PROBED Finset.sum_const
+2026-10-21T00:38:36Z	probes-124	rc=0	pred=probe	cmd=PROBED Finset.sum_le_sum
+2026-10-21T00:38:36Z	probes-124	rc=0	pred=probe	cmd=PROBED Finset.sum_nonneg
+2026-10-21T00:38:36Z	probes-124	rc=0	pred=probe	cmd=PROBED Finset.univ
+2026-10-21T00:38:36Z	probes-124	rc=0	pred=probe	cmd=PROBED HasDerivAt
+2026-10-21T00:38:36Z	probes-124	rc=0	pred=probe	cmd=PROBED HasDerivAt.add
+2026-10-21T00:38:36Z	probes-124	rc=0	pred=probe	cmd=PROBED HasDerivAt.congr_deriv
+2026-10-21T00:38:36Z	probes-124	rc=0	pred=probe	cmd=PROBED HasDerivAt.const_mul
+2026-10-21T00:38:36Z	probes-124	rc=0	pred=probe	cmd=PROBED HasDerivAt.div_const
+2026-10-21T00:38:36Z	probes-124	rc=0	pred=probe	cmd=PROBED HasDerivAt.exp
+2026-10-21T00:38:36Z	probes-124	rc=0	pred=probe	cmd=PROBED HasDerivAt.mul
+2026-10-21T00:38:36Z	probes-124	rc=0	pred=probe	cmd=PROBED HasDerivAt.neg
+2026-10-21T00:38:36Z	probes-124	rc=0	pred=probe	cmd=PROBED HasDerivAt.sub
+2026-10-21T00:38:36Z	probes-124	rc=0	pred=probe	cmd=PROBED LE.le
+2026-10-21T00:38:36Z	probes-124	rc=0	pred=probe	cmd=PROBED LT.lt.le
+2026-10-21T00:38:36Z	probes-124	rc=0	pred=probe	cmd=PROBED LT.lt.ne'
+2026-10-21T00:38:36Z	probes-124	rc=0	pred=probe	cmd=PROBED Measurable
+2026-10-21T00:38:36Z	probes-124	rc=0	pred=probe	cmd=PROBED Measurable.const_mul
+2026-10-21T00:38:36Z	probes-124	rc=0	pred=probe	cmd=PROBED MeasurableSpace
+2026-10-21T00:38:36Z	probes-124	rc=0	pred=probe	cmd=PROBED MeasureTheory.Integrable
+2026-10-21T00:38:36Z	probes-124	rc=0	pred=probe	cmd=PROBED MeasureTheory.Integrable.add
+2026-10-21T00:38:36Z	probes-124	rc=0	pred=probe	cmd=PROBED MeasureTheory.Integrable.const_mul
+2026-10-21T00:38:36Z	probes-124	rc=0	pred=probe	cmd=PROBED MeasureTheory.Integrable.mono'
+2026-10-21T00:38:36Z	probes-124	rc=0	pred=probe	cmd=PROBED MeasureTheory.IsProbabilityMeasure
+2026-10-21T00:38:36Z	probes-124	rc=0	pred=probe	cmd=PROBED MeasureTheory.Measure
+2026-10-21T00:38:36Z	probes-124	rc=0	pred=probe	cmd=PROBED MeasureTheory.Measure.ae_smul_measure
+2026-10-21T00:38:36Z	probes-124	rc=0	pred=probe	cmd=PROBED MeasureTheory.Measure.pi
+2026-10-21T00:38:36Z	probes-124	rc=0	pred=probe	cmd=PROBED MeasureTheory.Measure.real
+2026-10-21T00:38:36Z	probes-124	rc=0	pred=probe	cmd=PROBED MeasureTheory.MeasurePreserving.quasiMeasurePreserving
+2026-10-21T00:38:36Z	probes-124	rc=0	pred=probe	cmd=PROBED MeasureTheory.ae_add_measure_iff
+2026-10-21T00:38:36Z	probes-124	rc=0	pred=probe	cmd=PROBED MeasureTheory.ae_dirac_iff
+2026-10-21T00:38:36Z	probes-124	rc=0	pred=probe	cmd=PROBED MeasureTheory.integrable_comp_eval
+2026-10-21T00:38:36Z	probes-124	rc=0	pred=probe	cmd=PROBED MeasureTheory.integrable_const
+2026-10-21T00:38:36Z	probes-124	rc=0	pred=probe	cmd=PROBED MeasureTheory.integrable_eval
+2026-10-21T00:38:36Z	probes-124	rc=0	pred=probe	cmd=PROBED MeasureTheory.integral_add
+2026-10-21T00:38:36Z	probes-124	rc=0	pred=probe	cmd=PROBED MeasureTheory.integral_comp_eval
+2026-10-21T00:38:36Z	probes-124	rc=0	pred=probe	cmd=PROBED MeasureTheory.integral_const_mul
+2026-10-21T00:38:36Z	probes-124	rc=0	pred=probe	cmd=PROBED MeasureTheory.integral_eval
+2026-10-21T00:38:36Z	probes-124	rc=0	pred=probe	cmd=PROBED MeasureTheory.integral_mono_ae
+2026-10-21T00:38:36Z	probes-124	rc=0	pred=probe	cmd=PROBED MeasureTheory.integral_nonneg
+2026-10-21T00:38:36Z	probes-124	rc=0	pred=probe	cmd=PROBED MeasureTheory.measurePreserving_eval
+2026-10-21T00:38:36Z	probes-124	rc=0	pred=probe	cmd=PROBED MonotoneOn
+2026-10-21T00:38:36Z	probes-124	rc=0	pred=probe	cmd=PROBED Neg.neg
+2026-10-21T00:38:36Z	probes-124	rc=0	pred=probe	cmd=PROBED Not
+2026-10-21T00:38:36Z	probes-124	rc=0	pred=probe	cmd=PROBED Pi.add_apply
+2026-10-21T00:38:36Z	probes-124	rc=0	pred=probe	cmd=PROBED Pi.mul_apply
+2026-10-21T00:38:36Z	probes-124	rc=0	pred=probe	cmd=PROBED Pi.neg_apply
+2026-10-21T00:38:36Z	probes-124	rc=0	pred=probe	cmd=PROBED ProbabilityTheory.bernoulliMeasure
+2026-10-21T00:38:36Z	probes-124	rc=0	pred=probe	cmd=PROBED ProbabilityTheory.bernoulliMeasure_def
+2026-10-21T00:38:36Z	probes-124	rc=0	pred=probe	cmd=PROBED ProbabilityTheory.iIndepFun
+2026-10-21T00:38:36Z	probes-124	rc=0	pred=probe	cmd=PROBED ProbabilityTheory.iIndepFun.mgf_sum
+2026-10-21T00:38:36Z	probes-124	rc=0	pred=probe	cmd=PROBED ProbabilityTheory.iIndepFun_pi
+2026-10-21T00:38:36Z	probes-124	rc=0	pred=probe	cmd=PROBED ProbabilityTheory.integrable_bernoulliMeasure
+2026-10-21T00:38:36Z	probes-124	rc=0	pred=probe	cmd=PROBED ProbabilityTheory.integral_bernoulliMeasure
+2026-10-21T00:38:36Z	probes-124	rc=0	pred=probe	cmd=PROBED ProbabilityTheory.measure_ge_le_exp_mul_mgf
+2026-10-21T00:38:36Z	probes-124	rc=0	pred=probe	cmd=PROBED ProbabilityTheory.mgf
+2026-10-21T00:38:36Z	probes-124	rc=0	pred=probe	cmd=PROBED ProbabilityTheory.mgf_nonneg
+2026-10-21T00:38:36Z	probes-124	rc=0	pred=probe	cmd=PROBED Real.add_one_le_exp
+2026-10-21T00:38:36Z	probes-124	rc=0	pred=probe	cmd=PROBED Real.exp
+2026-10-21T00:38:36Z	probes-124	rc=0	pred=probe	cmd=PROBED Real.exp_add
+2026-10-21T00:38:36Z	probes-124	rc=0	pred=probe	cmd=PROBED Real.exp_le_exp
+2026-10-21T00:38:36Z	probes-124	rc=0	pred=probe	cmd=PROBED Real.exp_pos
+2026-10-21T00:38:36Z	probes-124	rc=0	pred=probe	cmd=PROBED Real.exp_sum
+2026-10-21T00:38:36Z	probes-124	rc=0	pred=probe	cmd=PROBED Real.exp_zero
+2026-10-21T00:38:36Z	probes-124	rc=0	pred=probe	cmd=PROBED Real.hasDerivAt_exp
+2026-10-21T00:38:36Z	probes-124	rc=0	pred=probe	cmd=PROBED Real.measurable_exp
+2026-10-21T00:38:36Z	probes-124	rc=0	pred=probe	cmd=PROBED Real.norm_of_nonneg
+2026-10-21T00:38:36Z	probes-124	rc=0	pred=probe	cmd=PROBED Real.quadratic_le_exp_of_nonneg
+2026-10-21T00:38:36Z	probes-124	rc=0	pred=probe	cmd=PROBED Set.Ici
+2026-10-21T00:38:36Z	probes-124	rc=0	pred=probe	cmd=PROBED Set.mem_Ici
+2026-10-21T00:38:36Z	probes-124	rc=0	pred=probe	cmd=PROBED aemeasurable_id
+2026-10-21T00:38:36Z	probes-124	rc=0	pred=probe	cmd=PROBED antitone_of_deriv_nonpos
+2026-10-21T00:38:36Z	probes-124	rc=0	pred=probe	cmd=PROBED congrArg
+2026-10-21T00:38:36Z	probes-124	rc=0	pred=probe	cmd=PROBED continuous_pow
+2026-10-21T00:38:36Z	probes-124	rc=0	pred=probe	cmd=PROBED convex_Ici
+2026-10-21T00:38:36Z	probes-124	rc=0	pred=probe	cmd=PROBED deriv
+2026-10-21T00:38:36Z	probes-124	rc=0	pred=probe	cmd=PROBED div_lt_iff₀
+2026-10-21T00:38:36Z	probes-124	rc=0	pred=probe	cmd=PROBED div_mul_cancel₀
+2026-10-21T00:38:36Z	probes-124	rc=0	pred=probe	cmd=PROBED div_mul_eq_mul_div
+2026-10-21T00:38:36Z	probes-124	rc=0	pred=probe	cmd=PROBED div_nonneg
+2026-10-21T00:38:36Z	probes-124	rc=0	pred=probe	cmd=PROBED div_nonneg_of_nonpos
+2026-10-21T00:38:36Z	probes-124	rc=0	pred=probe	cmd=PROBED eq_div_iff
+2026-10-21T00:38:36Z	probes-124	rc=0	pred=probe	cmd=PROBED eq_or_lt_of_le
+2026-10-21T00:38:36Z	probes-124	rc=0	pred=probe	cmd=PROBED hasDerivAt_const
+2026-10-21T00:38:36Z	probes-124	rc=0	pred=probe	cmd=PROBED hasDerivAt_id'
+2026-10-21T00:38:36Z	probes-124	rc=0	pred=probe	cmd=PROBED interior_Ici
+2026-10-21T00:38:36Z	probes-124	rc=0	pred=probe	cmd=PROBED le_div_iff₀
+2026-10-21T00:38:36Z	probes-124	rc=0	pred=probe	cmd=PROBED le_of_eq
+2026-10-21T00:38:36Z	probes-124	rc=0	pred=probe	cmd=PROBED le_rfl
+2026-10-21T00:38:36Z	probes-124	rc=0	pred=probe	cmd=PROBED le_total
+2026-10-21T00:38:36Z	probes-124	rc=0	pred=probe	cmd=PROBED le_trans
+2026-10-21T00:38:36Z	probes-124	rc=0	pred=probe	cmd=PROBED measurableSet_Iic
+2026-10-21T00:38:36Z	probes-124	rc=0	pred=probe	cmd=PROBED measurable_pi_apply
+2026-10-21T00:38:36Z	probes-124	rc=0	pred=probe	cmd=PROBED monotoneOn_of_deriv_nonneg
+2026-10-21T00:38:36Z	probes-124	rc=0	pred=probe	cmd=PROBED mul_assoc
+2026-10-21T00:38:36Z	probes-124	rc=0	pred=probe	cmd=PROBED mul_le_mul
+2026-10-21T00:38:36Z	probes-124	rc=0	pred=probe	cmd=PROBED mul_le_mul_of_nonneg_left
+2026-10-21T00:38:36Z	probes-124	rc=0	pred=probe	cmd=PROBED mul_nonneg
+2026-10-21T00:38:36Z	probes-124	rc=0	pred=probe	cmd=PROBED neg_zero
+2026-10-21T00:38:36Z	probes-124	rc=0	pred=probe	cmd=PROBED nsmul_eq_mul
+2026-10-21T00:38:36Z	probes-124	rc=0	pred=probe	cmd=PROBED one_mul
+2026-10-21T00:38:36Z	probes-124	rc=0	pred=probe	cmd=PROBED rfl
+2026-10-21T00:38:36Z	probes-124	rc=0	pred=probe	cmd=PROBED sq_nonneg
+2026-10-21T00:38:36Z	probes-124	rc=0	pred=probe	cmd=PROBED sub_nonneg
+2026-10-21T00:38:47Z	probes-126	rc=0	pred=compile-fix run	cmd=el.sh /root/cm3-evidence/probes/p126.lean (probe run, not subject to rule 37) :: out probes-126.out sha256 0d0d87a47fa44143b087f59027b899ee844f1034634e1e8b54359104e0e8488f
+2026-10-21T00:38:47Z	probes-126	rc=0	pred=probe	cmd=PROBED ENNReal.toReal_one
+2026-10-21T00:38:47Z	probes-126	rc=0	pred=probe	cmd=PROBED ENNReal.toReal_prod
+2026-10-21T00:38:47Z	probes-126	rc=0	pred=probe	cmd=PROBED ENNReal.toReal_sum
+2026-10-21T00:38:47Z	probes-126	rc=0	pred=probe	cmd=PROBED Eq.symm
+2026-10-21T00:38:47Z	probes-126	rc=0	pred=probe	cmd=PROBED Eq.trans
+2026-10-21T00:38:47Z	probes-126	rc=0	pred=probe	cmd=PROBED Equiv.coe_toEmbedding
+2026-10-21T00:38:47Z	probes-126	rc=0	pred=probe	cmd=PROBED Equiv.symm
+2026-10-21T00:38:47Z	probes-126	rc=0	pred=probe	cmd=PROBED Equiv.toEmbedding
+2026-10-21T00:38:47Z	probes-126	rc=0	pred=probe	cmd=PROBED Fin
+2026-10-21T00:38:47Z	probes-126	rc=0	pred=probe	cmd=PROBED Fin.card_Iic
+2026-10-21T00:38:47Z	probes-126	rc=0	pred=probe	cmd=PROBED Fin.card_Iio
+2026-10-21T00:38:47Z	probes-126	rc=0	pred=probe	cmd=PROBED Fin.isLt
+2026-10-21T00:38:47Z	probes-126	rc=0	pred=probe	cmd=PROBED Fin.val
+2026-10-21T00:38:47Z	probes-126	rc=0	pred=probe	cmd=PROBED Finset
+2026-10-21T00:38:47Z	probes-126	rc=0	pred=probe	cmd=PROBED Finset.Icc
+2026-10-21T00:38:47Z	probes-126	rc=0	pred=probe	cmd=PROBED Finset.Iic
+2026-10-21T00:38:47Z	probes-126	rc=0	pred=probe	cmd=PROBED Finset.Iio
+2026-10-21T00:38:47Z	probes-126	rc=0	pred=probe	cmd=PROBED Finset.card
+2026-10-21T00:38:47Z	probes-126	rc=0	pred=probe	cmd=PROBED Finset.card_compl
+2026-10-21T00:38:47Z	probes-126	rc=0	pred=probe	cmd=PROBED Finset.card_le_card
+2026-10-21T00:38:47Z	probes-126	rc=0	pred=probe	cmd=PROBED Finset.card_map
+2026-10-21T00:38:47Z	probes-126	rc=0	pred=probe	cmd=PROBED Finset.card_univ
+2026-10-21T00:38:47Z	probes-126	rc=0	pred=probe	cmd=PROBED Finset.filter
+2026-10-21T00:38:47Z	probes-126	rc=0	pred=probe	cmd=PROBED Finset.map
+2026-10-21T00:38:47Z	probes-126	rc=0	pred=probe	cmd=PROBED Finset.measurableSet_biInter
+2026-10-21T00:38:47Z	probes-126	rc=0	pred=probe	cmd=PROBED Finset.mem_Icc
+2026-10-21T00:38:47Z	probes-126	rc=0	pred=probe	cmd=PROBED Finset.mem_Iic
+2026-10-21T00:38:47Z	probes-126	rc=0	pred=probe	cmd=PROBED Finset.mem_Iio
+2026-10-21T00:38:47Z	probes-126	rc=0	pred=probe	cmd=PROBED Finset.mem_compl
+2026-10-21T00:38:47Z	probes-126	rc=0	pred=probe	cmd=PROBED Finset.mem_filter
+2026-10-21T00:38:47Z	probes-126	rc=0	pred=probe	cmd=PROBED Finset.mem_map
+2026-10-21T00:38:47Z	probes-126	rc=0	pred=probe	cmd=PROBED Finset.mem_range
+2026-10-21T00:38:47Z	probes-126	rc=0	pred=probe	cmd=PROBED Finset.mem_univ
+2026-10-21T00:38:47Z	probes-126	rc=0	pred=probe	cmd=PROBED Finset.powerset_univ
+2026-10-21T00:38:47Z	probes-126	rc=0	pred=probe	cmd=PROBED Finset.prod_congr
+2026-10-21T00:38:47Z	probes-126	rc=0	pred=probe	cmd=PROBED Finset.prod_const
+2026-10-21T00:38:47Z	probes-126	rc=0	pred=probe	cmd=PROBED Finset.prod_mul_prod_compl
+2026-10-21T00:38:47Z	probes-126	rc=0	pred=probe	cmd=PROBED Finset.range
+2026-10-21T00:38:47Z	probes-126	rc=0	pred=probe	cmd=PROBED Finset.sum_congr
+2026-10-21T00:38:47Z	probes-126	rc=0	pred=probe	cmd=PROBED Finset.sum_filter
+2026-10-21T00:38:47Z	probes-126	rc=0	pred=probe	cmd=PROBED Finset.sum_powerset_apply_card
+2026-10-21T00:38:47Z	probes-126	rc=0	pred=probe	cmd=PROBED Finset.univ
+2026-10-21T00:38:47Z	probes-126	rc=0	pred=probe	cmd=PROBED Fintype.card
+2026-10-21T00:38:47Z	probes-126	rc=0	pred=probe	cmd=PROBED Fintype.card_fin
+2026-10-21T00:38:47Z	probes-126	rc=0	pred=probe	cmd=PROBED Function.eval
+2026-10-21T00:38:47Z	probes-126	rc=0	pred=probe	cmd=PROBED Measurable
+2026-10-21T00:38:47Z	probes-126	rc=0	pred=probe	cmd=PROBED MeasurableSet
+2026-10-21T00:38:47Z	probes-126	rc=0	pred=probe	cmd=PROBED MeasurableSpace
+2026-10-21T00:38:47Z	probes-126	rc=0	pred=probe	cmd=PROBED MeasureTheory.IsProbabilityMeasure
+2026-10-21T00:38:47Z	probes-126	rc=0	pred=probe	cmd=PROBED MeasureTheory.IsProbabilityMeasure.measure_univ
+2026-10-21T00:38:47Z	probes-126	rc=0	pred=probe	cmd=PROBED MeasureTheory.Measure
+2026-10-21T00:38:47Z	probes-126	rc=0	pred=probe	cmd=PROBED MeasureTheory.Measure.pi
+2026-10-21T00:38:47Z	probes-126	rc=0	pred=probe	cmd=PROBED MeasureTheory.Measure.real
+2026-10-21T00:38:47Z	probes-126	rc=0	pred=probe	cmd=PROBED MeasureTheory.MeasurePreserving.measureReal_preimage
+2026-10-21T00:38:47Z	probes-126	rc=0	pred=probe	cmd=PROBED MeasureTheory.measurePreserving_eval
+2026-10-21T00:38:47Z	probes-126	rc=0	pred=probe	cmd=PROBED MeasureTheory.measureReal_compl
+2026-10-21T00:38:47Z	probes-126	rc=0	pred=probe	cmd=PROBED MeasureTheory.measureReal_def
+2026-10-21T00:38:47Z	probes-126	rc=0	pred=probe	cmd=PROBED MeasureTheory.measure_biUnion_finset
+2026-10-21T00:38:47Z	probes-126	rc=0	pred=probe	cmd=PROBED MeasureTheory.measure_ne_top
+2026-10-21T00:38:47Z	probes-126	rc=0	pred=probe	cmd=PROBED Monotone
+2026-10-21T00:38:47Z	probes-126	rc=0	pred=probe	cmd=PROBED Nat.choose
+2026-10-21T00:38:47Z	probes-126	rc=0	pred=probe	cmd=PROBED Nat.sub_add_cancel
+2026-10-21T00:38:47Z	probes-126	rc=0	pred=probe	cmd=PROBED Not
+2026-10-21T00:38:47Z	probes-126	rc=0	pred=probe	cmd=PROBED ProbabilityTheory.bernoulliMeasure
+2026-10-21T00:38:47Z	probes-126	rc=0	pred=probe	cmd=PROBED ProbabilityTheory.bernoulliMeasure_real_apply
+2026-10-21T00:38:47Z	probes-126	rc=0	pred=probe	cmd=PROBED ProbabilityTheory.iIndepFun
+2026-10-21T00:38:47Z	probes-126	rc=0	pred=probe	cmd=PROBED ProbabilityTheory.iIndepFun.measure_inter_preimage_eq_mul
+2026-10-21T00:38:47Z	probes-126	rc=0	pred=probe	cmd=PROBED ProbabilityTheory.iIndepFun_pi
+2026-10-21T00:38:47Z	probes-126	rc=0	pred=probe	cmd=PROBED Set
+2026-10-21T00:38:47Z	probes-126	rc=0	pred=probe	cmd=PROBED Set.Iic
+2026-10-21T00:38:47Z	probes-126	rc=0	pred=probe	cmd=PROBED Set.Ioi
+2026-10-21T00:38:47Z	probes-126	rc=0	pred=probe	cmd=PROBED Set.PairwiseDisjoint
+2026-10-21T00:38:47Z	probes-126	rc=0	pred=probe	cmd=PROBED Set.disjoint_left
+2026-10-21T00:38:47Z	probes-126	rc=0	pred=probe	cmd=PROBED Set.mem_Iic
+2026-10-21T00:38:47Z	probes-126	rc=0	pred=probe	cmd=PROBED Set.mem_Ioi
+2026-10-21T00:38:47Z	probes-126	rc=0	pred=probe	cmd=PROBED Set.mem_iInter
+2026-10-21T00:38:47Z	probes-126	rc=0	pred=probe	cmd=PROBED Set.mem_iUnion
+2026-10-21T00:38:47Z	probes-126	rc=0	pred=probe	cmd=PROBED Set.mem_ofPred_eq
+2026-10-21T00:38:47Z	probes-126	rc=0	pred=probe	cmd=PROBED Set.mem_preimage
+2026-10-21T00:38:47Z	probes-126	rc=0	pred=probe	cmd=PROBED Subtype.val
+2026-10-21T00:38:47Z	probes-126	rc=0	pred=probe	cmd=PROBED Tuple.monotone_sort
+2026-10-21T00:38:47Z	probes-126	rc=0	pred=probe	cmd=PROBED Tuple.sort
+2026-10-21T00:38:47Z	probes-126	rc=0	pred=probe	cmd=PROBED absurd
+2026-10-21T00:38:47Z	probes-126	rc=0	pred=probe	cmd=PROBED aemeasurable_id
+2026-10-21T00:38:47Z	probes-126	rc=0	pred=probe	cmd=PROBED exists_prop
+2026-10-21T00:38:47Z	probes-126	rc=0	pred=probe	cmd=PROBED ite_eq_left
+2026-10-21T00:38:47Z	probes-126	rc=0	pred=probe	cmd=PROBED ite_eq_right
+2026-10-21T00:38:47Z	probes-126	rc=0	pred=probe	cmd=PROBED le_trans
+2026-10-21T00:38:47Z	probes-126	rc=0	pred=probe	cmd=PROBED lt_of_lt_of_le
+2026-10-21T00:38:47Z	probes-126	rc=0	pred=probe	cmd=PROBED measurableSet_Iic
+2026-10-21T00:38:47Z	probes-126	rc=0	pred=probe	cmd=PROBED measurableSet_Ioi
+2026-10-21T00:38:47Z	probes-126	rc=0	pred=probe	cmd=PROBED measurableSet_le
+2026-10-21T00:38:47Z	probes-126	rc=0	pred=probe	cmd=PROBED measurable_const
+2026-10-21T00:38:47Z	probes-126	rc=0	pred=probe	cmd=PROBED measurable_pi_apply
+2026-10-21T00:38:47Z	probes-126	rc=0	pred=probe	cmd=PROBED not_le
+2026-10-21T00:38:47Z	probes-126	rc=0	pred=probe	cmd=PROBED not_lt
+2026-10-21T00:38:47Z	probes-126	rc=0	pred=probe	cmd=PROBED nsmul_eq_mul
+2026-10-21T00:38:47Z	probes-126	rc=0	pred=probe	cmd=PROBED rfl
+2026-10-21T00:38:47Z	probes-126	rc=0	pred=probe	cmd=PROBED true_and
+2026-10-21T00:38:47Z	probes-126	rc=0	pred=probe	cmd=PROBED true_implies
+2026-10-21T00:38:47Z	probes-126	rc=0	pred=probe	cmd=PROBED unitInterval.symm
+2026-10-21T00:39:09Z	pcheck-cut-113	rc=0	pred=cleared	cmd=python3 -I /home/user/classical-lean/incoming/tools/probecheck.py check /root/cm3-evidence/cut/d113.lean :: out pcheck-cut-113.out sha256 430d5c6187617b97d2d6cf091f4cb9884836647c963152562f3ac8a829b719b1
+2026-10-21T00:39:09Z	pcheck-cut-121	rc=0	pred=cleared	cmd=python3 -I /home/user/classical-lean/incoming/tools/probecheck.py check /root/cm3-evidence/cut/d121.lean :: out pcheck-cut-121.out sha256 430d5c6187617b97d2d6cf091f4cb9884836647c963152562f3ac8a829b719b1
+2026-10-21T00:39:09Z	pcheck-cut-130	rc=0	pred=cleared	cmd=python3 -I /home/user/classical-lean/incoming/tools/probecheck.py check /root/cm3-evidence/cut/d130.lean :: out pcheck-cut-130.out sha256 430d5c6187617b97d2d6cf091f4cb9884836647c963152562f3ac8a829b719b1
+2026-10-21T00:39:09Z	pcheck-cut-124	rc=0	pred=cleared	cmd=python3 -I /home/user/classical-lean/incoming/tools/probecheck.py check /root/cm3-evidence/cut/d124.lean :: out pcheck-cut-124.out sha256 430d5c6187617b97d2d6cf091f4cb9884836647c963152562f3ac8a829b719b1
+2026-10-21T00:39:09Z	pcheck-cut-126	rc=0	pred=cleared	cmd=python3 -I /home/user/classical-lean/incoming/tools/probecheck.py check /root/cm3-evidence/cut/d126.lean :: out pcheck-cut-126.out sha256 430d5c6187617b97d2d6cf091f4cb9884836647c963152562f3ac8a829b719b1
+2026-10-21T00:40:00Z	locate-113	rc=0	pred=compile-fix run	cmd=el.sh /root/cm3-evidence/imports/loc113.lean (probe run, not subject to rule 37) :: out locate-113.out sha256 c7eaf5e4dceb8038fd09676925290909d6191d290c84f0c80a010ed922cd662d
+2026-10-21T00:40:11Z	locate-121	rc=0	pred=compile-fix run	cmd=el.sh /root/cm3-evidence/imports/loc121.lean (probe run, not subject to rule 37) :: out locate-121.out sha256 8550f833b537117d441af421be77d991c46510247c6a8980028cf77f98dd6f39
+2026-10-21T00:40:23Z	locate-130	rc=0	pred=compile-fix run	cmd=el.sh /root/cm3-evidence/imports/loc130.lean (probe run, not subject to rule 37) :: out locate-130.out sha256 6b9fe1e01aa99949f3fc55be333e4a87b849adef4d8fbbf333bca237882bc0cc
+2026-10-21T00:40:36Z	locate-124	rc=0	pred=compile-fix run	cmd=el.sh /root/cm3-evidence/imports/loc124.lean (probe run, not subject to rule 37) :: out locate-124.out sha256 bf26cb8f74294c451b3a1ffb0cd5e5d7436620511bf3435b1c9b31527999cd49
+2026-10-21T00:40:48Z	locate-126	rc=0	pred=compile-fix run	cmd=el.sh /root/cm3-evidence/imports/loc126.lean (probe run, not subject to rule 37) :: out locate-126.out sha256 68901d1081889168ad6a8f7060ee74e40ce96544116704c46106367babeff0c6
+2026-10-21T00:41:04Z	imports-113	rc=0	pred=compile-fix run	cmd=el.sh /root/cm3-evidence/imports/t113.lean :: out imports-113.out sha256 93ff7811a209e2a8479230bbb9b6bc19f7f311d3af383ec350c1db2a7e7d5494
+2026-10-21T00:41:09Z	imports-121	rc=1	pred=compile-fix run	cmd=el.sh /root/cm3-evidence/imports/t121.lean :: out imports-121.out sha256 0c9c388c0e6baae336ebbea5ad2bf6f0dc5bd1f011247a70b675b1ec79882727
+2026-10-21T00:41:15Z	imports-130	rc=0	pred=compile-fix run	cmd=el.sh /root/cm3-evidence/imports/t130.lean :: out imports-130.out sha256 93ff7811a209e2a8479230bbb9b6bc19f7f311d3af383ec350c1db2a7e7d5494
+2026-10-21T00:41:25Z	imports-124	rc=0	pred=compile-fix run	cmd=el.sh /root/cm3-evidence/imports/t124.lean :: out imports-124.out sha256 93ff7811a209e2a8479230bbb9b6bc19f7f311d3af383ec350c1db2a7e7d5494
+2026-10-21T00:41:31Z	imports-126	rc=0	pred=compile-fix run	cmd=el.sh /root/cm3-evidence/imports/t126.lean :: out imports-126.out sha256 93ff7811a209e2a8479230bbb9b6bc19f7f311d3af383ec350c1db2a7e7d5494
+2026-10-21T00:41:54Z	locate2-121	rc=0	pred=compile-fix run	cmd=el.sh /root/cm3-evidence/imports/loc121b.lean (probe run, not subject to rule 37) :: out locate2-121.out sha256 eca9c234e35aca664387421ab15d17cb030b99e1bf8352eb3dcc8423938f295a
+2026-10-21T00:41:59Z	imports2-121	rc=1	pred=compile-fix run	cmd=el.sh /root/cm3-evidence/imports/t121b.lean :: out imports2-121.out sha256 c2546b2c7d178844330a826167ba23e835c977b03cb2ebc4bcba53f17de612d3
+2026-10-21T00:42:13Z	imports3-121	rc=1	pred=compile-fix run	cmd=el.sh /root/cm3-evidence/imports/t121c.lean :: out imports3-121.out sha256 f0dfbf4af29e3bcc3901ca6b5bbe871132662100fe1d04627973fb52dfa5b7d9
+2026-10-21T00:42:24Z	imports4-121	rc=0	pred=compile-fix run	cmd=el.sh /root/cm3-evidence/imports/t121d.lean :: out imports4-121.out sha256 93ff7811a209e2a8479230bbb9b6bc19f7f311d3af383ec350c1db2a7e7d5494
+2026-10-21T00:48:00Z	stmt-113	rc=0	pred=compile-fix run	cmd=el.sh /root/cm3-evidence/stmt/SubgradientMethod.lean :: out stmt-113.out sha256 43acde26bb137369f750a1467189332062cc47d3d2394172bcc10ede5d983893
+2026-10-21T00:48:04Z	stmt-121	rc=0	pred=compile-fix run	cmd=el.sh /root/cm3-evidence/stmt/EfronStein.lean :: out stmt-121.out sha256 7ec318426039647fcccf639c460abbcfb9c2446062ea78a5a1d1edd4367751d4
+2026-10-21T00:48:10Z	stmt-130	rc=0	pred=compile-fix run	cmd=el.sh /root/cm3-evidence/stmt/ChannelCapacity.lean :: out stmt-130.out sha256 d6fad79a95fd039400a031929b2ac1d6b0fc8a40929b9ded309daf8640580d50
+2026-10-21T00:48:16Z	stmt-124	rc=0	pred=compile-fix run	cmd=el.sh /root/cm3-evidence/stmt/BernsteinInequality.lean :: out stmt-124.out sha256 5cf91d2be02c27d6341700e7b1fa82a394e2d95548abc91f05776fa2da87af47
+2026-10-21T00:48:23Z	stmt-126	rc=0	pred=compile-fix run	cmd=el.sh /root/cm3-evidence/stmt/OrderStatistics.lean :: out stmt-126.out sha256 2908228087dd8ffe8123611098d3eef7e5cb083eaca837f1b62f32fe118fdb41
+2026-10-21T00:48:30Z	stmt-files	rc=0	pred=sha256	cmd=sha256sum /root/cm3-evidence/stmt/BernsteinInequality.lean :: 366189e818ca93fc5f8c537eaaba6856e80debbfecf2e26714c0f51c76c3b3c7
+2026-10-21T00:48:30Z	stmt-files	rc=0	pred=sha256	cmd=sha256sum /root/cm3-evidence/stmt/ChannelCapacity.lean :: 66f7e79e55436cbad4b2551feab4124cdd7650dd94319ed38cf6a85387d0641a
+2026-10-21T00:48:30Z	stmt-files	rc=0	pred=sha256	cmd=sha256sum /root/cm3-evidence/stmt/EfronStein.lean :: e88ccf957a168a1a0718898b5850f5947504b8bc462b6a52d0a03e7f1eaaee0e
+2026-10-21T00:48:30Z	stmt-files	rc=0	pred=sha256	cmd=sha256sum /root/cm3-evidence/stmt/OrderStatistics.lean :: c4057f55e9762c3e47ba5873bf58ce4a550198008503da4a7224b76d5545ec6a
+2026-10-21T00:48:30Z	stmt-files	rc=0	pred=sha256	cmd=sha256sum /root/cm3-evidence/stmt/SubgradientMethod.lean :: 1197fe4acb737886e1ed665ba931dcf2fbd3eba406e887f1582de97cfcd1b00a
+2026-10-21T00:48:30Z	stmt-inputs	rc=0	pred=sha256	cmd=sha256sum /root/cm3-evidence/spec/s113.json :: baeb2ee3fbf193c545cc55b5a0da189623209e8e5159b7b603c95ce34570cd2b
+2026-10-21T00:48:30Z	stmt-inputs	rc=0	pred=sha256	cmd=sha256sum /root/cm3-evidence/spec/s121.json :: b1a60116c10b4d5ad15e3edde095abe094f944e83400d1f63a0d650f7cd3363d
+2026-10-21T00:48:30Z	stmt-inputs	rc=0	pred=sha256	cmd=sha256sum /root/cm3-evidence/spec/s124.json :: 3f06a771c756b0d7582e756dce992583c6b0a04bd4189ded8d54db5eae66a2f9
+2026-10-21T00:48:30Z	stmt-inputs	rc=0	pred=sha256	cmd=sha256sum /root/cm3-evidence/spec/s126.json :: 2e2aba005f429537560a2ec120b64fe4b8e032ad27cddbcaecf04ce91003e52a
+2026-10-21T00:48:30Z	stmt-inputs	rc=0	pred=sha256	cmd=sha256sum /root/cm3-evidence/spec/s130.json :: 10122da88bc774f5e377371778be6aede024499d2e467b6cb47b3bd3a71a6f6b
+2026-10-21T00:48:30Z	stmt-inputs	rc=0	pred=sha256	cmd=sha256sum /root/cm3-evidence/spec/c113.json :: 6ee465379b6c1e890cec31a22705e3ad510e26a571c2959c904462d9d9127c41
+2026-10-21T00:48:30Z	stmt-inputs	rc=0	pred=sha256	cmd=sha256sum /root/cm3-evidence/spec/c121.json :: 66e241bc7f265aa68e9b38f1d855adb11cd80820184dbd78f7a25bc1c09f328c
+2026-10-21T00:48:30Z	stmt-inputs	rc=0	pred=sha256	cmd=sha256sum /root/cm3-evidence/spec/c124.json :: 00bfc3f098098af4dc98214f3eb59423476def667a2943b848521e8de7857186
+2026-10-21T00:48:30Z	stmt-inputs	rc=0	pred=sha256	cmd=sha256sum /root/cm3-evidence/spec/c126.json :: 708691ecc1c41a29e6e2662db26ec18c27fc214a445b029d6a39014c7201caeb
+2026-10-21T00:48:30Z	stmt-inputs	rc=0	pred=sha256	cmd=sha256sum /root/cm3-evidence/spec/c130.json :: 49635d74b54de2d51f02ccf5f9119e5a8825258297088576e01f4fdffed5bff0
+2026-10-21T00:48:30Z	stmt-inputs	rc=0	pred=sha256	cmd=sha256sum /root/cm3-evidence/text/doc113.txt :: 1f3b257f9906ad6de2da61424d4668e559dce21c21682ba4cf6ef1b274f6acca
+2026-10-21T00:48:30Z	stmt-inputs	rc=0	pred=sha256	cmd=sha256sum /root/cm3-evidence/text/doc121a.txt :: c8ac8f25fc7bc786445fe4df6b4e9830d8240069a5a68f83df9124578be44bd4
+2026-10-21T00:48:30Z	stmt-inputs	rc=0	pred=sha256	cmd=sha256sum /root/cm3-evidence/text/doc121b.txt :: 80c1dc10688961a8be3ad1e9625955b58f5c369ed811ab0f6de0c5887ee654b5
+2026-10-21T00:48:30Z	stmt-inputs	rc=0	pred=sha256	cmd=sha256sum /root/cm3-evidence/text/doc124h1.txt :: e3a005bfb87756d875c8609b8deee398d62de45496c102709c17232f9fb0703a
+2026-10-21T00:48:30Z	stmt-inputs	rc=0	pred=sha256	cmd=sha256sum /root/cm3-evidence/text/doc124h2.txt :: 0f5bbf9e7a996035818cfef6e35ec8f30cfb640b675947fb8c1891b5a42ae291
+2026-10-21T00:48:30Z	stmt-inputs	rc=0	pred=sha256	cmd=sha256sum /root/cm3-evidence/text/doc124h3.txt :: 12bc8222684225a530d8fdc00df56df0f30f891a2247fb671fa2fae2a8ba18a9
+2026-10-21T00:48:30Z	stmt-inputs	rc=0	pred=sha256	cmd=sha256sum /root/cm3-evidence/text/doc124h4.txt :: 884c33664453f9430fd09d36eadc34b360a91add56ba3c183f1d7f01ee79f97f
+2026-10-21T00:48:30Z	stmt-inputs	rc=0	pred=sha256	cmd=sha256sum /root/cm3-evidence/text/doc124h5.txt :: 3c2ae7383a7de113bc5fd93d2210ed47d9f4c835cf28c80f047b2fa77b3a5cfd
+2026-10-21T00:48:30Z	stmt-inputs	rc=0	pred=sha256	cmd=sha256sum /root/cm3-evidence/text/doc124main.txt :: 0070a7770f16b67c5f4d4c6f1513803fa46b1eb6bf9f9b1e01bc76d06b3997eb
+2026-10-21T00:48:30Z	stmt-inputs	rc=0	pred=sha256	cmd=sha256sum /root/cm3-evidence/text/doc126main.txt :: 9aa0fed2329e1ea49e03434895fd028fd9dfc52dd998b73f867872153befe29d
+2026-10-21T00:48:30Z	stmt-inputs	rc=0	pred=sha256	cmd=sha256sum /root/cm3-evidence/text/doc130a.txt :: 3f6a8f2c58c9664463eda88389b87d3c93ac293b2d82c2f5ad2a4f845ff73a5d
+2026-10-21T00:48:30Z	stmt-inputs	rc=0	pred=sha256	cmd=sha256sum /root/cm3-evidence/text/doc130b.txt :: b9aafbb02e011ecd8356ef056b3b8bfb2d1b23b2ec47fece03c477ce8357aa38
+2026-10-21T00:48:30Z	stmt-inputs	rc=0	pred=sha256	cmd=sha256sum /root/cm3-evidence/text/foot113.lean :: 963a8ef238b72db0317ccde5dfc38b25c7cba13092f0159f22216c1c4c3bea1c
+2026-10-21T00:48:30Z	stmt-inputs	rc=0	pred=sha256	cmd=sha256sum /root/cm3-evidence/text/foot121.lean :: 4c21ae9fc48f62aa4d9f3dffb0534de0675bead8ca40caaf6f7c97cc8795a642
+2026-10-21T00:48:30Z	stmt-inputs	rc=0	pred=sha256	cmd=sha256sum /root/cm3-evidence/text/foot124.lean :: 77780088ec2edf79b799ea5e877539943ad46255ee836c2c20eb295069b5d4f2
+2026-10-21T00:48:30Z	stmt-inputs	rc=0	pred=sha256	cmd=sha256sum /root/cm3-evidence/text/foot126.lean :: ad0207a6746a6d8a4d6fa016b6031a2b97939186adad9284684681b1c3b96e52
+2026-10-21T00:48:30Z	stmt-inputs	rc=0	pred=sha256	cmd=sha256sum /root/cm3-evidence/text/foot130.lean :: f42921456a317e71aad6a6436aa7e03974a6fafd907fa9eabac2b9e4a1429800
+2026-10-21T00:48:30Z	stmt-inputs	rc=0	pred=sha256	cmd=sha256sum /root/cm3-evidence/text/head113.lean :: 87a87426690c023b3d96e2d0b0810e266e08b43ac0d1b8d1ddb6808005603d18
+2026-10-21T00:48:30Z	stmt-inputs	rc=0	pred=sha256	cmd=sha256sum /root/cm3-evidence/text/head121.lean :: 2cc25392010243d2576df8430ddc64413fc13c81ac5dfa10ab11a4b2b9d056f7
+2026-10-21T00:48:30Z	stmt-inputs	rc=0	pred=sha256	cmd=sha256sum /root/cm3-evidence/text/head124.lean :: 08889a9ad0843e6ab703b4eb19c00ab917a805ec55cb939b3db4bb0f55fb614a
+2026-10-21T00:48:30Z	stmt-inputs	rc=0	pred=sha256	cmd=sha256sum /root/cm3-evidence/text/head126.lean :: 54be9daf01752382695d5cb2fdc542ea9e2f3914a42c0e938ba24b9aa11cfd35
+2026-10-21T00:48:30Z	stmt-inputs	rc=0	pred=sha256	cmd=sha256sum /root/cm3-evidence/text/head130.lean :: 70dbbd00b9da848d6980319ec9d967a6e97bded52e79006dc0762e1f093ad429
+2026-10-21T00:48:30Z	stmt-inputs	rc=0	pred=sha256	cmd=sha256sum /root/cm3-evidence/text/lic.txt :: e7ff02324bc485317c354732b9ed4ad55b543bc5c181ad200db4711ed0725f0d
+2026-10-21T00:48:30Z	stmt-inputs	rc=0	pred=sha256	cmd=sha256sum /root/cm3-evidence/scripts/mkstmt.py :: 48b2211c775eabde43161aa94fcbf4e4c38d0c8f026be274c514d83c728f2bca
+2026-10-21T00:48:30Z	stmt-inputs	rc=0	pred=sha256	cmd=sha256sum /root/cm3-evidence/scripts/longlines.py :: 381aa92eb02ccdccaa3205c66b200fea5f4604e5c463c3b20e11ee7554a81a1d
+2026-10-21T00:48:30Z	stmt-inputs	rc=0	pred=sha256	cmd=sha256sum /root/cm3-evidence/scripts/mkimports.py :: 354ba89193f96d0fbc393567b1ed01d6576155093841feec43efc58570ed01bc
+2026-10-21T00:48:30Z	stmt-inputs	rc=0	pred=sha256	cmd=sha256sum /root/cm3-evidence/scripts/mkprobes3.py :: 3e39c846f1b9fba69229cdc0ac4581aaed1b2ab0718566b56e6392ce78de2e78
+2026-10-21T00:48:30Z	stmt-inputs	rc=0	pred=sha256	cmd=sha256sum /root/cm3-evidence/scripts/mkdisc3b.py :: 31194c8b05e5d11ae9319c1f5495fd9b7a5ee5e9315847202a8484853e611ef0
+2026-10-21T00:48:30Z	stmt-inputs	rc=0	pred=sha256	cmd=sha256sum /root/cm3-evidence/allowlist.txt :: 8e4094a3d6c19fecac847bb254081baf52300898fa447758124f4ea2ffe0c893
+2026-10-21T00:48:30Z	stmt-inputs	rc=0	pred=sha256	cmd=sha256sum /root/cm3-evidence/probes/e121.txt :: 5e6b1a21518ab3428df6c50aed15da387405e0bfb88d507163c113851982a865
+2026-10-21T00:48:30Z	stmt-inputs	rc=0	pred=sha256	cmd=sha256sum /root/cm3-evidence/probes/e124.txt :: ac086ee2db215463c195dc69dc9358d9ce63f2b5e10a58c0f173c1c28f8c4968
+2026-10-21T00:48:30Z	stmt-inputs	rc=0	pred=sha256	cmd=sha256sum /root/cm3-evidence/probes/e126.txt :: 5b7b3f2435915bb01ad51907736593fc1132034bc62dc03d5546828f508056e2
+2026-10-21T00:49:22Z	allowlist	rc=0	pred=sha256	cmd=sha256sum /root/cm3-evidence/allowlist.txt :: 40b1b04d944d80eb408941395fc4f578cfd2c09c2c834f74f6e3a6e44589c151
+2026-10-21T00:49:33Z	probes-orig	rc=1	pred=compile-fix run	cmd=el.sh /root/cm3-evidence/probes/p-orig.lean (probe run, not subject to rule 37) :: out probes-orig.out sha256 2de0901ccd7bd03d32c5e3dd9f13f1ea902095d8430c511ee14987cd41ca982e
+2026-10-21T00:49:57Z	probes-orig2	rc=0	pred=compile-fix run	cmd=el.sh /root/cm3-evidence/probes/p-orig2.lean (probe run, not subject to rule 37) :: out probes-orig2.out sha256 595baa40699e9bb6c5a663c19dd28376dba900cc5c022e195bfecb79c8bc6452
+2026-10-21T00:49:57Z	probes-orig2	rc=0	pred=probe	cmd=PROBED if_pos
+2026-10-21T00:49:57Z	probes-orig2	rc=0	pred=probe	cmd=PROBED if_neg
+2026-10-21T00:49:57Z	probes-orig2	rc=0	pred=probe	cmd=PROBED div_nonneg_iff
+2026-10-21T00:49:57Z	probes-orig2	rc=0	pred=probe	cmd=PROBED Set.mem_setOf_eq
+2026-10-21T00:49:57Z	probes-orig2	rc=0	pred=probe	cmd=PROBED Finset.measurable_sum
+2026-10-21T00:49:57Z	probes-orig2	rc=0	pred=probe	cmd=PROBED MeasureTheory.Measure.real
+2026-10-21T00:49:57Z	probes-orig2	rc=0	pred=probe	cmd=PROBED Measurable.aemeasurable
+2026-10-21T00:50:20Z	tc113-draft	rc=0	pred=compile-fix run	cmd=el.sh /root/cm3-evidence/typecmp/tc113-draft.lean :: out tc113-draft.out sha256 9c10de1bc2f92382e50d2f5839fbadab79858765da4a228c110dea9201fca647
+2026-10-21T00:50:20Z	tc113-draft	rc=0	pred=probe	cmd=PROBED min_sub_le_of_subgradient
+2026-10-21T00:50:25Z	tc113-stmt	rc=0	pred=compile-fix run	cmd=el.sh /root/cm3-evidence/typecmp/tc113-stmt.lean :: out tc113-stmt.out sha256 5368d99ba12adabb543ced36ac1b267f4c5b8f0a267f73f3eef9bb4b5e750c67
+2026-10-21T00:50:25Z	tc113-stmt	rc=0	pred=probe	cmd=PROBED ClassicalLean.Analysis.SubgradientMethod.min_sub_le_of_subgradient
+2026-10-21T00:50:37Z	tc121-draft	rc=0	pred=compile-fix run	cmd=el.sh /root/cm3-evidence/typecmp/tc121-draft.lean :: out tc121-draft.out sha256 4db792f14f6081f0c3a620e7751fac33657e405069819f07ceb86e802d4452be
+2026-10-21T00:50:37Z	tc121-draft	rc=0	pred=probe	cmd=PROBED EfronStein.wmean
+2026-10-21T00:50:37Z	tc121-draft	rc=0	pred=probe	cmd=PROBED EfronStein.wvar
+2026-10-21T00:50:37Z	tc121-draft	rc=0	pred=probe	cmd=PROBED EfronStein.weight
+2026-10-21T00:50:37Z	tc121-draft	rc=0	pred=probe	cmd=PROBED EfronStein.expect
+2026-10-21T00:50:37Z	tc121-draft	rc=0	pred=probe	cmd=PROBED EfronStein.variance
+2026-10-21T00:50:37Z	tc121-draft	rc=0	pred=probe	cmd=PROBED EfronStein.coordVar
+2026-10-21T00:50:37Z	tc121-draft	rc=0	pred=probe	cmd=PROBED variance_le_sum_variance_coord
+2026-10-21T00:50:37Z	tc121-draft	rc=0	pred=probe	cmd=PROBED variance_le_sum_sq_div_four
+2026-10-21T00:50:42Z	tc121-stmt	rc=0	pred=compile-fix run	cmd=el.sh /root/cm3-evidence/typecmp/tc121-stmt.lean :: out tc121-stmt.out sha256 8773594e9977af0a32b14c3c12cc23abd086fe5988ed6bb769d09857fbcf881d
+2026-10-21T00:50:42Z	tc121-stmt	rc=0	pred=probe	cmd=PROBED ClassicalLean.Probability.EfronStein.wmean
+2026-10-21T00:50:42Z	tc121-stmt	rc=0	pred=probe	cmd=PROBED ClassicalLean.Probability.EfronStein.wvar
+2026-10-21T00:50:42Z	tc121-stmt	rc=0	pred=probe	cmd=PROBED ClassicalLean.Probability.EfronStein.weight
+2026-10-21T00:50:42Z	tc121-stmt	rc=0	pred=probe	cmd=PROBED ClassicalLean.Probability.EfronStein.expect
+2026-10-21T00:50:42Z	tc121-stmt	rc=0	pred=probe	cmd=PROBED ClassicalLean.Probability.EfronStein.variance
+2026-10-21T00:50:42Z	tc121-stmt	rc=0	pred=probe	cmd=PROBED ClassicalLean.Probability.EfronStein.coordVar
+2026-10-21T00:50:42Z	tc121-stmt	rc=0	pred=probe	cmd=PROBED ClassicalLean.Probability.EfronStein.variance_le_sum_variance_coord
+2026-10-21T00:50:42Z	tc121-stmt	rc=0	pred=probe	cmd=PROBED ClassicalLean.Probability.EfronStein.variance_le_sum_sq_div_four
+2026-10-21T00:50:48Z	tc130-draft	rc=0	pred=compile-fix run	cmd=el.sh /root/cm3-evidence/typecmp/tc130-draft.lean :: out tc130-draft.out sha256 cb6badc4eb47fea0ba4f4d0c6c014490647e8e961975b66587b1ac1dfe21ecd1
+2026-10-21T00:50:48Z	tc130-draft	rc=0	pred=probe	cmd=PROBED bscJoint
+2026-10-21T00:50:48Z	tc130-draft	rc=0	pred=probe	cmd=PROBED bscJoint_values
+2026-10-21T00:50:48Z	tc130-draft	rc=0	pred=probe	cmd=PROBED bscJoint_nonneg
+2026-10-21T00:50:48Z	tc130-draft	rc=0	pred=probe	cmd=PROBED mul_mul_log_mul
+2026-10-21T00:50:48Z	tc130-draft	rc=0	pred=probe	cmd=PROBED mutualInfo_bscJoint
+2026-10-21T00:50:48Z	tc130-draft	rc=0	pred=probe	cmd=PROBED bscJoint_output_half
+2026-10-21T00:50:48Z	tc130-draft	rc=0	pred=probe	cmd=PROBED mutualInfo_bsc_le
+2026-10-21T00:50:48Z	tc130-draft	rc=0	pred=probe	cmd=PROBED mutualInfo_bsc_half
+2026-10-21T00:50:54Z	tc130-stmt	rc=0	pred=compile-fix run	cmd=el.sh /root/cm3-evidence/typecmp/tc130-stmt.lean :: out tc130-stmt.out sha256 86c38bb71ff2f25e6e05cb76a9d3925c7b6472fa0f02a2a6e64ef3e47929117c
+2026-10-21T00:50:54Z	tc130-stmt	rc=0	pred=probe	cmd=PROBED ClassicalLean.InformationTheory.ChannelCapacity.bscJoint
+2026-10-21T00:50:54Z	tc130-stmt	rc=0	pred=probe	cmd=PROBED ClassicalLean.InformationTheory.ChannelCapacity.bscJoint_values
+2026-10-21T00:50:54Z	tc130-stmt	rc=0	pred=probe	cmd=PROBED ClassicalLean.InformationTheory.ChannelCapacity.bscJoint_nonneg
+2026-10-21T00:50:54Z	tc130-stmt	rc=0	pred=probe	cmd=PROBED ClassicalLean.InformationTheory.ChannelCapacity.mul_mul_log_mul
+2026-10-21T00:50:54Z	tc130-stmt	rc=0	pred=probe	cmd=PROBED ClassicalLean.InformationTheory.ChannelCapacity.mutualInfo_bscJoint
+2026-10-21T00:50:54Z	tc130-stmt	rc=0	pred=probe	cmd=PROBED ClassicalLean.InformationTheory.ChannelCapacity.bscJoint_output_half
+2026-10-21T00:50:54Z	tc130-stmt	rc=0	pred=probe	cmd=PROBED ClassicalLean.InformationTheory.ChannelCapacity.mutualInfo_bsc_le
+2026-10-21T00:50:54Z	tc130-stmt	rc=0	pred=probe	cmd=PROBED ClassicalLean.InformationTheory.ChannelCapacity.mutualInfo_bsc_half
+2026-10-21T00:51:08Z	tc124-draft	rc=0	pred=compile-fix run	cmd=el.sh /root/cm3-evidence/typecmp/tc124-draft.lean :: out tc124-draft.out sha256 9dfe5244bcad68671aed73d1023122195119727500fe1a1df7c118a50fe7b3b7
+2026-10-21T00:51:08Z	tc124-draft	rc=0	pred=probe	cmd=PROBED measureReal_sum_ge_le_bernstein
+2026-10-21T00:51:15Z	tc124-stmt	rc=0	pred=compile-fix run	cmd=el.sh /root/cm3-evidence/typecmp/tc124-stmt.lean :: out tc124-stmt.out sha256 81a80a9e9266227164794b4ea3efb568fad3e7628d47f4b8a9351b243f6b4b24
+2026-10-21T00:51:15Z	tc124-stmt	rc=0	pred=probe	cmd=PROBED ClassicalLean.Probability.BernsteinInequality.measureReal_sum_ge_le_bernstein
+2026-10-21T00:51:26Z	tc126-draft	rc=0	pred=compile-fix run	cmd=el.sh /root/cm3-evidence/typecmp/tc126-draft.lean :: out tc126-draft.out sha256 3ae340afc4b17a1c489e465b3ae8ba914497d91c6b1dac328f01ea59fe714545
+2026-10-21T00:51:26Z	tc126-draft	rc=0	pred=probe	cmd=PROBED orderStat
+2026-10-21T00:51:26Z	tc126-draft	rc=0	pred=probe	cmd=PROBED measureReal_orderStat_le
+2026-10-21T00:51:32Z	tc126-stmt	rc=0	pred=compile-fix run	cmd=el.sh /root/cm3-evidence/typecmp/tc126-stmt.lean :: out tc126-stmt.out sha256 5fd2e3d362844cf6be1fe49a81aab54040c6bfc0e53c3757d179acc662d77a65
+2026-10-21T00:51:32Z	tc126-stmt	rc=0	pred=probe	cmd=PROBED ClassicalLean.Probability.OrderStatistics.orderStat
+2026-10-21T00:51:32Z	tc126-stmt	rc=0	pred=probe	cmd=PROBED ClassicalLean.Probability.OrderStatistics.measureReal_orderStat_le
+2026-10-21T00:52:18Z	typecmp-planted	rc=1	pred=rc 1: DIFF on mutualInfo_bsc_le	cmd=python3 -I /root/cm3-evidence/scripts/typecmp3.py /root/cm3-evidence/tc130-draft.out /root/cm3-evidence/typecmp/tc130-stmt-planted.out /root/cm3-evidence/typecmp/tc130-draft.lean /root/cm3-evidence/typecmp/tc130-stmt.lean bscJoint=ClassicalLean.InformationTheory.ChannelCapacity.bscJoint bscJoint_values=ClassicalLean.InformationTheory.ChannelCapacity.bscJoint_values bscJoint_nonneg=ClassicalLean.InformationTheory.ChannelCapacity.bscJoint_nonneg mul_mul_log_mul=ClassicalLean.InformationTheory.ChannelCapacity.mul_mul_log_mul mutualInfo_bscJoint=ClassicalLean.InformationTheory.ChannelCapacity.mutualInfo_bscJoint bscJoint_output_half=ClassicalLean.InformationTheory.ChannelCapacity.bscJoint_output_half mutualInfo_bsc_le=ClassicalLean.InformationTheory.ChannelCapacity.mutualInfo_bsc_le mutualInfo_bsc_half=ClassicalLean.InformationTheory.ChannelCapacity.mutualInfo_bsc_half :: out typecmp-planted.out sha256 881ce33c183558b2361fd97fc3dc59067ab84ae3e20182011497af91b5a8eef6
+2026-10-21T00:52:19Z	typecmp-113	rc=0	pred=TYPECMP 1/1	cmd=python3 -I /root/cm3-evidence/scripts/typecmp3.py /root/cm3-evidence/tc113-draft.out /root/cm3-evidence/tc113-stmt.out /root/cm3-evidence/typecmp/tc113-draft.lean /root/cm3-evidence/typecmp/tc113-stmt.lean min_sub_le_of_subgradient=ClassicalLean.Analysis.SubgradientMethod.min_sub_le_of_subgradient :: out typecmp-113.out sha256 b8b9308f47d918be66fe0dae8f4703dce4e4aefa9307723b981ee79b4f5c9679
+2026-10-21T00:52:19Z	typecmp-121	rc=0	pred=TYPECMP 8/8	cmd=python3 -I /root/cm3-evidence/scripts/typecmp3.py /root/cm3-evidence/tc121-draft.out /root/cm3-evidence/tc121-stmt.out /root/cm3-evidence/typecmp/tc121-draft.lean /root/cm3-evidence/typecmp/tc121-stmt.lean EfronStein.=ClassicalLean.Probability.EfronStein. variance_le_sum_variance_coord=ClassicalLean.Probability.EfronStein.variance_le_sum_variance_coord variance_le_sum_sq_div_four=ClassicalLean.Probability.EfronStein.variance_le_sum_sq_div_four :: out typecmp-121.out sha256 42e33ca6efe511d8684611e9fca7e7f479f115df60f40db49dd850a29d23979e
+2026-10-21T00:52:19Z	typecmp-130	rc=0	pred=TYPECMP 8/8	cmd=python3 -I /root/cm3-evidence/scripts/typecmp3.py /root/cm3-evidence/tc130-draft.out /root/cm3-evidence/tc130-stmt.out /root/cm3-evidence/typecmp/tc130-draft.lean /root/cm3-evidence/typecmp/tc130-stmt.lean bscJoint=ClassicalLean.InformationTheory.ChannelCapacity.bscJoint bscJoint_values=ClassicalLean.InformationTheory.ChannelCapacity.bscJoint_values bscJoint_nonneg=ClassicalLean.InformationTheory.ChannelCapacity.bscJoint_nonneg mul_mul_log_mul=ClassicalLean.InformationTheory.ChannelCapacity.mul_mul_log_mul mutualInfo_bscJoint=ClassicalLean.InformationTheory.ChannelCapacity.mutualInfo_bscJoint bscJoint_output_half=ClassicalLean.InformationTheory.ChannelCapacity.bscJoint_output_half mutualInfo_bsc_le=ClassicalLean.InformationTheory.ChannelCapacity.mutualInfo_bsc_le mutualInfo_bsc_half=ClassicalLean.InformationTheory.ChannelCapacity.mutualInfo_bsc_half :: out typecmp-130.out sha256 2a0751bf3dea113b172c421ae766aa128ada9976826920928df53d1e3ac56777
+2026-10-21T00:52:19Z	typecmp-124	rc=0	pred=TYPECMP 1/1	cmd=python3 -I /root/cm3-evidence/scripts/typecmp3.py /root/cm3-evidence/tc124-draft.out /root/cm3-evidence/tc124-stmt.out /root/cm3-evidence/typecmp/tc124-draft.lean /root/cm3-evidence/typecmp/tc124-stmt.lean measureReal_sum_ge_le_bernstein=ClassicalLean.Probability.BernsteinInequality.measureReal_sum_ge_le_bernstein :: out typecmp-124.out sha256 b721f51623cbc98dcba25020b81f6228036d96a34ba2d7184873a866095fe0a8
+2026-10-21T00:52:19Z	typecmp-126	rc=0	pred=TYPECMP 2/2	cmd=python3 -I /root/cm3-evidence/scripts/typecmp3.py /root/cm3-evidence/tc126-draft.out /root/cm3-evidence/tc126-stmt.out /root/cm3-evidence/typecmp/tc126-draft.lean /root/cm3-evidence/typecmp/tc126-stmt.lean orderStat=ClassicalLean.Probability.OrderStatistics.orderStat measureReal_orderStat_le=ClassicalLean.Probability.OrderStatistics.measureReal_orderStat_le :: out typecmp-126.out sha256 4c2da4dd3e50aecf000dc3c9deb7fbaf70ba1c83d247e356cff538a884173227
+2026-10-21T00:52:56Z	pc121-draft	rc=0	pred=compile-fix run	cmd=el.sh /root/cm3-evidence/typecmp/pc121-draft.lean :: out pc121-draft.out sha256 b09cf49b22ff6e82c103433b0be8afee7ac7cfe2735d25b5078f5bb1cb0f95a3
+2026-10-21T00:53:00Z	pc121-stmt	rc=0	pred=compile-fix run	cmd=el.sh /root/cm3-evidence/typecmp/pc121-stmt.lean :: out pc121-stmt.out sha256 750625a61d8f04886b298d8b044f36252c24764ab1ad280f9fe2658f0e105551
+2026-10-21T00:53:06Z	pc130-draft	rc=0	pred=compile-fix run	cmd=el.sh /root/cm3-evidence/typecmp/pc130-draft.lean :: out pc130-draft.out sha256 3368b51d53423f993c1d81e60bb3bbdbc72d01a29fe4eee073360f7c42ea7c73
+2026-10-21T00:53:12Z	pc130-stmt	rc=0	pred=compile-fix run	cmd=el.sh /root/cm3-evidence/typecmp/pc130-stmt.lean :: out pc130-stmt.out sha256 0bb63d926b2759e499ccaa2b95f198de6298824eac60e3154301df3f9c798e3e
+2026-10-21T00:53:25Z	pc126-draft	rc=0	pred=compile-fix run	cmd=el.sh /root/cm3-evidence/typecmp/pc126-draft.lean :: out pc126-draft.out sha256 43e2ce47849af501b2c189bdc9f3ff13f1a9b3cd646cf40d252f8fe7ea1fad22
+2026-10-21T00:53:31Z	pc126-stmt	rc=0	pred=compile-fix run	cmd=el.sh /root/cm3-evidence/typecmp/pc126-stmt.lean :: out pc126-stmt.out sha256 39b3415fcbe8d8d986c28f68b0681349b7f59f6acec6cb8ce7e79b27e9662d52
+2026-10-21T00:54:06Z	typecmp2-planted	rc=1	pred=rc 1: DIFF on mutualInfo_bsc_le	cmd=python3 -I /root/cm3-evidence/scripts/typecmp3.py /root/cm3-evidence/tc130-draft.out /root/cm3-evidence/typecmp/tc130-stmt-planted.out /root/cm3-evidence/typecmp/tc130-draft.lean /root/cm3-evidence/typecmp/tc130-stmt.lean bscJoint=ClassicalLean.InformationTheory.ChannelCapacity.bscJoint bscJoint_values=ClassicalLean.InformationTheory.ChannelCapacity.bscJoint_values bscJoint_nonneg=ClassicalLean.InformationTheory.ChannelCapacity.bscJoint_nonneg mul_mul_log_mul=ClassicalLean.InformationTheory.ChannelCapacity.mul_mul_log_mul mutualInfo_bscJoint=ClassicalLean.InformationTheory.ChannelCapacity.mutualInfo_bscJoint bscJoint_output_half=ClassicalLean.InformationTheory.ChannelCapacity.bscJoint_output_half mutualInfo_bsc_le=ClassicalLean.InformationTheory.ChannelCapacity.mutualInfo_bsc_le mutualInfo_bsc_half=ClassicalLean.InformationTheory.ChannelCapacity.mutualInfo_bsc_half :: out typecmp2-planted.out sha256 881ce33c183558b2361fd97fc3dc59067ab84ae3e20182011497af91b5a8eef6
+2026-10-21T00:54:06Z	printcmp-planted	rc=1	pred=rc 1: DIFF on the body of bscJoint	cmd=python3 -I /root/cm3-evidence/scripts/typecmp3.py /root/cm3-evidence/pc130-draft.out /root/cm3-evidence/typecmp/pc130-stmt-planted.out /root/cm3-evidence/typecmp/pc130-draft.lean /root/cm3-evidence/typecmp/pc130-stmt.lean bscJoint=ClassicalLean.InformationTheory.ChannelCapacity.bscJoint :: out printcmp-planted.out sha256 b3be854250faedcbb991097012385ff1b6d7bb1f528dd8f7edec72360ac8e099
+2026-10-21T00:54:06Z	typecmp2-113	rc=0	pred=TYPECMP 1/1	cmd=python3 -I /root/cm3-evidence/scripts/typecmp3.py /root/cm3-evidence/tc113-draft.out /root/cm3-evidence/tc113-stmt.out /root/cm3-evidence/typecmp/tc113-draft.lean /root/cm3-evidence/typecmp/tc113-stmt.lean min_sub_le_of_subgradient=ClassicalLean.Analysis.SubgradientMethod.min_sub_le_of_subgradient :: out typecmp2-113.out sha256 b8b9308f47d918be66fe0dae8f4703dce4e4aefa9307723b981ee79b4f5c9679
+2026-10-21T00:54:06Z	typecmp2-121	rc=0	pred=TYPECMP 8/8	cmd=python3 -I /root/cm3-evidence/scripts/typecmp3.py /root/cm3-evidence/tc121-draft.out /root/cm3-evidence/tc121-stmt.out /root/cm3-evidence/typecmp/tc121-draft.lean /root/cm3-evidence/typecmp/tc121-stmt.lean EfronStein.=ClassicalLean.Probability.EfronStein. variance_le_sum_variance_coord=ClassicalLean.Probability.EfronStein.variance_le_sum_variance_coord variance_le_sum_sq_div_four=ClassicalLean.Probability.EfronStein.variance_le_sum_sq_div_four :: out typecmp2-121.out sha256 42e33ca6efe511d8684611e9fca7e7f479f115df60f40db49dd850a29d23979e
+2026-10-21T00:54:06Z	typecmp2-130	rc=0	pred=TYPECMP 8/8	cmd=python3 -I /root/cm3-evidence/scripts/typecmp3.py /root/cm3-evidence/tc130-draft.out /root/cm3-evidence/tc130-stmt.out /root/cm3-evidence/typecmp/tc130-draft.lean /root/cm3-evidence/typecmp/tc130-stmt.lean bscJoint=ClassicalLean.InformationTheory.ChannelCapacity.bscJoint bscJoint_values=ClassicalLean.InformationTheory.ChannelCapacity.bscJoint_values bscJoint_nonneg=ClassicalLean.InformationTheory.ChannelCapacity.bscJoint_nonneg mul_mul_log_mul=ClassicalLean.InformationTheory.ChannelCapacity.mul_mul_log_mul mutualInfo_bscJoint=ClassicalLean.InformationTheory.ChannelCapacity.mutualInfo_bscJoint bscJoint_output_half=ClassicalLean.InformationTheory.ChannelCapacity.bscJoint_output_half mutualInfo_bsc_le=ClassicalLean.InformationTheory.ChannelCapacity.mutualInfo_bsc_le mutualInfo_bsc_half=ClassicalLean.InformationTheory.ChannelCapacity.mutualInfo_bsc_half :: out typecmp2-130.out sha256 2a0751bf3dea113b172c421ae766aa128ada9976826920928df53d1e3ac56777
+2026-10-21T00:54:06Z	typecmp2-124	rc=0	pred=TYPECMP 1/1	cmd=python3 -I /root/cm3-evidence/scripts/typecmp3.py /root/cm3-evidence/tc124-draft.out /root/cm3-evidence/tc124-stmt.out /root/cm3-evidence/typecmp/tc124-draft.lean /root/cm3-evidence/typecmp/tc124-stmt.lean measureReal_sum_ge_le_bernstein=ClassicalLean.Probability.BernsteinInequality.measureReal_sum_ge_le_bernstein :: out typecmp2-124.out sha256 b721f51623cbc98dcba25020b81f6228036d96a34ba2d7184873a866095fe0a8
+2026-10-21T00:54:06Z	typecmp2-126	rc=0	pred=TYPECMP 2/2	cmd=python3 -I /root/cm3-evidence/scripts/typecmp3.py /root/cm3-evidence/tc126-draft.out /root/cm3-evidence/tc126-stmt.out /root/cm3-evidence/typecmp/tc126-draft.lean /root/cm3-evidence/typecmp/tc126-stmt.lean orderStat=ClassicalLean.Probability.OrderStatistics.orderStat measureReal_orderStat_le=ClassicalLean.Probability.OrderStatistics.measureReal_orderStat_le :: out typecmp2-126.out sha256 4c2da4dd3e50aecf000dc3c9deb7fbaf70ba1c83d247e356cff538a884173227
+2026-10-21T00:54:06Z	printcmp-121	rc=0	pred=TYPECMP 6/6	cmd=python3 -I /root/cm3-evidence/scripts/typecmp3.py /root/cm3-evidence/pc121-draft.out /root/cm3-evidence/pc121-stmt.out /root/cm3-evidence/typecmp/pc121-draft.lean /root/cm3-evidence/typecmp/pc121-stmt.lean EfronStein.=ClassicalLean.Probability.EfronStein. :: out printcmp-121.out sha256 921e097b0959e79f1c9dceae2ccd5821ae309e3ec4f0bb49bdcff2d5920617a4
+2026-10-21T00:54:06Z	printcmp-130	rc=0	pred=TYPECMP 1/1	cmd=python3 -I /root/cm3-evidence/scripts/typecmp3.py /root/cm3-evidence/pc130-draft.out /root/cm3-evidence/pc130-stmt.out /root/cm3-evidence/typecmp/pc130-draft.lean /root/cm3-evidence/typecmp/pc130-stmt.lean bscJoint=ClassicalLean.InformationTheory.ChannelCapacity.bscJoint :: out printcmp-130.out sha256 7b422a41827780c128dd7b6deef3ac108f3bdaab7b3d276cd5b8be726732eb67
+2026-10-21T00:54:06Z	printcmp-126	rc=0	pred=TYPECMP 1/1	cmd=python3 -I /root/cm3-evidence/scripts/typecmp3.py /root/cm3-evidence/pc126-draft.out /root/cm3-evidence/pc126-stmt.out /root/cm3-evidence/typecmp/pc126-draft.lean /root/cm3-evidence/typecmp/pc126-stmt.lean orderStat=ClassicalLean.Probability.OrderStatistics.orderStat :: out printcmp-126.out sha256 b4d864b31cb98a089716026188031a2ec70c3e8f60615f7c926020f25befef1e
+2026-10-21T00:55:05Z	typecmp-files	rc=0	pred=sha256	cmd=sha256sum /root/cm3-evidence/scripts/typecmp3.py :: 6ccd7627ca60da0975ab29ddf53e6f9f1427c9c0e5f794dc203e52039e188df1
+2026-10-21T00:55:05Z	typecmp-files	rc=0	pred=sha256	cmd=sha256sum /root/cm3-evidence/typecmp/pc121-draft.lean :: 56d372486217817c794af6445b4a9e5bdf07ca8b434efca1183a51b12bf52a05
+2026-10-21T00:55:05Z	typecmp-files	rc=0	pred=sha256	cmd=sha256sum /root/cm3-evidence/typecmp/pc121-stmt.lean :: 4bdf24ec2478152041d70fefea26e18555cf1c6fd39f9f8ddde51b83306e177c
+2026-10-21T00:55:05Z	typecmp-files	rc=0	pred=sha256	cmd=sha256sum /root/cm3-evidence/typecmp/pc126-draft.lean :: d57dd358172ae1d9007b4e7c6552ac6839edcb33e605ccb671bc449d18c3fbce
+2026-10-21T00:55:05Z	typecmp-files	rc=0	pred=sha256	cmd=sha256sum /root/cm3-evidence/typecmp/pc126-stmt.lean :: 65f988ab2eaff65951c37898fd5d00d32e6df530f83e62bd2f77946f2daf9cdf
+2026-10-21T00:55:05Z	typecmp-files	rc=0	pred=sha256	cmd=sha256sum /root/cm3-evidence/typecmp/pc130-draft.lean :: af933b1036f11acddbc25d8b01578f8f2dcd15d1396ce87bd12cd9f1f2b1f161
+2026-10-21T00:55:05Z	typecmp-files	rc=0	pred=sha256	cmd=sha256sum /root/cm3-evidence/typecmp/pc130-stmt.lean :: fc5e97f160b9976e99f9579bedfc1b6a6c3b8a37aba921e6ccc747351d775b7a
+2026-10-21T00:55:05Z	typecmp-files	rc=0	pred=sha256	cmd=sha256sum /root/cm3-evidence/typecmp/tc113-draft.lean :: f6d9f1d1de10c2adb2473bbe967d9d3164bcc7edf221a4446e6d3bd57346eb55
+2026-10-21T00:55:05Z	typecmp-files	rc=0	pred=sha256	cmd=sha256sum /root/cm3-evidence/typecmp/tc113-stmt.lean :: 05309bc2208a4ef9911c747e30ac8c9a02afa1a198eff02402833b4ba46f499b
+2026-10-21T00:55:05Z	typecmp-files	rc=0	pred=sha256	cmd=sha256sum /root/cm3-evidence/typecmp/tc121-draft.lean :: 8e3663a6ca0d8ec1feca3dbe568951f865a01e280cb6eb85787c9e5a8fc2cc6c
+2026-10-21T00:55:05Z	typecmp-files	rc=0	pred=sha256	cmd=sha256sum /root/cm3-evidence/typecmp/tc121-stmt.lean :: 448060601867acb93173aaa5d0d0cb4ae43fb6100d89103766f6224d94e0ee2e
+2026-10-21T00:55:05Z	typecmp-files	rc=0	pred=sha256	cmd=sha256sum /root/cm3-evidence/typecmp/tc124-draft.lean :: 1e4a5434391c0ae2eac199035b091fb651530aba424fa810aad7b147854b695f
+2026-10-21T00:55:05Z	typecmp-files	rc=0	pred=sha256	cmd=sha256sum /root/cm3-evidence/typecmp/tc124-stmt.lean :: 2164c469e39870ab8e191c604afadf3f9739eb9c010318978266c59de6715857
+2026-10-21T00:55:05Z	typecmp-files	rc=0	pred=sha256	cmd=sha256sum /root/cm3-evidence/typecmp/tc126-draft.lean :: 730eba78d181eb8dbb2138e8f57eef34bf77a23c6686ad352cefc824d8e3feeb
+2026-10-21T00:55:05Z	typecmp-files	rc=0	pred=sha256	cmd=sha256sum /root/cm3-evidence/typecmp/tc126-stmt.lean :: 9a376004f67756ea13407513810d3e2430a01f783e3a2f85d0ae5ddc943f249d
+2026-10-21T00:55:05Z	typecmp-files	rc=0	pred=sha256	cmd=sha256sum /root/cm3-evidence/typecmp/tc130-draft.lean :: df187adcb52b0213e4d665cc237e0695b80cfd94c8114da35234937d635793b7
+2026-10-21T00:55:05Z	typecmp-files	rc=0	pred=sha256	cmd=sha256sum /root/cm3-evidence/typecmp/tc130-stmt.lean :: 674946dfcd0e0e2c05691ca86e44ca5b98d6b4996ff37550ff293f1c4a51ba19
+2026-10-21T00:55:05Z	typecmp-files	rc=0	pred=sha256	cmd=sha256sum /root/cm3-evidence/typecmp/p121-draft.txt :: cd53c2b9390269892a447dd7110cb8df49dcf460356508a6304facaec4ac7388
+2026-10-21T00:55:05Z	typecmp-files	rc=0	pred=sha256	cmd=sha256sum /root/cm3-evidence/typecmp/p121-stmt.txt :: 70b9e67964f6dd3515951e38a014c004ece6ebfd6b0673e439be956ccdfa7216
+2026-10-21T00:55:05Z	typecmp-files	rc=0	pred=sha256	cmd=sha256sum /root/cm3-evidence/typecmp/p126-draft.txt :: 9575ce9a2fa94607e6fd66f22772a0c81d0e6005d458aea1e8d3084605e1b7ef
+2026-10-21T00:55:05Z	typecmp-files	rc=0	pred=sha256	cmd=sha256sum /root/cm3-evidence/typecmp/p126-stmt.txt :: bb552966a35b75cc005fa28a4f448574e38f944a46d7557e11adc920a6b0fb3b
+2026-10-21T00:55:05Z	typecmp-files	rc=0	pred=sha256	cmd=sha256sum /root/cm3-evidence/typecmp/p130-draft.txt :: 3b3c4f65a83f1563718d7222a00c97ffd7a54a530c6bbcc7133196de5ded78ec
+2026-10-21T00:55:05Z	typecmp-files	rc=0	pred=sha256	cmd=sha256sum /root/cm3-evidence/typecmp/p130-stmt.txt :: a8aaf96a08d3aef654024114cefebdcefd9fb4cd59061b7df550403401812655
+2026-10-21T00:55:05Z	typecmp-files	rc=0	pred=sha256	cmd=sha256sum /root/cm3-evidence/typecmp/t113-draft.txt :: c5c505c88b8bccdf5172595e7185116b625e1f69f0c0a21e79edc54b246696e1
+2026-10-21T00:55:05Z	typecmp-files	rc=0	pred=sha256	cmd=sha256sum /root/cm3-evidence/typecmp/t113-stmt.txt :: bc205e276376170eb48654182f6fa9e74070c0a583472f0daab4e843ce415dab
+2026-10-21T00:55:05Z	typecmp-files	rc=0	pred=sha256	cmd=sha256sum /root/cm3-evidence/typecmp/t121-draft.txt :: 973eb8eb7e800ec01c06420f0eaa16a33a036ed0c5b5f2069bc8fa42f3d8fb5d
+2026-10-21T00:55:05Z	typecmp-files	rc=0	pred=sha256	cmd=sha256sum /root/cm3-evidence/typecmp/t121-stmt.txt :: f58047abb24fbda71e214aef9dd13d1deff10f33e3082bd8773a63837609281e
+2026-10-21T00:55:05Z	typecmp-files	rc=0	pred=sha256	cmd=sha256sum /root/cm3-evidence/typecmp/t124-draft.txt :: 4aab8a759b0632848c9367d1c795f682376e236936f70d5e8abede9bee9e4f43
+2026-10-21T00:55:05Z	typecmp-files	rc=0	pred=sha256	cmd=sha256sum /root/cm3-evidence/typecmp/t124-stmt.txt :: dbbb19522a3b1cb88c2a44245dacd817d928097968f23a6c8b51b679b8f9a30f
+2026-10-21T00:55:05Z	typecmp-files	rc=0	pred=sha256	cmd=sha256sum /root/cm3-evidence/typecmp/t126-draft.txt :: 76af77e90c6973f690428d57ec21cc8f10276dcce24cc8b699d9dda055ec64bb
+2026-10-21T00:55:05Z	typecmp-files	rc=0	pred=sha256	cmd=sha256sum /root/cm3-evidence/typecmp/t126-stmt.txt :: 537e9807f642cee78a1d4e483f8167ec75990ced532336ab59fa51eaf6d519b4
+2026-10-21T00:55:05Z	typecmp-files	rc=0	pred=sha256	cmd=sha256sum /root/cm3-evidence/typecmp/t130-draft.txt :: f2248bf4202b6172bec3d288341569d2c76214ec997ec96d5dee70b5b4386ea0
+2026-10-21T00:55:05Z	typecmp-files	rc=0	pred=sha256	cmd=sha256sum /root/cm3-evidence/typecmp/t130-stmt.txt :: 119b7d6e7aa9554efe0a40c9479eb2e481621f1adf97d81f16174f24fc5c9525
+2026-10-21T00:55:05Z	typecmp-files	rc=0	pred=sha256	cmd=sha256sum /root/cm3-evidence/typecmp/pc130-stmt-planted.out :: 075008b5fd5a125ac997c792177c098f0ee7b46ca45fd35191e56aa2877823af
+2026-10-21T00:55:05Z	typecmp-files	rc=0	pred=sha256	cmd=sha256sum /root/cm3-evidence/typecmp/tc130-stmt-planted.out :: 888b9638a9bfcaa493de6af47aee808937c1224a601fe99b9e781433b678fa07
+2026-10-21T00:55:05Z	typecmp-files	rc=0	pred=sha256	cmd=sha256sum /root/cm3-evidence/probes/p-orig.lean :: 7fed00531920cbc5b455c82547ee53751817c22a56cdf63067ae55dce2575d44
+2026-10-21T00:55:05Z	typecmp-files	rc=0	pred=sha256	cmd=sha256sum /root/cm3-evidence/probes/p-orig2.lean :: 94c74fb189dfe16b8b3e545d01b4bd0b509cced142e5498b14d0941d403209e0
+2026-10-21T00:55:05Z	date-rv1	rc=0	pred=epoch seconds and UTC time before the statement review	cmd=bash -c date +%s; date -u +%FT%TZ :: out date-rv1.out sha256 651ca01fe85f50c090330d4239c23bdf28e7aa71101ded80d9cfa4062bb9efd2
+2026-10-21T00:56:12Z	brief-rv1	rc=0	pred=brief written; order Goal section, order rules 1 2 4 7, HANDOFF rules quoted	cmd=python3 -I /root/cm3-evidence/scripts/mkbrief3.py /home/user/classical-lean/HANDOFF.md /home/user/classical-lean/records/orders/20261021T002100Z__claude-ai__order-cloudmath3-subgradient-efron-stein-bernstein-order-statistics-bsc.md /root/cm3-evidence/briefs/task-rv1.md /root/cm3-evidence/briefs/brief-rv1.md :: out brief-rv1.out sha256 643772e51c37a43f1868a6f2f4c9aa2ea53077e02916210625de7d0eda9781cd
+2026-10-21T00:56:13Z	briefcheck-rv1	rc=0	pred=PASS	cmd=python3 -I /home/user/classical-lean/incoming/tools/briefcheck.py /root/cm3-evidence/briefs/brief-rv1.md :: out briefcheck-rv1.out sha256 26a1ef976ba885f2256e39d1abe20179c5f3fe60ca1527593da0fe39c22ad44e
+2026-10-21T00:56:13Z	brief-rv1-hash	rc=0	pred=sha256	cmd=sha256sum /root/cm3-evidence/briefs/brief-rv1.md :: 7048c7d6d36b5238ad0713167d846ff34fc0365c8773eaba3a3699b7048838df
+2026-10-21T00:56:13Z	brief-rv1-hash	rc=0	pred=sha256	cmd=sha256sum /root/cm3-evidence/briefs/task-rv1.md :: 4581fb465c7c88780e183f3ab8b9da31476dd1034c8035d112b7c8900c921877
+2026-10-21T00:56:13Z	brief-rv1-hash	rc=0	pred=sha256	cmd=sha256sum /root/cm3-evidence/scripts/mkbrief3.py :: 3578837b463cb666f3aa8dd54bdc80b30ccb5a1c41ef155679ce2df93fae07a3
+2026-10-21T00:56:13Z	status-before-rv1	rc=0	pred=empty: the tree is clean	cmd=git status --porcelain :: out status-before-rv1.out sha256 e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855
+2026-10-21T01:00:00Z	vac-copies	rc=0	pred=sha256	cmd=sha256sum /root/cm3-evidence/vac/Vac113.lean :: e93171279d7bb4bc9d75e192c9f6b16c7d49d4daf90992913b12a579ef24fbd8
+2026-10-21T01:00:00Z	vac-copies	rc=0	pred=sha256	cmd=sha256sum /root/cm3-evidence/vac/Vac121.lean :: f581e527e0b03468ba0ac8e0776ca17440eba4579da55f9853314bf13b609597
+2026-10-21T01:00:00Z	vac-copies	rc=0	pred=sha256	cmd=sha256sum /root/cm3-evidence/vac/Vac124.lean :: bdfb43bcd6409c8b2f0ecf73abbdd14c3f4dfdf0fefc6e7d649abea6847c4211
+2026-10-21T01:00:00Z	vac-copies	rc=0	pred=sha256	cmd=sha256sum /root/cm3-evidence/vac/Vac126.lean :: 98eea589ea6f69811c94d7b86c58ac4f2ce5c0224f026399c55fa067aabd6edd
+2026-10-21T01:00:00Z	vac-copies	rc=0	pred=sha256	cmd=sha256sum /root/cm3-evidence/vac/Vac130.lean :: 2b49e6a61fcb47a51a2cc2e7c7a284fcfdb8f87dc86bd0cf0879cebc0af85d9d
+2026-10-21T01:08:47Z	review-rv1	rc=0	pred=sha256	cmd=sha256sum /root/cm3-evidence/reviews/rv1-statements.md :: 6261731d78c743c5c0e153e2c782dafe1fc9dd7d1e7e07fa9d37dfa3b7970189
+2026-10-21T01:08:47Z	status-after-rv1	rc=0	pred=empty, as before the review	cmd=git status --porcelain :: out status-after-rv1.out sha256 e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855
+2026-10-21T01:09:07Z	mkstmt-121-fix	rc=0	pred=statement file rewritten with the new docstring	cmd=python3 -I /root/cm3-evidence/scripts/mkstmt.py /home/user/classical-lean/incoming/d121-r3-s1.lean /root/cm3-evidence/spec/s121.json /root/cm3-evidence/stmt/EfronStein.lean :: out mkstmt-121-fix.out sha256 14a3cda73413be4d2b0c5ef6a5342a2955b85f51d5facc0e3c4228517a365646
+2026-10-21T01:09:24Z	stmt2-121	rc=0	pred=compile-fix run	cmd=el.sh /root/cm3-evidence/stmt/EfronStein.lean :: out stmt2-121.out sha256 5e986af5b3be6f7186ca31a41da532b7c19a63c9cdc24042a018ea519fa9a563
+2026-10-21T01:09:24Z	stmt-121-fixed	rc=0	pred=sha256	cmd=sha256sum /root/cm3-evidence/stmt/EfronStein.lean :: 61ef53c91060881cf110aa227beace936fcc350f1eb92b9f22fe1a8bd4f0f5cb
+2026-10-21T01:09:24Z	stmt-121-fixed	rc=0	pred=sha256	cmd=sha256sum /root/cm3-evidence/stmt/EfronStein.rv1.lean :: e88ccf957a168a1a0718898b5850f5947504b8bc462b6a52d0a03e7f1eaaee0e
+2026-10-21T01:09:24Z	stmt-121-fixed	rc=0	pred=sha256	cmd=sha256sum /root/cm3-evidence/text/doc121mix.txt :: 5c6b00b7b4cc337047279bc602c27de6f4d16053be28e4b124648da8c26a5f5a
+2026-10-21T01:09:24Z	stmt-121-fixed	rc=0	pred=sha256	cmd=sha256sum /root/cm3-evidence/spec/s121.json :: f76e59975a9c26a91d140484276c1bc0a1ea88ca02025bcffc25aebcf629a193
+2026-10-21T01:09:24Z	diff-121-fix	rc=1	pred=the docstring of wvar_mix_le alone (diff rc 1)	cmd=diff /root/cm3-evidence/stmt/EfronStein.rv1.lean /root/cm3-evidence/stmt/EfronStein.lean :: out diff-121-fix.out sha256 86447be4866e28d4a202c0786394b471e81e115f854a2f5877399fa11e8e8376
+2026-10-21T01:09:44Z	brief-rv1c	rc=0	pred=brief written	cmd=python3 -I /root/cm3-evidence/scripts/mkbrief3.py /home/user/classical-lean/HANDOFF.md /home/user/classical-lean/records/orders/20261021T002100Z__claude-ai__order-cloudmath3-subgradient-efron-stein-bernstein-order-statistics-bsc.md /root/cm3-evidence/briefs/task-rv1c.md /root/cm3-evidence/briefs/brief-rv1c.md :: out brief-rv1c.out sha256 e5d991839deb671f727ff32c77b36f4e4a41a97ef3ccf989b7e4390b6b240083
+2026-10-21T01:09:44Z	briefcheck-rv1c	rc=0	pred=PASS	cmd=python3 -I /home/user/classical-lean/incoming/tools/briefcheck.py /root/cm3-evidence/briefs/brief-rv1c.md :: out briefcheck-rv1c.out sha256 0e78bad9ac4ed884797d50cd5d0417410912fbf54263de3b2f5eec4579dc24a9
+2026-10-21T01:09:44Z	brief-rv1c-hash	rc=0	pred=sha256	cmd=sha256sum /root/cm3-evidence/briefs/brief-rv1c.md :: a6460d8a3df9d2f831d0de8dfd1f947966cd8eb1ca15052884666f3276cfa7ed
+2026-10-21T01:09:44Z	brief-rv1c-hash	rc=0	pred=sha256	cmd=sha256sum /root/cm3-evidence/briefs/task-rv1c.md :: 28f68543b08cb0fa9301922702c39d6bdfc48950e61349005ba05a485a7a2507
+2026-10-21T01:09:44Z	status-before-rv1c	rc=0	pred=empty: the tree is clean	cmd=git status --porcelain :: out status-before-rv1c.out sha256 e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855
+2026-10-21T01:11:06Z	w113-start	rc=0	pred=epoch seconds at the start of item 113's witness	cmd=date +%s :: out w113-start.out sha256 a12e200ff238c376a899ef23d3f496af89bad50dc07b4c0313bde220471f5e3f
+2026-10-21T01:11:12Z	probes-113w	rc=0	pred=compile-fix run	cmd=el.sh /root/cm3-evidence/probes/p113w.lean (probe run, not subject to rule 37) :: out probes-113w.out sha256 9acf1f40902f45bb853a98975aba85635e14e8634aee570a2cf7fbb5465b81c0
+2026-10-21T01:11:12Z	probes-113w	rc=0	pred=probe	cmd=PROBED RCLike.inner_apply
+2026-10-21T01:11:12Z	probes-113w	rc=0	pred=probe	cmd=PROBED conj_trivial
+2026-10-21T01:11:12Z	probes-113w	rc=0	pred=probe	cmd=PROBED Real.norm_eq_abs
+2026-10-21T01:11:12Z	probes-113w	rc=0	pred=probe	cmd=PROBED abs_of_pos
+2026-10-21T01:11:12Z	probes-113w	rc=0	pred=probe	cmd=PROBED pow_le_one₀
+2026-10-21T01:11:12Z	probes-113w	rc=0	pred=probe	cmd=PROBED smul_eq_mul
+2026-10-21T01:11:12Z	probes-113w	rc=0	pred=probe	cmd=PROBED pow_succ
+2026-10-21T01:11:12Z	probes-113w	rc=0	pred=probe	cmd=PROBED sq_nonneg
+2026-10-21T01:11:12Z	probes-113w	rc=0	pred=probe	cmd=PROBED pow_pos
+2026-10-21T01:11:54Z	assemble-113	rc=0	pred=1 proof filled, no edit	cmd=python3 -I /root/cm3-evidence/scripts/assemble.py /root/cm3-evidence/stmt/SubgradientMethod.m.lean /home/user/classical-lean/incoming/d113-r1-s1.lean /root/cm3-evidence/spec/a113.json /root/cm3-evidence/mod/SubgradientMethod.lean :: out assemble-113.out sha256 fbf3c696ccafa2569c26343a8e612846bf28c28e0780e1da0f054ae2eda54ea3
+2026-10-21T01:12:06Z	m113-a	rc=0	pred=compile-fix run	cmd=el.sh /root/cm3-evidence/mod/SubgradientMethod.lean :: out m113-a.out sha256 93ff7811a209e2a8479230bbb9b6bc19f7f311d3af383ec350c1db2a7e7d5494
+2026-10-21T01:12:11Z	w113-end	rc=0	pred=epoch seconds when item 113's witness elaborated (m113-a rc 0)	cmd=date +%s :: out w113-end.out sha256 af2b02f62ab223ff966d415ce1655d181be16f005e59d95fd80f58d11421ea7a
+2026-10-21T01:13:25Z	w121-start	rc=0	pred=epoch seconds at the start of item 121's two witnesses	cmd=date +%s :: out w121-start.out sha256 d94d2229c585b30dfcbf273be64a48b3ba72625a7f55601f418c53512b7a04f5
+2026-10-21T01:13:29Z	probes-121w	rc=0	pred=compile-fix run	cmd=el.sh /root/cm3-evidence/probes/p121w.lean (probe run, not subject to rule 37) :: out probes-121w.out sha256 7bc8eb6d4b846ff948cd93909bef78111d7350942742f46d83598d233117c5d2
+2026-10-21T01:13:30Z	probes-121w	rc=0	pred=probe	cmd=PROBED Fin.sum_univ_two
+2026-10-21T01:13:30Z	probes-121w	rc=0	pred=probe	cmd=PROBED Function.update
+2026-10-21T01:13:30Z	probes-121w	rc=0	pred=probe	cmd=PROBED Function.update_self
+2026-10-21T01:13:30Z	probes-121w	rc=0	pred=probe	cmd=PROBED Function.update_of_ne
+2026-10-21T01:13:30Z	probes-121w	rc=0	pred=probe	cmd=PROBED Matrix.cons_val_zero
+2026-10-21T01:13:30Z	probes-121w	rc=0	pred=probe	cmd=PROBED Matrix.cons_val_one
+2026-10-21T01:13:30Z	probes-121w	rc=0	pred=probe	cmd=PROBED Matrix.head_cons
+2026-10-21T01:13:30Z	probes-121w	rc=0	pred=probe	cmd=PROBED Fin.isValue
+2026-10-21T01:14:07Z	assemble-121	rc=0	pred=18 proofs filled, 14 edits	cmd=python3 -I /root/cm3-evidence/scripts/assemble.py /root/cm3-evidence/stmt/EfronStein.m.lean /home/user/classical-lean/incoming/d121-r3-s1.lean /root/cm3-evidence/spec/a121.json /root/cm3-evidence/mod/EfronStein.lean :: out assemble-121.out sha256 8e41eaa5a949b4829ab5645bf55044a01306c6309d6a84b2e447bba96bf50c1a
+2026-10-21T01:14:12Z	m121-a	rc=1	pred=compile-fix run	cmd=el.sh /root/cm3-evidence/mod/EfronStein.lean :: out m121-a.out sha256 8e1eb9d16b1effcdc47b24cb61c6b1f0a78a650e16984e07fbe481527272f829
+2026-10-21T01:14:17Z	review-rv1c	rc=0	pred=sha256	cmd=sha256sum /root/cm3-evidence/reviews/rv1c-confirm.md :: 3dfd03bbefe552be8255a1f1406665b6d264a8eb5f989047a247528b6cdeeab6
+2026-10-21T01:14:17Z	status-after-rv1c	rc=0	pred=empty, as before the review	cmd=git status --porcelain :: out status-after-rv1c.out sha256 e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855
+2026-10-21T01:14:31Z	assemble2-121	rc=0	pred=18 proofs filled, 14 edits	cmd=python3 -I /root/cm3-evidence/scripts/assemble.py /root/cm3-evidence/stmt/EfronStein.m2.lean /home/user/classical-lean/incoming/d121-r3-s1.lean /root/cm3-evidence/spec/a121.json /root/cm3-evidence/mod/EfronStein.lean :: out assemble2-121.out sha256 c9258773394c78df3e90f0f1f8ea0a9ab2fcfdab52c1ed95486307ff83ec2d22
+2026-10-21T01:14:38Z	m121-b	rc=0	pred=compile-fix run	cmd=el.sh /root/cm3-evidence/mod/EfronStein.lean :: out m121-b.out sha256 93ff7811a209e2a8479230bbb9b6bc19f7f311d3af383ec350c1db2a7e7d5494
+2026-10-21T01:14:47Z	w121-end	rc=0	pred=epoch seconds when item 121's witnesses elaborated (m121-b rc 0)	cmd=date +%s :: out w121-end.out sha256 b83954a2c01f9a4e15f8486d8b1da5fb1464553d5d26c86f916f4732804d5e2f
+2026-10-21T01:15:10Z	m113-module	rc=0	pred=compile-fix run	cmd=el.sh /home/user/classical-lean/ClassicalLean/Analysis/SubgradientMethod.lean :: out m113-module.out sha256 93ff7811a209e2a8479230bbb9b6bc19f7f311d3af383ec350c1db2a7e7d5494
+2026-10-21T01:15:20Z	build-113	rc=0	pred=0 errors, 0 warnings	cmd=lake build ClassicalLean.Analysis.SubgradientMethod :: out build-113.out sha256 c5b8de6339f4e2edcfbfb565c5efd8c9ba98cec3511622feedffe4b63f97e9fd
+2026-10-21T01:15:20Z	build-113-warn	rc=1	pred=0 lines with warning: (grep rc 1 on no match)	cmd=grep -c warning: /root/cm3-evidence/build-113.out :: out build-113-warn.out sha256 9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa
+2026-10-21T01:15:37Z	vac-113	rc=1	pred=only the stale entry of orderedSimplex_subset_closedSimplex (outside this module's imports); nothing of this module flagged	cmd=lake env lean /root/cm3-evidence/vac/Vac113.lean :: out vac-113.out sha256 19e912a44073a87813c3e8f32b5a6aa65b7664bd53597710c22587ff0619612d
+2026-10-21T01:15:37Z	sorry-113	rc=0	pred=PASS 136	cmd=python3 -I tools/check_sorry.py :: out sorry-113.out sha256 4beb559c27f4a96ef3022abe23322e55c893f8ba9c7db38e76512472465d7d12
+2026-10-21T01:15:37Z	records-113	rc=0	pred=PASS 136	cmd=python3 -I tools/check_records.py :: out records-113.out sha256 5742b3e6052bdd67b7bd2dd37b20c306e806f81e56cb1e2b49742b8bc04b5d48
+2026-10-21T01:15:51Z	mdiff-113	rc=1	pred=the witness sentence of the module docstring alone (diff rc 1)	cmd=diff /root/cm3-evidence/stmt/SubgradientMethod.lean /root/cm3-evidence/stmt/SubgradientMethod.m.lean :: out mdiff-113.out sha256 d75051bbd7054191cb3bb788b7e8db8f2d334e56846ee4c1a177c98449335855
+2026-10-21T01:15:51Z	moddiff-113	rc=0	pred=the tree's module equals the assembled one (cmp rc 0)	cmd=cmp /root/cm3-evidence/mod/SubgradientMethod.lean ClassicalLean/Analysis/SubgradientMethod.lean :: out moddiff-113.out sha256 e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855
+2026-10-21T01:16:02Z	filltask-rv2-113	rc=0	pred=filled	cmd=python3 -I /root/cm3-evidence/scripts/filltask.py /root/cm3-evidence/briefs/task-rv2-template.md /root/cm3-evidence/briefs/task-rv2-113.md LABEL=rv2-113 ITEM=113 MODULE=ClassicalLean.Analysis.SubgradientMethod PATH=ClassicalLean/Analysis/SubgradientMethod.lean DEADLINE=2026-10-21T02:45Z N=3 STMT=SubgradientMethod ASSEMBLE=assemble-113 MCHANGE=one sentence on the witness added to the module docstring MDIFF=mdiff-113 DRAFT=d113-r1-s1 START= (the item has no witness start; its witness is new) ELAB=m113-module BUILD=build-113 VAC=vac-113 SORRY=sorry-113 NS=ClassicalLean.Analysis.SubgradientMethod :: out filltask-rv2-113.out sha256 c2a1fa9b28b5ed012ebfc43f2bcf6e86b5046addd75b8aca8bf0ca336e643c01
+2026-10-21T01:16:02Z	brief-rv2-113	rc=0	pred=brief written	cmd=python3 -I /root/cm3-evidence/scripts/mkbrief3.py /home/user/classical-lean/HANDOFF.md /home/user/classical-lean/records/orders/20261021T002100Z__claude-ai__order-cloudmath3-subgradient-efron-stein-bernstein-order-statistics-bsc.md /root/cm3-evidence/briefs/task-rv2-113.md /root/cm3-evidence/briefs/brief-rv2-113.md :: out brief-rv2-113.out sha256 20305628f6aa29939e5a7454c0490d000437de83a71cce4adfb93cdb02cb1ae0
+2026-10-21T01:16:02Z	briefcheck-rv2-113	rc=0	pred=PASS	cmd=python3 -I /home/user/classical-lean/incoming/tools/briefcheck.py /root/cm3-evidence/briefs/brief-rv2-113.md :: out briefcheck-rv2-113.out sha256 783e678138b080fa440c6fd186d2f40c748780a783b5503f531c90c63b9074a0
+2026-10-21T01:16:02Z	brief-rv2-113-hash	rc=0	pred=sha256	cmd=sha256sum /root/cm3-evidence/briefs/brief-rv2-113.md :: 47f322b6f0211baa37f64536a1f4e009ba8d6296d3731ab6ec30505e63baa800
+2026-10-21T01:16:02Z	brief-rv2-113-hash	rc=0	pred=sha256	cmd=sha256sum /root/cm3-evidence/briefs/task-rv2-113.md :: 2f08255c8feed2e5b683fd5c5ccd45e1494346b4c0cc358fc307f7f81378214e
+2026-10-21T01:16:02Z	brief-rv2-113-hash	rc=0	pred=sha256	cmd=sha256sum /root/cm3-evidence/briefs/task-rv2-template.md :: 0c45e56fb67c34ced8bde2acfe9b7d4246fc3137bc018f65fe2ae3a5f0209ba8
+2026-10-21T01:16:02Z	status-before-rv2-113	rc=0	pred=the module file and the root's import line	cmd=git status --porcelain :: out status-before-rv2-113.out sha256 8405b50b25c9e1f1b3498cd38ac60b2938ea8fe48eaba73ea104f2d7f3b2362b
+2026-10-21T01:17:33Z	w130-start	rc=0	pred=epoch seconds at the start of item 130's two witnesses	cmd=date +%s :: out w130-start.out sha256 41fe19eccfb62d12a12a8133adbd4d916dd938c22e2e9f166fcdb9eb89934f64
+2026-10-21T01:17:43Z	assemble-130	rc=0	pred=7 proofs filled, 11 edits	cmd=python3 -I /root/cm3-evidence/scripts/assemble.py /root/cm3-evidence/stmt/ChannelCapacity.m.lean /home/user/classical-lean/incoming/d130-r1-s1.lean /root/cm3-evidence/spec/a130.json /root/cm3-evidence/mod/ChannelCapacity.lean :: out assemble-130.out sha256 ad17c2a954862461a8efc73e3e089d731fde792d4da68103a8048c83b307cb4a
+2026-10-21T01:17:49Z	m130-a	rc=0	pred=compile-fix run	cmd=el.sh /root/cm3-evidence/mod/ChannelCapacity.lean :: out m130-a.out sha256 93ff7811a209e2a8479230bbb9b6bc19f7f311d3af383ec350c1db2a7e7d5494
+2026-10-21T01:17:53Z	w130-end	rc=0	pred=epoch seconds when item 130's witnesses elaborated (m130-a rc 0)	cmd=date +%s :: out w130-end.out sha256 b09298533088e102202f5e2358a279f0ddd38d1695adaaa44b2303a6050e280e
+2026-10-21T01:18:05Z	w124-start	rc=0	pred=epoch seconds at the start of item 124's witness	cmd=date +%s :: out w124-start.out sha256 1c26d7bed8be2ede2b06d83faee06d6bd69f4e837ae9df61839d36472ae81491
+2026-10-21T01:18:13Z	assemble-124	rc=0	pred=6 proofs filled, 26 edits	cmd=python3 -I /root/cm3-evidence/scripts/assemble.py /root/cm3-evidence/stmt/BernsteinInequality.m.lean /home/user/classical-lean/incoming/d124-r4-s2.lean /root/cm3-evidence/spec/a124.json /root/cm3-evidence/mod/BernsteinInequality.lean :: out assemble-124.out sha256 390060b6af8f4813c19305dc37a46c8c3f467438f98f7108dfaec9ce5a09120a
+2026-10-21T01:18:24Z	m124-a	rc=0	pred=compile-fix run	cmd=el.sh /root/cm3-evidence/mod/BernsteinInequality.lean :: out m124-a.out sha256 93ff7811a209e2a8479230bbb9b6bc19f7f311d3af383ec350c1db2a7e7d5494
+2026-10-21T01:18:32Z	w124-end	rc=0	pred=epoch seconds when item 124's witness elaborated (m124-a rc 0)	cmd=date +%s :: out w124-end.out sha256 b65d2853313e9bcb609a413770e8149787243af0311b679fc3c62b6421b5f56a
+2026-10-21T01:18:32Z	w126-start	rc=0	pred=epoch seconds at the start of item 126's witness	cmd=date +%s :: out w126-start.out sha256 b65d2853313e9bcb609a413770e8149787243af0311b679fc3c62b6421b5f56a
+2026-10-21T01:18:32Z	assemble-126	rc=0	pred=4 proofs filled, 16 edits	cmd=python3 -I /root/cm3-evidence/scripts/assemble.py /root/cm3-evidence/stmt/OrderStatistics.m.lean /home/user/classical-lean/incoming/d126-r2-s2.lean /root/cm3-evidence/spec/a126.json /root/cm3-evidence/mod/OrderStatistics.lean :: out assemble-126.out sha256 39216c7d2c2e85a47e014794f155aca696ee10bd900cd654427b0983e238373b
+2026-10-21T01:18:40Z	m126-a	rc=0	pred=compile-fix run	cmd=el.sh /root/cm3-evidence/mod/OrderStatistics.lean :: out m126-a.out sha256 93ff7811a209e2a8479230bbb9b6bc19f7f311d3af383ec350c1db2a7e7d5494
+2026-10-21T01:18:45Z	w126-end	rc=0	pred=epoch seconds when item 126's witness elaborated (m126-a rc 0)	cmd=date +%s :: out w126-end.out sha256 1cd3c7369b582ce32e8282415f78e180b9cf059de1d24d6dc3a40d7a857dbdce
+2026-10-21T01:18:45Z	mods-prepared	rc=0	pred=sha256	cmd=sha256sum /root/cm3-evidence/mod/BernsteinInequality.lean :: 26a710b9a1762e90c698a1c8e8c7257f4db040d90d720f9b325d15d2ea8831db
+2026-10-21T01:18:45Z	mods-prepared	rc=0	pred=sha256	cmd=sha256sum /root/cm3-evidence/mod/ChannelCapacity.lean :: 71e589a534c1a47460c012e3a4c8b59e8826468faa1451a2c31e975e32963d72
+2026-10-21T01:18:45Z	mods-prepared	rc=0	pred=sha256	cmd=sha256sum /root/cm3-evidence/mod/EfronStein.lean :: 36c29dd668f0d13dd69b7b450b4282fb0169c4877d35f51435e7be9004ea781c
+2026-10-21T01:18:45Z	mods-prepared	rc=0	pred=sha256	cmd=sha256sum /root/cm3-evidence/mod/OrderStatistics.lean :: 4552ae6a8de43aadadbe67290f7acd8bf00e21e4ffff7115d8f34a8d33d110c4
+2026-10-21T01:18:45Z	mods-prepared	rc=0	pred=sha256	cmd=sha256sum /root/cm3-evidence/mod/SubgradientMethod.lean :: 14b2726861ea5409e4f958a3e237ad12112217bcea33ef68c02f0c1b35559aed
+2026-10-21T01:18:45Z	mods-prepared	rc=0	pred=sha256	cmd=sha256sum /root/cm3-evidence/wit/w113.lean :: 557d46f0678bd956c3743b74f24cfbf4f7be28c8bd176833b4da2964a3e3e996
+2026-10-21T01:18:45Z	mods-prepared	rc=0	pred=sha256	cmd=sha256sum /root/cm3-evidence/wit/w121.lean :: a145b76a00170e0826dea5b0be2082cab228acbfcae2c84556fc183a9212cc7c
+2026-10-21T01:18:45Z	mods-prepared	rc=0	pred=sha256	cmd=sha256sum /root/cm3-evidence/wit/w124.lean :: 4f899e632701f4c9015224febaac1fe18ef2b744571b3322a8709b57c2aca120
+2026-10-21T01:18:45Z	mods-prepared	rc=0	pred=sha256	cmd=sha256sum /root/cm3-evidence/wit/w126.lean :: c9f33824fda1b09ff47c6234743a20ef5035058c7e294bab7130a39c3c105cbe
+2026-10-21T01:18:45Z	mods-prepared	rc=0	pred=sha256	cmd=sha256sum /root/cm3-evidence/wit/w130.lean :: 5dbfc682dc9bf522d40eb63bf3e0c8eec2d2ba7c4fc553827d5935ae43dcb3aa
+2026-10-21T01:18:45Z	mods-prepared	rc=0	pred=sha256	cmd=sha256sum /root/cm3-evidence/spec/a113.json :: d1c067bc02064ee767f0ea74c84d6b253bccfb56a390004f3200801c3d4d7d24
+2026-10-21T01:18:45Z	mods-prepared	rc=0	pred=sha256	cmd=sha256sum /root/cm3-evidence/spec/a121.json :: 9b05012547c3b6eb5905ad6471c7a3df930a5cbc4c260af4a1f8df63ab77588e
+2026-10-21T01:18:45Z	mods-prepared	rc=0	pred=sha256	cmd=sha256sum /root/cm3-evidence/spec/a124.json :: ef33564e50b856eabc02bec041cd01248a790242bdd4a6aa0f0145a938f41be4
+2026-10-21T01:18:45Z	mods-prepared	rc=0	pred=sha256	cmd=sha256sum /root/cm3-evidence/spec/a126.json :: f879aa5c4726a972e1c51841d88098ccf85e55ee67400c4602b617402a296b4f
+2026-10-21T01:18:45Z	mods-prepared	rc=0	pred=sha256	cmd=sha256sum /root/cm3-evidence/spec/a130.json :: c52d6c72e3f4aac8aefb0e14c846e77ede8450ae50a8f2ffe1ad010368ca09f1
+2026-10-21T01:18:45Z	mods-prepared	rc=0	pred=sha256	cmd=sha256sum /root/cm3-evidence/stmt/BernsteinInequality.m.lean :: 366189e818ca93fc5f8c537eaaba6856e80debbfecf2e26714c0f51c76c3b3c7
+2026-10-21T01:18:45Z	mods-prepared	rc=0	pred=sha256	cmd=sha256sum /root/cm3-evidence/stmt/ChannelCapacity.m.lean :: c604976ea43d9bbc06e42ec32ad2c54851ed0555ecd6f71bee04a69fd532fad6
+2026-10-21T01:18:45Z	mods-prepared	rc=0	pred=sha256	cmd=sha256sum /root/cm3-evidence/stmt/EfronStein.m.lean :: 40720f40ea446b83dc864614b36c421781ccd3566298e126fa4ba5b82fff4e62
+2026-10-21T01:18:45Z	mods-prepared	rc=0	pred=sha256	cmd=sha256sum /root/cm3-evidence/stmt/EfronStein.m2.lean :: 96009a1d01caf268397a076e242a0c3a9e498d56ace9498f55d6a12e56269d79
+2026-10-21T01:18:45Z	mods-prepared	rc=0	pred=sha256	cmd=sha256sum /root/cm3-evidence/stmt/OrderStatistics.m.lean :: c4057f55e9762c3e47ba5873bf58ce4a550198008503da4a7224b76d5545ec6a
+2026-10-21T01:18:45Z	mods-prepared	rc=0	pred=sha256	cmd=sha256sum /root/cm3-evidence/stmt/SubgradientMethod.m.lean :: 7d028198c209480cd1ac2cb83d512a9eefb0065c843ab51eed4e195f64570579
+2026-10-21T01:18:45Z	mods-prepared	rc=0	pred=sha256	cmd=sha256sum /root/cm3-evidence/text/head113m.lean :: cfa41bb5cf587f45722692e74a38b921f6f4df0a13c91df1ecc948893c61c666
+2026-10-21T01:18:46Z	mods-prepared	rc=0	pred=sha256	cmd=sha256sum /root/cm3-evidence/text/head121m.lean :: a68051cd8b273304460142a237f9edeb0605c15a626f35977852910f3af1704f
+2026-10-21T01:18:46Z	mods-prepared	rc=0	pred=sha256	cmd=sha256sum /root/cm3-evidence/text/head121m2.lean :: 27f2389a72f39ce48a8b88e374ddbf65665a4a6450f433a645b56bb0a7ab599b
+2026-10-21T01:18:46Z	mods-prepared	rc=0	pred=sha256	cmd=sha256sum /root/cm3-evidence/text/head130m.lean :: 9fd6ef773009eaee0e3fd5a80cefde4a1e457425a60eee09a605198f76b4955d
+2026-10-21T01:18:46Z	mods-prepared	rc=0	pred=sha256	cmd=sha256sum /root/cm3-evidence/scripts/subst.py :: 5f35b402ff29db64be8e40824ca0f58662bde5cb56c31c4de5dd296eb3c35e01
+2026-10-21T01:18:46Z	mods-prepared	rc=0	pred=sha256	cmd=sha256sum /root/cm3-evidence/scripts/specmerge.py :: b038cf09e0fa7da0963f032283892fb0818dc3b2164f57f901d0d02c59601707
+2026-10-21T01:20:07Z	rv2-113-asis	rc=0	pred=compile-fix run	cmd=el.sh /root/cm3-review-3/asis.lean :: out rv2-113-asis.out sha256 93ff7811a209e2a8479230bbb9b6bc19f7f311d3af383ec350c1db2a7e7d5494
+2026-10-21T01:20:21Z	rv2-113-fireG	rc=1	pred=compile-fix run	cmd=el.sh /root/cm3-review-3/fireG.lean :: out rv2-113-fireG.out sha256 14785517be24568432591f190ab8096a68aec19380c904c84e3d25d279eff866
+2026-10-21T01:21:29Z	rv2-113-clear1	rc=1	pred=compile-fix run	cmd=el.sh /root/cm3-review-3/clear1.lean :: out rv2-113-clear1.out sha256 641b9cee640be5b5f5df93e2c6d0ad81c20d891dae6f689417df6685fc0cda56
+2026-10-21T01:21:35Z	rv2-113-clear2	rc=1	pred=compile-fix run	cmd=el.sh /root/cm3-review-3/clear2.lean :: out rv2-113-clear2.out sha256 f5d4fba939fa92d40e26b36fad3b3f13bbb931c0df5ba4e2d47c9c17080ed359
+2026-10-21T01:21:42Z	rv2-113-clear3	rc=1	pred=compile-fix run	cmd=el.sh /root/cm3-review-3/clear3.lean :: out rv2-113-clear3.out sha256 b56e3af48160f6b84a4dfb2622b8cbea98910d61b82c5602583317745affee21
+2026-10-21T01:21:49Z	rv2-113-clear4	rc=1	pred=compile-fix run	cmd=el.sh /root/cm3-review-3/clear4.lean :: out rv2-113-clear4.out sha256 f816110228c003a533cca2ad320457d8162bf9ea87300aa19b3440c09f8f3ebe
+2026-10-21T01:21:55Z	rv2-113-clear5	rc=1	pred=compile-fix run	cmd=el.sh /root/cm3-review-3/clear5.lean :: out rv2-113-clear5.out sha256 085d96fb42688107713365684bd3f94ac0f59b55af56a79268f9b415aec15e4e
+2026-10-21T01:23:08Z	review-rv2-113	rc=0	pred=sha256	cmd=sha256sum /root/cm3-evidence/reviews/rv2-113.md :: 917a71953376ec3b4c0c82d035db2776c34eaaa9f1ac5a909724e44b09cad161
+2026-10-21T01:23:08Z	status-after-rv2-113	rc=0	pred=the module file and the root's import line, as before	cmd=git status --porcelain :: out status-after-rv2-113.out sha256 8405b50b25c9e1f1b3498cd38ac60b2938ea8fe48eaba73ea104f2d7f3b2362b
+2026-10-21T01:23:53Z	quotes-r68-b-planted	rc=1	pred=rc 1: the planted misquote reported MISQUOTE	cmd=python3 -I /root/cm3-evidence/scripts/quotecheck.py /home/user/classical-lean/records/rounds/20261021T002200Z__round-68-subgradient-efron-stein-bernstein-order-statistics-bsc.md /root/cm3-evidence/quotes/r68-a-planted.tsv :: out quotes-r68-b-planted.out sha256 1de873abbdc385462d0288d93fec005af1bc4280604727cbccabb1987a4dfefb
+2026-10-21T01:23:53Z	quotes-r68-b	rc=0	pred=rc 0: every quote OK	cmd=python3 -I /root/cm3-evidence/scripts/quotecheck.py /home/user/classical-lean/records/rounds/20261021T002200Z__round-68-subgradient-efron-stein-bernstein-order-statistics-bsc.md /root/cm3-evidence/quotes/r68-a.tsv :: out quotes-r68-b.out sha256 86f98f0f7cdaf63373e78ed253e8b17adec2509aea27bab6b04c1349a6628967
+2026-10-21T01:23:53Z	records-113	rc=0	pred=sha256	cmd=sha256sum /home/user/classical-lean/records/rounds/20261021T002200Z__round-68-subgradient-efron-stein-bernstein-order-statistics-bsc.md :: 6867008a7268c053131bd9b4d292ecba9ed8dbd68b5ff0db3c7705e399dad88d
+2026-10-21T01:23:53Z	checkrec-113	rc=0	pred=PASS 136	cmd=python3 -I tools/check_records.py :: out checkrec-113.out sha256 5742b3e6052bdd67b7bd2dd37b20c306e806f81e56cb1e2b49742b8bc04b5d48
+2026-10-21T01:24:28Z	msg-113	rc=0	pred=sha256	cmd=sha256sum /root/cm3-evidence/msg/m113.txt :: 095cd9d8f5ff9edbaa2cf98eb6c9aef3ce495441bd84bf54f29a4fd2467ce59b
+2026-10-21T01:24:28Z	commit-msg-113	rc=0	pred=sha256	cmd=sha256sum /root/cm3-evidence/msg/m113.final :: 7afacbc6ecf730b8ffceaad879f9010c6d50c21e0e755ccbbbe4b55793afbc80
+COMMIT 36eca2c
+2026-10-21T01:24:44Z	m121-module	rc=0	pred=compile-fix run	cmd=el.sh /home/user/classical-lean/ClassicalLean/Probability/EfronStein.lean :: out m121-module.out sha256 93ff7811a209e2a8479230bbb9b6bc19f7f311d3af383ec350c1db2a7e7d5494
+2026-10-21T01:24:51Z	build-121	rc=0	pred=0 errors, 0 warnings	cmd=lake build ClassicalLean.Probability.EfronStein :: out build-121.out sha256 629e8a55a679640e5c815cbda57ff2ed61a27743adf2e3baf1ec3061997d556a
+2026-10-21T01:24:51Z	build-121-warn	rc=1	pred=0 lines with warning: (grep rc 1 on no match)	cmd=grep -c warning: /root/cm3-evidence/build-121.out :: out build-121-warn.out sha256 9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa
+2026-10-21T01:25:07Z	vac-121	rc=1	pred=only the stale entry of orderedSimplex_subset_closedSimplex; nothing of this module flagged	cmd=lake env lean /root/cm3-evidence/vac/Vac121.lean :: out vac-121.out sha256 4927189e98e2a87b71cc9df87248286115b92c092519590765680954d97f5786
+2026-10-21T01:25:07Z	sorry-121	rc=0	pred=PASS 137	cmd=python3 -I tools/check_sorry.py :: out sorry-121.out sha256 bdfa28808a9843082fd4a1c2465dccd76380935396ad6468d1760a3bd9321140
+2026-10-21T01:25:07Z	checkrec-121	rc=0	pred=PASS 137	cmd=python3 -I tools/check_records.py :: out checkrec-121.out sha256 cdc1da094a4e1311817292fbb2a12e1ed412bd5c984fc6301ddb588c6b9c8ab2
+2026-10-21T01:25:07Z	mdiff-121	rc=1	pred=the FinCases import and the witness sentence (diff rc 1)	cmd=diff /root/cm3-evidence/stmt/EfronStein.lean /root/cm3-evidence/stmt/EfronStein.m2.lean :: out mdiff-121.out sha256 24745ac1ecc5f4d88bd1efce260766d737b09edf470aa272b1f0671d4ab94551
+2026-10-21T01:25:07Z	moddiff-121	rc=0	pred=the tree's module equals the assembled one (cmp rc 0)	cmd=cmp /root/cm3-evidence/mod/EfronStein.lean ClassicalLean/Probability/EfronStein.lean :: out moddiff-121.out sha256 e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855
+2026-10-21T01:25:24Z	filltask-rv2-121	rc=0	pred=filled	cmd=python3 -I /root/cm3-evidence/scripts/filltask.py /root/cm3-evidence/briefs/task-rv2-template.md /root/cm3-evidence/briefs/task-rv2-121.md LABEL=rv2-121 ITEM=121 MODULE=ClassicalLean.Probability.EfronStein PATH=ClassicalLean/Probability/EfronStein.lean DEADLINE=2026-10-21T03:00Z N=4 STMT=EfronStein MSTMT=EfronStein.m2.lean ASSEMBLE=assemble2-121 MCHANGE=the import `Mathlib.Tactic.FinCases` (for the witnesses' `fin_cases`) and one sentence on the witnesses added to the module docstring MDIFF=mdiff-121 DRAFT=d121-r3-s1 START= (the item has no witness start; its two witnesses are new) ELAB=m121-module BUILD=build-121 VAC=vac-121 SORRY=sorry-121 NS=ClassicalLean.Probability.EfronStein :: out filltask-rv2-121.out sha256 778577d7febea4821dbc3f2295ab275d4a7274808ac6180de5f6a59914b6fd99
+2026-10-21T01:25:24Z	brief-rv2-121	rc=0	pred=brief written	cmd=python3 -I /root/cm3-evidence/scripts/mkbrief3.py /home/user/classical-lean/HANDOFF.md /home/user/classical-lean/records/orders/20261021T002100Z__claude-ai__order-cloudmath3-subgradient-efron-stein-bernstein-order-statistics-bsc.md /root/cm3-evidence/briefs/task-rv2-121.md /root/cm3-evidence/briefs/brief-rv2-121.md :: out brief-rv2-121.out sha256 7742d4a04adcf3b74899b4ddf3ff488e3cf6ddef38d3047bb2a919f3ff1d99e9
+2026-10-21T01:25:24Z	briefcheck-rv2-121	rc=0	pred=PASS	cmd=python3 -I /home/user/classical-lean/incoming/tools/briefcheck.py /root/cm3-evidence/briefs/brief-rv2-121.md :: out briefcheck-rv2-121.out sha256 20b22a3d147dbba10ecb42c5a6a1e5358e1fbb421a58338edb49b9793f05baef
+2026-10-21T01:25:24Z	brief-rv2-121-hash	rc=0	pred=sha256	cmd=sha256sum /root/cm3-evidence/briefs/brief-rv2-121.md :: bdd879540270ec6196114520f397f1bf0f8a3b3c93703da587d6d945b850a626
+2026-10-21T01:25:24Z	brief-rv2-121-hash	rc=0	pred=sha256	cmd=sha256sum /root/cm3-evidence/briefs/task-rv2-121.md :: 8bfa3bc002847cd270aa4f33cc8be07f789a7374c468fc6dae20b498b4b8b716
+2026-10-21T01:25:24Z	brief-rv2-121-hash	rc=0	pred=sha256	cmd=sha256sum /root/cm3-evidence/briefs/task-rv2-template.md :: 35e98a818fa1e95be0be2962d299a40f74bcc94295ea640812df8e8f0897044d
+2026-10-21T01:25:24Z	status-before-rv2-121	rc=0	pred=the module file and the root's import line	cmd=git status --porcelain :: out status-before-rv2-121.out sha256 78d58d930f8567592dec1db57aa79c502d93556b06113ee45e66baf196d65c78
+2026-10-21T01:30:24Z	rv2-121-copy	rc=0	pred=compile-fix run	cmd=el.sh /root/cm3-review-4/copy.lean :: out rv2-121-copy.out sha256 f32c8d5ce2d7de3c08cf03855f7a41715cec2b10e6176ae92135df8fb863ea56
+2026-10-21T01:30:36Z	rv2-121-noimp7	rc=1	pred=compile-fix run	cmd=el.sh /root/cm3-review-4/noimp7.lean :: out rv2-121-noimp7.out sha256 af1d5136acbffc39c18664665873f399ace587e5a5bfb9f047c95aa9e4a2b581
+2026-10-21T01:30:42Z	rv2-121-noimp8	rc=1	pred=compile-fix run	cmd=el.sh /root/cm3-review-4/noimp8.lean :: out rv2-121-noimp8.out sha256 e25f61289223117c156b2fb4048565b4c3b1985ac6930cc2cd54a3c99f66b2c2
+2026-10-21T01:30:48Z	rv2-121-noimp9	rc=1	pred=compile-fix run	cmd=el.sh /root/cm3-review-4/noimp9.lean :: out rv2-121-noimp9.out sha256 05a3931e198402c1484156b8a80a8b22de99076478006d68fd2b1d9c23d44622
+2026-10-21T01:30:52Z	rv2-121-noimp10	rc=1	pred=compile-fix run	cmd=el.sh /root/cm3-review-4/noimp10.lean :: out rv2-121-noimp10.out sha256 7299e93367c7727f2d18c49370beace767e7b0a7ebfb076714f26f1ed287142a
+2026-10-21T01:30:57Z	rv2-121-noimp11	rc=1	pred=compile-fix run	cmd=el.sh /root/cm3-review-4/noimp11.lean :: out rv2-121-noimp11.out sha256 c8f1bb781b8ebcab3c9394fea98dfd9d8561b979531de36bdf216655e8c8c397
+2026-10-21T01:31:03Z	rv2-121-noimp12	rc=1	pred=compile-fix run	cmd=el.sh /root/cm3-review-4/noimp12.lean :: out rv2-121-noimp12.out sha256 8888e0335a350e334b4fd54365345299a7dfe1ed490bdbb356f4dfc16e143939
+2026-10-21T01:31:08Z	rv2-121-noimp13	rc=1	pred=compile-fix run	cmd=el.sh /root/cm3-review-4/noimp13.lean :: out rv2-121-noimp13.out sha256 d3b317818ee5fda6e0a6ee3ce3c8dd7087d89d3a8db558fe7117a83111b52c74
+2026-10-21T01:31:14Z	rv2-121-w1bad	rc=1	pred=compile-fix run	cmd=el.sh /root/cm3-review-4/w1bad.lean :: out rv2-121-w1bad.out sha256 c59b78f78eb06d4b5107e783140e9646fa76365dbae4343a5ab8bc713cbfb75a
+2026-10-21T01:31:22Z	rv2-121-w2bad	rc=1	pred=compile-fix run	cmd=el.sh /root/cm3-review-4/w2bad.lean :: out rv2-121-w2bad.out sha256 79fb8801ff18945b66bbc0a633d9ce96ef66d7b2e73ece09e6237a782c5eb93a
+2026-10-21T01:33:25Z	rv2-121-tcmod	rc=0	pred=compile-fix run	cmd=el.sh /root/cm3-review-4/tcmod.lean :: out rv2-121-tcmod.out sha256 2cd3293ca0463169437f2b84e00fa620da829562e7e12d91ab69f60845728a24
+2026-10-21T01:33:25Z	rv2-121-tcmod	rc=0	pred=probe	cmd=PROBED ClassicalLean.Probability.EfronStein.wmean
+2026-10-21T01:33:25Z	rv2-121-tcmod	rc=0	pred=probe	cmd=PROBED ClassicalLean.Probability.EfronStein.wvar
+2026-10-21T01:33:25Z	rv2-121-tcmod	rc=0	pred=probe	cmd=PROBED ClassicalLean.Probability.EfronStein.weight
+2026-10-21T01:33:25Z	rv2-121-tcmod	rc=0	pred=probe	cmd=PROBED ClassicalLean.Probability.EfronStein.expect
+2026-10-21T01:33:25Z	rv2-121-tcmod	rc=0	pred=probe	cmd=PROBED ClassicalLean.Probability.EfronStein.variance
+2026-10-21T01:33:25Z	rv2-121-tcmod	rc=0	pred=probe	cmd=PROBED ClassicalLean.Probability.EfronStein.coordVar
+2026-10-21T01:33:25Z	rv2-121-tcmod	rc=0	pred=probe	cmd=PROBED ClassicalLean.Probability.EfronStein.variance_le_sum_variance_coord
+2026-10-21T01:33:25Z	rv2-121-tcmod	rc=0	pred=probe	cmd=PROBED ClassicalLean.Probability.EfronStein.variance_le_sum_sq_div_four
+2026-10-21T01:35:20Z	review-rv2-121	rc=0	pred=sha256	cmd=sha256sum /root/cm3-evidence/reviews/rv2-121.md :: f5e709b8eea61d8f0483b93a68424bad98034fb64d9fdddff6ee301943833be8
+2026-10-21T01:35:20Z	status-after-rv2-121	rc=0	pred=the module file and the root's import line, as before	cmd=git status --porcelain :: out status-after-rv2-121.out sha256 78d58d930f8567592dec1db57aa79c502d93556b06113ee45e66baf196d65c78
+2026-10-21T01:35:46Z	quotes-r68-c-planted	rc=1	pred=rc 1: the planted misquote reported MISQUOTE	cmd=python3 -I /root/cm3-evidence/scripts/quotecheck.py /home/user/classical-lean/records/rounds/20261021T002200Z__round-68-subgradient-efron-stein-bernstein-order-statistics-bsc.md /root/cm3-evidence/quotes/r68-a-planted.tsv :: out quotes-r68-c-planted.out sha256 1de873abbdc385462d0288d93fec005af1bc4280604727cbccabb1987a4dfefb
+2026-10-21T01:35:46Z	quotes-r68-c	rc=0	pred=rc 0: every quote OK	cmd=python3 -I /root/cm3-evidence/scripts/quotecheck.py /home/user/classical-lean/records/rounds/20261021T002200Z__round-68-subgradient-efron-stein-bernstein-order-statistics-bsc.md /root/cm3-evidence/quotes/r68-a.tsv :: out quotes-r68-c.out sha256 86f98f0f7cdaf63373e78ed253e8b17adec2509aea27bab6b04c1349a6628967
+2026-10-21T01:35:46Z	frag-121	rc=0	pred=sha256	cmd=sha256sum /home/user/classical-lean/records/rounds/20261021T002200Z__round-68-subgradient-efron-stein-bernstein-order-statistics-bsc.md :: 6c31803c6db24cfe3606927881aff17f6c69427950fcfe41862b4974e17f17dc
+2026-10-21T01:35:46Z	checkrec2-121	rc=0	pred=PASS 137	cmd=python3 -I tools/check_records.py :: out checkrec2-121.out sha256 cdc1da094a4e1311817292fbb2a12e1ed412bd5c984fc6301ddb588c6b9c8ab2
+2026-10-21T01:36:18Z	msg-121	rc=0	pred=sha256	cmd=sha256sum /root/cm3-evidence/msg/m121.txt :: 75dc5dfeeec6700c633a0c4973167736ce56d26b57ad5f0807d2a88a851b0fc3
+2026-10-21T01:36:18Z	commit-msg-121	rc=0	pred=sha256	cmd=sha256sum /root/cm3-evidence/msg/m121.final :: b144251d2c58a3e156e00d22043cbadfcdbac2b59f509e4a0792f02fc66c6b82
+COMMIT 334dd98
+2026-10-21T01:36:35Z	m130-module	rc=0	pred=compile-fix run	cmd=el.sh /home/user/classical-lean/ClassicalLean/InformationTheory/ChannelCapacity.lean :: out m130-module.out sha256 93ff7811a209e2a8479230bbb9b6bc19f7f311d3af383ec350c1db2a7e7d5494
+2026-10-21T01:36:43Z	build-130	rc=0	pred=0 errors, 0 warnings	cmd=lake build ClassicalLean.InformationTheory.ChannelCapacity :: out build-130.out sha256 3633a764cfdfc911477b41da1c9e43b34ddb3b962fcfe74e134de206670d8e8b
+2026-10-21T01:36:43Z	build-130-warn	rc=1	pred=0 lines with warning: (grep rc 1 on no match)	cmd=grep -c warning: /root/cm3-evidence/build-130.out :: out build-130-warn.out sha256 9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa
+2026-10-21T01:37:28Z	vac-130	rc=1	pred=nothing of this module flagged; the list's one entry may be stale if orderedSimplex is outside the closure	cmd=lake env lean /root/cm3-evidence/vac/Vac130.lean :: out vac-130.out sha256 ba1a4b93528d7f4987ed24324cb668d1d9283d48e3eba204569e32765480cb9a
+2026-10-21T01:37:28Z	sorry-130	rc=0	pred=PASS 138	cmd=python3 -I tools/check_sorry.py :: out sorry-130.out sha256 f2fe280a90f94be6ed81f315682a19a4e73b4c9a2f079e6070b28b5cca2e275b
+2026-10-21T01:37:29Z	checkrec-130	rc=0	pred=PASS 138	cmd=python3 -I tools/check_records.py :: out checkrec-130.out sha256 fd49a3f60091d3c9faa5be72e924a409bd6f123860ef31571b4baa4c958c379f
+2026-10-21T01:37:29Z	mdiff-130	rc=1	pred=the witness sentence alone (diff rc 1)	cmd=diff /root/cm3-evidence/stmt/ChannelCapacity.lean /root/cm3-evidence/stmt/ChannelCapacity.m.lean :: out mdiff-130.out sha256 5c57fa67bd7dfa2800c90f4bc8bb531cdec0674c5876ad201594f5e86970f5a0
+2026-10-21T01:37:29Z	moddiff-130	rc=0	pred=the tree's module equals the assembled one (cmp rc 0)	cmd=cmp /root/cm3-evidence/mod/ChannelCapacity.lean ClassicalLean/InformationTheory/ChannelCapacity.lean :: out moddiff-130.out sha256 e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855
+2026-10-21T01:37:40Z	filltask-rv2-130	rc=0	pred=filled	cmd=python3 -I /root/cm3-evidence/scripts/filltask.py /root/cm3-evidence/briefs/task-rv2-template.md /root/cm3-evidence/briefs/task-rv2-130.md LABEL=rv2-130 ITEM=130 MODULE=ClassicalLean.InformationTheory.ChannelCapacity PATH=ClassicalLean/InformationTheory/ChannelCapacity.lean DEADLINE=2026-10-21T03:15Z N=5 STMT=ChannelCapacity MSTMT=ChannelCapacity.m.lean ASSEMBLE=assemble-130 MCHANGE=one sentence on the witnesses added to the module docstring MDIFF=mdiff-130 DRAFT=d130-r1-s1 START= (the item has no witness start; its two witnesses are new) ELAB=m130-module BUILD=build-130 VAC=vac-130 SORRY=sorry-130 NS=ClassicalLean.InformationTheory.ChannelCapacity :: out filltask-rv2-130.out sha256 fc8d31bd26a109a1f7840dded09c5b337289db634871b60f903a1726f044e6ae
+2026-10-21T01:37:40Z	brief-rv2-130	rc=0	pred=brief written	cmd=python3 -I /root/cm3-evidence/scripts/mkbrief3.py /home/user/classical-lean/HANDOFF.md /home/user/classical-lean/records/orders/20261021T002100Z__claude-ai__order-cloudmath3-subgradient-efron-stein-bernstein-order-statistics-bsc.md /root/cm3-evidence/briefs/task-rv2-130.md /root/cm3-evidence/briefs/brief-rv2-130.md :: out brief-rv2-130.out sha256 3ee96eb803697fe1dc45189f6aaa473ea260c2ea4309a08b1443b37c7ece81e6
+2026-10-21T01:37:40Z	briefcheck-rv2-130	rc=0	pred=PASS	cmd=python3 -I /home/user/classical-lean/incoming/tools/briefcheck.py /root/cm3-evidence/briefs/brief-rv2-130.md :: out briefcheck-rv2-130.out sha256 ea984c69881eb089efbd24d08accfd2c60b0719ed16652268478fb6adff655b7
+2026-10-21T01:37:40Z	brief-rv2-130-hash	rc=0	pred=sha256	cmd=sha256sum /root/cm3-evidence/briefs/brief-rv2-130.md :: 3efae521711d6eca860a86a5d23234e7cbbecdefb23005d6fe68e951c5fad26b
+2026-10-21T01:37:40Z	brief-rv2-130-hash	rc=0	pred=sha256	cmd=sha256sum /root/cm3-evidence/briefs/task-rv2-130.md :: 70d3013b6f5528887650a099a3b1c8e0f2d37d14f6b0d57ac36c9ca9e3d7e11e
+2026-10-21T01:37:40Z	status-before-rv2-130	rc=0	pred=the module file and the root's import line	cmd=git status --porcelain :: out status-before-rv2-130.out sha256 e60cbc33ea094b0e655ed0ed977f569959de08dd9b88cfba47c3e123b8465061
+2026-10-21T01:43:25Z	rv2-130-draft	rc=0	pred=compile-fix run	cmd=el.sh /root/cm3-review-5/d130.lean :: out rv2-130-draft.out sha256 0fe95800bb8c3a532d78484fba60fb9228d33a066cf0d379f068ddc384508379
+2026-10-21T01:44:41Z	rv2-130-module	rc=0	pred=compile-fix run	cmd=el.sh /root/cm3-review-5/m130copy.lean :: out rv2-130-module.out sha256 93ff7811a209e2a8479230bbb9b6bc19f7f311d3af383ec350c1db2a7e7d5494
+2026-10-21T01:44:48Z	rv2-130-fire	rc=1	pred=compile-fix run	cmd=el.sh /root/cm3-review-5/m130fire.lean :: out rv2-130-fire.out sha256 74b0623d7c9fc76eba4470f7be0556ed55d2191597ce9173001013b2f628e2e0
+2026-10-21T01:47:20Z	review-rv2-130	rc=0	pred=sha256	cmd=sha256sum /root/cm3-evidence/reviews/rv2-130.md :: 188f4b17d5bfff18d6a433e0f4394a55f456358a482fb1395ba4c21f0d73f0e8
+2026-10-21T01:47:20Z	status-after-rv2-130	rc=0	pred=the module file and the root's import line, as before	cmd=git status --porcelain :: out status-after-rv2-130.out sha256 e60cbc33ea094b0e655ed0ed977f569959de08dd9b88cfba47c3e123b8465061
+2026-10-21T01:47:34Z	quotes-r68-d-planted	rc=1	pred=rc 1: the planted misquote reported MISQUOTE	cmd=python3 -I /root/cm3-evidence/scripts/quotecheck.py /home/user/classical-lean/records/rounds/20261021T002200Z__round-68-subgradient-efron-stein-bernstein-order-statistics-bsc.md /root/cm3-evidence/quotes/r68-a-planted.tsv :: out quotes-r68-d-planted.out sha256 1de873abbdc385462d0288d93fec005af1bc4280604727cbccabb1987a4dfefb
+2026-10-21T01:47:34Z	quotes-r68-d	rc=0	pred=rc 0: every quote OK	cmd=python3 -I /root/cm3-evidence/scripts/quotecheck.py /home/user/classical-lean/records/rounds/20261021T002200Z__round-68-subgradient-efron-stein-bernstein-order-statistics-bsc.md /root/cm3-evidence/quotes/r68-a.tsv :: out quotes-r68-d.out sha256 86f98f0f7cdaf63373e78ed253e8b17adec2509aea27bab6b04c1349a6628967
+2026-10-21T01:47:34Z	frag-130	rc=0	pred=sha256	cmd=sha256sum /home/user/classical-lean/records/rounds/20261021T002200Z__round-68-subgradient-efron-stein-bernstein-order-statistics-bsc.md :: 31505b6b87d9a1abf00433360d4be99504cc6faf9798eb1ce71b4df9fd6a6829
+2026-10-21T01:47:34Z	checkrec2-130	rc=0	pred=PASS 138	cmd=python3 -I tools/check_records.py :: out checkrec2-130.out sha256 fd49a3f60091d3c9faa5be72e924a409bd6f123860ef31571b4baa4c958c379f
+2026-10-21T01:48:46Z	msg-130	rc=0	pred=sha256	cmd=sha256sum /root/cm3-evidence/msg/m130.txt :: 110c184809cfd595cf41cd57322e3f8166298aa1aefb9dd5b4c16cf06952fe15
+2026-10-21T01:48:46Z	commit-msg-130	rc=0	pred=sha256	cmd=sha256sum /root/cm3-evidence/msg/m130.final :: dd094c4f7a38c6f109c96c9f046610e3555665eb4037d6a27addbedcb02b3f02
+COMMIT 4a6dce7
+2026-10-21T01:49:09Z	m124-module	rc=0	pred=compile-fix run	cmd=el.sh /home/user/classical-lean/ClassicalLean/Probability/BernsteinInequality.lean :: out m124-module.out sha256 93ff7811a209e2a8479230bbb9b6bc19f7f311d3af383ec350c1db2a7e7d5494
+2026-10-21T01:49:22Z	build-124	rc=0	pred=0 errors, 0 warnings	cmd=lake build ClassicalLean.Probability.BernsteinInequality :: out build-124.out sha256 3876b8e1898e7665748818a0e7f9dedad39890e0d406cc3a1607a974f810e7f4
+2026-10-21T01:49:22Z	build-124-warn	rc=1	pred=0 lines with warning: (grep rc 1 on no match)	cmd=grep -c warning: /root/cm3-evidence/build-124.out :: out build-124-warn.out sha256 9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa
+2026-10-21T01:49:43Z	vac-124	rc=1	pred=only the stale entry of orderedSimplex_subset_closedSimplex; nothing of this module flagged	cmd=lake env lean /root/cm3-evidence/vac/Vac124.lean :: out vac-124.out sha256 464e433349babdb42392f948119d43c0478c8d0ae3215d8fa321662edc1c29c1
+2026-10-21T01:49:43Z	sorry-124	rc=0	pred=PASS 139	cmd=python3 -I tools/check_sorry.py :: out sorry-124.out sha256 f2f0bdd86c55e0a415f2952ab0426aa4e7384e8132dd5db4a143aa442c0fd33f
+2026-10-21T01:49:43Z	checkrec-124	rc=0	pred=PASS 139	cmd=python3 -I tools/check_records.py :: out checkrec-124.out sha256 093ce8f438f919df42a2c269f306b048b0e2bc1d6e9c4b350addf48fe44b6637
+2026-10-21T01:49:43Z	mdiff-124	rc=0	pred=no difference (diff rc 0): the head already describes the witness	cmd=diff /root/cm3-evidence/stmt/BernsteinInequality.lean /root/cm3-evidence/stmt/BernsteinInequality.m.lean :: out mdiff-124.out sha256 e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855
+2026-10-21T01:49:43Z	moddiff-124	rc=0	pred=the tree's module equals the assembled one (cmp rc 0)	cmd=cmp /root/cm3-evidence/mod/BernsteinInequality.lean ClassicalLean/Probability/BernsteinInequality.lean :: out moddiff-124.out sha256 e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855
+2026-10-21T01:49:43Z	wdiff-124	rc=1	pred=the witness start with the theorem's full name (diff rc 1)	cmd=diff /home/user/classical-lean/incoming/witness-starts/w124-tail.lean /root/cm3-evidence/wit/w124.lean :: out wdiff-124.out sha256 7c3b44aa65d39f49364062233afe6f0b6e842bcf6d2976b13d5984d9776b9856
+2026-10-21T01:49:58Z	filltask-rv2-124	rc=0	pred=filled	cmd=python3 -I /root/cm3-evidence/scripts/filltask.py /root/cm3-evidence/briefs/task-rv2-template.md /root/cm3-evidence/briefs/task-rv2-124.md LABEL=rv2-124 ITEM=124 MODULE=ClassicalLean.Probability.BernsteinInequality PATH=ClassicalLean/Probability/BernsteinInequality.lean DEADLINE=2026-10-21T03:30Z N=6 STMT=BernsteinInequality MSTMT=BernsteinInequality.m.lean ASSEMBLE=assemble-124 MCHANGE=no change (its module docstring already describes the witness) MDIFF=mdiff-124 DRAFT=d124-r4-s2 START=, and its witness start `$REPO/incoming/witness-starts/w124-tail.lean` (the module's witness is that start with the theorem called by its full name; their difference is `$EVD/wdiff-124.out`) ELAB=m124-module BUILD=build-124 VAC=vac-124 SORRY=sorry-124 NS=ClassicalLean.Probability.BernsteinInequality :: out filltask-rv2-124.out sha256 ae74db9ff1d2925e2d0a8cd19a564b759e0c7746f3c5b6c8c737f77dbc3b0c4a
+2026-10-21T01:49:58Z	brief-rv2-124	rc=0	pred=brief written	cmd=python3 -I /root/cm3-evidence/scripts/mkbrief3.py /home/user/classical-lean/HANDOFF.md /home/user/classical-lean/records/orders/20261021T002100Z__claude-ai__order-cloudmath3-subgradient-efron-stein-bernstein-order-statistics-bsc.md /root/cm3-evidence/briefs/task-rv2-124.md /root/cm3-evidence/briefs/brief-rv2-124.md :: out brief-rv2-124.out sha256 35fcfde6816814f4683718d58de4cc1c7a154b445b6688689225f4eeb1ec9c2d
+2026-10-21T01:49:58Z	briefcheck-rv2-124	rc=0	pred=PASS	cmd=python3 -I /home/user/classical-lean/incoming/tools/briefcheck.py /root/cm3-evidence/briefs/brief-rv2-124.md :: out briefcheck-rv2-124.out sha256 fd942ab5fb440acb2be5b66e07bdd88605e321a7a30375a4922e465678b26980
+2026-10-21T01:49:58Z	brief-rv2-124-hash	rc=0	pred=sha256	cmd=sha256sum /root/cm3-evidence/briefs/brief-rv2-124.md :: dac6257d83015ac06fd3ca517e0523f25210a20ef27238b5aba237e916f204dd
+2026-10-21T01:49:58Z	brief-rv2-124-hash	rc=0	pred=sha256	cmd=sha256sum /root/cm3-evidence/briefs/task-rv2-124.md :: ee5b65248eed72cc6105312c144467f4b614cf93fa0d00aeccf7528abee06310
+2026-10-21T01:49:58Z	status-before-rv2-124	rc=0	pred=the module file and the root's import line	cmd=git status --porcelain :: out status-before-rv2-124.out sha256 ee31d68fdb32358f04fc5d27684e35ad12acbe421b30b5b2c92af44ea16ddfcf
+2026-10-21T01:56:03Z	rv2-124-hsmeas	rc=1	pred=compile-fix run	cmd=el.sh /root/cm3-review-6/rv2-124-hsmeas.lean :: out rv2-124-hsmeas.out sha256 0a26765b19052d131124b9e1056b0b223dc2cba5cc692d3e32e42a04a56755ea
+2026-10-21T01:56:30Z	rv2-124-clear	rc=1	pred=compile-fix run	cmd=el.sh /root/cm3-review-6/rv2-124-clear.lean :: out rv2-124-clear.out sha256 81debd646cb7ddb64a4ac57c0560cc1ef6372774d6e70bcd2ac6d61fe369a38a
+2026-10-21T01:56:39Z	rv2-124-noimp1	rc=1	pred=compile-fix run	cmd=el.sh /root/cm3-review-6/rv2-124-noimp1.lean :: out rv2-124-noimp1.out sha256 d234305d8a8e346c787515961278982405badc481468fb5e13034d722a290773
+2026-10-21T01:56:48Z	rv2-124-noimp2	rc=1	pred=compile-fix run	cmd=el.sh /root/cm3-review-6/rv2-124-noimp2.lean :: out rv2-124-noimp2.out sha256 8fd6a4d5da96b00f77c635f124de9b8cc5ab62fcc0cb3b06ad0955e0cbc86dfe
+2026-10-21T01:56:59Z	rv2-124-noimp3	rc=1	pred=compile-fix run	cmd=el.sh /root/cm3-review-6/rv2-124-noimp3.lean :: out rv2-124-noimp3.out sha256 136f4b15713309c78e14b16f2cade0f593bc953cfe07653bf15ce251af17882b
+2026-10-21T01:57:07Z	rv2-124-noimp4	rc=1	pred=compile-fix run	cmd=el.sh /root/cm3-review-6/rv2-124-noimp4.lean :: out rv2-124-noimp4.out sha256 554714aef43dc4d7c1ae409e9ff72cc39cc7bd31e662b3e9c4eec476834263d7
+2026-10-21T02:00:18Z	review-rv2-124	rc=0	pred=sha256	cmd=sha256sum /root/cm3-evidence/reviews/rv2-124.md :: 94aba9efc49a484e27a252cd90036da5871b02a01d17c0ba2799e8122c4638f8
+2026-10-21T02:00:18Z	status-after-rv2-124	rc=0	pred=the module file and the root's import line, as before	cmd=git status --porcelain :: out status-after-rv2-124.out sha256 ee31d68fdb32358f04fc5d27684e35ad12acbe421b30b5b2c92af44ea16ddfcf
+2026-10-21T02:00:43Z	mkstmt-124-fix	rc=0	pred=statement file for the module rewritten with the fixed docstring	cmd=python3 -I /root/cm3-evidence/scripts/mkstmt.py /home/user/classical-lean/incoming/d124-r4-s2.lean /root/cm3-evidence/spec/s124m.json /root/cm3-evidence/stmt/BernsteinInequality.m.lean :: out mkstmt-124-fix.out sha256 3f95cbd8228c17f9cb8b427ca3c5c8d15fc2e71b4648609b9dcb1ce8f1fbf47f
+2026-10-21T02:00:43Z	assemble2-124	rc=0	pred=6 proofs filled, 26 edits	cmd=python3 -I /root/cm3-evidence/scripts/assemble.py /root/cm3-evidence/stmt/BernsteinInequality.m.lean /home/user/classical-lean/incoming/d124-r4-s2.lean /root/cm3-evidence/spec/a124.json /root/cm3-evidence/mod/BernsteinInequality.lean :: out assemble2-124.out sha256 390060b6af8f4813c19305dc37a46c8c3f467438f98f7108dfaec9ce5a09120a
+2026-10-21T02:00:43Z	fixdiff-124	rc=1	pred=the docstring's two lines alone (diff rc 1)	cmd=diff /root/cm3-evidence/mod/BernsteinInequality.rv2.lean /root/cm3-evidence/mod/BernsteinInequality.lean :: out fixdiff-124.out sha256 6572160cc078d06f431c890598081601e2577be3976dc66b1e538137d28e0ad7
+2026-10-21T02:01:01Z	m124-module2	rc=0	pred=compile-fix run	cmd=el.sh /home/user/classical-lean/ClassicalLean/Probability/BernsteinInequality.lean :: out m124-module2.out sha256 93ff7811a209e2a8479230bbb9b6bc19f7f311d3af383ec350c1db2a7e7d5494
+2026-10-21T02:01:12Z	build2-124	rc=0	pred=0 errors, 0 warnings	cmd=lake build ClassicalLean.Probability.BernsteinInequality :: out build2-124.out sha256 f13b65d802f23138edbfa2a69f30eea488c3ef472ce125af270178eb97c2b631
+2026-10-21T02:01:12Z	build2-124-warn	rc=1	pred=0 lines with warning: (grep rc 1 on no match)	cmd=grep -c warning: /root/cm3-evidence/build2-124.out :: out build2-124-warn.out sha256 9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa
+2026-10-21T02:01:12Z	moddiff2-124	rc=0	pred=the tree's module equals the reassembled one (cmp rc 0)	cmd=cmp /root/cm3-evidence/mod/BernsteinInequality.lean ClassicalLean/Probability/BernsteinInequality.lean :: out moddiff2-124.out sha256 e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855
+2026-10-21T02:01:12Z	fix-124-files	rc=0	pred=sha256	cmd=sha256sum /root/cm3-evidence/text/head124m.lean :: c054edcd7f2112d6a15e0207bcd510481307ebb9bc13b0b195e09b107bcb4364
+2026-10-21T02:01:12Z	fix-124-files	rc=0	pred=sha256	cmd=sha256sum /root/cm3-evidence/spec/s124m.json :: 0586e1071548c042349c16e6a84dbfdcbe39984b50933c689b929ade853badc4
+2026-10-21T02:01:13Z	fix-124-files	rc=0	pred=sha256	cmd=sha256sum /root/cm3-evidence/stmt/BernsteinInequality.m.lean :: 2f556d962a35f5cb223737b0d9dc77cec1dbffc5d3e7ee276a7dd4443e2464e3
+2026-10-21T02:01:13Z	fix-124-files	rc=0	pred=sha256	cmd=sha256sum /root/cm3-evidence/mod/BernsteinInequality.lean :: 589ac9b0cc09ce66e909370bab48f19981f81518010c44e9a9911334d4313e83
+2026-10-21T02:01:13Z	fix-124-files	rc=0	pred=sha256	cmd=sha256sum /root/cm3-evidence/mod/BernsteinInequality.rv2.lean :: 26a710b9a1762e90c698a1c8e8c7257f4db040d90d720f9b325d15d2ea8831db
+2026-10-21T02:01:34Z	task-rv2c-124	rc=0	pred=sha256	cmd=sha256sum /root/cm3-evidence/briefs/task-rv2c-124.md :: fefe4d72db9f108c75b27b263248302c0b0d784424c5bab6ce3aead019115b7d
+2026-10-21T02:01:34Z	brief-rv2c-124	rc=0	pred=brief written	cmd=python3 -I /root/cm3-evidence/scripts/mkbrief3.py /home/user/classical-lean/HANDOFF.md /home/user/classical-lean/records/orders/20261021T002100Z__claude-ai__order-cloudmath3-subgradient-efron-stein-bernstein-order-statistics-bsc.md /root/cm3-evidence/briefs/task-rv2c-124.md /root/cm3-evidence/briefs/brief-rv2c-124.md :: out brief-rv2c-124.out sha256 3540ac60132419df6b4f1cc32007c8a998294140bb5974c58951e5b84c3e7752
+2026-10-21T02:01:34Z	briefcheck-rv2c-124	rc=0	pred=PASS	cmd=python3 -I /home/user/classical-lean/incoming/tools/briefcheck.py /root/cm3-evidence/briefs/brief-rv2c-124.md :: out briefcheck-rv2c-124.out sha256 11d8fc39fdc8dee12b32efcd8708e759bb88b5539cffac9d03bfc72a4db60a77
+2026-10-21T02:01:34Z	brief-rv2c-124-hash	rc=0	pred=sha256	cmd=sha256sum /root/cm3-evidence/briefs/brief-rv2c-124.md :: 297a2f697d567c82e525d102599b1ca255da5bf0873383734a999fe5fb9e37d8
+2026-10-21T02:01:34Z	status-before-rv2c-124	rc=0	pred=the module file and the root's import line	cmd=git status --porcelain :: out status-before-rv2c-124.out sha256 ee31d68fdb32358f04fc5d27684e35ad12acbe421b30b5b2c92af44ea16ddfcf
+2026-10-21T02:02:54Z	mkstmt-126m	rc=0	pred=statement file for the module, with the docstring that names no incoming/ path	cmd=python3 -I /root/cm3-evidence/scripts/mkstmt.py /home/user/classical-lean/incoming/d126-r2-s2.lean /root/cm3-evidence/spec/s126m.json /root/cm3-evidence/stmt/OrderStatistics.m.lean :: out mkstmt-126m.out sha256 b148d6d760fb42364bd4150f82415452e622c779333542273a288f20f7755f27
+2026-10-21T02:02:54Z	assemble2-126	rc=0	pred=4 proofs filled, 16 edits	cmd=python3 -I /root/cm3-evidence/scripts/assemble.py /root/cm3-evidence/stmt/OrderStatistics.m.lean /home/user/classical-lean/incoming/d126-r2-s2.lean /root/cm3-evidence/spec/a126.json /root/cm3-evidence/mod/OrderStatistics.lean :: out assemble2-126.out sha256 39216c7d2c2e85a47e014794f155aca696ee10bd900cd654427b0983e238373b
+2026-10-21T02:03:02Z	m126-b	rc=0	pred=compile-fix run	cmd=el.sh /root/cm3-evidence/mod/OrderStatistics.lean :: out m126-b.out sha256 93ff7811a209e2a8479230bbb9b6bc19f7f311d3af383ec350c1db2a7e7d5494
+2026-10-21T02:06:56Z	review-rv2c-124	rc=0	pred=sha256	cmd=sha256sum /root/cm3-evidence/reviews/rv2c-124.md :: 083764952957c9526835224e21ac0dbfb523539da3fa2fc2aec5c22334d1f61b
+2026-10-21T02:06:56Z	status-after-rv2c-124	rc=0	pred=the module file and the root's import line, as before	cmd=git status --porcelain :: out status-after-rv2c-124.out sha256 ee31d68fdb32358f04fc5d27684e35ad12acbe421b30b5b2c92af44ea16ddfcf
+2026-10-21T02:07:05Z	fix-files-late	rc=0	pred=sha256	cmd=sha256sum /root/cm3-evidence/text/o124d.txt :: c0ef5bc159ba7ddbd563645f224499be4ab134de545cffd43d862a3e97b75199
+2026-10-21T02:07:06Z	fix-files-late	rc=0	pred=sha256	cmd=sha256sum /root/cm3-evidence/text/n124d.txt :: 7801bdcede8fad484c2575c6612b0a1863e54c346b4e8d7f65af5724008f77c6
+2026-10-21T02:07:06Z	fix-files-late	rc=0	pred=sha256	cmd=sha256sum /root/cm3-evidence/stmt/BernsteinInequality.m.rv2.lean :: 366189e818ca93fc5f8c537eaaba6856e80debbfecf2e26714c0f51c76c3b3c7
+2026-10-21T02:07:06Z	fix-files-late	rc=0	pred=sha256	cmd=sha256sum /root/cm3-evidence/text/o126d.txt :: 490998b613a3a33e18d930234dc8f3d686c530cd9c9197306a96a1edf28b9d94
+2026-10-21T02:07:06Z	fix-files-late	rc=0	pred=sha256	cmd=sha256sum /root/cm3-evidence/text/n126d.txt :: ac835d739e8098f558ceb702c4f290fc3a567a79b9c0fe021c7a5bedab751f95
+2026-10-21T02:07:06Z	fix-files-late	rc=0	pred=sha256	cmd=sha256sum /root/cm3-evidence/text/head126m.lean :: 6ced9c06252112747aeced3abda3b4a6c2e9b928452befb8890eba75e48e12e8
+2026-10-21T02:07:06Z	fix-files-late	rc=0	pred=sha256	cmd=sha256sum /root/cm3-evidence/spec/s126m.json :: 9a3b68c66f9070dff852b213687e3991efa1bd16edf27555c9d954fd7352d10e
+2026-10-21T02:07:06Z	fix-files-late	rc=0	pred=sha256	cmd=sha256sum /root/cm3-evidence/stmt/OrderStatistics.m.lean :: 0ac269ecf0c2aa4eb60203df924e971f6883c8290b4d76249214b7ee27e7da35
+2026-10-21T02:07:06Z	fix-files-late	rc=0	pred=sha256	cmd=sha256sum /root/cm3-evidence/mod/OrderStatistics.lean :: cd14ac6f6eae5cd529cc4264741cc0c356ce5c69cc741fff31f4c1576a740426
+2026-10-21T02:07:06Z	fix-files-late	rc=0	pred=sha256	cmd=sha256sum /root/cm3-evidence/briefs/task-rv2c-124.md :: fefe4d72db9f108c75b27b263248302c0b0d784424c5bab6ce3aead019115b7d
+2026-10-21T02:07:33Z	quotes-r68-e-planted	rc=1	pred=rc 1: the planted misquote reported MISQUOTE	cmd=python3 -I /root/cm3-evidence/scripts/quotecheck.py /home/user/classical-lean/records/rounds/20261021T002200Z__round-68-subgradient-efron-stein-bernstein-order-statistics-bsc.md /root/cm3-evidence/quotes/r68-a-planted.tsv :: out quotes-r68-e-planted.out sha256 1de873abbdc385462d0288d93fec005af1bc4280604727cbccabb1987a4dfefb
+2026-10-21T02:07:33Z	quotes-r68-e	rc=0	pred=rc 0: every quote OK	cmd=python3 -I /root/cm3-evidence/scripts/quotecheck.py /home/user/classical-lean/records/rounds/20261021T002200Z__round-68-subgradient-efron-stein-bernstein-order-statistics-bsc.md /root/cm3-evidence/quotes/r68-a.tsv :: out quotes-r68-e.out sha256 86f98f0f7cdaf63373e78ed253e8b17adec2509aea27bab6b04c1349a6628967
+2026-10-21T02:07:33Z	frag-124	rc=0	pred=sha256	cmd=sha256sum /home/user/classical-lean/records/rounds/20261021T002200Z__round-68-subgradient-efron-stein-bernstein-order-statistics-bsc.md :: 765dbf2a5d578a8f3bff811c0fb9ad097a01e12d3e617d528abe9e8ac1ca6007
+2026-10-21T02:07:33Z	checkrec2-124	rc=0	pred=PASS 139	cmd=python3 -I tools/check_records.py :: out checkrec2-124.out sha256 093ce8f438f919df42a2c269f306b048b0e2bc1d6e9c4b350addf48fe44b6637
+2026-10-21T02:07:53Z	msg-124	rc=0	pred=sha256	cmd=sha256sum /root/cm3-evidence/msg/m124.txt :: 71df3bbfe74c6389e91fb3a7879051e517d2d6951f82cfc6cb771b316235fa93
+2026-10-21T02:07:53Z	commit-msg-124	rc=0	pred=sha256	cmd=sha256sum /root/cm3-evidence/msg/m124.final :: d11ab6d6181a41b1dd1ce9702caa5d962487ddb08f03f051df40fce8df27a8f4
+COMMIT 7d05b24
+2026-10-21T02:08:11Z	m126-module	rc=0	pred=compile-fix run	cmd=el.sh /home/user/classical-lean/ClassicalLean/Probability/OrderStatistics.lean :: out m126-module.out sha256 93ff7811a209e2a8479230bbb9b6bc19f7f311d3af383ec350c1db2a7e7d5494
+2026-10-21T02:08:22Z	build-126	rc=0	pred=0 errors, 0 warnings	cmd=lake build ClassicalLean.Probability.OrderStatistics :: out build-126.out sha256 7878931ca1631a9e2c2083a6fc0f4fceff396943c723cab2d169b0f9044f6642
+2026-10-21T02:08:22Z	build-126-warn	rc=1	pred=0 lines with warning: (grep rc 1 on no match)	cmd=grep -c warning: /root/cm3-evidence/build-126.out :: out build-126-warn.out sha256 9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa
+2026-10-21T02:08:44Z	vac-126	rc=1	pred=only the stale entry of orderedSimplex_subset_closedSimplex; nothing of this module flagged	cmd=lake env lean /root/cm3-evidence/vac/Vac126.lean :: out vac-126.out sha256 8ae37d3732637409f8636db62b4a097e3803db2f3d74bb5a30562f2034c04f79
+2026-10-21T02:08:44Z	sorry-126	rc=0	pred=PASS 140	cmd=python3 -I tools/check_sorry.py :: out sorry-126.out sha256 82d67cb73458bba076650ea4667e8d943b76a58415877e8413ce2220ebb086cc
+2026-10-21T02:08:44Z	checkrec-126	rc=0	pred=PASS 140	cmd=python3 -I tools/check_records.py :: out checkrec-126.out sha256 a42fd619009efcd025504738e8add3fe0c17158b11f669c8a8e6b9fb80563dd2
+2026-10-21T02:08:44Z	mdiff-126	rc=1	pred=the docstring sentence on the witness start (diff rc 1)	cmd=diff /root/cm3-evidence/stmt/OrderStatistics.lean /root/cm3-evidence/stmt/OrderStatistics.m.lean :: out mdiff-126.out sha256 367afc2af5661bcd65df957bbf19c976b0a1086905259cd85cdf107f37bd47d9
+2026-10-21T02:08:44Z	moddiff-126	rc=0	pred=the tree's module equals the assembled one (cmp rc 0)	cmd=cmp /root/cm3-evidence/mod/OrderStatistics.lean ClassicalLean/Probability/OrderStatistics.lean :: out moddiff-126.out sha256 e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855
+2026-10-21T02:08:44Z	wdiff-126	rc=1	pred=the witness start with the theorem's full name (diff rc 1)	cmd=diff /home/user/classical-lean/incoming/witness-starts/w126-tail.lean /root/cm3-evidence/wit/w126.lean :: out wdiff-126.out sha256 d2ee38612a50ccf4e97c8c5a57dd0cbfa6f00726e4ae89954847b6f30087b41c
+2026-10-21T02:08:55Z	filltask-rv2-126	rc=0	pred=filled	cmd=python3 -I /root/cm3-evidence/scripts/filltask.py /root/cm3-evidence/briefs/task-rv2-template.md /root/cm3-evidence/briefs/task-rv2-126.md LABEL=rv2-126 ITEM=126 MODULE=ClassicalLean.Probability.OrderStatistics PATH=ClassicalLean/Probability/OrderStatistics.lean DEADLINE=2026-10-21T03:45Z N=8 STMT=OrderStatistics MSTMT=OrderStatistics.m.lean ASSEMBLE=assemble2-126 MCHANGE=its module docstring's sentence on the witness start no longer naming the start by its path in `incoming/` (a path the merge removes), and saying that the witness calls the theorem by its full name MDIFF=mdiff-126 DRAFT=d126-r2-s2 START=, and its witness start `$REPO/incoming/witness-starts/w126-tail.lean` (the module's witness is that start with the theorem called by its full name; their difference is `$EVD/wdiff-126.out`) ELAB=m126-module BUILD=build-126 VAC=vac-126 SORRY=sorry-126 NS=ClassicalLean.Probability.OrderStatistics :: out filltask-rv2-126.out sha256 8a393aaeb1d80c79a089f8fd361fa032704ec84e8c5081558d74d27647542f0e
+2026-10-21T02:08:55Z	brief-rv2-126	rc=0	pred=brief written	cmd=python3 -I /root/cm3-evidence/scripts/mkbrief3.py /home/user/classical-lean/HANDOFF.md /home/user/classical-lean/records/orders/20261021T002100Z__claude-ai__order-cloudmath3-subgradient-efron-stein-bernstein-order-statistics-bsc.md /root/cm3-evidence/briefs/task-rv2-126.md /root/cm3-evidence/briefs/brief-rv2-126.md :: out brief-rv2-126.out sha256 a4411acb26144bc16f2ee10796f912efe4f6ba66d472bed0e56155236c1f78ec
+2026-10-21T02:08:55Z	briefcheck-rv2-126	rc=0	pred=PASS	cmd=python3 -I /home/user/classical-lean/incoming/tools/briefcheck.py /root/cm3-evidence/briefs/brief-rv2-126.md :: out briefcheck-rv2-126.out sha256 89b21d44a35c9dfdeddf541a930f1838a9dcbb8555f493f501bca93a239d14b5
+2026-10-21T02:08:55Z	brief-rv2-126-hash	rc=0	pred=sha256	cmd=sha256sum /root/cm3-evidence/briefs/brief-rv2-126.md :: 4eeed21322553d07d4be4da2348750cc53ba9e5b9aba8c1bb21e3e098b60bf47
+2026-10-21T02:08:55Z	brief-rv2-126-hash	rc=0	pred=sha256	cmd=sha256sum /root/cm3-evidence/briefs/task-rv2-126.md :: c54ac328af6b9f58395231b0a64e880d402cf29a5a131869e3d537727e8864df
+2026-10-21T02:08:55Z	status-before-rv2-126	rc=0	pred=the module file and the root's import line	cmd=git status --porcelain :: out status-before-rv2-126.out sha256 64759c690b6dc088eb1e64f75b0ca87c42c4ed15897c4872bc3957fe22393cc5
+2026-10-21T02:10:35Z	probes-closure	rc=1	pred=compile-fix run	cmd=el.sh /root/cm3-evidence/probes/p-closure.lean (probe run, not subject to rule 37) :: out probes-closure.out sha256 86666732389d4ba8d5e82d9280344f680af2605acfc3abbafe38ea1a77386f99
+2026-10-21T02:10:44Z	probes-closure2	rc=0	pred=compile-fix run	cmd=el.sh /root/cm3-evidence/probes/p-closure2.lean (probe run, not subject to rule 37) :: out probes-closure2.out sha256 3f178a8eb23dcd13ec5c2dfa81a4b0f1bdee4de4f369d373890386c2a4bf6e87
+2026-10-21T02:10:44Z	probes-closure2	rc=0	pred=probe	cmd=PROBED Lean.Environment.header
+2026-10-21T02:10:44Z	probes-closure2	rc=0	pred=probe	cmd=PROBED Lean.EnvironmentHeader.moduleNames
+2026-10-21T02:10:44Z	probes-closure2	rc=0	pred=probe	cmd=PROBED Lean.MonadEnv.getEnv
+2026-10-21T02:10:44Z	probes-closure2	rc=0	pred=probe	cmd=PROBED Lean.logInfo
+2026-10-21T02:13:34Z	rv2-126-fire-deprec	rc=0	pred=compile-fix run	cmd=el.sh /root/cm3-review-8/fire-deprec.lean :: out rv2-126-fire-deprec.out sha256 c9085779249fb8f7ab6a59769abdc5af8fa0203ebac669daed3af9b7abc9f14c
+2026-10-21T02:13:41Z	rv2-126-fire-unused	rc=0	pred=compile-fix run	cmd=el.sh /root/cm3-review-8/fire-unused.lean :: out rv2-126-fire-unused.out sha256 4cd9d08219a6f4a137cb4b94d5beee0cd6fa9f759a35b35d244f5c434fbfa18f
+2026-10-21T02:15:52Z	review-rv2-126	rc=0	pred=sha256	cmd=sha256sum /root/cm3-evidence/reviews/rv2-126.md :: e677a363153973422b596347bbd5be19f1e2183fbffc52a4a9debdeddf5f2ffb
+2026-10-21T02:15:52Z	status-after-rv2-126	rc=0	pred=the module file and the root's import line, as before	cmd=git status --porcelain :: out status-after-rv2-126.out sha256 64759c690b6dc088eb1e64f75b0ca87c42c4ed15897c4872bc3957fe22393cc5
+2026-10-21T02:16:12Z	quotes-r68-f-planted	rc=1	pred=rc 1: the planted misquote reported MISQUOTE	cmd=python3 -I /root/cm3-evidence/scripts/quotecheck.py /home/user/classical-lean/records/rounds/20261021T002200Z__round-68-subgradient-efron-stein-bernstein-order-statistics-bsc.md /root/cm3-evidence/quotes/r68-a-planted.tsv :: out quotes-r68-f-planted.out sha256 1de873abbdc385462d0288d93fec005af1bc4280604727cbccabb1987a4dfefb
+2026-10-21T02:16:12Z	quotes-r68-f	rc=0	pred=rc 0: every quote OK	cmd=python3 -I /root/cm3-evidence/scripts/quotecheck.py /home/user/classical-lean/records/rounds/20261021T002200Z__round-68-subgradient-efron-stein-bernstein-order-statistics-bsc.md /root/cm3-evidence/quotes/r68-a.tsv :: out quotes-r68-f.out sha256 86f98f0f7cdaf63373e78ed253e8b17adec2509aea27bab6b04c1349a6628967
+2026-10-21T02:16:13Z	frag-126	rc=0	pred=sha256	cmd=sha256sum /home/user/classical-lean/records/rounds/20261021T002200Z__round-68-subgradient-efron-stein-bernstein-order-statistics-bsc.md :: 334e8245cf1843d2719e1711f77c24e6d87bb200af96bece61087dc1cf685d11
+2026-10-21T02:16:13Z	checkrec2-126	rc=0	pred=PASS 140	cmd=python3 -I tools/check_records.py :: out checkrec2-126.out sha256 a42fd619009efcd025504738e8add3fe0c17158b11f669c8a8e6b9fb80563dd2
+2026-10-21T02:16:28Z	msg-126	rc=0	pred=sha256	cmd=sha256sum /root/cm3-evidence/msg/m126.txt :: 040a6fe622aa80db60116313d1ea2269823146f60c861816049211926a68687b
+2026-10-21T02:16:28Z	commit-msg-126	rc=0	pred=sha256	cmd=sha256sum /root/cm3-evidence/msg/m126.final :: 37c4f83b7baf7a0469ed467832d079eb9d9f1af293a5b1cbcf0a3eb5fbe9e6d9
+COMMIT 102383e
+2026-10-21T02:16:51Z	census_m113_thm	rc=0	pred=theorem constants of the final module: the census decides (hand estimate: its written theorems plus auxiliaries)	cmd=nice -n 10 lake env lean -Dpp.unicode.fun=true -DrelaxedAutoImplicit=false -Dweak.linter.mathlibStandardSet=true -DmaxSynthPendingDepth=3 /root/cm3-evidence/census/m113_thm.lean :: out census_m113_thm.out sha256 87f2590c219cb8ed71aa463089c9f48a09513d2c07df282c9f597b9a89fde916
+2026-10-21T02:16:58Z	census_m113_all	rc=0	pred=theorem constants of the final module: the census decides (hand estimate: its written theorems plus auxiliaries)	cmd=nice -n 10 lake env lean -Dpp.unicode.fun=true -DrelaxedAutoImplicit=false -Dweak.linter.mathlibStandardSet=true -DmaxSynthPendingDepth=3 /root/cm3-evidence/census/m113_all.lean :: out census_m113_all.out sha256 2bd22465710ce7864c66968bd09e3592b3fee8e65c9a4d0c1824fee881037c58
+2026-10-21T02:17:03Z	census_m121_thm	rc=0	pred=theorem constants of the final module: the census decides (hand estimate: its written theorems plus auxiliaries)	cmd=nice -n 10 lake env lean -Dpp.unicode.fun=true -DrelaxedAutoImplicit=false -Dweak.linter.mathlibStandardSet=true -DmaxSynthPendingDepth=3 /root/cm3-evidence/census/m121_thm.lean :: out census_m121_thm.out sha256 cfc606f52a6b1395e8491397c78e0b39e789aca3a31e4bdb0513eeffdf4c7294
+2026-10-21T02:17:08Z	census_m121_all	rc=0	pred=theorem constants of the final module: the census decides (hand estimate: its written theorems plus auxiliaries)	cmd=nice -n 10 lake env lean -Dpp.unicode.fun=true -DrelaxedAutoImplicit=false -Dweak.linter.mathlibStandardSet=true -DmaxSynthPendingDepth=3 /root/cm3-evidence/census/m121_all.lean :: out census_m121_all.out sha256 17b7d9deb12509de9c5c0e72de94b0f584367db3c46a628e35d08d3112d3cdd5
+2026-10-21T02:17:15Z	census_m130_thm	rc=0	pred=theorem constants of the final module: the census decides (hand estimate: its written theorems plus auxiliaries)	cmd=nice -n 10 lake env lean -Dpp.unicode.fun=true -DrelaxedAutoImplicit=false -Dweak.linter.mathlibStandardSet=true -DmaxSynthPendingDepth=3 /root/cm3-evidence/census/m130_thm.lean :: out census_m130_thm.out sha256 701bd639e361acd12c649af79f78ee97dea5f60e24ee4e0275674d2d9490ff6f
+2026-10-21T02:17:22Z	census_m130_all	rc=0	pred=theorem constants of the final module: the census decides (hand estimate: its written theorems plus auxiliaries)	cmd=nice -n 10 lake env lean -Dpp.unicode.fun=true -DrelaxedAutoImplicit=false -Dweak.linter.mathlibStandardSet=true -DmaxSynthPendingDepth=3 /root/cm3-evidence/census/m130_all.lean :: out census_m130_all.out sha256 7e068fe31297af519ee2628f1bec622da0183687f6c92cd9275114e158a5a5ff
+2026-10-21T02:17:31Z	census_m124_thm	rc=0	pred=theorem constants of the final module: the census decides (hand estimate: its written theorems plus auxiliaries)	cmd=nice -n 10 lake env lean -Dpp.unicode.fun=true -DrelaxedAutoImplicit=false -Dweak.linter.mathlibStandardSet=true -DmaxSynthPendingDepth=3 /root/cm3-evidence/census/m124_thm.lean :: out census_m124_thm.out sha256 53e044578c62414ddba3cb4a67409130db3f8b8adf38f4c607b6c86bee0f20ba
+2026-10-21T02:17:41Z	census_m124_all	rc=0	pred=theorem constants of the final module: the census decides (hand estimate: its written theorems plus auxiliaries)	cmd=nice -n 10 lake env lean -Dpp.unicode.fun=true -DrelaxedAutoImplicit=false -Dweak.linter.mathlibStandardSet=true -DmaxSynthPendingDepth=3 /root/cm3-evidence/census/m124_all.lean :: out census_m124_all.out sha256 975a70003e7a84b19ef3a69ce3023d506100507d1a98556eadaeb6b7971a7fd1
+2026-10-21T02:17:48Z	census_m126_thm	rc=0	pred=theorem constants of the final module: the census decides (hand estimate: its written theorems plus auxiliaries)	cmd=nice -n 10 lake env lean -Dpp.unicode.fun=true -DrelaxedAutoImplicit=false -Dweak.linter.mathlibStandardSet=true -DmaxSynthPendingDepth=3 /root/cm3-evidence/census/m126_thm.lean :: out census_m126_thm.out sha256 e081d1d9737cb31e9cff88ccaf240b4c9a0f0aa2e71dc4362e5267f832abf374
+2026-10-21T02:17:55Z	census_m126_all	rc=0	pred=theorem constants of the final module: the census decides (hand estimate: its written theorems plus auxiliaries)	cmd=nice -n 10 lake env lean -Dpp.unicode.fun=true -DrelaxedAutoImplicit=false -Dweak.linter.mathlibStandardSet=true -DmaxSynthPendingDepth=3 /root/cm3-evidence/census/m126_all.lean :: out census_m126_all.out sha256 9b91e3c042ba0d3974ed8ffe33065913204fb5c9f3986d51484cdd19a69a1640
+2026-10-21T02:18:25Z	closure-new	rc=0	pred=compile-fix run	cmd=el.sh /root/cm3-evidence/pred/closure-new.lean :: out closure-new.out sha256 e81534143e4281c9372b9986ec065891e7fa3d5253768e5c82ac4e14b518ad28
+2026-10-21T02:18:25Z	closure-diff	rc=0	pred=NEW-NOT-IN-BASE: the modules a root build adds (hand estimate: the 5 new modules and a few Mathlib modules)	cmd=python3 -I /root/cm3-evidence/scripts/closurediff.py /root/cm3-evidence/closure-base.out /root/cm3-evidence/closure-new.out :: out closure-diff.out sha256 4f3e01ca6d7ccae4382bf635a50aa06cf2190928db0ce2f73ae177a111e6ce51
+2026-10-21T02:19:03Z	predictions	rc=0	pred=sha256	cmd=sha256sum /home/user/classical-lean/incoming/PREDICTIONS.md :: 489f3b3cf4e408a48393d577ca055ce6fc2d6a9fff81a26de4898be6e9320b72
+2026-10-21T02:19:03Z	predictions	rc=0	pred=sha256	cmd=sha256sum /root/cm3-evidence/pred/closure-new.lean :: d601301c4d6f36059171f970d69efa80755a355e116f7e87cd60ffcc0e2da612
+2026-10-21T02:19:03Z	msg-pred	rc=0	pred=sha256	cmd=sha256sum /root/cm3-evidence/msg/mpred.txt :: 6f3aec9b6a68c054f5e9b72551eb08f5cd4dcf0647e4dc11ecc3310c6300a0f7
+2026-10-21T02:19:03Z	commit-msg-pred	rc=0	pred=sha256	cmd=sha256sum /root/cm3-evidence/msg/mpred.final :: 6122a94e4940a65a280f85a1615be02934017fdf9d14cc597bc787c12cd22ca9
+COMMIT 8d3b810
+2026-10-21T02:19:28Z	ec1-build	rc=0	pred=rc 0, 4193 jobs, 0 warnings	cmd=lake build :: out ec1-build.out sha256 709bead6d461098f83c8a4fdf37cc4ca295a088eba648c598f14443ba61b2b4e
+2026-10-21T02:19:28Z	ec1-build-warn	rc=1	pred=0 lines with warning: (grep rc 1 on no match)	cmd=grep -c warning: /root/cm3-evidence/ec1-build.out :: out ec1-build-warn.out sha256 9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa
+2026-10-21T02:19:47Z	ec1-axiom	rc=0	pred=rc 0, PASS 3517, 0 scoped exceptions	cmd=lake env lean tools/AxiomGate.lean :: out ec1-axiom.out sha256 99589948fba0a221df962a42fe516bb00e9411ede1e4b0a7fffb9d21ae133b1d
+2026-10-21T02:19:47Z	ec1-sorry	rc=0	pred=rc 0, PASS 140	cmd=python3 -I tools/check_sorry.py :: out ec1-sorry.out sha256 82d67cb73458bba076650ea4667e8d943b76a58415877e8413ce2220ebb086cc
+2026-10-21T02:28:26Z	ec1-vacuity	rc=0	pred=rc 0, PASS, 1 reviewed helper, 0 VACUOUS-PENDING, rule 5 out on 0	cmd=lake env lean tools/VacuityGate.lean :: out ec1-vacuity.out sha256 be8e68f008f02aec1fa7827d0227247047d2b4d7f81e9a10b833057cc63e2540
+2026-10-21T02:28:26Z	ec1-records	rc=0	pred=rc 0, PASS 140, 1 exemption	cmd=python3 -I tools/check_records.py :: out ec1-records.out sha256 a42fd619009efcd025504738e8add3fe0c17158b11f669c8a8e6b9fb80563dd2
+2026-10-21T02:28:26Z	ec1-drift	rc=0	pred=rc 0, PASS no drift	cmd=python3 tools/compile_rules.py drift records/rules.toml HANDOFF.md :: out ec1-drift.out sha256 a7b4dcf48d844b8b793b64a8c5f2984867a991969fa67f45fe0b51fe636bfa27
+2026-10-21T02:28:33Z	citecheck	rc=0	pred=OK for every commit	cmd=python3 -I /home/user/classical-lean/incoming/tools/citecheck.py /root/cm3-evidence/evidence.log /home/user/classical-lean 313e9a7 :: out citecheck.out sha256 0292f6c350285eb8bba3d2d01211a14b0d8ab59a0ff1cd16f06fe660992748fb
+2026-10-21T02:28:34Z	lsremote-end	rc=0	pred=04e4a38, as at the start	cmd=git ls-remote origin master :: out lsremote-end.out sha256 f99e8575b6a00062099dde607b47c88d5932507a38ecdb61e3a6f61fd7818aa1
+2026-10-21T02:29:40Z	report-stmts	rc=0	pred=every main theorem and definition printed once	cmd=/root/cm3-evidence/scripts/allstmts.sh :: out report-stmts.out sha256 b01a7ea2650a3b1c3ed9edce2649560fb1cdd72927b8f3890aecf24fbe8c7fe2
+2026-10-21T02:30:36Z	quotes-r68-manifest	rc=0	pred=sha256	cmd=sha256sum /root/cm3-evidence/quotes/r68-b.tsv :: 2641d8bff0c76e3f13809835da13105df7f546ffca02072a70d4956242b74137
+2026-10-21T02:30:36Z	quotes-r68-manifest	rc=0	pred=sha256	cmd=sha256sum /root/cm3-evidence/quotes/r68-b-planted.tsv :: 69ba9b742073d4676ac68be095d9666039f9aecf39ed75e65c73d0296fc9d360
+2026-10-21T02:30:37Z	quotes-r68-g-planted	rc=1	pred=rc 1: the planted misquote reported MISQUOTE	cmd=python3 -I /root/cm3-evidence/scripts/quotecheck.py /home/user/classical-lean/records/rounds/20261021T002200Z__round-68-subgradient-efron-stein-bernstein-order-statistics-bsc.md /root/cm3-evidence/quotes/r68-b-planted.tsv :: out quotes-r68-g-planted.out sha256 02a9f31d6df76357275c209c51b6a8e0990f8a0dfdba3252f246815febf5172f
+2026-10-21T02:30:37Z	quotes-r68-g	rc=0	pred=rc 0: every quote OK	cmd=python3 -I /root/cm3-evidence/scripts/quotecheck.py /home/user/classical-lean/records/rounds/20261021T002200Z__round-68-subgradient-efron-stein-bernstein-order-statistics-bsc.md /root/cm3-evidence/quotes/r68-b.tsv :: out quotes-r68-g.out sha256 2ae3fe9d72a604ee3f0a53852b6aecf0f04070950798ec532e2e9a932f438321
+2026-10-21T02:32:25Z	fill-report	rc=0	pred=the report filled from report-stmts.out and citecheck.out	cmd=python3 -I /root/cm3-evidence/scripts/fillreport3.py /root/cm3-evidence/report/REPORT.template.md /home/user/classical-lean/incoming/REPORT.md STATEMENTS=/root/cm3-evidence/report-stmts.out CITECHECK=/root/cm3-evidence/citecheck.out :: out fill-report.out sha256 925536b00b287e673d878e2509e969fc945912e0f1e4cacde94f39113fe52311
+2026-10-21T02:32:35Z	copy-reviews	rc=0	pred=8 review reports copied	cmd=bash -c mkdir -p /home/user/classical-lean/incoming/reviews && cp -p /root/cm3-evidence/reviews/*.md /home/user/classical-lean/incoming/reviews/ && ls /home/user/classical-lean/incoming/reviews | wc -l :: out copy-reviews.out sha256 aa67a169b0bba217aa0aa88a65346920c84c42447c36ba5f7ea65f422c1fe5d8
+2026-10-21T02:32:35Z	records-last	rc=0	pred=sha256	cmd=sha256sum records/rounds/20261021T002200Z__round-68-subgradient-efron-stein-bernstein-order-statistics-bsc.md :: ad0d001f4be276c4681d57896e1b6b4826df07584a0ef96fca4831cc0066bcb9
+2026-10-21T02:32:35Z	records-last	rc=0	pred=sha256	cmd=sha256sum records/orders/INDEX.md :: 6f339c20e8ada76906bbacb16b209e92afe3f35bf33a337bcf7acb9075483003
+2026-10-21T02:32:35Z	records-last	rc=0	pred=sha256	cmd=sha256sum records/CLAIMS.md :: 6263b711a8e5ba1a017fd2f52409691f2f936febd89514c551757d3b5795da8f
+2026-10-21T02:32:35Z	records-last	rc=0	pred=sha256	cmd=sha256sum incoming/REPORT.md :: e6f23a65b7a7401ea28dcd10e963271e4bce1c9713c3ec5267a59c95ef414dc9
+2026-10-21T02:32:35Z	records-last	rc=0	pred=sha256	cmd=sha256sum /root/cm3-evidence/report/REPORT.template.md :: 1b1fcaf147b646d29680291c1fc91651333a0fda22d6fb21f5efc3e2b8114f5b
+2026-10-21T02:32:35Z	records-last	rc=0	pred=sha256	cmd=sha256sum /root/cm3-evidence/scripts/fillreport3.py :: a650ea9a22ec471487e69c03f35c42b706b336d4712d0bdf0a743f6b617313e7
+2026-10-21T02:32:35Z	records-last	rc=0	pred=sha256	cmd=sha256sum /root/cm3-evidence/scripts/allstmts.sh :: 822d0e9c6d6b3f1ae058795f35e8d30d849a452a36e26b2634102a983aa34209
+2026-10-21T02:32:35Z	records-last	rc=0	pred=sha256	cmd=sha256sum incoming/reviews/rv1-statements.md :: 6261731d78c743c5c0e153e2c782dafe1fc9dd7d1e7e07fa9d37dfa3b7970189
+2026-10-21T02:32:35Z	records-last	rc=0	pred=sha256	cmd=sha256sum incoming/reviews/rv1c-confirm.md :: 3dfd03bbefe552be8255a1f1406665b6d264a8eb5f989047a247528b6cdeeab6
+2026-10-21T02:32:35Z	records-last	rc=0	pred=sha256	cmd=sha256sum incoming/reviews/rv2-113.md :: 917a71953376ec3b4c0c82d035db2776c34eaaa9f1ac5a909724e44b09cad161
+2026-10-21T02:32:35Z	records-last	rc=0	pred=sha256	cmd=sha256sum incoming/reviews/rv2-121.md :: f5e709b8eea61d8f0483b93a68424bad98034fb64d9fdddff6ee301943833be8
+2026-10-21T02:32:35Z	records-last	rc=0	pred=sha256	cmd=sha256sum incoming/reviews/rv2-124.md :: 94aba9efc49a484e27a252cd90036da5871b02a01d17c0ba2799e8122c4638f8
+2026-10-21T02:32:35Z	records-last	rc=0	pred=sha256	cmd=sha256sum incoming/reviews/rv2-126.md :: e677a363153973422b596347bbd5be19f1e2183fbffc52a4a9debdeddf5f2ffb
+2026-10-21T02:32:35Z	records-last	rc=0	pred=sha256	cmd=sha256sum incoming/reviews/rv2-130.md :: 188f4b17d5bfff18d6a433e0f4394a55f456358a482fb1395ba4c21f0d73f0e8
+2026-10-21T02:32:35Z	records-last	rc=0	pred=sha256	cmd=sha256sum incoming/reviews/rv2c-124.md :: 083764952957c9526835224e21ac0dbfb523539da3fa2fc2aec5c22334d1f61b
+2026-10-21T02:32:35Z	checkrec-last	rc=0	pred=PASS 140	cmd=python3 -I tools/check_records.py :: out checkrec-last.out sha256 a42fd619009efcd025504738e8add3fe0c17158b11f669c8a8e6b9fb80563dd2
+2026-10-21T02:32:53Z	msg-last	rc=0	pred=sha256	cmd=sha256sum /root/cm3-evidence/msg/mlast.txt :: 5a1a2977bbb2cb3b860dbfd9b638e11f78773f5c5a35931a8da09047ac14a4f1

@@ -1,0 +1,2 @@
+is claude-ai's start for the order (`incoming/witness-starts/w124-tail.lean`); it is why the file
+imports `Mathlib.Probability.Distributions.Bernoulli`.
