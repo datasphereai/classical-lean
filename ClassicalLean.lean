@@ -142,6 +142,7 @@ import ClassicalLean.InformationTheory.Huffman
 import ClassicalLean.Analysis.SubgradientMethod
 import ClassicalLean.Probability.EfronStein
 import ClassicalLean.InformationTheory.ChannelCapacity
+import ClassicalLean.Probability.BernsteinInequality
 
 /-!
 # ClassicalLean

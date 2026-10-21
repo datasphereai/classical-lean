@@ -124,6 +124,22 @@ and the assembler printed each one. Line numbers below are the draft's.
   module's `lake build`: 0 warning lines (`build-130`, `build-130-warn`). Its two witnesses are
   new (the item had no witness start): `ε = 1 / 4`, and for `mutualInfo_bsc_le` the input
   `(1 / 3, 2 / 3)`. Its review, `rv2-130`: CLEAN, so no confirming pass.
+* **124** (`d124-r4-s2.lean`). Every `first` chain cut to the branch that fires (`assemble-124`, 26
+  edits): lines 12 to 14 to line 13 (line 14 never ran); lines 144 to 148 to line 145; lines 162
+  to 164 to line 163; lines 176 to 178 to line 177; lines 197 to 199 to line 198 (each later
+  branch never ran); lines 224 to 226 to `field_simp` and `ring` on two lines (line 226 never
+  ran); and lines 157 to 160, in `hSmeas`, to `fun_prop`, its third branch: its first branch names
+  `Finset.measurable_sum'`, which does not exist at this Mathlib (`probes-orig`), and the review's
+  fire test found the second a type mismatch. Line 131: `show` became `change`. Line 194: the
+  deprecated `push_neg` became `push Not`. The draft had no docstring; the module has one for the
+  main theorem and one for each of its five private lemmas (job 1). The module's `lake build`: 0
+  warning lines (`build-124`, `build-124-warn`; after the fix, `build2-124`, `build2-124-warn`). Its
+  witness is claude-ai's start with the theorem called by its full name (`wdiff-124`). Its
+  review, `rv2-124`, had one MINOR finding: the module docstring named the start by its path in
+  `incoming/`, which the merge removes; fixed in that docstring sentence only (`fixdiff-124`),
+  re-elaborated (`m124-module2`) and rebuilt, and confirmed by a fresh reviewer (`rv2c-124`). The
+  same sentence of item 126's module docstring was fixed the same way before its review
+  (`mkstmt-126m`).
 
 ## Steps out of the order's sequence (rule 18)
 
@@ -138,5 +154,10 @@ and the assembler printed each one. Line numbers below are the draft's.
   2026-10-21T01:23:08Z), items 130, 124 and 126 were assembled and their witnesses elaborated in
   the evidence folder, not in the tree (`w130-start` at 2026-10-21T01:17:33Z to `w126-end` at
   2026-10-21T01:18:45Z). `status-before-rv2-113` and `status-after-rv2-113` are equal.
+* While item 124's confirming pass `rv2c-124` ran (its brief 2026-10-21T02:01:34Z, its report
+  hashed 2026-10-21T02:06:56Z), item 126's module docstring was fixed and the module reassembled
+  and elaborated in the evidence folder, not in the tree (`mkstmt-126m` at 2026-10-21T02:02:54Z
+  to `m126-b` at 2026-10-21T02:03:02Z). `status-before-rv2c-124` and `status-after-rv2c-124`
+  are equal.
 
 ## Completed after the work
