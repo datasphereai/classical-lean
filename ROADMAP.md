@@ -809,6 +809,33 @@ fair coins on `Bool × Bool` and `N = 2`, as VACUITY-3's ruling 1 asked; rows 9 
 order VACUITY-3, are witnessed with Mathlib's `Measure.infinitePi`: a steady first-order recursion
 driven by independent Gaussian noises on `ℕ → ℝ`, and fair coins on `ℕ → Bool`.
 
+### 1.27 Five items from below the plan's cut (order CLOUD-MATH-3, round 68; merged by MERGE-3, round 70)
+
+Items 113, 121, 124, 126 and 130 of MATH-PLAN-library-2 sit below the plan's cut. Their proofs
+were drafted and reviewed outside the library (the lane's API-CREDIT-1 work); order CLOUD-MATH-3
+landed them as five new modules in a cloud session on the GitHub branch `cloud-math-3`, each with
+witnesses, a statement review and a cold module review, and order MERGE-3 merged that branch into
+`master` on DSMain. Narrowing: none; `min_sub_le_of_subgradient` is wider than its plan row:
+
+* `Analysis/SubgradientMethod` (item 113): the subgradient method. With subgradients `g n` of norm
+  at most `G` at the iterates and steps `x (n + 1) = x n − η g n`, `η > 0`, the least of
+  `f (x 0), …, f (x (T − 1))` is within `(‖x 0 − z‖² + η² G² T)/(2 η T)` of `f z`
+  (`min_sub_le_of_subgradient`); wider: `f` need not be convex, only the subgradient inequality
+  at each iterate is asked.
+* `Probability/EfronStein` (item 121): the Efron–Stein inequality. Under a product of probability
+  vectors on finite sets, `Var f ≤ ∑ᵢ E[Varᵢ f]` (`variance_le_sum_variance_coord`); if changing
+  coordinate `i` alone moves `f` by at most `cᵢ`, then `Var f ≤ ∑ cᵢ²/4`
+  (`variance_le_sum_sq_div_four`).
+* `Probability/BernsteinInequality` (item 124): Bernstein's inequality. For independent `Xᵢ` of
+  mean `0`, almost surely at most `b`, with `∑ E[Xᵢ²] ≤ v` and `t ≥ 0`,
+  `P(∑ Xᵢ ≥ t) ≤ exp(−t²/(2(v + b t/3)))` (`measureReal_sum_ge_le_bernstein`).
+* `Probability/OrderStatistics` (item 126): order statistics (`orderStat`). For `n` independent
+  draws with `P(Xᵢ ≤ x) = F` and `1 ≤ k ≤ n`, the chance that the `k`-th smallest is at most `x`
+  is `∑_{j ≥ k} C(n, j) F^j (1 − F)^(n−j)` (`measureReal_orderStat_le`).
+* `InformationTheory/ChannelCapacity` (item 130): the binary symmetric channel with crossover
+  `ε ∈ [0, 1]`. The mutual information of input and output is at most `log 2 − h(ε)` for every
+  input law (`mutualInfo_bsc_le`), with equality at the uniform input (`mutualInfo_bsc_half`).
+
 ## 2. Categories to add
 
 Tiered by how much work they do inside the system that already exists, not by how interesting

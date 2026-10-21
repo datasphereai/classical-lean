@@ -386,6 +386,33 @@ job 3, to be re-measured by its gates on the clean tree (round 69's fragment): *
 theorem constants (3458 + 10, the censuses of the changed modules), `lake build` 4188 jobs, 0
 warnings** (no module added, by the import closure).
 
+**Dated 2026-10-21 UTC (order MERGE-3, round 70; branch `merge-3`, DSMain):** one merge lands order
+CLOUD-MATH-3 (round 68, written in a cloud session on the GitHub branch `cloud-math-3`, `8c5fa22`)
+on top of LEAN-33. Five new modules, items 113, 121, 124, 126 and 130 of MATH-PLAN-library-2 (below
+its cut), each unchanged by the merge: `Analysis/SubgradientMethod` (item 113, the subgradient
+method: the best of the first `T` iterates is within `(‖x₀ − z‖² + η² G² T)/(2 η T)` of `f z`,
+`min_sub_le_of_subgradient`, GENERALIZED: no convexity is asked, only the subgradient inequality at
+the iterates), `Probability/EfronStein` (item 121, the Efron–Stein inequality for independent
+coordinates on finite sets, `Var f ≤ ∑ᵢ E[Varᵢ f]`, `variance_le_sum_variance_coord`, and with
+bounded differences `Var f ≤ ∑ cᵢ²/4`, `variance_le_sum_sq_div_four`),
+`Probability/BernsteinInequality` (item 124, Bernstein's inequality
+`P(∑ Xᵢ ≥ t) ≤ exp(−t²/(2(v + b t/3)))`, `measureReal_sum_ge_le_bernstein`),
+`Probability/OrderStatistics` (item 126, the chance that the `k`-th smallest of `n` independent
+draws is at most `x` is `∑_{j ≥ k} C(n, j) F^j (1 − F)^(n−j)`, `measureReal_orderStat_le`, with
+`orderStat`) and `InformationTheory/ChannelCapacity` (item 130, the binary symmetric channel with
+crossover `ε` has capacity `log 2 − h(ε)`, reached by the uniform input, `mutualInfo_bsc_le` and
+`mutualInfo_bsc_half`). The merge conflicted only in `records/CLAIMS.md` and
+`records/orders/INDEX.md`, resolved by taking the branch's file and appending the last two lines of
+this order's records-first commit. The cloud session's report, predictions and reviews went to the
+lane (`lean/CLOUD-MATH-3/report.md`, `lean/CLOUD-MATH-3/data/PREDICTIONS.md`,
+`lean/CLOUD-MATH-3/data/reviews.md`) and `incoming/` left the tree; its toolkit and evidence stay in
+history at `8c5fa22` (`git show 8c5fa22:incoming/README.md`, `git archive 8c5fa22 incoming/tools`).
+The cloud session's last commit, `8c5fa22`, cannot be citechecked from the committed log: its
+`Evidence:` line cites lines 882 to 922, but the log it copied into `incoming/evidence/` has 914
+lines. Counts predicted from the trial merge's measured gates, to be re-measured by this order's
+gates on the clean tree (round 70's fragment): **140 modules, 3527 theorem constants (3468 + 59,
+round 68's censuses), `lake build` 4193 jobs, 0 warnings**.
+
 ---
 
 ## 2. What I claimed, and what I actually checked
