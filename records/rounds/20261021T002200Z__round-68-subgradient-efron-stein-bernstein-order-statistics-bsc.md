@@ -68,8 +68,55 @@ order's rule 3). Nothing else under `tools/` changes.
   (line 15) and both name head `313e9a7009d025ebeddd84dd804a65ae605be672` (label `rule38-order`):
   rule 38's test with the real build.
 
+## Job 1 (before any proof entered a module)
+
+* Probes (rule 37): one probe file per draft, written by script from a discovery run of the draft
+  with the Goal list's cuts (`cut-<item>`, `disc2-<item>`, `mkprobes2-<item>`), each rc 0
+  (`probes-113`, `probes-121`, `probes-130`, `probes-124`, `probes-126`: 28, 49, 23, 120 and 101
+  names), and one for the original drafts' deprecated and dead-branch names (`probes-orig2`). One
+  name does not resolve at this Mathlib: `Finset.measurable_sum'` (`probes-orig`, rc 1), used only
+  in the dead first branch of 124's `hSmeas` chain, which the Goal list's cut removes. Two tokens
+  added to `$EVD/allowlist.txt`, each with its reason: `_ℝ` (the notation `⟪x, y⟫_ℝ`) and
+  `pp.fullNames` (the option of the type comparison's scratch files).
+* Statement files (`$EVD/stmt/`), built by script from each draft (`mkstmt.py`: every statement
+  and `def` body the draft's text, each proof `sorry`), each rc 0 with only `sorry` warnings
+  (`stmt-<item>`), hashed (`stmt-files`). Targeted imports found by script (`locate-<item>`), each
+  set tested on the whole cut draft, witness start included (`imports-113`, `imports4-121`,
+  `imports-130`, `imports-124`, `imports-126`, rc 0).
+* The type comparison (`typecmp3.py`, adapted from CLOUD-MATH-2's `typecmp.py`): every main
+  theorem's and public definition's type the same as the draft's up to the namespace prefix, 20 of
+  20 (`typecmp2-113`, `typecmp2-121`, `typecmp2-130`, `typecmp2-124`, `typecmp2-126`), and the
+  bodies of the eight definitions too (`printcmp-121`, `printcmp-130`, `printcmp-126`); each kind's
+  planted control reported `DIFF`, rc 1 (`typecmp2-planted`, `printcmp-planted`). No name of 130
+  needed `ClassicalLean.Simplex.` in full.
+* The statement review `rv1-statements`: FINDINGS 1 (MINOR), the docstring of 121's private
+  `wvar_mix_le`; the fix, the docstring alone (`diff-121-fix`), confirmed by a fresh reviewer,
+  `rv1c-confirm`: CONFIRMED.
+
 ## Proof changes and warning fixes, by item (written as each item lands)
 
+Each module is assembled by `$EVD/scripts/assemble.py` (CLOUD-MATH-2's) from its statement file
+and its draft's proof lines; the spec `$EVD/spec/a<item>.json` names every edit to a draft line,
+and the assembler printed each one. Line numbers below are the draft's.
+
+* **113** (`d113-r1-s1.lean`). No warning to fix, at 9c0639c (the Goal list) or here; the proof is
+  the draft's lines 17 to 54 with no edit (`assemble-113`). The module's `lake build`: 0 warning
+  lines (`build-113`, `build-113-warn`). Its witness is new (the item had no witness start): the
+  function `y ^ 2 / 2` on the real line, the step `1 / 2`, `G = 1`, `z = 0`, `T = 3`. Its review,
+  `rv2-113`: CLEAN, so no confirming pass.
+
 ## Steps out of the order's sequence (rule 18)
+
+* Job 2 began while job 1's confirming pass ran: `rv1c-confirm` ran from its brief,
+  2026-10-21T01:09:44Z (`brief-rv1c`), to its report, hashed at 2026-10-21T01:14:17Z
+  (`review-rv1c`); between them items 113 and 121 were assembled and elaborated in the evidence
+  folder, not in the tree (`assemble-113` at 2026-10-21T01:11:54Z to `m121-a` at
+  2026-10-21T01:14:12Z). The statement review's report was in at 2026-10-21T01:08:47Z
+  (`review-rv1`), before any proof was assembled. `status-before-rv1c` and `status-after-rv1c`
+  are equal (both empty).
+* While item 113's review `rv2-113` ran (its brief 2026-10-21T01:16:02Z, its report hashed
+  2026-10-21T01:23:08Z), items 130, 124 and 126 were assembled and their witnesses elaborated in
+  the evidence folder, not in the tree (`w130-start` at 2026-10-21T01:17:33Z to `w126-end` at
+  2026-10-21T01:18:45Z). `status-before-rv2-113` and `status-after-rv2-113` are equal.
 
 ## Completed after the work

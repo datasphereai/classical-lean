@@ -139,6 +139,7 @@ import ClassicalLean.Algebra.Pseudoinverse
 import ClassicalLean.Probability.ChiSquared
 import ClassicalLean.Analysis.KKT
 import ClassicalLean.InformationTheory.Huffman
+import ClassicalLean.Analysis.SubgradientMethod
 
 /-!
 # ClassicalLean
