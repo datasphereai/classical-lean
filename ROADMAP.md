@@ -836,6 +836,46 @@ witnesses, a statement review and a cold module review, and order MERGE-3 merged
   `ε ∈ [0, 1]`. The mutual information of input and output is at most `log 2 − h(ε)` for every
   input law (`mutualInfo_bsc_le`), with equality at the uniform input (`mutualInfo_bsc_half`).
 
+### 1.28 Five items from below the plan's cut, row 70's witness and bridge row 163 (order LEAN-34, round 71)
+
+Items 118, 122, 140, 142 and 144 of MATH-PLAN-library-2 sit below the plan's cut. Their proofs were
+drafted and reviewed outside the library (the lane's API-CREDIT-1 work); order LEAN-34 landed them
+on DSMain in their home modules, each with a witness, a statement review and a cold module review,
+re-witnessed VACUITY-3's row 70, and proved bridge row 163 (statements by claude-ai, proofs by the
+session). No module is added. Narrowing: none; items 122 and 142 are wider than their plan rows:
+
+* `Statistics/NeymanPearson` (item 118): the Karlin–Rubin theorem in the textbook form. With the
+  likelihood ratio computed in `[0, ∞]` and allowed to be `+∞` where `f θ = 0`
+  (`HasMonotoneLikelihoodRatio'`, which takes in the uniform laws on `[0, θ]`), a threshold test of
+  positive size is uniformly most powerful at its own size
+  (`isUniformlyMostPowerful_of_monotoneLikelihoodRatio'`); at size `0` the statement fails.
+* `Statistics/NeymanPearson` (item 144, which now imports `InformationTheory/Entropy`): the
+  Bretagnolle–Huber bound. On a finite set, for probability vectors `p₀` and `p₁` with `p₁ i = 0`
+  wherever `p₀ i = 0`, every test has size plus missed-detection chance at least
+  `exp (−D(p₁ ‖ p₀)) / 2` (`size_add_one_sub_power_ge`).
+* `InformationTheory/MethodOfTypes` (item 122): Sanov's theorem, lower half, for one type class. A
+  type `q` of `n` draws, with `q i = 0` wherever `p i = 0`, has chance at least
+  `(n + 1)^(−K) exp (−n D(q ‖ p))`, with `K = card α` (`le_measureReal_empirical_eq`); wider:
+  `p ≥ 0` only.
+* `Probability/YuleWalker` (item 140): the Durbin–Levinson recursion. For an even `γ` with a
+  positive definite Toeplitz matrix, the order-`n` prediction solution gives the order-`(n + 1)`
+  one, with error variance `v_{n+1} = v_n (1 − φ²) > 0` (`durbinLevinson_spec`).
+* `Probability/CovarianceDirections` (item 142, which now imports `Algebra/MinMax`): principal
+  components. For orthonormal weights `w₀, …, w_{k−1}`, the variances of the mixes add up to at
+  most the sum of the `k` largest eigenvalues of the covariance matrix, reached at Mathlib's first
+  `k` eigenvectors (`sum_variance_mix_le_sum_eigenvalues`); wider: any finite measure.
+
+The witness row: row 70 (`Analysis/FiniteGame`, `iSup_bayesRisk_eq_minimaxRisk_of_finite`) is
+re-witnessed with the kernel `P θ = dirac 0 + dirac θ`, which depends on the parameter and is finite
+but not Markov, as VACUITY-3's ruling 1 asked; the old value "worked by hand, not checked in Lean"
+is gone.
+
+The bridge (`InformationTheory/ChannelCapacity`, which now imports `Probability/TwoStateChain`,
+row 163 of the bridges file): `n` binary symmetric channels of crossover `ε ∈ (0, 1]` in series
+have mutual information at most `log 2 − h(εₙ)`, `εₙ = (1 − (1 − 2ε)^n)/2`
+(`mutualInfo_bsc_pow_le`), with equality at the uniform input (`mutualInfo_bsc_pow_half`), and for
+`ε < 1` that capacity tends to `0` (`tendsto_capacity_bsc_pow`).
+
 ## 2. Categories to add
 
 Tiered by how much work they do inside the system that already exists, not by how interesting

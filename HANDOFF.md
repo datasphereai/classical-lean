@@ -413,6 +413,31 @@ lines. Counts predicted from the trial merge's measured gates, to be re-measured
 gates on the clean tree (round 70's fragment): **140 modules, 3527 theorem constants (3468 + 59,
 round 68's censuses), `lake build` 4193 jobs, 0 warnings**.
 
+**Dated 2026-10-21 UTC (order LEAN-34, round 71; branch `lean-34`, DSMain):** five items from below
+MATH-PLAN-library-2's cut, from the API-credit drafts, each in its home module; VACUITY-3 row 70
+re-witnessed; and bridge row 163 proved (statements by claude-ai, proofs by the session); no new
+module, five extended and FiniteGame's row-70 witness replaced:
+
+- item 118, `Statistics/NeymanPearson`: the Karlin–Rubin theorem in the textbook form, the
+  likelihood ratio allowed to be `+∞` (`HasMonotoneLikelihoodRatio'`,
+  `isUniformlyMostPowerful_of_monotoneLikelihoodRatio'`), for a threshold test of positive size;
+- item 144, `Statistics/NeymanPearson`: the Bretagnolle–Huber bound
+  (`size_add_one_sub_power_ge`); the module now imports `InformationTheory/Entropy`;
+- item 122, `InformationTheory/MethodOfTypes`: Sanov's theorem, lower half, for one type class
+  (`le_measureReal_empirical_eq`), GENERALIZED: `p ≥ 0` only;
+- item 140, `Probability/YuleWalker`: the Durbin–Levinson recursion (`durbinLevinson_spec`);
+- item 142, `Probability/CovarianceDirections`: principal components
+  (`sum_variance_mix_le_sum_eigenvalues`), GENERALIZED: any finite measure; the module now imports
+  `Algebra/MinMax`;
+- VACUITY-3 row 70 (`Analysis/FiniteGame`) re-witnessed with the kernel `P θ = dirac 0 + dirac θ`;
+- bridge row 163, `InformationTheory/ChannelCapacity`: binary symmetric channels in series
+  (`mutualInfo_bsc_pow_le`, `mutualInfo_bsc_pow_half`, `tendsto_capacity_bsc_pow`); the module now
+  imports `Probability/TwoStateChain`.
+
+Narrowing: none. Counts predicted by this order's job 3, to be re-measured by its gates on the clean
+tree (round 71's fragment): **140 modules, 3574 theorem constants (3527 + 47, the censuses of the
+changed modules), `lake build` 4193 jobs, 0 warnings** (no module added).
+
 ---
 
 ## 2. What I claimed, and what I actually checked
@@ -978,6 +1003,11 @@ Five gates, in `tools/`. Each was fail-tested; if you change one, fail-test it a
   2 rows remain not witnessed, the two of `Probability/YuleWalker`. Rows 7 and 8 are re-witnessed
   with two genuine fair coins and `N = 2` (order VACUITY-3's ruling 1), and their blocks no longer
   use the older rows' exception for the six forbidden words.
+  **Dated 2026-10-21 UTC (order LEAN-34):** row 70 (`iSup_bayesRisk_eq_minimaxRisk_of_finite`) is
+  re-witnessed by this order with a kernel that depends on the parameter, `P θ = dirac 0 + dirac θ`
+  (finite, not Markov), as VACUITY-3's ruling 1 asked; the hand-worked value is removed from its
+  docstring. With LEAN-33's rows 7 and 8, no row uses the older rows' forbidden-word exception any
+  more.
 - **`check_sorry.py`** — text-level, so it sees modules nobody wired into the aggregator. Scoped
   to `ClassicalLean/`; skips `.lake/` and `tools/`, and the reason is written in the file
   (it does not parse string literals, and the gates quote the words they detect).
