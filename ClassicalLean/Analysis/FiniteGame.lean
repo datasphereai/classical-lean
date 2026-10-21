@@ -970,13 +970,14 @@ end ClassicalLean.Analysis
 open MeasureTheory ProbabilityTheory in
 /-- The hypotheses of `iSup_bayesRisk_eq_minimaxRisk_of_finite` hold together: two parameters, two
 observations and two actions; the 0–1 loss (`0` for the right action, `1` otherwise), finite
-everywhere; and the kernel that tells nothing, the observation `0` whatever the parameter, a Markov
-kernel, so finite. (So the game's value is `1/2`, reached by the rule that picks each action with
-chance `1/2`; worked by hand, not checked in Lean.) -/
+everywhere; and the kernel `P θ = dirac 0 + dirac θ`, so `P 0 = 2 · dirac 0` and
+`P 1 = dirac 0 + dirac 1`. It depends on the parameter (the observation `1` comes only from the
+parameter `1`), and it is a sum of two Markov kernels, so finite, but not Markov (each `P θ` has
+mass `2`), so the theorem's "finite kernel" is used beyond Markov kernels. -/
 example := ClassicalLean.Analysis.iSup_bayesRisk_eq_minimaxRisk_of_finite (Θ := Fin 2)
   (𝓧 := Fin 2) (𝓨 := Fin 2) (ℓ := fun θ y ↦ if θ = y then 0 else 1)
   (fun θ y ↦ by split_ifs <;> simp)
-  (P := Kernel.const (Fin 2) (Measure.dirac (0 : Fin 2)))
+  (P := Kernel.const (Fin 2) (Measure.dirac (0 : Fin 2)) + Kernel.id)
 
 /-- The hypotheses of `abs_value_sub_le_of_exponentialWeights` hold together: the `2 × 2` game with
 payoffs `1` on the diagonal and `0` off it, all in `[0, 1]`; the learning rate `η = 1 > 0`; `T = 4`
