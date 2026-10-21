@@ -1,4 +1,0 @@
-/root/cm3-review-6/rv2-124-noimp1.lean:56:4: error(lean.unknownIdentifier): Unknown identifier `antitone_of_deriv_nonpos`
-/root/cm3-review-6/rv2-124-noimp1.lean:81:11: error(lean.unknownIdentifier): Unknown identifier `monotoneOn_of_deriv_nonneg`
-/root/cm3-review-6/rv2-124-noimp1.lean:83:10: error: No goals to be solved
-rc=1

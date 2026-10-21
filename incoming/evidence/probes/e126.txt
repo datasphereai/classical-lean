@@ -1,3 +1,0 @@
-# CLOUD-MATH-3, item 126: field notation on a proof (`.symm.trans`), in place of the root `symm`
-Eq.symm
-Eq.trans

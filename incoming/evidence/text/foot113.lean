@@ -1,2 +1,0 @@
-
-end ClassicalLean.Analysis.SubgradientMethod

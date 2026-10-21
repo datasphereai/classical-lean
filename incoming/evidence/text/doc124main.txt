@@ -1,6 +1,0 @@
-
-/-- **Bernstein's inequality.** Item 124 of MATH-PLAN-library-2 (order CLOUD-MATH-3). For
-independent measurable real random variables `X i` on a probability space and a finite set `s` of
-indices, if each `X i` with `i ∈ s` is integrable with an integrable square, has mean `0` and is
-almost surely at most `b ≥ 0`, and `∑ i ∈ s, E[X i ^ 2] ≤ v`, then for every `t ≥ 0`
-`P(t ≤ ∑ i ∈ s, X i) ≤ exp (-t ^ 2 / (2 * (v + b * t / 3)))`. -/

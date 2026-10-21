@@ -1,6 +1,0 @@
-FIELD-LOCAL IH.trans: Eq.trans LE.le.trans Trans.trans
-FIELD-LOCAL i.succ: Fin.succ
-FIELD-LOCAL j.succ: Fin.succ
-FIELD-LOCAL step1.trans: Eq.trans LE.le.trans Trans.trans
-FIELD sum_comp: Equiv.sum_comp
-/root/cm3-evidence/probes/p121.lean: 49 probes, 0 uncleared

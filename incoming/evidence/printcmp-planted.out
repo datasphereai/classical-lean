@@ -1,4 +1,0 @@
-DIFF ClassicalLean.InformationTheory.ChannelCapacity.bscJoint
-  draft: private def ClassicalLean.InformationTheory.ChannelCapacity.bscJoint : ℝ → (Fin 2 → ℝ) → Fin 2 × Fin 2 → ℝ := fun ε p ab ↦ p ab.1 * if ab.1 = ab.2 then 1 - ε else ε
-  stmt:  private def ClassicalLean.InformationTheory.ChannelCapacity.bscJoint : ℝ → (Fin 2 → ℝ) → Fin 2 × Fin 2 → ℝ := fun ε p ab ↦ p ab.1 * if ab.1 = ab.2 then ε else ε
-TYPECMP 0/1

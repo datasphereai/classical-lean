@@ -1,5 +1,0 @@
-/-- **The law of an order statistic.** Item 126 of MATH-PLAN-library-2 (order CLOUD-MATH-3). For
-`n` independent measurable real random variables `X i` on a probability space, each with
-`P(X i ≤ x) = F`, and `1 ≤ k ≤ n`, the `k`-th smallest of them (`orderStat` at position `k - 1`,
-counting from `0`) is at most `x` with probability
-`∑ j ∈ Finset.Icc k n, n.choose j * F ^ j * (1 - F) ^ (n - j)`. -/

@@ -1,2 +1,0 @@
-
-end ClassicalLean.InformationTheory.ChannelCapacity

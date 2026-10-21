@@ -1,4 +1,0 @@
-/-- **The Efron–Stein inequality** for independent coordinates on finite sets. Item 121 of
-MATH-PLAN-library-2 (order CLOUD-MATH-3). Under the product of the probability vectors `p i`, the
-variance of `f` is at most the sum, over the coordinates, of the mean of its variance in that
-coordinate alone: `Var f ≤ ∑ᵢ E[Varᵢ f]`. -/

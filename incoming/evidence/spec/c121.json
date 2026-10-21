@@ -1,8 +1,0 @@
-{"edits": [
- [81, "show _ =", "change _ ="],
- [93, "show _ =", "change _ ="],
- [207, "show wvar", "change wvar"],
- [220, "show ∑ y", "change ∑ y"],
- [228, "show wvar", "change wvar"],
- [241, "show ∑ x", "change ∑ x"]
-], "tail": null}

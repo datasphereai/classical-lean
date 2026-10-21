@@ -1,8 +1,0 @@
-1,2d0
-< 
-< 
-6c4,5
-< example := measureReal_sum_ge_le_bernstein (Ω := Fin 2 → ℝ) (ι := Fin 2)
----
-> example := ClassicalLean.Probability.BernsteinInequality.measureReal_sum_ge_le_bernstein
->     (Ω := Fin 2 → ℝ) (ι := Fin 2)

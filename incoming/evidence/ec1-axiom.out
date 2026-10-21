@@ -1,1 +1,0 @@
-axiom gate PASS — 3517 theorem constant(s) under [ClassicalLean], every one depending only on a subset of [propext, Classical.choice, Quot.sound]; 0 scoped exceptions

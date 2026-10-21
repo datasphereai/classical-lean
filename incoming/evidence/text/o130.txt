@@ -1,1 +1,0 @@
-`ite_eq_right` for the deprecated `if_pos` and `if_neg`. Its two imports were already targeted.

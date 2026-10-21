@@ -1,2 +1,0 @@
-example := ClassicalLean.Probability.OrderStatistics.measureReal_orderStat_le
-    (Ω

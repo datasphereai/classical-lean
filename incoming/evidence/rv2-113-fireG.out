@@ -1,7 +1,0 @@
-/root/cm3-review-3/fireG.lean:111:25: error: unsolved goals
-n : ℕ
-⊢ 0 ≤ ?m.165
-/root/cm3-review-3/fireG.lean:111:39: error: unsolved goals
-n : ℕ
-⊢ ?m.165 ≤ 1
-rc=1

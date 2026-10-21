@@ -1,2 +1,0 @@
-set_option pp.fullNames true in
-#check @min_sub_le_of_subgradient

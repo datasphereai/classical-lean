@@ -1,7 +1,0 @@
-/root/cm3-evidence/typecmp/pc126-stmt.lean:48:14: warning: declaration uses `sorry`
-/root/cm3-evidence/typecmp/pc126-stmt.lean:53:14: warning: declaration uses `sorry`
-/root/cm3-evidence/typecmp/pc126-stmt.lean:58:14: warning: declaration uses `sorry`
-/root/cm3-evidence/typecmp/pc126-stmt.lean:69:8: warning: declaration uses `sorry`
-def ClassicalLean.Probability.OrderStatistics.orderStat : {n : ℕ} → (Fin n → ℝ) → Fin n → ℝ :=
-fun {n} v k ↦ v ((Tuple.sort v) k)
-rc=0

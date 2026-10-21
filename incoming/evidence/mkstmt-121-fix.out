@@ -1,4 +1,0 @@
-draft 267: 'EfronStein.variance p f ≤ ∑ i, EfronStein.expect p (EfronStein.coordVar p i f)' -> 'variance p f ≤ ∑ i, expect p (coordVar p i f)'
-draft 277: 'EfronStein.variance p f' -> 'variance p f'
-4 lines dropped, 3 docstrings replaced, 18 proofs as sorry
-/root/cm3-evidence/stmt/EfronStein.lean: 199 lines

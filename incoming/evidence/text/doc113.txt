@@ -1,5 +1,0 @@
-/-- **The subgradient method.** Item 113 of MATH-PLAN-library-2 (order CLOUD-MATH-3). If `g n` is
-a subgradient of `f` at `x n` (`hsub`), `‖g n‖ ≤ G`, and `x (n + 1) = x n - η • g n` with `η > 0`,
-then for every `z` and `T ≥ 1` the best of the first `T` values `f (x n)` is within
-`(‖x 0 - z‖ ^ 2 + η ^ 2 * G ^ 2 * T) / (2 * η * T)` of `f z`: their minimum minus `f z` is at most
-that. -/

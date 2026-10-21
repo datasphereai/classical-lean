@@ -1,4 +1,0 @@
-/-- **The capacity bound for the binary symmetric channel.** Item 130 of MATH-PLAN-library-2
-(order CLOUD-MATH-3). For a crossover probability `ε ∈ [0, 1]` and every input law `p` on `Fin 2`,
-the mutual information of input and output, whose joint law is
-`p a * (if a = b then 1 - ε else ε)`, is at most `log 2 - h(ε)`. -/

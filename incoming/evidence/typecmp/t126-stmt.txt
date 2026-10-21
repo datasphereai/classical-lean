@@ -1,4 +1,0 @@
-set_option pp.fullNames true in
-#check @ClassicalLean.Probability.OrderStatistics.orderStat
-set_option pp.fullNames true in
-#check @ClassicalLean.Probability.OrderStatistics.measureReal_orderStat_le

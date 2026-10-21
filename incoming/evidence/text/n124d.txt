@@ -1,2 +1,0 @@
-is claude-ai's start for the order (`w124-tail.lean`), with the theorem called by its full name;
-it is why the file imports `Mathlib.Probability.Distributions.Bernoulli`.

@@ -1,2 +1,0 @@
-/-- The variance of a weighted average of functions, `fun b => ∑ a, q a * H a b`, is at most the
-weighted average `∑ a, q a * wvar r (H a)` of their variances. -/

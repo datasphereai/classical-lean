@@ -1,7 +1,0 @@
-{"head": "/root/cm3-evidence/text/head124m.lean", "keep": [4, 226], "drop": [],
- "replace": [[4, 4, "/root/cm3-evidence/text/doc124h1.txt"], [21, 21, "/root/cm3-evidence/text/doc124h2.txt"],
-             [58, 58, "/root/cm3-evidence/text/doc124h3.txt"], [74, 74, "/root/cm3-evidence/text/doc124h4.txt"],
-             [84, 84, "/root/cm3-evidence/text/doc124h5.txt"], [99, 99, "/root/cm3-evidence/text/doc124main.txt"]],
- "edits": [],
- "proofs": [[7, 20], [24, 57], [61, 73], [78, 83], [88, 98], [109, 226]],
- "foot": "/root/cm3-evidence/text/foot124.lean"}

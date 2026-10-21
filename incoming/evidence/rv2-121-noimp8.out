@@ -1,9 +1,0 @@
-/root/cm3-review-4/noimp8.lean:110:2: error(lean.unknownIdentifier): Unknown constant `Finset.sum_nonneg`
-/root/cm3-review-4/noimp8.lean:140:8: error(lean.unknownIdentifier): Unknown constant `Finset.sum_le_sum`
-/root/cm3-review-4/noimp8.lean:167:8: error(lean.unknownIdentifier): Unknown constant `Finset.sum_le_sum`
-/root/cm3-review-4/noimp8.lean:274:9: error(lean.unknownIdentifier): Unknown constant `Finset.sum_le_sum`
-/root/cm3-review-4/noimp8.lean:275:2: error: No goals to be solved
-/root/cm3-review-4/noimp8.lean:307:6: error(lean.unknownIdentifier): Unknown constant `Finset.sum_le_sum`
-/root/cm3-review-4/noimp8.lean:335:10: error(lean.unknownIdentifier): Unknown constant `Finset.sum_le_sum`
-/root/cm3-review-4/noimp8.lean:343:5: error(lean.unknownIdentifier): Unknown constant `Finset.sum_le_sum`
-rc=1

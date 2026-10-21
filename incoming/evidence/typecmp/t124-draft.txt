@@ -1,2 +1,0 @@
-set_option pp.fullNames true in
-#check @measureReal_sum_ge_le_bernstein

@@ -1,6 +1,0 @@
-Lean.Environment.header : Lean.Environment → Lean.EnvironmentHeader
-Lean.EnvironmentHeader.moduleNames : Lean.EnvironmentHeader → Array Lean.Name
-/root/cm3-evidence/probes/p-closure.lean:5:8: error(lean.unknownIdentifier): Unknown identifier `Lean.Elab.Command.getEnv`
-@Lean.logInfo : {m : Type → Type} →
-  [Monad m] → [Lean.MonadLog m] → [Lean.AddMessageContext m] → [Lean.MonadOptions m] → Lean.MessageData → m Unit
-rc=1

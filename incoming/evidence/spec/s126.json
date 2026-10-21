@@ -1,5 +1,0 @@
-{"head": "/root/cm3-evidence/text/head126.lean", "keep": [5, 166], "drop": [],
- "replace": [[85, 86, "/root/cm3-evidence/text/doc126main.txt"]],
- "edits": [],
- "proofs": [[13, 53], [58, 65], [72, 83], [93, 166]],
- "foot": "/root/cm3-evidence/text/foot126.lean"}

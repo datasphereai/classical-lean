@@ -1,7 +1,0 @@
-'ClassicalLean.Probability.EfronStein.variance_le_sum_variance_coord' depends on axioms: [propext,
- Classical.choice,
- Quot.sound]
-'ClassicalLean.Probability.EfronStein.variance_le_sum_sq_div_four' depends on axioms: [propext,
- Classical.choice,
- Quot.sound]
-rc=0

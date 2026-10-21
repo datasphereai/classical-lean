@@ -1,5 +1,0 @@
-/root/cm3-review-6/rv2-124-noimp4.lean:175:25: error(lean.unknownIdentifier): Unknown identifier `mgf`
-/root/cm3-review-6/rv2-124-noimp4.lean:181:17: error(lean.unknownIdentifier): Unknown identifier `mgf`
-/root/cm3-review-6/rv2-124-noimp4.lean:194:16: error(lean.unknownIdentifier): Unknown identifier `mgf`
-/root/cm3-review-6/rv2-124-noimp4.lean:194:50: error(lean.unknownIdentifier): Unknown identifier `mgf`
-rc=1

@@ -1,8 +1,0 @@
-{"head": "/root/cm3-evidence/text/head121m.lean", "keep": [7, 291], "drop": [259, 260, 261, 262],
- "replace": [[69, 69, "/root/cm3-evidence/text/doc121mix.txt"], [263, 263, "/root/cm3-evidence/text/doc121a.txt"], [270, 271, "/root/cm3-evidence/text/doc121b.txt"]],
- "edits": [[267, "EfronStein.variance p f ≤ ∑ i, EfronStein.expect p (EfronStein.coordVar p i f)", "variance p f ≤ ∑ i, expect p (coordVar p i f)"],
-           [277, "EfronStein.variance p f", "variance p f"]],
- "proofs": [[34, 49], [53, 55], [59, 59, "term"], [63, 67], [74, 96], [102, 116], [120, 120, "term"],
-            [132, 135], [140, 140], [146, 151], [155, 166], [176, 176, "term"], [184, 194], [200, 209],
-            [216, 232], [237, 257], [268, 268, "term"], [278, 291]],
- "foot": "/root/cm3-evidence/text/foot121.lean"}

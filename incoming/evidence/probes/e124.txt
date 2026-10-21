@@ -1,5 +1,0 @@
-# CLOUD-MATH-3, item 124: field notation the token rule does not reach (no `_` in the field)
-HasDerivAt.add
-HasDerivAt.sub
-HasDerivAt.mul
-HasDerivAt.exp

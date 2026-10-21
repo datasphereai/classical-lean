@@ -1,7 +1,0 @@
-draft 81: 'show _ =' -> 'change _ ='
-draft 93: 'show _ =' -> 'change _ ='
-draft 207: 'show wvar' -> 'change wvar'
-draft 220: 'show ∑ y' -> 'change ∑ y'
-draft 228: 'show wvar' -> 'change wvar'
-draft 241: 'show ∑ x' -> 'change ∑ x'
-/root/cm3-evidence/cut/d121.lean: 6 edits

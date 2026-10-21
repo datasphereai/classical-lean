@@ -1,2 +1,0 @@
-set_option pp.fullNames true in
-#print orderStat
