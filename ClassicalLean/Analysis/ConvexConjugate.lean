@@ -6,6 +6,7 @@ Authors: Dustin Watkins, Claude (Anthropic)
 
 import Mathlib.Data.EReal.Operations
 import Mathlib.Data.Matrix.Mul
+import ClassicalLean.Simplex.LogSumExp
 
 /-!
 # The convex conjugate
@@ -23,6 +24,13 @@ supremum of an unbounded family is `⊤`, not a junk value.
 * `sub_le_convexConjugate` and `convexConjugate_le_iff` — the two sides of the supremum (each
   `y ⬝ x − f x` is below `f* y`; `f* y ≤ c` exactly when every one is), for proofs that compute a
   conjugate (item 117 of the plan).
+* `convexConjugate_logSumExp` — item 117 of MATH-PLAN-library-2 (order LEAN-33): the conjugate of
+  log-sum-exp at a point `p` of the open simplex is the negative entropy `∑ i, p i * log (p i)`,
+  the other direction of the Gibbs principle (`Simplex/LogSumExp`, which this module imports for
+  it). The proof is the draft `d117-r1-s2` (written by Claude Opus 5.5 through the Anthropic Batch
+  API, the lane's API-CREDIT-1 work), adapted by order LEAN-33's session: of its two `show` tactic
+  steps (the draft's lines 30 and 33), the first is `change` and the second, which changed nothing
+  the next `rw` needs, is cut (order LEAN-33's review d117, finding 1).
 
 The plan's row (MATH-PLAN-library-2, item 79) asks for a real-valued `f`. Fenchel–Young is
 stated for exactly that (`f` real, read in `EReal`); the other two are stated for every
@@ -117,6 +125,39 @@ theorem convexConjugate_convexConjugate_le (f : (ι → ℝ) → EReal) :
 `example`s at the end of this file, which name the two functions the other way round). -/
 example : ∃ f g : (Fin 2 → ℝ) → EReal, f ≤ g := ⟨0, 1, fun _ ↦ zero_le_one⟩
 
+/-- **The convex conjugate of log-sum-exp** (item 117 of MATH-PLAN-library-2; the draft
+`d117-r1-s2`, written by Claude Opus 5.5 through the Anthropic Batch API, the lane's API-CREDIT-1
+work, adapted by order LEAN-33's session): at a point `p` of the open probability simplex it is the
+negative entropy `∑ i, p i * log (p i)`. The other direction of the Gibbs principle, whose first
+direction is `ClassicalLean.Simplex.gibbsObjective_le` (log-sum-exp is the largest Gibbs
+objective). -/
+theorem convexConjugate_logSumExp {ι : Type*} [Fintype ι] {p : ι → ℝ}
+    (hp : p ∈ ClassicalLean.Simplex.openSimplex ι) :
+    ClassicalLean.Analysis.ConvexConjugate.convexConjugate
+        (fun x => (ClassicalLean.Simplex.logSumExp x : EReal)) p
+      = ((∑ i, p i * Real.log (p i) : ℝ) : EReal) := by
+  obtain ⟨hp0, hp1⟩ := hp
+  have hne : Nonempty ι := by
+    rcases isEmpty_or_nonempty ι with h | h
+    · simp [Finset.univ_eq_empty] at hp1
+    · exact h
+  apply le_antisymm
+  · rw [ClassicalLean.Analysis.ConvexConjugate.convexConjugate_le_iff]
+    intro x
+    have h := ClassicalLean.Simplex.gibbsObjective_le x ⟨hp0, hp1⟩
+    simp only [ClassicalLean.Simplex.gibbsObjective] at h
+    rw [← EReal.coe_sub, EReal.coe_le_coe_iff]
+    rw [show p ⬝ᵥ x = ∑ i, p i * x i from rfl]
+    linarith
+  · refine le_trans ?_
+      (ClassicalLean.Analysis.ConvexConjugate.sub_le_convexConjugate
+        (fun x => (ClassicalLean.Simplex.logSumExp x : EReal)) (fun i => Real.log (p i)) p)
+    have hl : ClassicalLean.Simplex.logSumExp (fun i => Real.log (p i)) = 0 := by
+      change Real.log (∑ i, Real.exp (Real.log (p i))) = 0
+      rw [Finset.sum_congr rfl fun i _ => Real.exp_log (hp0 i), hp1, Real.log_one]
+    have hd : p ⬝ᵥ (fun i => Real.log (p i)) = ∑ i, p i * Real.log (p i) := rfl
+    rw [hl, hd, EReal.coe_zero, sub_zero]
+
 end ClassicalLean.Analysis.ConvexConjugate
 
 open ClassicalLean.Analysis.ConvexConjugate in
@@ -156,3 +197,10 @@ example : convexConjugate (fun _ : Fin 1 → ℝ ↦ (0 : EReal)) 0 = 0 := by si
 open ClassicalLean.Analysis.ConvexConjugate in
 /-- `f = 1`: `f* 0 = −1 < 0 = g* 0` for `g = 0` above, so `convexConjugate_anti` needs `f ≤ g`. -/
 example : convexConjugate (fun _ : Fin 1 → ℝ ↦ (1 : EReal)) 0 = -1 := by simp [convexConjugate]
+
+/-- The hypotheses of `convexConjugate_logSumExp` hold together: on two coordinates,
+`p = (1/4, 3/4)` lies in the open simplex (both entries positive, sum `1`) and is not uniform. -/
+example := ClassicalLean.Analysis.ConvexConjugate.convexConjugate_logSumExp (ι := Fin 2)
+  (p := ![1 / 4, 3 / 4])
+  (ClassicalLean.Simplex.mem_openSimplex.mpr
+    ⟨fun i ↦ by fin_cases i <;> norm_num, by simp [Fin.sum_univ_two]; norm_num⟩)
