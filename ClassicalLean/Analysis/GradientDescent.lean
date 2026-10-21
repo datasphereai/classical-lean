@@ -10,7 +10,7 @@ import Mathlib.Analysis.Convex.Strong
 import Mathlib.Analysis.InnerProductSpace.Calculus
 
 /-!
-# The descent lemma, gradient descent, and the KKT conditions for a convex problem
+# The descent lemma, gradient descent (also under PL, and projected), and KKT for convex problems
 
 Throughout, `f` is a real function on a real Hilbert space `E` (a complete inner product space,
 which Mathlib's `HasGradientAt` asks for). "The gradient is `L`-Lipschitz" is
@@ -35,6 +35,21 @@ step of length `1 / L` is `x - (1 / L) • f' x`.
   constraints. Mathlib lists the KKT theorem as a TODO (`Analysis/Calculus/LagrangeMultipliers`);
   this is the sufficiency half for convex problems, not the necessity half, which needs a
   constraint qualification such as Slater's condition.
+* `sub_le_pow_mul_of_polyakLojasiewicz` — item 112 of MATH-PLAN-library-2 (order LEAN-33):
+  **linear convergence of gradient descent under the Polyak–Łojasiewicz inequality.** If
+  `‖∇f x‖² / 2 ≥ μ (f x − f*)` for every `x`, `f*` is a lower bound of `f`, and the gradient is
+  `L`-Lipschitz, then gradient descent with step `1 / L` satisfies
+  `f (x k) − f* ≤ (1 − μ / L) ^ k (f (x 0) − f*)`, with nothing asked of `μ` or `L`. The proof is
+  the draft `d112-r1-s2` (written by Claude Opus 5.5 through the Anthropic Batch API, the lane's
+  API-CREDIT-1 work), adapted by order LEAN-33's session: inside this namespace.
+* `sub_le_of_projGradientStep` — item 134 (order LEAN-33): **projected gradient descent on a convex
+  set.** Each iterate is a nearest point of `K` to the plain gradient step, and the rate `1 / k` of
+  unconstrained gradient descent persists: `f (x k) - f z ≤ L ‖x 0 - z‖² / (2 k)` for `z ∈ K`; with
+  the private one-step lemma `projStep_aux`. Wider than the plan's row, which asks for a closed
+  convex set: closedness is never used, since each step's nearest-point property is a hypothesis
+  (closedness is what makes such points exist). The proof is the draft `d134-r1-s1` (as above),
+  adapted by order LEAN-33's session: inside this namespace with the module's `variable` line, and
+  its unused `IsClosed K` removed.
 
 The proofs go through one variable: along the segment from `x` to `y`, `t ↦ f (x + t (y - x))`
 has derivative `⟪f' (x + t (y - x)), y - x⟫` (`hasDerivAt_comp_add_smul_sub`) and is convex when
@@ -42,6 +57,10 @@ has derivative `⟪f' (x + t (y - x)), y - x⟫` (`hasDerivAt_comp_add_smul_sub`
 `antitoneOn_of_hasDerivWithinAt_nonpos` do the rest.
 
 ## Hypotheses
+
+These checks are order LEAN-19's and cover the results above `sub_le_pow_mul_of_polyakLojasiewicz`;
+items 112 and 134 (order LEAN-33) were not measured this way (their hypotheses are discussed in
+their docstrings).
 
 Measured in order LEAN-19's checks (checks C17 to C20, exact rationals): the statements hold on
 quadratics in one to three variables (convex, strongly convex, and for the descent lemma also
@@ -382,6 +401,142 @@ theorem isMinOn_of_kkt {ι : Type*} [Fintype ι] {f : E → ℝ} {g : ι → E �
   change f xbar ≤ f y
   linarith
 
+/-- **Polyak–Łojasiewicz** (item 112 of MATH-PLAN-library-2; the draft `d112-r1-s2`, written by
+Claude Opus 5.5 through the Anthropic Batch API, the lane's API-CREDIT-1 work, adapted by order
+LEAN-33's session). If the gradient `f'` of `f` is `L`-Lipschitz, `f* ≤ f` everywhere, and
+`μ (f x − f*) ≤ ‖f' x‖² / 2` for every `x`, then the iterates
+`x (k + 1) = x k − (1 / L) f' (x k)` satisfy `f (x k) − f* ≤ (1 − μ / L) ^ k (f (x 0) − f*)`.
+Wider than the plan's row: `f*` is any lower bound of `f`, not only its least value, and nothing is
+asked of `μ` or `L` (when `1 − μ / L < 0` the lower bound forces `f (x k) = f*` for every `k`; at
+`L = 0` Lean's `0⁻¹ = 0` makes the step not move). -/
+theorem sub_le_pow_mul_of_polyakLojasiewicz {E : Type*} [NormedAddCommGroup E]
+    [InnerProductSpace ℝ E] [CompleteSpace E] {f : E → ℝ} {f' : E → E} {L : ℝ≥0} {μ fstar : ℝ}
+    (hf : ∀ x, HasGradientAt f (f' x) x) (hL : LipschitzWith L f')
+    (hfs : ∀ x, fstar ≤ f x) (hPL : ∀ x, μ * (f x - fstar) ≤ ‖f' x‖ ^ 2 / 2)
+    {x : ℕ → E} (hx : ∀ k, x (k + 1) = x k - (L : ℝ)⁻¹ • f' (x k)) (k : ℕ) :
+    f (x k) - fstar ≤ (1 - μ / L) ^ k * (f (x 0) - fstar) := by
+  have step : ∀ k, f (x (k + 1)) - fstar ≤ (1 - μ / L) * (f (x k) - fstar) := by
+    intro k
+    have h3 := le_sub_of_gradientStep hf hL (x k)
+    rw [← hx k] at h3
+    rcases eq_or_ne (L : ℝ) 0 with hL0 | hL0
+    · rw [hL0, mul_zero, div_zero, sub_zero] at h3
+      rw [hL0, div_zero, sub_zero, one_mul]
+      linarith
+    · have hLpos : (0 : ℝ) < L := lt_of_le_of_ne (NNReal.coe_nonneg L) (Ne.symm hL0)
+      have hmul : (L : ℝ)⁻¹ * (μ * (f (x k) - fstar)) ≤ (L : ℝ)⁻¹ * (‖f' (x k)‖ ^ 2 / 2) :=
+        mul_le_mul_of_nonneg_left (hPL (x k)) (inv_nonneg.mpr hLpos.le)
+      have e1 : (1 - μ / L) * (f (x k) - fstar) =
+          (f (x k) - fstar) - (L : ℝ)⁻¹ * (μ * (f (x k) - fstar)) := by ring
+      have e2 : ‖f' (x k)‖ ^ 2 / (2 * L) = (L : ℝ)⁻¹ * (‖f' (x k)‖ ^ 2 / 2) := by ring
+      rw [e1]
+      linarith
+  rcases le_or_gt 0 (1 - μ / L) with hc | hc
+  · induction k with
+    | zero => simp
+    | succ k ih =>
+      calc f (x (k + 1)) - fstar ≤ (1 - μ / L) * (f (x k) - fstar) := step k
+        _ ≤ (1 - μ / L) * ((1 - μ / L) ^ k * (f (x 0) - fstar)) :=
+          mul_le_mul_of_nonneg_left ih hc
+        _ = (1 - μ / L) ^ (k + 1) * (f (x 0) - fstar) := by ring
+  · have hz : ∀ k, f (x k) - fstar = 0 := by
+      have h0 : f (x 0) - fstar = 0 := by
+        have h := step 0
+        have h1 := hfs (x 1)
+        have h0' := hfs (x 0)
+        refine le_antisymm ?_ (by linarith)
+        nlinarith
+      intro k
+      induction k with
+      | zero => exact h0
+      | succ k ih =>
+        have h := step k
+        rw [ih, mul_zero] at h
+        have h1 := hfs (x (k + 1))
+        linarith
+    rw [hz k, hz 0, mul_zero]
+
+/-- One projected gradient step against any point `z` of `K`. -/
+private lemma projStep_aux {f : E → ℝ} {f' : E → E} {L : ℝ≥0} {K : Set E}
+    (hK : Convex ℝ K) (hconv : ConvexOn ℝ K f) (hf : ∀ x, HasGradientAt f (f' x) x)
+    (hL : LipschitzWith L f') (hL0 : 0 < L) {x p z : E} (hx : x ∈ K) (hz : z ∈ K) (hp : p ∈ K)
+    (hproj : ‖x - (L : ℝ)⁻¹ • f' x - p‖ = ⨅ w : K, ‖x - (L : ℝ)⁻¹ • f' x - w‖) :
+    f p - f z ≤ L / 2 * (‖x - z‖ ^ 2 - ‖p - z‖ ^ 2) := by
+  have h1 := le_add_inner_gradient_add_sq hf hL x p
+  have h2 := add_inner_gradient_le hconv hx hz (hf x)
+  have h3 := (norm_eq_iInf_iff_real_inner_le_zero hK hp).mp hproj z hz
+  have hL' : (0 : ℝ) < L := by exact_mod_cast hL0
+  have e3 : ⟪x - (L : ℝ)⁻¹ • f' x - p, z - p⟫ =
+      ⟪x - p, z - p⟫ - (L : ℝ)⁻¹ * ⟪f' x, z - p⟫ := by
+    rw [show x - (L : ℝ)⁻¹ • f' x - p = (x - p) - (L : ℝ)⁻¹ • f' x by abel,
+      inner_sub_left, real_inner_smul_left]
+  rw [e3] at h3
+  have h4 : (L : ℝ) * ⟪x - p, z - p⟫ ≤ ⟪f' x, z - p⟫ := by
+    have e : (L : ℝ) * ((L : ℝ)⁻¹ * ⟪f' x, z - p⟫) = ⟪f' x, z - p⟫ := by
+      rw [← mul_assoc, mul_inv_cancel₀ hL'.ne', one_mul]
+    have := mul_le_mul_of_nonneg_left h3 hL'.le
+    rw [mul_sub, e, mul_zero] at this
+    linarith
+  have hg : ⟪f' x, z - p⟫ = ⟪f' x, z - x⟫ - ⟪f' x, p - x⟫ := by
+    rw [← inner_sub_right]; congr 1; abel
+  have hn : ‖x - z‖ ^ 2 = ‖x - p‖ ^ 2 - 2 * ⟪x - p, z - p⟫ + ‖z - p‖ ^ 2 := by
+    rw [show x - z = (x - p) - (z - p) by abel]
+    exact norm_sub_sq_real _ _
+  rw [norm_sub_rev p x] at h1
+  rw [norm_sub_rev p z, hn]
+  linarith
+
+/-- **Projected gradient descent at rate `1 / k`** (item 134 of MATH-PLAN-library-2; the draft
+`d134-r1-s1`, written by Claude Opus 5.5 through the Anthropic Batch API, the lane's API-CREDIT-1
+work, adapted by order LEAN-33's session). Let `K` be a convex set, `f` convex on `K` with
+`L`-Lipschitz gradient, `L > 0`, and let each iterate `x (k + 1)` be a nearest point of `K` to
+`x k - (1 / L) f' (x k)`, starting from `x 0 ∈ K`. Then for every `z ∈ K` and `k > 0`,
+`f (x k) - f z ≤ L ‖x 0 - z‖² / (2 k)`. Wider than the plan's row (GENERALIZED): the row asks for a
+closed convex set, but the proof takes the nearest-point property of each step as the hypothesis
+`hx`, so closedness is never used; closedness is what makes such nearest points exist in a Hilbert
+space (Mathlib's `exists_norm_eq_iInf_of_complete_convex`), so for a closed nonempty `K` the
+hypothesis can always be met. The draft's unused `IsClosed K` is removed (claude-ai's ruling in
+order LEAN-33, accepted by Dustin on 2026-10-20). Also wider than item 18
+(`sub_le_of_gradientStep`): `f` need be convex on `K` only. `hK` follows from `hconv` (its first
+part); it is kept as drafted. -/
+theorem sub_le_of_projGradientStep {f : E → ℝ} {f' : E → E} {L : ℝ≥0} {K : Set E}
+    (hK : Convex ℝ K) (hconv : ConvexOn ℝ K f)
+    (hf : ∀ x, HasGradientAt f (f' x) x) (hL : LipschitzWith L f') (hL0 : 0 < L)
+    {x : ℕ → E} (hx0 : x 0 ∈ K) (hxK : ∀ k, x (k + 1) ∈ K)
+    (hx : ∀ k, ‖x k - (L : ℝ)⁻¹ • f' (x k) - x (k + 1)‖ =
+      ⨅ w : K, ‖x k - (L : ℝ)⁻¹ • f' (x k) - w‖)
+    {z : E} (hz : z ∈ K) {k : ℕ} (hk : 0 < k) :
+    f (x k) - f z ≤ L * ‖x 0 - z‖ ^ 2 / (2 * k) := by
+  have hmem : ∀ k, x k ∈ K := fun k => by
+    cases k with
+    | zero => exact hx0
+    | succ k => exact hxK k
+  have step : ∀ k w, w ∈ K →
+      f (x (k + 1)) - f w ≤ L / 2 * (‖x k - w‖ ^ 2 - ‖x (k + 1) - w‖ ^ 2) :=
+    fun k w hw => projStep_aux hK hconv hf hL hL0 (hmem k) hw (hxK k) (hx k)
+  have key : ∀ k : ℕ, k * (f (x k) - f z) + L / 2 * ‖x k - z‖ ^ 2 ≤
+      L / 2 * ‖x 0 - z‖ ^ 2 := by
+    intro k
+    induction k with
+    | zero => simp
+    | succ k ih =>
+      have hs := step k z hz
+      have hdec := step k (x k) (hmem k)
+      simp only [sub_self, norm_zero] at hdec
+      have hdec' : f (x (k + 1)) ≤ f (x k) := by
+        have : 0 ≤ (L : ℝ) / 2 * ‖x (k + 1) - x k‖ ^ 2 := by positivity
+        linarith
+      have hk0 : (0 : ℝ) ≤ k := Nat.cast_nonneg k
+      have := mul_le_mul_of_nonneg_left
+        (show f (x (k + 1)) - f z ≤ f (x k) - f z by linarith) hk0
+      push_cast
+      nlinarith
+  have h := key k
+  have hpos : 0 ≤ (L : ℝ) / 2 * ‖x k - z‖ ^ 2 := by positivity
+  have hk' : (0 : ℝ) < k := by exact_mod_cast hk
+  rw [le_div_iff₀ (by positivity)]
+  nlinarith
+
 end ClassicalLean.Analysis
 
 /-- The hypotheses of `le_add_inner_gradient_add_sq` hold together: on `ℝ`, `f x = x ^ 2 / 2` has
@@ -454,3 +609,38 @@ example := ClassicalLean.Analysis.isMinOn_of_kkt (E := ℝ) (ι := Fin 2) (f := 
     · simpa using ((hasDerivAt_id (1 : ℝ)).sub_const 5).hasGradientAt)
   (fun i ↦ by fin_cases i <;> norm_num) (fun i ↦ by fin_cases i <;> norm_num)
   (by simp [Fin.sum_univ_two])
+
+/-- The hypotheses of `sub_le_pow_mul_of_polyakLojasiewicz` hold together: on `ℝ`,
+`f x = x ^ 2 / 2` has gradient `f' x = x`, which is Lipschitz with `L = 2`; `f* = 0` is a lower
+bound of `f`; the Polyak–Łojasiewicz inequality holds with `μ = 1`, as `‖x‖² / 2 = f x`; the steps
+`x k = (1/2) ^ k` are gradient steps of size `1 / L`, so the factor `1 − μ / L = 1/2` is neither
+`0` nor `1` and every iterate is nonzero; `k = 3`. -/
+example := ClassicalLean.Analysis.sub_le_pow_mul_of_polyakLojasiewicz (E := ℝ)
+  (f := fun y ↦ y ^ 2 / 2) (f' := fun y ↦ y) (L := 2) (μ := 1) (fstar := 0)
+  (fun x ↦ by simpa using ((hasDerivAt_pow 2 x).div_const 2).hasGradientAt)
+  (LipschitzWith.id.weaken (by norm_num)) (fun x ↦ by positivity)
+  (fun x ↦ by simp [Real.norm_eq_abs, sq_abs]) (x := fun k ↦ (1 / 2) ^ k)
+  (fun k ↦ by simp [pow_succ]; ring) (k := 3)
+
+/-- The hypotheses of `sub_le_of_projGradientStep` hold together: on `ℝ`, `f x = x ^ 2 / 2`
+(convex, gradient `f' x = x`, Lipschitz with `L = 2 > 0`) on the convex set `K = [1/4, 1]`; the
+iterates `1, 1/2, 1/4, 1/4, …` start in `K`, and each is the nearest point of `K` to the plain
+gradient step `x k / 2` (from `x 2` on the plain step `1/8` leaves `K` and the projection moves it
+back to `1/4`); `z = 1/2 ∈ K` and `k = 3`. -/
+example := ClassicalLean.Analysis.sub_le_of_projGradientStep (E := ℝ)
+  (f := fun y ↦ y ^ 2 / 2) (f' := fun y ↦ y) (L := 2) (K := Set.Icc (1 / 4) 1)
+  (convex_Icc _ _)
+  (((show StrongConvexOn Set.univ 1 (fun y : ℝ ↦ y ^ 2 / 2) by
+    rw [strongConvexOn_iff_convex]
+    convert convexOn_const (0 : ℝ) (convex_univ : Convex ℝ (Set.univ : Set ℝ)) using 1
+    ext x; simp; ring).convexOn fun r ↦ by positivity).subset (Set.subset_univ _) (convex_Icc _ _))
+  (fun x ↦ by simpa using ((hasDerivAt_pow 2 x).div_const 2).hasGradientAt)
+  (LipschitzWith.id.weaken (by norm_num)) (by norm_num)
+  (x := fun k ↦ if k = 0 then 1 else if k = 1 then 1 / 2 else 1 / 4)
+  (by norm_num) (fun k ↦ by rcases k with _ | _ | k <;> norm_num)
+  (fun k ↦ by
+    rw [norm_eq_iInf_iff_real_inner_le_zero (convex_Icc _ _)
+      (by rcases k with _ | _ | k <;> norm_num)]
+    intro w hw
+    rcases k with _ | _ | k <;> simp at hw ⊢ <;> nlinarith [hw.1, hw.2])
+  (z := 1 / 2) (by norm_num) (k := 3) (by norm_num)
