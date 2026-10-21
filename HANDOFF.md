@@ -360,6 +360,32 @@ cloud tip's measured gates, to be re-measured by this order's gates on the clean
 fragment): **135 modules, 3458 theorem constants (3379 + 79, round 66's censuses), `lake build` 4188
 jobs, 0 warnings** (five Mathlib modules more, round 66's import closure).
 
+**Dated 2026-10-21 UTC (order LEAN-33, round 69; branch `lean-33`, DSMain):** five items from below
+MATH-PLAN-library-2's cut, from the API-credit drafts, each in its home module, and five VACUITY-3
+witness rows; no new module, seven extended:
+
+- item 111, `Algebra/Kantorovich`: steepest descent with exact line search shrinks `xᵀ A x / 2` in
+  one step to at most `((M − m)/(M + m))²` times its value (`quadForm_steepestStep_le`);
+- item 112, `Analysis/GradientDescent`: the Polyak–Łojasiewicz rate `(1 − μ/L)^k`
+  (`sub_le_pow_mul_of_polyakLojasiewicz`), wider than its plan row: `f*` is any lower bound and
+  nothing is asked of `μ` or `L`;
+- item 134, `Analysis/GradientDescent`: projected gradient descent at rate `1/k`
+  (`sub_le_of_projGradientStep`), wider than its plan row: the set need not be closed, since each
+  step's nearest-point property is a hypothesis;
+- item 116, `Analysis/ExponentialWeights`: exponential weights is mirror descent, over
+  `closedSimplex ι` (`isMinOn_inner_add_relEntropy_softmax`); the module now imports
+  `InformationTheory/Entropy`;
+- item 117, `Analysis/ConvexConjugate`: the conjugate of log-sum-exp on the open simplex is
+  `∑ p i log p i` (`convexConjugate_logSumExp`); the module now imports `Simplex/LogSumExp`;
+- VACUITY-3 rows 7 and 8 re-witnessed with two genuine rounds (`Probability/LikelihoodScore`),
+  rows 9 and 10 (`Probability/EffectiveSampleSize`) and row 67 (`Probability/GlivenkoCantelli`)
+  witnessed.
+
+Narrowing: none. Counts predicted by this order's
+job 3, to be re-measured by its gates on the clean tree (round 69's fragment): **135 modules, 3468
+theorem constants (3458 + 10, the censuses of the changed modules), `lake build` 4188 jobs, 0
+warnings** (no module added, by the import closure).
+
 ---
 
 ## 2. What I claimed, and what I actually checked
@@ -917,6 +943,14 @@ Five gates, in `tools/`. Each was fail-tested; if you change one, fail-test it a
   Order LEAN-30's seven witnesses (items 96, 97, 98, 99 twice and 100 twice) were written before
   this change, under the earlier wording (item 99's confirming pass returned just after it); each
   has at most one `open … in` line, so it meets both.
+  **Dated 2026-10-21 UTC (order LEAN-33):** rows 9 and 10 (`variance_average_eq_of_steady`,
+  `variance_average_le_of_steady`) and row 67 (`tendsto_sup_abs_empiricalCDF_sub`), listed above as
+  not witnessed, are now witnessed, with Mathlib's `Measure.infinitePi`, which their modules'
+  imports reach since orders LEAN-31 and LEAN-32: a steady first-order recursion driven by
+  independent Gaussian noises on `ℕ → ℝ` (rows 9 and 10) and fair coins on `ℕ → Bool` (row 67); so
+  2 rows remain not witnessed, the two of `Probability/YuleWalker`. Rows 7 and 8 are re-witnessed
+  with two genuine fair coins and `N = 2` (order VACUITY-3's ruling 1), and their blocks no longer
+  use the older rows' exception for the six forbidden words.
 - **`check_sorry.py`** — text-level, so it sees modules nobody wired into the aggregator. Scoped
   to `ClassicalLean/`; skips `.lake/` and `tools/`, and the reason is written in the file
   (it does not parse string literals, and the gates quote the words they detect).

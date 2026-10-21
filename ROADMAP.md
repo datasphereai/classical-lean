@@ -775,6 +775,40 @@ MERGE-2 merged that branch into `master` on DSMain. Narrowing: none; `tendsto_po
   length among injective prefix-free codes over a two-letter alphabet, for any nonnegative weights,
   and such a code with Huffman's lengths exists (`huffman_optimal`).
 
+### 1.26 Five items from below the plan's cut, and five witness rows (order LEAN-33, round 69)
+
+Items 111, 112, 116, 117 and 134 of MATH-PLAN-library-2 sit below the plan's cut. Their proofs were
+drafted and reviewed outside the library (the lane's API-CREDIT-1 work); order LEAN-33 landed them
+on DSMain in their home modules, each with a witness, a statement review and a cold module review,
+and witnessed VACUITY-3's rows 7, 8, 9, 10 and 67. No module is added. Narrowing: none; items 112
+and 134 are wider than their plan rows:
+
+* `Algebra/Kantorovich` (item 111): steepest descent with exact line search on `xᵀ A x / 2`, for
+  `m ≤ A ≤ M` in the Loewner order and `0 < m`, shrinks it in one step to at most
+  `((M − m)/(M + m))²` times its value (`quadForm_steepestStep_le`), from the Kantorovich
+  inequality.
+* `Analysis/GradientDescent` (item 112): under the Polyak–Łojasiewicz inequality
+  `μ (f x − f*) ≤ ‖∇f x‖² / 2` with an `L`-Lipschitz gradient, gradient descent with step `1 / L`
+  has `f (x k) − f* ≤ (1 − μ / L)^k (f (x 0) − f*)`
+  (`sub_le_pow_mul_of_polyakLojasiewicz`); wider: `f*` is any lower bound of `f`, and nothing is
+  asked of `μ` or `L`.
+* `Analysis/GradientDescent` (item 134): projected gradient descent on a convex set keeps item 18's
+  rate `L ‖x₀ − z‖² / (2k)` (`sub_le_of_projGradientStep`); wider: the plan row's closedness of the
+  set is not assumed, since each step's nearest-point property is a hypothesis (claude-ai's ruling,
+  accepted by Dustin); and, unlike item 18, `f` need be convex on the set only.
+* `Analysis/ExponentialWeights` (item 116, which now imports `InformationTheory/Entropy`):
+  exponential weights is mirror descent, `softmax (log x − η ℓ)` is the unique minimiser over
+  `closedSimplex ι` of `η ⟨ℓ, y⟩ + D(y ‖ x)` (`isMinOn_inner_add_relEntropy_softmax`).
+* `Analysis/ConvexConjugate` (item 117, which now imports `Simplex/LogSumExp`): the convex
+  conjugate of log-sum-exp at `p` in the open simplex is `∑ p i log p i`
+  (`convexConjugate_logSumExp`), the other direction of the Gibbs principle.
+
+The witness rows: rows 7 and 8 (`Probability/LikelihoodScore`) are re-witnessed with two genuine
+fair coins on `Bool × Bool` and `N = 2`, as VACUITY-3's ruling 1 asked; rows 9 and 10
+(`Probability/EffectiveSampleSize`) and row 67 (`Probability/GlivenkoCantelli`), not witnessed by
+order VACUITY-3, are witnessed with Mathlib's `Measure.infinitePi`: a steady first-order recursion
+driven by independent Gaussian noises on `ℕ → ℝ`, and fair coins on `ℕ → Bool`.
+
 ## 2. Categories to add
 
 Tiered by how much work they do inside the system that already exists, not by how interesting
