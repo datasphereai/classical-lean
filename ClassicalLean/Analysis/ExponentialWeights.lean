@@ -6,6 +6,7 @@ Authors: Dustin Watkins, Claude (Anthropic)
 
 import ClassicalLean.Simplex.LogSumExp
 import Mathlib.Probability.Moments.SubGaussian
+import ClassicalLean.InformationTheory.Entropy
 
 /-!
 # Exponential weights against the best expert
@@ -28,6 +29,14 @@ learner's average loss per round comes within `√(log K / (2 T))` of the best e
   loss times the step, plus `s² / 8`.
 * `sum_inner_softmax_le` — the bound above, by summing the rounds: `logSumExp` starts at
   `log K` and ends at least at `−η` times any one expert's total loss (`le_logSumExp`).
+* `isMinOn_inner_add_relEntropy_softmax` — item 116 of MATH-PLAN-library-2 (order LEAN-33):
+  **exponential weights as mirror descent.** For a positive vector `x`, a loss vector `ℓ` and a
+  step `η`, the vector `softmax (log x − η ℓ)` is the unique minimiser over the closed probability
+  simplex `closedSimplex ι` of `y ↦ η ⟨ℓ, y⟩ + D(y ‖ x)`, with `D` the relative entropy
+  (`InformationTheory/Entropy`, which this module imports for it). The proof is the draft
+  `d1116-r1-s1` (written by Claude Opus 5.5 through the Anthropic Batch API, the lane's
+  API-CREDIT-1 work), adapted by order LEAN-33's session: inside this namespace, with the module's
+  own `variable` line, and with `closedSimplex ι` for the draft's written-out set (equal by `rfl`).
 
 The weights are the library's `softmax` (`Simplex/LogSumExp`), so this is the same object as the
 Gibbs distribution there, at the scores `−η · total loss`.
@@ -162,6 +171,81 @@ theorem sum_inner_softmax_le {l : ℕ → ι → ℝ} (hl : ∀ t j, l t j ∈ S
     linarith
   exact le_of_mul_le_mul_left this hη
 
+/-- The mirror-descent objective differs from the relative entropy to
+`softmax (log x − η ℓ)` by a constant, on vectors summing to `1`. -/
+private theorem inner_add_relEntropy_eq_aux {x : ι → ℝ} (hx : ∀ i, 0 < x i) (ℓ : ι → ℝ)
+    (η : ℝ) {y : ι → ℝ} (hy : ∑ i, y i = 1) :
+    η * ∑ i, ℓ i * y i + relEntropy y x =
+      relEntropy y (softmax fun i => Real.log (x i) - η * ℓ i)
+        - logSumExp (fun i => Real.log (x i) - η * ℓ i) := by
+  rw [relEntropy_softmax _ hy]
+  have hterm : ∀ i, y i * Real.log (y i / x i)
+      = y i * Real.log (y i) - y i * (Real.log (x i) - η * ℓ i) - η * (ℓ i * y i) := by
+    intro i
+    by_cases h : y i = 0
+    · simp [h]
+    · rw [Real.log_div h (hx i).ne']
+      ring
+  have e1 : ∑ i, y i * Real.log (y i / x i)
+      = ∑ i, (y i * Real.log (y i) - y i * (Real.log (x i) - η * ℓ i) - η * (ℓ i * y i)) :=
+    Finset.sum_congr rfl fun i _ => hterm i
+  have e2 : ∑ i, (y i * Real.log (y i) - y i * (Real.log (x i) - η * ℓ i) - η * (ℓ i * y i))
+      = ∑ i, y i * Real.log (y i) - ∑ i, y i * (Real.log (x i) - η * ℓ i)
+        - η * ∑ i, ℓ i * y i := by
+    rw [Finset.sum_sub_distrib, Finset.sum_sub_distrib, Finset.mul_sum]
+  simp only [relEntropy, crossEntropy, shannonEntropy]
+  rw [e1, e2]
+  ring
+
+/-- **Exponential weights is mirror descent** (item 116 of MATH-PLAN-library-2; the draft
+`d1116-r1-s1`, written by Claude Opus 5.5 through the Anthropic Batch API, the lane's API-CREDIT-1
+work, adapted by order LEAN-33's session). For a nonempty finite index set and a positive vector
+`x`, the vector `softmax (log x − η ℓ)` lies in the closed probability simplex, it minimises
+`y ↦ η ⟨ℓ, y⟩ + D(y ‖ x)` over the closed simplex (zero coordinates included), and every point of
+the simplex attaining the same value equals it. The draft wrote the simplex out as
+`{y | (∀ i, 0 ≤ y i) ∧ ∑ i, y i = 1}`; that set is `closedSimplex ι` by `rfl` (order LEAN-33,
+Dustin's ruling 3). -/
+theorem isMinOn_inner_add_relEntropy_softmax [Nonempty ι] {x : ι → ℝ} (hx : ∀ i, 0 < x i)
+    (ℓ : ι → ℝ) (η : ℝ) :
+    (softmax fun i => Real.log (x i) - η * ℓ i) ∈ closedSimplex ι ∧
+    IsMinOn (fun y : ι → ℝ => η * ∑ i, ℓ i * y i + relEntropy y x)
+        (closedSimplex ι)
+        (softmax fun i => Real.log (x i) - η * ℓ i) ∧
+      ∀ y ∈ closedSimplex ι,
+        η * ∑ i, ℓ i * y i + relEntropy y x =
+            η * ∑ i, ℓ i * softmax (fun i => Real.log (x i) - η * ℓ i) i
+              + relEntropy (softmax fun i => Real.log (x i) - η * ℓ i) x →
+          y = softmax fun i => Real.log (x i) - η * ℓ i := by
+  refine ⟨⟨fun i => (softmax_pos _ i).le, sum_softmax _⟩, ?_, ?_⟩
+  · refine isMinOn_iff.mpr ?_
+    intro y hy
+    obtain ⟨hy0, hy1⟩ := hy
+    have hq0 : ∀ i, 0 < softmax (fun i => Real.log (x i) - η * ℓ i) i := softmax_pos _
+    have hq1 : ∑ i, softmax (fun i => Real.log (x i) - η * ℓ i) i = 1 := sum_softmax _
+    have h1 := inner_add_relEntropy_eq_aux hx ℓ η hy1
+    have h2 := inner_add_relEntropy_eq_aux hx ℓ η hq1
+    have h3 : relEntropy (softmax fun i => Real.log (x i) - η * ℓ i)
+        (softmax fun i => Real.log (x i) - η * ℓ i) = 0 :=
+      (relEntropy_eq_zero_iff (fun i => (hq0 i).le) hq1 (fun i => (hq0 i).le) hq1
+        (fun i h => absurd h (hq0 i).ne')).mpr rfl
+    have h4 : 0 ≤ relEntropy y (softmax fun i => Real.log (x i) - η * ℓ i) :=
+      relEntropy_nonneg hy0 hy1 (fun i => (hq0 i).le) hq1 (fun i h => absurd h (hq0 i).ne')
+    linarith
+  · intro y hy heq
+    obtain ⟨hy0, hy1⟩ := hy
+    have hq0 : ∀ i, 0 < softmax (fun i => Real.log (x i) - η * ℓ i) i := softmax_pos _
+    have hq1 : ∑ i, softmax (fun i => Real.log (x i) - η * ℓ i) i = 1 := sum_softmax _
+    have h1 := inner_add_relEntropy_eq_aux hx ℓ η hy1
+    have h2 := inner_add_relEntropy_eq_aux hx ℓ η hq1
+    have h3 : relEntropy (softmax fun i => Real.log (x i) - η * ℓ i)
+        (softmax fun i => Real.log (x i) - η * ℓ i) = 0 :=
+      (relEntropy_eq_zero_iff (fun i => (hq0 i).le) hq1 (fun i => (hq0 i).le) hq1
+        (fun i h => absurd h (hq0 i).ne')).mpr rfl
+    have h5 : relEntropy y (softmax fun i => Real.log (x i) - η * ℓ i) = 0 := by
+      linarith
+    exact (relEntropy_eq_zero_iff hy0 hy1 (fun i => (hq0 i).le) hq1
+      (fun i h => absurd h (hq0 i).ne')).mp h5
+
 end ClassicalLean.Analysis
 
 /-- The hypotheses of `sum_inner_softmax_le` hold together: two experts whose losses alternate,
@@ -170,3 +254,10 @@ rate `η = 1/2 > 0`; `T = 4` rounds, against expert `i = 1`. -/
 example := ClassicalLean.Analysis.sum_inner_softmax_le (ι := Fin 2)
   (l := fun t j ↦ if (t + (j : ℕ)) % 2 = 0 then 1 else 0)
   (fun t j ↦ by split_ifs <;> norm_num) (η := 1 / 2) (by norm_num) (T := 4) (i := 1)
+
+/-- The hypotheses of `isMinOn_inner_add_relEntropy_softmax` hold together: two experts (`Fin 2`,
+nonempty), the positive prior `x = (1, 2)`, the losses `ℓ = (0, 1)`, not all equal, and the step
+`η = 1 ≠ 0`, so the minimiser `softmax (log x − η ℓ)`, about `(0.576, 0.424)`, is not the
+normalised prior `x / 3 = (1/3, 2/3)`, the minimiser at `η = 0`. -/
+example := ClassicalLean.Analysis.isMinOn_inner_add_relEntropy_softmax (ι := Fin 2)
+  (x := ![1, 2]) (fun i ↦ by fin_cases i <;> norm_num) (ℓ := ![0, 1]) (η := 1)
