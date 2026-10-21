@@ -6,6 +6,7 @@ Authors: Dustin Watkins, Claude (Anthropic)
 
 import Mathlib.Probability.CDF
 import Mathlib.MeasureTheory.Measure.WithDensity
+import ClassicalLean.InformationTheory.Entropy
 
 /-!
 # The Neyman–Pearson lemma and the Karlin–Rubin theorem
@@ -36,6 +37,19 @@ Its **size** is `∫ φ f₀ dν`, the chance of rejecting when the null is true
   `1{S > c} + γ 1{S = c}` is uniformly most powerful, at its own size at `θ₀`, for the null
   `θ ≤ θ₀` against `θ > θ₀`. `exists_thresholdTest_size_eq` gives `c` and `γ` for every size in
   `(0, 1)`.
+* `HasMonotoneLikelihoodRatio'`, `isUniformlyMostPowerful_of_monotoneLikelihoodRatio'` — order
+  LEAN-34, item 118: **the Karlin–Rubin theorem in the textbook form**, the likelihood ratio
+  computed in `[0, ∞]` and allowed to be `+∞` where `f θ = 0`, which takes in the uniform laws on
+  `[0, θ]`, for a threshold test of positive size (needed: see the theorem's docstring). The
+  proof is the draft `d118-r1-s1` (written by Claude Opus 5.5 through the Anthropic Batch API, the
+  lane's API-CREDIT-1 work), adapted by order LEAN-34's session: inside this namespace, and
+  `ite_eq_right` for the deprecated `if_neg`.
+* `size_add_one_sub_power_ge` — order LEAN-34, item 144: **the Bretagnolle–Huber bound**: on a
+  finite set, every test has size plus missed-detection chance at least `exp (−D(p₁ ‖ p₀)) / 2`,
+  `D` the library's `relEntropy` (`InformationTheory/Entropy`, imported here; it does not import
+  this module). The proof is the draft `d144-r1-s1` (written by Claude Opus 5.5 through the
+  Anthropic Batch API, the lane's API-CREDIT-1 work), adapted by order LEAN-34's session: inside
+  this namespace, and `push Not` for the deprecated `push_neg`.
 
 ## The limit of item 56
 
@@ -44,7 +58,9 @@ nondecreasing `g ≥ 0`. This forces `f θ' = 0` wherever `f θ = 0`, so it excl
 support gains points as `θ` grows: the uniform law on `[0, θ]` (checked: at `x = 3/2`,
 `f_1 = 0` and `f_2 = 1/2`) and the uniform law on `[θ, θ + 1]` (at `x = 5/4`, `f_0 = 0` and
 `f_{1/2} = 1`). Textbooks allow the ratio to be `+∞` there; that form is not proved here (Dustin's
-ruling, order LEAN-24). Two more points are stricter than "the ratio is a nondecreasing function
+ruling, order LEAN-24). Dated 2026-10-21 UTC (order LEAN-34): item 118 proves it,
+`isUniformlyMostPowerful_of_monotoneLikelihoodRatio'` below. Two more points are stricter than
+"the ratio is a nondecreasing function
 of `S`": `g` must be nondecreasing on all of `ℝ`, and the product must hold at every `ω`, not
 almost everywhere. So a family whose ratio is unbounded on the range of `S` needs another choice
 of `S` that gives the same tests: the laws with density `β (1 − x)^(β − 1)` on `(0, 1)`, indexed
@@ -444,6 +460,228 @@ theorem exists_thresholdTest_size_eq {ν : Measure Ω} {f₀ : Ω → ℝ} {S : 
   exact ⟨c, γ, hγ, by
     rw [integral_mul_eq_integral_withDensity h₀ hf₀0, integral_thresholdTest hS, hsize]⟩
 
+/-- A family of densities `f θ` has a **monotone likelihood ratio** in `S`, in the textbook form
+(item 118 of MATH-PLAN-library-2), when, for `θ < θ'`, the ratio `f θ' / f θ`, computed in
+`[0, ∞]` with `a / 0 = ∞` for `a > 0` (for nonnegative `f`; `ENNReal.ofReal` reads a negative
+value as `0`), is a nondecreasing function `g` of `S` on the set where
+`f θ > 0` or `f θ' > 0`. Points where `f θ = 0 < f θ'` carry ratio `+∞`; this covers the uniform
+laws on `[0, θ]`. It is the textbook form of the module's `HasMonotoneLikelihoodRatio`, which
+writes the ratio as a product and so asks `f θ' = 0` wherever `f θ = 0`. -/
+def HasMonotoneLikelihoodRatio' {Ω Θ : Type*} [Preorder Θ] (f : Θ → Ω → ℝ) (S : Ω → ℝ) :
+    Prop :=
+  ∀ θ θ', θ < θ' → ∃ g : ℝ → ℝ≥0∞, Monotone g ∧
+    ∀ ω, (0 < f θ ω ∨ 0 < f θ' ω) →
+      ENNReal.ofReal (f θ' ω) / ENNReal.ofReal (f θ ω) = g (S ω)
+
+/-- With a finite value `g c`, the threshold test at `c` is a likelihood ratio test with
+threshold `(g c).toReal`. -/
+private theorem isLRTest_thresholdTest' {Ω Θ : Type*} [Preorder Θ] {f : Θ → Ω → ℝ}
+    {S : Ω → ℝ} (hf0 : ∀ θ, 0 ≤ f θ) {θ θ' : Θ} {g : ℝ → ℝ≥0∞} (hg : Monotone g)
+    (hfg : ∀ ω, (0 < f θ ω ∨ 0 < f θ' ω) →
+      ENNReal.ofReal (f θ' ω) / ENNReal.ofReal (f θ ω) = g (S ω))
+    (c γ : ℝ) (hc : g c ≠ ⊤) :
+    IsLikelihoodRatioTest (f θ) (f θ') (g c).toReal (thresholdTest S c γ) := by
+  have hk : 0 ≤ (g c).toReal := ENNReal.toReal_nonneg
+  have hgc : ENNReal.ofReal (g c).toReal = g c := ENNReal.ofReal_toReal hc
+  intro ω
+  have h0 : 0 ≤ f θ ω := hf0 θ ω
+  have h0' : 0 ≤ f θ' ω := hf0 θ' ω
+  constructor
+  · intro h
+    have hpos' : 0 < f θ' ω := lt_of_le_of_lt (mul_nonneg hk h0) h
+    have hr := hfg ω (Or.inr hpos')
+    have hlt : c < S ω := by
+      by_contra hle
+      have hmono := hg (not_lt.1 hle)
+      rw [← hr] at hmono
+      rcases h0.lt_or_eq with hp | hz
+      · rw [← ENNReal.ofReal_div_of_pos hp, ← hgc, ENNReal.ofReal_le_ofReal_iff hk,
+          div_le_iff₀ hp] at hmono
+        linarith
+      · rw [← hz, ENNReal.ofReal_zero, ENNReal.div_zero (ENNReal.ofReal_pos.2 hpos').ne',
+          top_le_iff] at hmono
+        exact hc hmono
+    exact ite_eq_left hlt
+  · intro h
+    have hpos : 0 < f θ ω := by
+      by_contra hn
+      have hz : f θ ω = 0 := le_antisymm (not_lt.1 hn) h0
+      rw [hz, mul_zero] at h
+      linarith
+    have hr := hfg ω (Or.inl hpos)
+    have hlt : S ω < c := by
+      by_contra hle
+      have hmono := hg (not_lt.1 hle)
+      rw [← hr, ← ENNReal.ofReal_div_of_pos hpos, ← hgc,
+        ENNReal.ofReal_le_ofReal_iff (div_nonneg h0' h0), le_div_iff₀ hpos] at hmono
+      linarith
+    rw [thresholdTest, ite_eq_right (not_lt.2 hlt.le), ite_eq_right (ne_of_lt hlt)]
+
+/-- With `g c = ∞`, the threshold test at `c` vanishes wherever `f θ > 0`. -/
+private theorem thresholdTest_mul_eq_zero' {Ω Θ : Type*} [Preorder Θ] {f : Θ → Ω → ℝ}
+    {S : Ω → ℝ} (hf0 : ∀ θ, 0 ≤ f θ) {θ θ' : Θ} {g : ℝ → ℝ≥0∞} (hg : Monotone g)
+    (hfg : ∀ ω, (0 < f θ ω ∨ 0 < f θ' ω) →
+      ENNReal.ofReal (f θ' ω) / ENNReal.ofReal (f θ ω) = g (S ω))
+    (c γ : ℝ) (hc : g c = ⊤) (ω : Ω) :
+    thresholdTest S c γ ω * f θ ω = 0 := by
+  rcases (show 0 ≤ f θ ω from hf0 θ ω).lt_or_eq with hp | hz
+  · have hr := hfg ω (Or.inl hp)
+    have hlt : S ω < c := by
+      by_contra hle
+      have hmono := hg (not_lt.1 hle)
+      rw [hc, ← hr, ← ENNReal.ofReal_div_of_pos hp, top_le_iff] at hmono
+      exact ENNReal.ofReal_ne_top hmono
+    rw [thresholdTest, ite_eq_right (not_lt.2 hlt.le), ite_eq_right (ne_of_lt hlt), zero_mul]
+  · rw [← hz, mul_zero]
+
+/-- **The Karlin–Rubin theorem, textbook form** (item 118 of MATH-PLAN-library-2; the draft
+`d118-r1-s1`, written by Claude Opus 5.5 through the Anthropic Batch API, the lane's API-CREDIT-1
+work, adapted by order LEAN-34's session). For probability densities `f θ` with a monotone
+likelihood ratio in a measurable statistic `S`, the ratio allowed to be `+∞` where `f θ = 0`
+(`HasMonotoneLikelihoodRatio'`), a threshold test `1{S > c} + γ 1{S = c}` of positive size `α` at
+`θ₀` is uniformly most powerful at level `α` for the null `θ ≤ θ₀` against `θ > θ₀`. The size must
+be positive; at size `0` the statement fails: on two points with the counting measure, with two
+parameters `θ₀ = 0 < θ = 1`, `f θ₀ = (1, 0)`, `f θ = (0, 1)`, `S ω = ω` (a monotone likelihood
+ratio with `g t = 0` for `t < 1` and `∞` otherwise), `c = 1` and `γ = 0`, the threshold test never
+rejects, while the test that rejects at the second point also has size `0` and has power `1`. -/
+theorem isUniformlyMostPowerful_of_monotoneLikelihoodRatio' {Ω Θ : Type*} [MeasurableSpace Ω]
+    [PartialOrder Θ] {ν : Measure Ω} {f : Θ → Ω → ℝ} {S : Ω → ℝ} (hS : Measurable S)
+    (hf : ∀ θ, Integrable (f θ) ν) (hf0 : ∀ θ, 0 ≤ f θ) (hf1 : ∀ θ, ∫ ω, f θ ω ∂ν = 1)
+    (hmlr : HasMonotoneLikelihoodRatio' f S) (θ₀ : Θ) (c : ℝ) {γ : ℝ}
+    (hγ : γ ∈ Icc (0 : ℝ) 1) (hsize : 0 < ∫ ω, thresholdTest S c γ ω * f θ₀ ω ∂ν) :
+    IsUniformlyMostPowerful ν f θ₀ (∫ ω, thresholdTest S c γ ω * f θ₀ ω ∂ν)
+      (thresholdTest S c γ) := by
+  have hφ := isTest_thresholdTest hS c hγ
+  refine ⟨hφ, fun θ hθ ↦ ?_, fun ψ hψ hψα θ hθ ↦ ?_⟩
+  · rcases hθ.lt_or_eq with hlt | rfl
+    · obtain ⟨g, hg, hfg⟩ := hmlr θ θ₀ hlt
+      by_cases hc : g c = ⊤
+      · have hfun : (fun ω ↦ thresholdTest S c γ ω * f θ ω) = fun _ ↦ (0 : ℝ) :=
+          funext (thresholdTest_mul_eq_zero' hf0 hg hfg c γ hc)
+        rw [hfun, integral_zero]
+        exact hsize.le
+      · set β := ∫ ω, thresholdTest S c γ ω * f θ ω ∂ν
+        have hβ0 : 0 ≤ β := integral_nonneg fun ω ↦ mul_nonneg (hφ.2 ω).1 (hf0 θ ω)
+        have hβ1 : β ≤ 1 := by
+          rw [← hf1 θ]
+          exact integral_mono (hφ.integrable_mul (hf θ)) (hf θ) fun ω ↦
+            mul_le_of_le_one_left (hf0 θ ω) (hφ.2 ω).2
+        have hconst : IsTest fun _ : Ω ↦ β := ⟨measurable_const, fun _ ↦ ⟨hβ0, hβ1⟩⟩
+        have key := power_le_of_likelihoodRatioTest (hf θ) (hf θ₀) ENNReal.toReal_nonneg hφ
+          (isLRTest_thresholdTest' hf0 hg hfg c γ hc) hconst
+          (by rw [integral_const_mul, hf1, mul_one])
+        rwa [integral_const_mul, hf1, mul_one] at key
+    · exact le_rfl
+  · obtain ⟨g, hg, hfg⟩ := hmlr θ₀ θ hθ
+    have hc : g c ≠ ⊤ := by
+      intro hc
+      have hfun : (fun ω ↦ thresholdTest S c γ ω * f θ₀ ω) = fun _ ↦ (0 : ℝ) :=
+        funext (thresholdTest_mul_eq_zero' hf0 hg hfg c γ hc)
+      rw [hfun, integral_zero] at hsize
+      exact lt_irrefl _ hsize
+    exact power_le_of_likelihoodRatioTest (hf θ₀) (hf θ) ENNReal.toReal_nonneg hφ
+      (isLRTest_thresholdTest' hf0 hg hfg c γ hc) hψ (hψα θ₀ le_rfl)
+
+open ClassicalLean.Simplex in
+/-- **The Bretagnolle–Huber bound** (item 144 of MATH-PLAN-library-2; the draft `d144-r1-s1`,
+written by Claude Opus 5.5 through the Anthropic Batch API, the lane's API-CREDIT-1 work, adapted by
+order LEAN-34's session). On a finite set, for probability vectors `p₀` (null) and `p₁`
+(alternative) with `p₀ i = 0 → p₁ i = 0`, every test `φ` has size plus missed-detection chance at
+least `exp (-D(p₁ ‖ p₀)) / 2`, with `D` the library's `relEntropy`. The hypothesis
+`p₀ i = 0 → p₁ i = 0` keeps out Lean's value of `relEntropy` at a cell with `p₁ i > 0 = p₀ i`,
+where the true relative entropy is `+∞`. -/
+theorem size_add_one_sub_power_ge {ι : Type*} [Fintype ι] [MeasurableSpace ι]
+    {p₀ p₁ φ : ι → ℝ} (hp₀ : ∀ i, 0 ≤ p₀ i) (hp₀1 : ∑ i, p₀ i = 1)
+    (hp₁ : ∀ i, 0 ≤ p₁ i) (hp₁1 : ∑ i, p₁ i = 1) (hsupp : ∀ i, p₀ i = 0 → p₁ i = 0)
+    (hφ : IsTest φ) :
+    Real.exp (-relEntropy p₁ p₀) / 2 ≤ ∑ i, φ i * p₀ i + (1 - ∑ i, φ i * p₁ i) := by
+  -- step 1: the sum of minima is below size plus missed detection
+  have hpt : ∀ i, min (p₀ i) (p₁ i) ≤ φ i * p₀ i + (1 - φ i) * p₁ i := by
+    intro i
+    have h := hφ.2 i
+    have h1 := mul_le_mul_of_nonneg_left (min_le_left (p₀ i) (p₁ i)) h.1
+    have h2 := mul_le_mul_of_nonneg_left (min_le_right (p₀ i) (p₁ i)) (sub_nonneg.mpr h.2)
+    nlinarith
+  have hsum1 : ∑ i, (φ i * p₀ i + (1 - φ i) * p₁ i)
+      = ∑ i, φ i * p₀ i + (1 - ∑ i, φ i * p₁ i) := by
+    have : ∀ i, φ i * p₀ i + (1 - φ i) * p₁ i = φ i * p₀ i + (p₁ i - φ i * p₁ i) := by
+      intro i; ring
+    rw [Finset.sum_congr rfl (fun i _ => this i), Finset.sum_add_distrib,
+      Finset.sum_sub_distrib, hp₁1]
+  have hmnT : ∑ i, min (p₀ i) (p₁ i) ≤ ∑ i, φ i * p₀ i + (1 - ∑ i, φ i * p₁ i) :=
+    (Finset.sum_le_sum fun i _ => hpt i).trans hsum1.le
+  have hmn0 : 0 ≤ ∑ i, min (p₀ i) (p₁ i) :=
+    Finset.sum_nonneg fun i _ => le_min (hp₀ i) (hp₁ i)
+  -- step 2: Cauchy–Schwarz
+  have hfg : ∀ i, Real.sqrt (min (p₀ i) (p₁ i)) * Real.sqrt (max (p₀ i) (p₁ i))
+      = Real.sqrt (p₀ i) * Real.sqrt (p₁ i) := by
+    intro i
+    rcases le_total (p₀ i) (p₁ i) with h | h
+    · rw [min_eq_left h, max_eq_right h]
+    · rw [min_eq_right h, max_eq_left h, mul_comm]
+  have hf2 : ∀ i, Real.sqrt (min (p₀ i) (p₁ i)) ^ 2 = min (p₀ i) (p₁ i) :=
+    fun i => Real.sq_sqrt (le_min (hp₀ i) (hp₁ i))
+  have hg2 : ∀ i, Real.sqrt (max (p₀ i) (p₁ i)) ^ 2 = max (p₀ i) (p₁ i) :=
+    fun i => Real.sq_sqrt (le_max_of_le_left (hp₀ i))
+  have CS := Finset.sum_mul_sq_le_sq_mul_sq Finset.univ
+    (fun i => Real.sqrt (min (p₀ i) (p₁ i))) (fun i => Real.sqrt (max (p₀ i) (p₁ i)))
+  simp only [hfg, hf2, hg2] at CS
+  have hM : ∑ i, max (p₀ i) (p₁ i) = 2 - ∑ i, min (p₀ i) (p₁ i) := by
+    have : ∀ i, max (p₀ i) (p₁ i) = p₀ i + p₁ i - min (p₀ i) (p₁ i) := by
+      intro i; have := min_add_max (p₀ i) (p₁ i); linarith
+    rw [Finset.sum_congr rfl (fun i _ => this i), Finset.sum_sub_distrib,
+      Finset.sum_add_distrib, hp₀1, hp₁1]
+    norm_num
+  rw [hM] at CS
+  -- step 3: log-sum inequality
+  have hb0 : ∀ i, 0 ≤ Real.sqrt (p₀ i) * Real.sqrt (p₁ i) :=
+    fun i => mul_nonneg (Real.sqrt_nonneg _) (Real.sqrt_nonneg _)
+  have hab : ∀ i, Real.sqrt (p₀ i) * Real.sqrt (p₁ i) = 0 → p₁ i = 0 := by
+    intro i h
+    rcases mul_eq_zero.mp h with h | h
+    · exact hsupp i ((Real.sqrt_eq_zero (hp₀ i)).mp h)
+    · exact (Real.sqrt_eq_zero (hp₁ i)).mp h
+  have key := mul_log_le_relEntropy (a := p₁)
+    (b := fun i => Real.sqrt (p₀ i) * Real.sqrt (p₁ i)) hp₁ hb0 hab
+  have hrel : relEntropy p₁ (fun i => Real.sqrt (p₀ i) * Real.sqrt (p₁ i))
+      = relEntropy p₁ p₀ / 2 := by
+    unfold relEntropy
+    rw [Finset.sum_div]
+    refine Finset.sum_congr rfl fun i _ => ?_
+    by_cases h1 : p₁ i = 0
+    · simp [h1]
+    · have h0 : p₀ i ≠ 0 := fun h => h1 (hsupp i h)
+      have hpos0 : 0 < p₀ i := (hp₀ i).lt_of_ne (Ne.symm h0)
+      have hpos1 : 0 < p₁ i := (hp₁ i).lt_of_ne (Ne.symm h1)
+      have hs0 : Real.sqrt (p₀ i) ≠ 0 := (Real.sqrt_pos.mpr hpos0).ne'
+      have hs1 : Real.sqrt (p₁ i) ≠ 0 := (Real.sqrt_pos.mpr hpos1).ne'
+      rw [Real.log_div h1 (mul_ne_zero hs0 hs1), Real.log_mul hs0 hs1,
+        Real.log_sqrt (hp₀ i), Real.log_sqrt (hp₁ i), Real.log_div h1 h0]
+      ring
+  rw [hrel, hp₁1, one_mul, one_div, Real.log_inv] at key
+  have hex : ∃ i, 0 < p₁ i := by
+    by_contra h
+    push Not at h
+    have : ∑ i, p₁ i ≤ 0 := Finset.sum_nonpos (fun i _ => h i)
+    linarith
+  obtain ⟨j, hj⟩ := hex
+  have hS : 0 < ∑ i, Real.sqrt (p₀ i) * Real.sqrt (p₁ i) := by
+    refine Finset.sum_pos' (fun i _ => hb0 i) ⟨j, Finset.mem_univ j, ?_⟩
+    have hj0 : 0 < p₀ j := (hp₀ j).lt_of_ne (fun h => by have := hsupp j h.symm; linarith)
+    exact mul_pos (Real.sqrt_pos.mpr hj0) (Real.sqrt_pos.mpr hj)
+  have hE : Real.exp (-relEntropy p₁ p₀ / 2)
+      ≤ ∑ i, Real.sqrt (p₀ i) * Real.sqrt (p₁ i) := by
+    calc Real.exp (-relEntropy p₁ p₀ / 2)
+        ≤ Real.exp (Real.log (∑ i, Real.sqrt (p₀ i) * Real.sqrt (p₁ i))) :=
+          Real.exp_le_exp.mpr (by linarith)
+      _ = ∑ i, Real.sqrt (p₀ i) * Real.sqrt (p₁ i) := Real.exp_log hS
+  have hsq : Real.exp (-relEntropy p₁ p₀)
+      = Real.exp (-relEntropy p₁ p₀ / 2) * Real.exp (-relEntropy p₁ p₀ / 2) := by
+    rw [← Real.exp_add]; ring_nf
+  have hE0 : 0 ≤ Real.exp (-relEntropy p₁ p₀ / 2) := (Real.exp_pos _).le
+  have hEE := mul_self_le_mul_self hE0 hE
+  nlinarith [sq_nonneg (∑ i, min (p₀ i) (p₁ i))]
+
 end ClassicalLean.Statistics
 
 open MeasureTheory in
@@ -482,3 +720,47 @@ example := ClassicalLean.Statistics.isUniformlyMostPowerful_of_monotoneLikelihoo
         · dsimp only
           split_ifs <;> norm_num)
   (θ₀ := 0) (c := 1) (γ := 1 / 2) ⟨by norm_num, by norm_num⟩
+
+open MeasureTheory Set in
+/-- The hypotheses of `isUniformlyMostPowerful_of_monotoneLikelihoodRatio'` hold together: two
+parameters `0 < 1`; on two points with the counting measure, the densities `f 0 = (1, 0)` and
+`f 1 = (1/2, 1/2)`, integrable, nonnegative and summing to `1`; the statistic `S ω = ω`,
+measurable, in which the ratio `f 1 / f 0` is `1/2` at `S = 0` and `+∞` at `S = 1`, where `f 0`
+vanishes (the case the unprimed theorem cannot take), nondecreasing as `g t = 1/2` for `t ≤ 0` and
+`∞` otherwise; the null boundary `θ₀ = 0`; the cut `c = 0` and the tie chance `γ = 1/2 ∈ [0, 1]`,
+so the threshold test is `(1/2, 1)`, of size `1/2 > 0` at `θ₀`. -/
+example := ClassicalLean.Statistics.isUniformlyMostPowerful_of_monotoneLikelihoodRatio'
+  (Ω := Fin 2) (Θ := Fin 2) (ν := Measure.count) (f := ![![1, 0], ![1 / 2, 1 / 2]])
+  (S := fun ω ↦ (ω : ℝ)) (measurable_of_finite _) (fun _ ↦ Integrable.of_finite)
+  (fun θ ω ↦ by fin_cases θ <;> fin_cases ω <;> norm_num)
+  (fun θ ↦ by
+    fin_cases θ <;> simp [integral_fintype, Measure.real, Fin.sum_univ_two]
+    norm_num)
+  (fun θ θ' h ↦ by
+    fin_cases θ <;> fin_cases θ'
+    all_goals first
+      | exact absurd h (by decide)
+      | refine ⟨fun t ↦ if t ≤ 0 then ENNReal.ofReal (1 / 2) else ⊤, fun a b hab ↦ ?_,
+          fun ω _ ↦ ?_⟩
+        · dsimp only
+          split_ifs with h1 h2 h2
+          · exact le_rfl
+          · exact le_top
+          · exact absurd (hab.trans h2) h1
+          · exact le_rfl
+        · fin_cases ω <;> norm_num [ENNReal.div_zero])
+  (θ₀ := 0) (c := 0) (γ := 1 / 2) ⟨by norm_num, by norm_num⟩
+  (by simp [integral_fintype, Measure.real, Fin.sum_univ_two,
+    ClassicalLean.Statistics.thresholdTest])
+
+/-- The hypotheses of `size_add_one_sub_power_ge` hold together: three points; the null law
+`p₀ = (1/2, 1/2, 0)` and the alternative `p₁ = (1/4, 3/4, 0)`, both nonnegative and summing to
+`1`, with `p₀ i = 0 → p₁ i = 0`, which acts at the third point, where both vanish; and the test
+`φ = (0, 1, 0)`, measurable with values in `[0, 1]`. Its size plus missed-detection chance is
+`1/2 + 1/4 = 3/4`. -/
+example := ClassicalLean.Statistics.size_add_one_sub_power_ge (ι := Fin 3)
+  (p₀ := ![1 / 2, 1 / 2, 0]) (p₁ := ![1 / 4, 3 / 4, 0]) (φ := ![0, 1, 0])
+  (fun i ↦ by fin_cases i <;> norm_num) (by simp [Fin.sum_univ_three]; norm_num)
+  (fun i ↦ by fin_cases i <;> norm_num) (by simp [Fin.sum_univ_three]; norm_num)
+  (fun i h ↦ by fin_cases i <;> simp_all)
+  ⟨measurable_of_finite _, fun i ↦ by fin_cases i <;> simp⟩
