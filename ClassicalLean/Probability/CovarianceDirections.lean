@@ -11,6 +11,7 @@ import Mathlib.LinearAlgebra.Matrix.PosDef
 import Mathlib.Probability.Independence.Integration
 import Mathlib.Analysis.Matrix.Spectrum
 import ClassicalLean.Algebra.HadamardInequality
+import ClassicalLean.Algebra.MinMax
 
 /-!
 # The covariance matrix of several quantities, and the directions of largest and least variance
@@ -38,6 +39,16 @@ matrix of covariances `cov[X i, X j]`, and `mix X w = ∑ i, w i · X i` is the 
   `1`, the largest variance of a mix is reached at an eigenvector of `S`, equals the largest
   eigenvalue of `S`, and equals Mathlib's supremum of the Rayleigh quotient (likewise the least
   variance, the least eigenvalue and the infimum).
+* `isSymmetric_covLin`, `sum_variance_mix_le_sum_eigenvalues` — item 142 of MATH-PLAN-library-2
+  (order LEAN-34): **principal components**. For orthonormal weight vectors `w₀, …, w_{k−1}`
+  (`k ≤ card ι`), the variances of the mixes add up to at most the sum of the `k` largest
+  eigenvalues of the covariance matrix, and the first `k` vectors of Mathlib's eigenvector basis
+  reach it; from the library's `Algebra/MinMax` (item 83, imported here; it imports only Mathlib).
+  GENERALIZED against the plan's row: any finite measure. The proof is the draft `d142-r1-s2`
+  (written by Claude Opus 5.5 through the Anthropic Batch API, the lane's API-CREDIT-1 work),
+  adapted by order LEAN-34's session: inside this namespace and section `Directions`, the draft's
+  `PrincipalComponentsAux` namespace dropped, and `isSymmetric_covLin`'s proof the one term
+  `(isSelfAdjoint_covOp …).isSymmetric`. Its witness is at the end of the file.
 
 The weights live in `EuclideanSpace ℝ ι`. On plain `ι → ℝ`, Mathlib's norm is the largest entry:
 then `w = (1, 1, -1)` has norm `1` and, for one covariance matrix, variance `6.5` against a
@@ -333,6 +344,46 @@ theorem exists_isMinOn_variance_mix [Nonempty ι] [IsFiniteMeasure μ]
       ← reApplyInnerSelf_covOp hX]
     exact hmin (by simpa using hvn)
 
+/-- The covariance matrix, as an operator on `EuclideanSpace ℝ ι`, is symmetric (item 142 of
+MATH-PLAN-library-2; the draft `d142-r1-s2`). Public, because the statement of
+`sum_variance_mix_le_sum_eigenvalues` reads the eigenvalues through it. -/
+theorem isSymmetric_covLin {ι Ω : Type*} [Fintype ι] [DecidableEq ι]
+    {m0 : MeasurableSpace Ω} {X : ι → Ω → ℝ} {μ : Measure Ω} :
+    (covLin X μ).IsSymmetric :=
+  (isSelfAdjoint_covOp (X := X) (μ := μ)).isSymmetric
+
+/-- **Principal components** (item 142 of MATH-PLAN-library-2; the draft `d142-r1-s2`, written by
+Claude Opus 5.5 through the Anthropic Batch API, the lane's API-CREDIT-1 work, adapted by order
+LEAN-34's session). For orthonormal weight vectors `w₀, …, w_{k−1}` (`k ≤ card ι`), the variances
+of the mixes add up to at most the sum of the `k` largest eigenvalues of the covariance matrix
+(Mathlib's eigenvalues of `isSymmetric_covLin`, sorted largest first, so `Fin.castLE hk` picks the
+`k` largest), and the first `k` vectors of Mathlib's eigenvector basis `eigenvectorBasis`,
+ordered like the eigenvalues, reach that sum. The hypothesis `hk` follows from `hw`
+(`hw.linearIndependent.fintype_card_le_finrank`); it is a hypothesis so that `Fin.castLE hk` can
+be written. GENERALIZED against the plan's row (review r6 of the API-credit drafts): it holds
+under any finite measure, not only a probability measure. -/
+theorem sum_variance_mix_le_sum_eigenvalues {ι Ω : Type*} [Fintype ι] [DecidableEq ι]
+    {m0 : MeasurableSpace Ω} {μ : Measure Ω} [IsFiniteMeasure μ] {X : ι → Ω → ℝ}
+    (hX : ∀ i, MemLp (X i) 2 μ) {k : ℕ} (hk : k ≤ Fintype.card ι)
+    {w : Fin k → EuclideanSpace ℝ ι} (hw : Orthonormal ℝ w) :
+    ∑ j, variance (mix X (WithLp.ofLp (w j))) μ ≤
+        ∑ j : Fin k, (isSymmetric_covLin (X := X) (μ := μ)).eigenvalues
+          finrank_euclideanSpace (Fin.castLE hk j) ∧
+      ∑ j : Fin k, variance (mix X (WithLp.ofLp
+          ((isSymmetric_covLin (X := X) (μ := μ)).eigenvectorBasis
+            finrank_euclideanSpace (Fin.castLE hk j)))) μ =
+        ∑ j : Fin k, (isSymmetric_covLin (X := X) (μ := μ)).eigenvalues
+          finrank_euclideanSpace (Fin.castLE hk j) := by
+  have key : ∀ v : EuclideanSpace ℝ ι,
+      variance (mix X (WithLp.ofLp v)) μ = RCLike.re ⟪covLin X μ v, v⟫_ℝ := fun v ↦ by
+    rw [← reApplyInnerSelf_covOp hX, ContinuousLinearMap.reApplyInnerSelf_apply]
+    rfl
+  simp only [key]
+  exact ⟨ClassicalLean.MinMax.sum_re_inner_le_sum_eigenvalues finrank_euclideanSpace
+      isSymmetric_covLin hk hw,
+    ClassicalLean.MinMax.sum_re_inner_eigenvectorBasis finrank_euclideanSpace
+      isSymmetric_covLin hk⟩
+
 end Directions
 
 section SampleCovariance
@@ -599,3 +650,21 @@ example := ClassicalLean.Probability.CovarianceDirections.det_covMatrix_le_prod_
   (ι := Fin 2) (Ω := Fin 3) (μ := uniformOn Set.univ)
   (X := ![fun ω ↦ if ω = 0 then 1 else 0, fun ω ↦ if ω = 1 then 1 else 0])
   (fun _ ↦ MemLp.of_discrete)
+
+open MeasureTheory ProbabilityTheory in
+/-- The hypotheses of `sum_variance_mix_le_sum_eigenvalues` hold together: under the uniform
+probability on four points (a finite measure), three quantities `X i`, the indicators of the
+points `0`, `1` and `2`, bounded on a finite space, so square integrable; their covariance matrix
+has `3/16` on the diagonal and `−1/16` off it, with eigenvalues `1/4`, `1/4` and `1/16`;
+`k = 2 ≤ 3`, so the bound, the sum of the two largest eigenvalues, `1/2`, is not the trace;
+and the weight vectors `w = (e₀, e₁)`, the first two unit vectors, orthonormal, whose mixes'
+variances add up to `3/8`. -/
+example := ClassicalLean.Probability.CovarianceDirections.sum_variance_mix_le_sum_eigenvalues
+  (ι := Fin 3) (Ω := Fin 4) (μ := uniformOn Set.univ)
+  (X := fun i ω ↦ if ω = Fin.castSucc i then 1 else 0) (fun _ ↦ MemLp.of_discrete)
+  (k := 2) (by simp)
+  (w := ![EuclideanSpace.single 0 1, EuclideanSpace.single 1 1])
+  (by
+    rw [orthonormal_iff_ite]
+    intro i j
+    fin_cases i <;> fin_cases j <;> simp [EuclideanSpace.inner_single_left])
