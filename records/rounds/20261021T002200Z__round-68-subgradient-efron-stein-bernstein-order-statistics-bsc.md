@@ -104,6 +104,17 @@ and the assembler printed each one. Line numbers below are the draft's.
   lines (`build-113`, `build-113-warn`). Its witness is new (the item had no witness start): the
   function `y ^ 2 / 2` on the real line, the step `1 / 2`, `G = 1`, `z = 0`, `T = 3`. Its review,
   `rv2-113`: CLEAN, so no confirming pass.
+* **121** (`d121-r3-s1.lean`). Lines 81, 93, 207, 220, 228 and 241: `show` became `change` (each
+  changed the goal). The draft's namespace `EfronStein` is the module's
+  `ClassicalLean.Probability.EfronStein`: its `end` (line 259) moved after the two main theorems,
+  `open EfronStein` (line 261) is gone, and the prefix `EfronStein.` is dropped in the statements
+  (lines 267 and 277, job 1) and the proofs (lines 268, 278, 280, 281, 282, 285, 287 and 289;
+  `assemble2-121`, 14 edits). The private `wvar_mix_le`'s docstring (line 69) is job 1's fix.
+  `Mathlib.Tactic.FinCases` is a seventh import, for the witnesses' `fin_cases` (without it
+  `m121-a` rc 1, unknown tactic; with it `m121-b` rc 0). The module's `lake build`: 0 warning
+  lines (`build-121`, `build-121-warn`). Its two witnesses are new (the item had no witness
+  start): two coordinates in `Fin 2` with the weights `(1/4, 3/4)` and `(1/2, 1/2)`,
+  `f = x 0 + 2 * x 1`, and `c = (1, 2)`. Its review, `rv2-121`: CLEAN, so no confirming pass.
 
 ## Steps out of the order's sequence (rule 18)
 
