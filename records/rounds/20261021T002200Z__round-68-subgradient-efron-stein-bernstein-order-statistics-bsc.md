@@ -140,6 +140,14 @@ and the assembler printed each one. Line numbers below are the draft's.
   re-elaborated (`m124-module2`) and rebuilt, and confirmed by a fresh reviewer (`rv2c-124`). The
   same sentence of item 126's module docstring was fixed the same way before its review
   (`mkstmt-126m`).
+* **126** (`d126-r2-s2.lean`). Lines 43 and 49: the deprecated `push_neg` became `push Not`.
+  Lines 59, 114, 121, 126 and 152: `if_pos` became `ite_eq_left`; lines 63, 116, 122, 127 and 154:
+  `if_neg` became `ite_eq_right`. Lines 96 and 133: `Set.mem_setOf_eq` became `Set.mem_ofPred_eq`.
+  Lines 98 and 158: `show` became `change` (each changed the goal) (`assemble2-126`, 16 edits).
+  Its one import, `Mathlib.Probability.Distributions.Bernoulli`, is the witness's, and covers every
+  module the proof uses (`imports-126`). The module's `lake build`: 0 warning lines (`build-126`,
+  `build-126-warn`). Its witness is claude-ai's start with the theorem called by its full name
+  (`wdiff-126`). Its review, `rv2-126`: CLEAN, so no confirming pass.
 
 ## Steps out of the order's sequence (rule 18)
 
