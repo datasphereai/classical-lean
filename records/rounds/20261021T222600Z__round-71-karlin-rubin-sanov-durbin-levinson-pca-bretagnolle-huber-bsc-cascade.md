@@ -126,16 +126,27 @@ C 37, 0 recursive; self-test mismatches 0; no `CLOSES` line names a theorem of t
 ### The witness check (version 2 of `evidence/mkwitcheck.py`; lane `lean/LEAN-34/data/mkwitcheck.py`)
 
 Before each module commit, every witness of the module was OK. Once over the library after the
-gates (Dustin's instruction; evidence only): 145 of 145 `example :=` witnesses checked, in 70
-modules; their verdicts: 137 OK, 4 BROKEN (FrankWolfe 1, PolyaUrn 3: their witnesses use the
-modules' private lemmas, which a separate check file cannot name), 1 WRONG-NAME (PrimitiveDivisor
-line 423, a name-resolution check, not a satisfiability witness), and Algebra/MinMax's 3 got no
-verdict because its check file did not elaborate (its examples lie inside the namespace). All four
-are blind spots of the check, not faults found in those modules. 219 typed examples were not read
-by the script, 9 of them ∃-form witnesses, left for the gate order to decide.
+gates (Dustin's instruction; evidence only; `~/lean/lean34-checks/witsweep-summary.md`): of the 145
+`example :=` blocks, the check confirmed 137 witnesses complete (OK; the summary's line 9). It did
+not confirm 7, each for a blind spot of the check, so those witnesses are neither known to be faulty
+nor confirmed sound (lines 13 to 15): Algebra/MinMax's 3 got no verdict, because its check file did
+not elaborate (its examples lie inside the namespace); Analysis/FrankWolfe's 1 and
+Probability/PolyaUrn's 3 are BROKEN in the check only, because they use their modules' private
+lemmas, which a separate check file cannot name. The remaining `example :=`, NumberTheory/
+PrimitiveDivisor line 423 (WRONG-NAME), is a name-resolution check, not a satisfiability witness
+(line 16). This order's six modules: all OK. The 219 lines that start `example` but not
+`example :=` (grep at 9ef33f0's text, label `count219`) are not read by the script: 168 start
+`example :` (typed examples), 50 start with a binder (`example (…)` or `example {…}`), and 1 is a
+docstring line that the grep also matched (NumberTheory/Pell line 58); by claude-ai's count, 9 of
+these examples are ∃-form witnesses, left for the gate order to decide.
 
 ### Misses, follow-ups and notes
 
+- The witness-check paragraph first opened with 145 of 145 `example :=` witnesses checked,
+  wording claude-ai sent before the sweep ran (store row 20261021-042), which the sweep's output
+  does not bear out; rewritten after claude-ai's push review. And the 219 were labelled typed
+  examples: 168 are, 50 start with a binder, and 1 is a docstring line my grep matched (store row
+  20261021-043).
 - The cut witness of item 140 (review (c)'s BLOCKER), and my prediction of the line it would land
   after (295 for 296), which nothing compared.
 - Setup 1: one `ev.sh` run with relative paths that changed nothing (`adapt-commit`, redone as
