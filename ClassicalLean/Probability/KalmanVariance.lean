@@ -6,6 +6,7 @@ Authors: Dustin Watkins, Claude (Anthropic)
 
 import Mathlib.Analysis.SpecialFunctions.Pow.Real
 import Mathlib.Analysis.SpecificLimits.Basic
+import ClassicalLean.Probability.FirstOrderRecursion
 
 /-!
 # The error variance of the scalar Kalman filter
@@ -33,6 +34,16 @@ at the positive root of its Riccati equation `h² P² − (q h² + a² r − r) 
 * `abs_riccatiStep_iterate_sub_le`: after `n` steps the distance is at most `cⁿ |P − R|`;
 * `tendsto_riccatiStep`: the iterates converge to `R`; `eq_riccatiRoot_of_riccatiStep_eq`: `R` is
   the only fixed point at or above `0`.
+
+Order LEAN-35 (item 114 of MATH-PLAN-library-2) adds:
+
+* `riccatiRoot_eq_steady` — **the steady Kalman filter of a local level.** For `a = h = 1`, with
+  the steady gain `K = R / (R + r)`, the root is `R = (q + K² r) / (1 − (1 − K)²)`: the steady
+  value of a first-order variance recursion with coefficient `1 − K`
+  (`FirstOrderRecursion.eq_steady_iff`, which this module now imports). Only this equation is
+  proved, not the filter itself. The proof is the draft `d114-r1-s2` (written by Claude Opus 5.5
+  through the Anthropic Batch API, the lane's API-CREDIT-1 work), adapted by order LEAN-35's
+  session: moved inside this namespace. Its witness is at the end of the file.
 
 ## When the iteration really converges
 
@@ -230,6 +241,46 @@ theorem eq_riccatiRoot_of_riccatiStep_eq {a h q r P : ℝ} (hq : 0 < q) (hr : 0 
   have : |P - riccatiRoot a h q r| = 0 := by nlinarith
   linarith [abs_eq_zero.mp this]
 
+/-- **The steady Kalman filter of a local level** (item 114 of MATH-PLAN-library-2; the draft
+`d114-r1-s2`, written by Claude Opus 5.5 through the Anthropic Batch API, the lane's API-CREDIT-1
+work, adapted by order LEAN-35's session). Take the state factor `a = 1` and the observation gain
+`h = 1` (the first two arguments of `riccatiRoot`), motion noise of variance `q > 0` and
+observation noise of variance `r ≥ 0`; let `P = riccatiRoot 1 1 q r` (read as the filter's steady
+error variance) and `K = P / (P + r)` (read as its steady gain). Then
+`P = (q + K² r) / (1 − (1 − K)²)`: by `FirstOrderRecursion.eq_steady_iff`, `P` is the steady value
+`s² / (1 − c²)` of the first-order recursion `V ↦ c² V + s²` of a variance `V`, with coefficient
+`c = 1 − K` and `s² = q + K² r`. Read as the filter, that is the recursion of the error
+`e ↦ (1 − K) e + w − K v`, where `w` is the motion's noise and `v` the observation's,
+uncorrelated; that reading, and the filter itself (exponential smoothing with constant `K`), are
+not stated or proved here: only the equation is. -/
+theorem riccatiRoot_eq_steady {q r : ℝ} (hq : 0 < q) (hr : 0 ≤ r) :
+    riccatiRoot 1 1 q r =
+      (q + (riccatiRoot 1 1 q r / (riccatiRoot 1 1 q r + r)) ^ 2 * r) /
+        (1 - (1 - riccatiRoot 1 1 q r / (riccatiRoot 1 1 q r + r)) ^ 2) := by
+  have hP := riccatiRoot_pos (a := 1) (h := 1) hq hr one_ne_zero
+  have hE := riccati_equation_riccatiRoot (a := 1) (h := 1) one_ne_zero hq.le hr
+  generalize riccatiRoot 1 1 q r = P at hP hE ⊢
+  have hD : 0 < P + r := by linarith
+  generalize hK' : P / (P + r) = K
+  have hK : K * (P + r) = P := by rw [← hK', div_mul_cancel₀ _ hD.ne']
+  have hK0 : 0 < K := by rw [← hK']; exact div_pos hP hD
+  have hK1 : K ≤ 1 := by rw [← hK', div_le_one hD]; linarith
+  have ha : (1 - K) ^ 2 ≠ 1 := by
+    have : (1 - K) ^ 2 < 1 := by
+      nlinarith [mul_pos hK0 (by linarith : (0:ℝ) < 2 - K)]
+    exact this.ne
+  have hs : √(q + K ^ 2 * r) ^ 2 = q + K ^ 2 * r :=
+    Real.sq_sqrt (add_nonneg hq.le (mul_nonneg (sq_nonneg K) hr))
+  have key : (P - (1 - K) ^ 2 * P - (q + K ^ 2 * r)) * (P + r) ^ 2 = 0 := by
+    linear_combination
+      (P * (2 * (P + r) - K * (P + r) - P) - r * (K * (P + r) + P)) * hK + (P + r) * hE
+  have hfix : P = (1 - K) ^ 2 * P + √(q + K ^ 2 * r) ^ 2 := by
+    rcases mul_eq_zero.mp key with h0 | h0
+    · rw [hs]; linarith
+    · exact absurd h0 (pow_ne_zero 2 hD.ne')
+  have := (FirstOrderRecursion.eq_steady_iff ha P).mp hfix
+  rwa [hs] at this
+
 end ClassicalLean.Probability
 
 /-- The hypotheses of `tendsto_riccatiStep` hold together: state factor `a = 1/2`, observation
@@ -237,3 +288,8 @@ gain `h = 1 ≠ 0`, process noise `q = 1 > 0`, observation noise `r = 1 ≥ 0` (
 starting error variance `P = 1 ≥ 0` (not `0`). -/
 example := ClassicalLean.Probability.tendsto_riccatiStep (a := 1 / 2) (h := 1) (q := 1) (r := 1)
   (P := 1) (by norm_num) (by norm_num) (by norm_num) (by norm_num)
+
+/-- The hypotheses of `riccatiRoot_eq_steady` hold together: motion noise of variance `q = 1 > 0`
+and observation noise of variance `r = 1 ≥ 0`, away from the boundary `r = 0`. -/
+example := ClassicalLean.Probability.riccatiRoot_eq_steady (q := 1) (r := 1) (by norm_num)
+  (by norm_num)
