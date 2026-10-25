@@ -43,7 +43,9 @@ Order LEAN-35 (item 114 of MATH-PLAN-library-2) adds:
   (`FirstOrderRecursion.eq_steady_iff`, which this module now imports). Only this equation is
   proved, not the filter itself. The proof is the draft `d114-r1-s2` (written by Claude Opus 5.5
   through the Anthropic Batch API, the lane's API-CREDIT-1 work), adapted by order LEAN-35's
-  session: moved inside this namespace. Its witness is at the end of the file.
+  session: moved inside this namespace (the draft's `open ClassicalLean.Probability` dropped), and
+  its docstring rewritten (the item, the credit, every letter defined, the filter marked as a
+  reading); the proof is unchanged. Its witness is at the end of the file.
 
 ## When the iteration really converges
 
