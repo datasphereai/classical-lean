@@ -30,6 +30,20 @@ import Mathlib.Probability.CondVar
   (for a filtration whose measure is σ-finite at each time, as for any finite measure),
   `E[max_{k ≤ n} M k ²] ≤ 4 E[M n ²]`; `integrable_sup_sq`: when `M n` is square-integrable, the
   maximum square is integrable, so the left side is a real mean, not Lean's junk `0`.
+* `measureReal_exists_mul_abs_ge_le` (the Hájek–Rényi inequality, item 125 of MATH-PLAN-library-2,
+  order LEAN-35): for a square-integrable martingale `S`, weights `c 0 ≥ c 1 ≥ ⋯ > 0` and
+  `ε > 0`, the chance that `c k |S k| ≥ ε` for some `k ≤ n` is at most
+  `(c 0² E[S 0²] + ∑_{k < n} c (k + 1)² E[(S (k + 1) − S k)²]) / ε²`. Wider than the plan's row:
+  any finite measure, and no `S 0 = 0`. It applies `maximal_ineq` to the weighted running sum
+  (the private `hajekW`), a nonnegative submartingale by `submartingale_sq`. The proof is the draft
+  `d125-r3-s2` (written by Claude Opus 5.5 through the Anthropic Batch API, the lane's API-CREDIT-1
+  work), adapted by order LEAN-35's session: inside this namespace after section `DoobL2`, outside
+  the three sections, each declaration binding its own types as the draft does;
+  `open scoped NNReal in` on the theorem in place of the draft's file-level `open scoped NNReal`
+  (the draft's other `open` line is this module's own); its docstring rewritten (the item, the
+  credit, `P` and `E` defined, the wider reading); one `show` that changed the goal written as
+  `change`. Its hypotheses were not drop-tested by this order. Its witness is at the end of the
+  file.
 
 ## Doob's `L²` inequality
 
@@ -523,6 +537,154 @@ theorem integral_sup_sq_le {M : ℕ → Ω → ℝ} (hM : Martingale M 𝒢 μ) 
 
 end DoobL2
 
+/-- The weighted running sum `c₀² S₀² + ∑_{j<k} c_{j+1}² (S_{j+1}² − S_j²)`. -/
+private noncomputable def hajekW {Ω : Type*} (c : ℕ → ℝ) (S : ℕ → Ω → ℝ) (k : ℕ) (ω : Ω) : ℝ :=
+  c 0 ^ 2 * S 0 ω ^ 2 + ∑ j ∈ range k, c (j + 1) ^ 2 * (S (j + 1) ω ^ 2 - S j ω ^ 2)
+
+private lemma hajekW_zero {Ω : Type*} (c : ℕ → ℝ) (S : ℕ → Ω → ℝ) (ω : Ω) :
+    hajekW c S 0 ω = c 0 ^ 2 * S 0 ω ^ 2 := by
+  simp [hajekW]
+
+private lemma hajekW_succ {Ω : Type*} (c : ℕ → ℝ) (S : ℕ → Ω → ℝ) (k : ℕ) (ω : Ω) :
+    hajekW c S (k + 1) ω =
+      hajekW c S k ω + c (k + 1) ^ 2 * (S (k + 1) ω ^ 2 - S k ω ^ 2) := by
+  unfold hajekW
+  rw [sum_range_succ]
+  ring
+
+open scoped NNReal in
+/-- **The Hájek–Rényi inequality** (item 125 of MATH-PLAN-library-2; the draft `d125-r3-s2`,
+written by Claude Opus 5.5 through the Anthropic Batch API, the lane's API-CREDIT-1 work, adapted
+by order LEAN-35's session). For a martingale `S` with each `S n` square-integrable, weights
+`c 0 ≥ c 1 ≥ ⋯ > 0` and `ε > 0`, with increments `ξ 0 = S 0`, `ξ (k+1) = S (k+1) − S k`:
+`P(∃ k ≤ n, c k |S k| ≥ ε) ≤ ε⁻² ∑_{k ≤ n} c k ² E[ξ k ²]`, where `P` is `μ.real` and `E[·]` is
+`∫ · ∂μ` for the finite measure `μ`. Wider than the plan's row (round 1's
+review: GENERALIZED): `μ` is any finite measure, not only a probability, and `S 0` need not be `0`
+(its term `c 0² E[S 0²]` is `0` in the classical form, where `S 0 = 0`); the weights are indexed
+from `0`. The proof applies Doob's maximal inequality (Mathlib's `maximal_ineq`) to the weighted
+running sum `c 0² S 0² + ∑_{j<k} c (j+1)² (S (j+1)² − S j²)`, a nonnegative submartingale because
+`S ²` is a submartingale (`submartingale_sq`) and the weights decrease. -/
+theorem measureReal_exists_mul_abs_ge_le {Ω : Type*} {m0 : MeasurableSpace Ω} {μ : Measure Ω}
+    [IsFiniteMeasure μ] {𝒢 : Filtration ℕ m0} {S : ℕ → Ω → ℝ} (hS : Martingale S 𝒢 μ)
+    (hS2 : ∀ n, MemLp (S n) 2 μ) {c : ℕ → ℝ} (hc : ∀ k, 0 < c k) (hanti : Antitone c)
+    {ε : ℝ} (hε : 0 < ε) (n : ℕ) :
+    μ.real {ω | ∃ k ≤ n, ε ≤ c k * |S k ω|} ≤
+      (c 0 ^ 2 * ∫ ω, S 0 ω ^ 2 ∂μ +
+        ∑ k ∈ range n, c (k + 1) ^ 2 * ∫ ω, (S (k + 1) ω - S k ω) ^ 2 ∂μ) / ε ^ 2 := by
+  have hX : ∀ k, Integrable (fun ω ↦ S k ω ^ 2) μ := fun k ↦ (hS2 k).integrable_sq
+  have hsq := ClassicalLean.Probability.MaximalInequality.submartingale_sq hS hS2
+  have hWm : ∀ k, Measurable[𝒢 k] (hajekW c S k) := by
+    intro k
+    induction k with
+    | zero =>
+      rw [show hajekW c S 0 = fun ω ↦ c 0 ^ 2 * S 0 ω ^ 2 from funext (hajekW_zero c S)]
+      exact ((hS.1 0).measurable.pow_const 2).const_mul _
+    | succ k ih =>
+      rw [show hajekW c S (k + 1) = fun ω ↦ hajekW c S k ω +
+          c (k + 1) ^ 2 * (S (k + 1) ω ^ 2 - S k ω ^ 2) from funext (hajekW_succ c S k)]
+      exact (ih.mono (𝒢.mono (Nat.le_succ k)) le_rfl).add
+        ((((hS.1 (k + 1)).measurable.pow_const 2).sub
+          (((hS.1 k).measurable.mono (𝒢.mono (Nat.le_succ k)) le_rfl).pow_const 2)).const_mul _)
+  have hWint : ∀ k, Integrable (hajekW c S k) μ := by
+    intro k
+    induction k with
+    | zero =>
+      rw [show hajekW c S 0 = fun ω ↦ c 0 ^ 2 * S 0 ω ^ 2 from funext (hajekW_zero c S)]
+      exact (hX 0).const_mul _
+    | succ k ih =>
+      rw [show hajekW c S (k + 1) = fun ω ↦ hajekW c S k ω +
+          c (k + 1) ^ 2 * (S (k + 1) ω ^ 2 - S k ω ^ 2) from funext (hajekW_succ c S k)]
+      exact ih.add (((hX (k + 1)).sub (hX k)).const_mul _)
+  have hdom : ∀ k ω, c k ^ 2 * S k ω ^ 2 ≤ hajekW c S k ω := by
+    intro k
+    induction k with
+    | zero => intro ω; rw [hajekW_zero]
+    | succ k ih =>
+      intro ω
+      rw [hajekW_succ]
+      have h1 := ih ω
+      have hcc : c (k + 1) ^ 2 ≤ c k ^ 2 :=
+        pow_le_pow_left₀ (hc _).le (hanti (Nat.le_succ k)) 2
+      have h2 := mul_le_mul_of_nonneg_right hcc (sq_nonneg (S k ω))
+      linarith
+  have hWnn : ∀ k ω, 0 ≤ hajekW c S k ω := fun k ω ↦
+    (mul_nonneg (sq_nonneg _) (sq_nonneg _)).trans (hdom k ω)
+  have hadp : StronglyAdapted 𝒢 (hajekW c S) := fun k ↦ (hWm k).stronglyMeasurable
+  have hdiff : ∀ i, hajekW c S (i + 1) - hajekW c S i =
+      c (i + 1) ^ 2 • ((fun ω ↦ S (i + 1) ω ^ 2) - (fun ω ↦ S i ω ^ 2)) := by
+    intro i
+    funext ω
+    simp only [Pi.sub_apply, Pi.smul_apply, smul_eq_mul, hajekW_succ]
+    ring
+  have hWsub : Submartingale (hajekW c S) 𝒢 μ := by
+    refine submartingale_of_condExp_sub_nonneg_nat hadp hWint fun i ↦ ?_
+    rw [hdiff i]
+    filter_upwards [condExp_smul (m := 𝒢 i) (c (i + 1) ^ 2)
+        ((fun ω ↦ S (i + 1) ω ^ 2) - (fun ω ↦ S i ω ^ 2)),
+      hsq.condExp_sub_nonneg (Nat.le_succ i)] with ω h1 h2
+    rw [h1, Pi.smul_apply, smul_eq_mul]
+    exact mul_nonneg (sq_nonneg _) h2
+  -- the mean of each step of `S ²` is the mean square increment
+  have hinc : ∀ j, ∫ ω, (S (j + 1) ω ^ 2 - S j ω ^ 2) ∂μ =
+      ∫ ω, (S (j + 1) ω - S j ω) ^ 2 ∂μ := by
+    intro j
+    have hprod : Integrable (S j * S (j + 1)) μ := (hS2 j).integrable_mul (hS2 (j + 1))
+    have hprod' : Integrable (fun ω ↦ S j ω * S (j + 1) ω) μ := hprod
+    have hcross : ∫ ω, S j ω * S (j + 1) ω ∂μ = ∫ ω, S j ω ^ 2 ∂μ := by
+      have hce := condExp_mul_of_stronglyMeasurable_left (m := 𝒢 j) (hS.1 j) hprod
+        (hS.integrable (j + 1))
+      calc ∫ ω, S j ω * S (j + 1) ω ∂μ = ∫ ω, (μ[S j * S (j + 1) | 𝒢 j]) ω ∂μ :=
+            (integral_condExp (𝒢.le j)).symm
+        _ = ∫ ω, S j ω ^ 2 ∂μ := by
+            refine integral_congr_ae ?_
+            filter_upwards [hce, hS.condExp_ae_eq (Nat.le_succ j)] with ω h1 h2
+            rw [h1, Pi.mul_apply, h2, sq]
+    have e1 : (fun ω ↦ (S (j + 1) ω - S j ω) ^ 2) = fun ω ↦
+        (S (j + 1) ω ^ 2 - S j ω ^ 2) - 2 * (S j ω * S (j + 1) ω - S j ω ^ 2) := by
+      funext ω; ring
+    have hd : Integrable (fun ω ↦ S (j + 1) ω ^ 2 - S j ω ^ 2) μ := (hX _).sub (hX _)
+    have hc2 : Integrable (fun ω ↦ 2 * (S j ω * S (j + 1) ω - S j ω ^ 2)) μ :=
+      (hprod'.sub (hX j)).const_mul 2
+    rw [e1, integral_sub hd hc2, integral_const_mul, integral_sub hprod' (hX j), hcross,
+      sub_self, mul_zero, sub_zero]
+  have hEW : ∫ ω, hajekW c S n ω ∂μ = c 0 ^ 2 * ∫ ω, S 0 ω ^ 2 ∂μ +
+      ∑ k ∈ range n, c (k + 1) ^ 2 * ∫ ω, (S (k + 1) ω - S k ω) ^ 2 ∂μ := by
+    have hterm : ∀ j ∈ range n, Integrable
+        (fun ω ↦ c (j + 1) ^ 2 * (S (j + 1) ω ^ 2 - S j ω ^ 2)) μ := fun j _ ↦
+      ((hX (j + 1)).sub (hX j)).const_mul _
+    have h0 : Integrable (fun ω ↦ c 0 ^ 2 * S 0 ω ^ 2) μ := (hX 0).const_mul _
+    simp only [hajekW]
+    rw [integral_add h0 (integrable_finsetSum _ hterm), integral_const_mul,
+      integral_finsetSum _ hterm]
+    congr 1
+    refine sum_congr rfl fun j _ ↦ ?_
+    rw [integral_const_mul, hinc]
+  -- Doob's maximal inequality for `W` at the level `ε²`
+  set e : ℝ≥0 := ⟨ε ^ 2, by positivity⟩ with he_def
+  have he : (e : ℝ) = ε ^ 2 := rfl
+  set B : Set Ω := {ω | (e : ℝ) ≤ (range (n + 1)).sup' nonempty_range_add_one
+      (fun k ↦ hajekW c S k ω)} with hB
+  have hmax := maximal_ineq hWsub (fun k ω ↦ hWnn k ω) (ε := e) n
+  have hAB : {ω | ∃ k ≤ n, ε ≤ c k * |S k ω|} ⊆ B := by
+    rintro ω ⟨k, hk, hkε⟩
+    change (e : ℝ) ≤ (range (n + 1)).sup' nonempty_range_add_one (fun k ↦ hajekW c S k ω)
+    have h1 : ε ^ 2 ≤ c k ^ 2 * S k ω ^ 2 := by
+      have := pow_le_pow_left₀ hε.le hkε 2
+      rw [mul_pow, sq_abs] at this
+      exact this
+    exact (he.le.trans h1).trans ((hdom k ω).trans
+      (le_sup' (fun k ↦ hajekW c S k ω) (mem_range.mpr (Nat.lt_succ_of_le hk))))
+  have hint' : ∫ ω in B, hajekW c S n ω ∂μ ≤ ∫ ω, hajekW c S n ω ∂μ :=
+    setIntegral_le_integral (hWint n) (ae_of_all _ fun ω ↦ hWnn n ω)
+  have h1 : (↑e * μ B).toReal ≤ ∫ ω in B, hajekW c S n ω ∂μ := by
+    have := ENNReal.toReal_mono ENNReal.ofReal_ne_top hmax
+    rwa [ENNReal.toReal_ofReal (integral_nonneg fun ω ↦ hWnn n ω)] at this
+  rw [ENNReal.toReal_mul, ENNReal.coe_toReal, he] at h1
+  have hB' : μ.real {ω | ∃ k ≤ n, ε ≤ c k * |S k ω|} ≤ (μ B).toReal := measureReal_mono hAB
+  rw [le_div_iff₀ (by positivity)]
+  have h3 := mul_le_mul_of_nonneg_right hB' (sq_nonneg ε)
+  linarith
+
 end ClassicalLean.Probability.MaximalInequality
 
 open MeasureTheory ProbabilityTheory Filter in
@@ -603,3 +765,50 @@ example := ClassicalLean.Probability.MaximalInequality.integral_sup_sq_le (Ω :=
             Integrable.of_finite]
           exact Eventually.of_forall fun ω ↦ by simp⟩
   (n := 2)
+
+open MeasureTheory ProbabilityTheory Filter in
+/-- The hypotheses of `measureReal_exists_mul_abs_ge_le` hold together: under the uniform
+probability on two points, the filtration that knows nothing at time `0` and everything from
+time `1` on, and the walk `S 0 = 1/2`, `S n = (3/2, −1/2)` for `n ≥ 1` (a start that is not `0`,
+then one fair `±1` step): `S` is adapted (`S 0` is a constant), its conditional mean given time `0`
+is its mean `1/2 = S 0`, and from time `1` on it is known, so it is a martingale; each `S n` is
+bounded, so square integrable; the weights `c k = 1/(k + 1)`, positive and strictly decreasing;
+`ε = 3/4 > 0`; the horizon `n = 1`, so both increments it counts, `S 0` and `S 1 − S 0`, are not
+`0` (the walk stops moving only after the horizon). The witness was proposed by order LEAN-35's
+review (c). -/
+example := ClassicalLean.Probability.MaximalInequality.measureReal_exists_mul_abs_ge_le (Ω := Fin 2)
+  (μ := uniformOn Set.univ)
+  (𝒢 := ⟨fun n ↦ if n = 0 then ⊥ else (inferInstance : MeasurableSpace (Fin 2)),
+    fun i j hij ↦ by
+      rcases i with _ | i
+      · exact bot_le
+      · rcases j with _ | j
+        · omega
+        · exact le_rfl,
+    fun i ↦ by rcases i with _ | i; exacts [bot_le, le_rfl]⟩)
+  (S := fun n ω ↦ if n = 0 then 1 / 2 else ![3 / 2, -1 / 2] ω)
+  ⟨fun n ↦ by
+      rcases n with _ | n
+      · exact (stronglyMeasurable_const : StronglyMeasurable[⊥] fun _ : Fin 2 ↦ (1 / 2 : ℝ))
+      · exact (StronglyMeasurable.of_discrete :
+          StronglyMeasurable[(inferInstance : MeasurableSpace (Fin 2))] (_ : Fin 2 → ℝ)),
+    fun i j hij ↦ by
+      rcases i with _ | i
+      · change condExp ⊥ (uniformOn Set.univ) _ =ᵐ[uniformOn Set.univ] _
+        rw [condExp_bot]
+        refine Eventually.of_forall fun ω ↦ ?_
+        rcases j with _ | j
+        · simp
+        · rw [integral_fintype Integrable.of_finite]
+          simp [uniformOn_univ, Measure.real, Fin.sum_univ_two]
+          norm_num
+      · rcases j with _ | j
+        · omega
+        · change condExp (inferInstance : MeasurableSpace (Fin 2)) (uniformOn Set.univ) _ =ᵐ[_] _
+          rw [condExp_of_stronglyMeasurable le_rfl StronglyMeasurable.of_discrete
+            Integrable.of_finite]
+          exact Eventually.of_forall fun ω ↦ by simp⟩
+  (fun _ ↦ MemLp.of_discrete) (c := fun k ↦ 1 / ((k : ℝ) + 1)) (fun _ ↦ Nat.one_div_pos_of_nat)
+  (fun i j hij ↦ one_div_le_one_div_of_le (by positivity)
+    (by exact_mod_cast Nat.add_le_add_right hij 1))
+  (ε := 3 / 4) (by norm_num) (n := 1)
