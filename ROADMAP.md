@@ -876,6 +876,38 @@ have mutual information at most `log 2 − h(εₙ)`, `εₙ = (1 − (1 − 2ε
 (`mutualInfo_bsc_pow_le`), with equality at the uniform input (`mutualInfo_bsc_pow_half`), and for
 `ε < 1` that capacity tends to `0` (`tendsto_capacity_bsc_pow`).
 
+### 1.29 Five items from below the plan's cut (order LEAN-35, round 72)
+
+Items 114, 115, 125, 138 and 148 of MATH-PLAN-library-2 sit below the plan's cut. Their proofs were
+drafted and reviewed outside the library (the lane's API-CREDIT-1 work); order LEAN-35 landed them
+on DSMain in their home modules, each with a witness, a statement review and a cold module review.
+No module is added. Narrowing: none; items 125 and 138 are wider than their plan rows:
+
+* `Probability/KalmanVariance` (item 114, which now imports `Probability/FirstOrderRecursion`): the
+  steady Kalman filter of a local level. For `a = h = 1`, motion noise `q > 0` and observation noise
+  `r ≥ 0`, the Riccati root `P` and the steady gain
+  `K = P/(P + r)` satisfy `P = (q + K² r)/(1 − (1 − K)²)`, the steady value of a first-order
+  recursion with coefficient `1 − K` (`riccatiRoot_eq_steady`); the filter itself, as exponential
+  smoothing, is not stated.
+* `Probability/MovingAverage` (item 115, which now imports `Probability/EffectiveSampleSize`): the
+  long-run variance of a moving average. For white noise and `n > q`,
+  `Var(X 0 + ⋯ + X (n − 1)) = n v (∑ θ)² − 2 ∑_{k ≤ q} k γ(k)`, so `n Var(mean) → v (∑ θ)²`
+  (`variance_sum_movingAverage`).
+* `Probability/MaximalInequality` (item 125): the Hájek–Rényi inequality. For a square-integrable
+  martingale, weights `c 0 ≥ c 1 ≥ ⋯ > 0` and `ε > 0`, the chance that `c k |S k| ≥ ε` for some
+  `k ≤ n` is at most `ε⁻² (c 0² E[S 0²] + ∑_{k < n} c (k + 1)² E[(S (k + 1) − S k)²])`
+  (`measureReal_exists_mul_abs_ge_le`); wider: any finite measure, and no `S 0 = 0`.
+* `Probability/FairGame` (item 138, which now imports Mathlib's `Probability/Independence/InfinitePi`
+  and `Probability/BorelCantelli`, for its witness): Wald's second identity. For steps of mean `0`
+  and second moment `σ²`, each independent of the past, and a bounded stopping time,
+  `E[S_τ²] = σ² E[τ]` (`integral_stoppedValue_sq_eq`); wider: independence of the past only, and
+  any filtration in which step `n` is known at time `n + 1`.
+* `Probability/FiniteChain` (item 148): mean hitting times. For a chain with `P ≥ 0`, rows summing to
+  `1` and a target reachable from every state, the series `h = ∑ₜ Q^t u` converge and `h` is the
+  only solution of `g = 0` on the target, `g = 1 + P g` off it (`meanHitting_eq`); the draft's
+  earlier statement, every entry at least `δ > 0` and a nonempty target, is kept as a corollary
+  (`meanHitting_eq_of_le`).
+
 ## 2. Categories to add
 
 Tiered by how much work they do inside the system that already exists, not by how interesting

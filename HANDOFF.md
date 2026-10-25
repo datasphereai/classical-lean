@@ -438,6 +438,33 @@ Narrowing: none. Counts predicted by this order's job 3, to be re-measured by it
 tree (round 71's fragment): **140 modules, 3574 theorem constants (3527 + 47, the censuses of the
 changed modules), `lake build` 4193 jobs, 0 warnings** (no module added).
 
+**Dated 2026-10-25 UTC (order LEAN-35, round 72; branch `lean-35`, DSMain):** five items from below
+MATH-PLAN-library-2's cut, from the API-credit drafts, each in its home module; no new module, five
+extended:
+
+- item 114, `Probability/KalmanVariance`: the steady Kalman filter of a local level, the Riccati
+  root `P` equals the steady value `(q + K² r)/(1 − (1 − K)²)` of a first-order recursion with
+  coefficient `1 − K`, `K = P/(P + r)` (`riccatiRoot_eq_steady`); the module now imports
+  `Probability/FirstOrderRecursion`;
+- item 115, `Probability/MovingAverage`: the long-run variance of a moving average,
+  `Var(X 0 + ⋯ + X (n − 1)) = n v (∑ θ)² − 2 ∑_{k ≤ q} k γ(k)` for `n > q`, and
+  `n Var(mean) → v (∑ θ)²` (`variance_sum_movingAverage`); the module now imports
+  `Probability/EffectiveSampleSize`;
+- item 125, `Probability/MaximalInequality`: the Hájek–Rényi inequality
+  (`measureReal_exists_mul_abs_ge_le`), GENERALIZED: any finite measure, and no `S 0 = 0`;
+- item 138, `Probability/FairGame`: Wald's second identity `E[S_τ²] = σ² E[τ]` for a bounded
+  stopping time (`integral_stoppedValue_sq_eq`), GENERALIZED: each step independent only of the
+  past, any filtration in which step `n` is known at time `n + 1`; the module now imports Mathlib's
+  `Probability/Independence/InfinitePi` and `Probability/BorelCantelli`, for its witness;
+- item 148, `Probability/FiniteChain`: mean hitting times of a finite chain, `h = ∑ₜ Q^t u` (`Q`
+  the chain killed on the target, `u` the indicator off it) is the only `g` with `g = 1 + P g` off
+  the target and `g = 0` on it (`meanHitting_eq`), and the corollary for a chain whose every entry
+  is at least `δ > 0`, with a nonempty target (`meanHitting_eq_of_le`).
+
+Narrowing: none. Counts predicted by this order's job 3, to be re-measured by its gates on the clean
+tree (round 72's fragment): **140 modules, 3602 theorem constants (3574 + 28, the censuses of the
+changed modules), `lake build` 4193 jobs, 0 warnings** (no module added).
+
 ---
 
 ## 2. What I claimed, and what I actually checked
