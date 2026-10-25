@@ -6,6 +6,8 @@ Authors: Dustin Watkins, Claude (Anthropic)
 
 import Mathlib.Probability.Martingale.OptionalStopping
 import Mathlib.Probability.ConditionalExpectation
+import Mathlib.Probability.Independence.InfinitePi
+import Mathlib.Probability.BorelCantelli
 
 /-!
 # No stopping rule beats a fair game
@@ -40,6 +42,25 @@ arithmetic):
 Not claimed needed: that `S` is adapted, and in the independent form that `X n` is known by time
 `n + 1` (both serve the proof, which builds a martingale); and `S 0 = 0` only fixes the start,
 since `E[S τ] = E[S 0] + m E[τ]` follows in the same way (review r35).
+
+## Wald's second identity (order LEAN-35)
+
+Order LEAN-35 (item 138 of MATH-PLAN-library-2) adds **Wald's second identity**
+(`integral_stoppedValue_sq_eq`): on a probability space, for steps `X n` known by time `n + 1`,
+square integrable with mean `0` and second moment `σ²`, each independent of the past `𝒢 n`, and a
+stopping time `τ ≤ N`, the sum `S_τ` of the first `τ` steps has `E[S_τ²] = σ² E[τ]`. Wider than
+the plan's row: each step is asked to be independent only of the past, and `𝒢` is any filtration
+in which step `n` is known at time `n + 1`; `GamblersRuin`'s `integral_stoppedValue_walk_sq` is the
+fair `±1` case. The proof is the draft `d138-r1-s1` (written by Claude Opus 5.5 through the
+Anthropic Batch API, the lane's API-CREDIT-1 work), adapted by order LEAN-35's session: inside this
+namespace, binding its own types as the draft does (so this module's `variable` lines do not reach
+it); its docstring rewritten (the item, the credit, `E[τ]` written out, "(variance)" read as
+"(so variance)", the wider reading, `GamblersRuin`'s fair `±1` case and the proof's route); the
+deprecated `memLp_finset_sum` replaced by `memLp_finsetSum`; one `show` that changed the goal
+written as `change`. For its witness, on independent fair coins, this module now imports
+`Mathlib.Probability.Independence.InfinitePi` and `Mathlib.Probability.BorelCantelli`; nothing
+else uses them. Its hypotheses were not drop-tested by this order. Its witness is at the end of the
+file.
 
 ## What Mathlib provides
 
@@ -135,6 +156,71 @@ theorem integral_stoppedValue_sum_eq [IsProbabilityMeasure μ] {X : ℕ → Ω �
       (comap_measurable (X n)).stronglyMeasurable (hind n)
     rwa [hmean n] at this
 
+/-- **Wald's second identity for a bounded stopping time** (item 138 of MATH-PLAN-library-2; the
+draft `d138-r1-s1`, written by Claude Opus 5.5 through the Anthropic Batch API, the lane's
+API-CREDIT-1 work, adapted by order LEAN-35's session). On a probability space, let each step
+`X n` be known by time `n + 1`, square integrable with mean `0` and second moment (so variance)
+`σ²`, and independent of the past `𝒢 n`. For a stopping time `τ ≤ N`, the sum `S_τ` of the first
+`τ` steps satisfies `E[S_τ²] = σ² E[τ]`, with `E[τ]` written `∫ ω, ((τ ω).untopA : ℝ) ∂μ`. Wider
+than the plan's row (review r6: GENERALIZED): each step need only be independent of the past
+`𝒢 n`, not of a family independent from the start, and `𝒢` is any filtration in which step `n` is
+known at time `n + 1`.
+`GamblersRuin`'s `integral_stoppedValue_walk_sq` is the fair `±1` case. The proof applies
+`integral_stoppedValue_eq_mul` to the squares `S n²`, whose steps have conditional mean `σ²`. -/
+theorem integral_stoppedValue_sq_eq {Ω : Type*} {m0 : MeasurableSpace Ω} {μ : Measure Ω}
+    {𝒢 : Filtration ℕ m0} [IsProbabilityMeasure μ] {X : ℕ → Ω → ℝ} {σ : ℝ}
+    (hX : ∀ n, StronglyMeasurable[𝒢 (n + 1)] (X n)) (hL2 : ∀ n, MemLp (X n) 2 μ)
+    (hmean : ∀ n, ∫ ω, X n ω ∂μ = 0) (hvar : ∀ n, ∫ ω, X n ω ^ 2 ∂μ = σ ^ 2)
+    (hind : ∀ n, Indep (MeasurableSpace.comap (X n) inferInstance) (𝒢 n) μ)
+    {τ : Ω → WithTop ℕ} (hτ : IsStoppingTime 𝒢 τ) {N : ℕ} (hbdd : ∀ ω, τ ω ≤ N) :
+    ∫ ω, (stoppedValue (fun n ω ↦ ∑ i ∈ range n, X i ω) τ ω) ^ 2 ∂μ =
+      σ ^ 2 * ∫ ω, ((τ ω).untopA : ℝ) ∂μ := by
+  have hSm : ∀ n, StronglyMeasurable[𝒢 n] (fun ω ↦ ∑ i ∈ range n, X i ω) := fun n ↦
+    Finset.stronglyMeasurable_fun_sum _ fun i hi ↦
+      (hX i).mono (𝒢.mono (Nat.succ_le_of_lt (mem_range.mp hi)))
+  have hSL2 : ∀ n, MemLp (fun ω ↦ ∑ i ∈ range n, X i ω) 2 μ := fun n ↦
+    memLp_finsetSum (range n) fun i _ ↦ hL2 i
+  have hXint : ∀ n, Integrable (X n) μ := fun n ↦ (hL2 n).integrable (by norm_num)
+  have key : ∀ a b : ℝ, |2 * a * b| ≤ a ^ 2 + b ^ 2 := fun a b ↦
+    abs_le.mpr ⟨by nlinarith [sq_nonneg (a + b)], by nlinarith [sq_nonneg (a - b)]⟩
+  refine ClassicalLean.Probability.FairGame.integral_stoppedValue_eq_mul
+    (S := fun n ω ↦ (∑ i ∈ range n, X i ω) ^ 2) (m := σ ^ 2)
+    (fun n ↦ ((hSm n).measurable.pow_const 2).stronglyMeasurable)
+    (fun n ↦ (hSL2 n).integrable_sq) (fun ω ↦ by simp) (fun n ↦ ?_) hτ hbdd
+  show μ[(fun ω ↦ (∑ i ∈ range (n + 1), X i ω) ^ 2) - (fun ω ↦ (∑ i ∈ range n, X i ω) ^ 2)
+    | 𝒢 n] =ᵐ[μ] fun _ ↦ σ ^ 2
+  have e : (fun ω ↦ (∑ i ∈ range (n + 1), X i ω) ^ 2) - (fun ω ↦ (∑ i ∈ range n, X i ω) ^ 2)
+      = (fun ω ↦ 2 * ∑ i ∈ range n, X i ω) * X n + fun ω ↦ X n ω ^ 2 := by
+    funext ω
+    simp only [Pi.sub_apply, Pi.add_apply, Pi.mul_apply, sum_range_succ]
+    ring
+  rw [e]
+  have hXm : Measurable (X n) := (hX n).measurable.mono (𝒢.le (n + 1)) le_rfl
+  have hSmeas : Measurable (fun ω ↦ ∑ i ∈ range n, X i ω) :=
+    (hSm n).measurable.mono (𝒢.le n) le_rfl
+  have hfm : StronglyMeasurable[𝒢 n] (fun ω ↦ 2 * ∑ i ∈ range n, X i ω) :=
+    ((hSm n).measurable.const_mul 2).stronglyMeasurable
+  have hi1 : Integrable ((fun ω ↦ 2 * ∑ i ∈ range n, X i ω) * X n) μ := by
+    refine Integrable.mono' ((hSL2 n).integrable_sq.add (hL2 n).integrable_sq)
+      ((hSmeas.const_mul 2).mul hXm).aestronglyMeasurable (ae_of_all _ fun ω ↦ ?_)
+    change ‖2 * (∑ i ∈ range n, X i ω) * X n ω‖ ≤ _
+    rw [Real.norm_eq_abs]
+    exact key _ _
+  have hi2 : Integrable (fun ω ↦ X n ω ^ 2) μ := (hL2 n).integrable_sq
+  have h3 : μ[X n | 𝒢 n] =ᵐ[μ] fun _ ↦ (0 : ℝ) := by
+    have := condExp_indep_eq hXm.comap_le (𝒢.le n)
+      (comap_measurable (X n)).stronglyMeasurable (hind n)
+    rwa [hmean n] at this
+  have h4 : μ[fun ω ↦ X n ω ^ 2 | 𝒢 n] =ᵐ[μ] fun _ ↦ σ ^ 2 := by
+    have := condExp_indep_eq (m₁ := MeasurableSpace.comap (X n) inferInstance)
+      (f := fun ω ↦ X n ω ^ 2) hXm.comap_le (𝒢.le n)
+      ((comap_measurable (X n)).pow_const 2).stronglyMeasurable (hind n)
+    rwa [hvar n] at this
+  filter_upwards [condExp_add hi1 hi2 (𝒢 n),
+    condExp_mul_of_stronglyMeasurable_left hfm hi1 (hXint n), h3, h4] with ω h1 h2 h3' h4'
+  rw [h1, Pi.add_apply, h2, Pi.mul_apply, h3', h4']
+  simp
+
 end ClassicalLean.Probability.FairGame
 
 open MeasureTheory ProbabilityTheory in
@@ -176,3 +262,62 @@ example := ClassicalLean.Probability.FairGame.integral_stoppedValue_sum_eq (Ω :
     · exact (MeasurableSet.of_discrete :
         MeasurableSet[(inferInstance : MeasurableSpace (Fin 2))] _))
   (N := 2) (fun ω ↦ by fin_cases ω <;> simp)
+
+open MeasureTheory ProbabilityTheory in
+/-- The hypotheses of `integral_stoppedValue_sq_eq` hold together: on the space of coin sequences
+`ℕ → Bool` with independent fair coins (Mathlib's `Measure.infinitePi` of the uniform law on
+`Bool`), the filtration the coins' values generate; the steps `X n = ±1` read from coin `n + 1`, so
+step `n` is known at time `n + 1` and independent of what time `n` knows; each step is bounded, so
+square integrable, of mean `0` and second moment `σ² = 1`; the stopping time `τ = 1` when coin `1`
+is heads and `2` otherwise, known at time `1`, bounded by `N = 2`, so it stops at two different
+times. -/
+example := ClassicalLean.Probability.FairGame.integral_stoppedValue_sq_eq (Ω := ℕ → Bool)
+  (μ := Measure.infinitePi fun _ ↦ uniformOn Set.univ)
+  (𝒢 := Filtration.natural (fun i (ω : ℕ → Bool) ↦ if ω i then (1 : ℝ) else -1)
+    fun i ↦ ((measurable_of_countable fun c : Bool ↦ if c then (1 : ℝ) else -1).comp
+      (measurable_pi_apply i)).stronglyMeasurable)
+  (X := fun n ω ↦ if ω (n + 1) then 1 else -1) (σ := 1)
+  (fun n ↦ Filtration.stronglyAdapted_natural
+    (u := fun i (ω : ℕ → Bool) ↦ if ω i then (1 : ℝ) else -1) _ (n + 1))
+  (fun n ↦ MemLp.of_bound ((measurable_of_countable fun c : Bool ↦ if c then (1 : ℝ) else -1).comp
+      (measurable_pi_apply (n + 1))).aestronglyMeasurable 1
+    (ae_of_all _ fun ω ↦ by split_ifs <;> simp))
+  (fun n ↦ by
+    rw [← integral_map (φ := fun ω : ℕ → Bool ↦ ω (n + 1))
+      (f := fun c : Bool ↦ if c then (1 : ℝ) else -1) (measurable_pi_apply (n + 1)).aemeasurable
+      (measurable_of_countable fun c : Bool ↦ if c then (1 : ℝ) else -1).aestronglyMeasurable,
+      Measure.infinitePi_map_eval, integral_fintype Integrable.of_finite]
+    simp only [Measure.real, uniformOn_univ]
+    simp)
+  (fun n ↦ by
+    have h : (fun ω : ℕ → Bool ↦ (if ω (n + 1) then (1 : ℝ) else -1) ^ 2) = fun _ ↦ 1 := by
+      funext ω
+      split_ifs <;> norm_num
+    simp only [h, integral_const, probReal_univ, smul_eq_mul, mul_one, one_pow])
+  (fun n ↦ (iIndepFun_infinitePi (P := fun _ : ℕ ↦ (uniformOn Set.univ : Measure Bool))
+    (X := fun _ (c : Bool) ↦ if c then (1 : ℝ) else -1)
+    fun _ ↦ measurable_of_countable _).indep_comap_natural_of_lt _ (Nat.lt_succ_self n))
+  (τ := fun ω ↦ if ω 1 then 1 else 2)
+  (fun i ↦ by
+    rcases i with _ | _ | i
+    · convert MeasurableSet.empty
+      ext ω
+      by_cases h : ω 1 <;> simp [h]
+    · have hm := (Filtration.stronglyAdapted_natural
+        (u := fun i (ω : ℕ → Bool) ↦ if ω i then (1 : ℝ) else -1)
+        (fun i ↦ ((measurable_of_countable fun c : Bool ↦ if c then (1 : ℝ) else -1).comp
+          (measurable_pi_apply i)).stronglyMeasurable) 1).measurable
+      convert hm (measurableSet_singleton (1 : ℝ)) using 1
+      ext ω
+      by_cases h : ω 1
+      · simp [h]
+      · simp [h]
+        norm_num
+    · convert MeasurableSet.univ
+      ext ω
+      by_cases h : ω 1
+      · simp [h]
+      · simp [h]
+        norm_cast
+        omega)
+  (N := 2) (fun ω ↦ by split_ifs <;> simp)
