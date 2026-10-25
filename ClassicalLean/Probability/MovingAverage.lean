@@ -5,6 +5,7 @@ Authors: Dustin Watkins, Claude (Anthropic)
 -/
 
 import Mathlib.Probability.Moments.Covariance
+import ClassicalLean.Probability.EffectiveSampleSize
 
 /-!
 # The autocovariance of a moving average
@@ -26,6 +27,18 @@ subtraction in `ℕ` is cut off at `0`; it is the usual `X t = ∑ⱼ θⱼ e (t
 * `zero_le_sum_covariance_mul_cos` — the same item: **so it is never negative**, in real form,
   `∑_{|k| ≤ q} γ (|k|) cos (k φ) ≥ 0`, the real part of the identity; `v = cov(e 0, e 0) ≥ 0`, so
   no sign of `v` is assumed.
+* `variance_sum_movingAverage` — item 115 of MATH-PLAN-library-2 (order LEAN-35): **the long-run
+  variance of a moving average.** For white noise of variance `v` and `n > q`,
+  `Var(X 0 + ⋯ + X (n − 1)) = n v (∑ θ)² − 2 ∑_{k ≤ q} k γ(k)` with `γ(k) = cov(X k, X 0)`, so
+  `n · Var(mean) → v (∑ θ)²`; through `EffectiveSampleSize`'s variance of a sum of
+  covariance-stationary terms, which this module now imports. The proof is the draft `d115-r2-s1`
+  (written by Claude Opus 5.5 through the Anthropic Batch API, the lane's API-CREDIT-1 work),
+  adapted by order LEAN-35's session: inside this namespace, the theorem's own
+  `[IsFiniteMeasure μ]` left to this module's `variable` line, `open Filter Topology in` on the
+  theorem in place of the draft's file-level `open`, its docstring rewritten (the item, the credit,
+  the hypotheses in words), a `show` that changed the goal written as `change`, and a `ring` that
+  never ran removed. Its hypotheses were not drop-tested by this order (the section below has no
+  line for it). Its witness is at the end of the file.
 
 This is the standard formula (with `θ₀ = 1` it is found in time-series textbooks, for example
 Brockwell and Davis's; no theorem number is cited, none was checked).
@@ -250,6 +263,140 @@ theorem zero_le_sum_covariance_mul_cos {q : ℕ} {θ : ℕ → ℝ} {e : ℕ →
   rw [Finset.sum_congr rfl hl, ← Complex.ofReal_mul, Complex.ofReal_re] at h
   rw [h]
   exact mul_nonneg hv (Complex.normSq_nonneg _)
+
+/-- The autocovariance at lag `k` of a moving average of order `q`, weights `θ`, noise variance
+`v`. -/
+private noncomputable def maCov (q : ℕ) (θ : ℕ → ℝ) (v : ℝ) (k : ℕ) : ℝ :=
+  v * ∑ j ∈ range (q + 1 - k), θ j * θ (j + k)
+
+/-- The square of a sum, grouped by lag:
+`(∑_{j<m} θⱼ)² = 2 ∑_{k<m} ∑_{j<m−k} θⱼ θ_{j+k} − ∑_{j<m} θⱼ²`. -/
+private lemma sq_sum_eq (θ : ℕ → ℝ) (m : ℕ) :
+    (∑ j ∈ range m, θ j) ^ 2 =
+      2 * ∑ k ∈ range m, ∑ j ∈ range (m - k), θ j * θ (j + k) - ∑ j ∈ range m, θ j * θ j := by
+  induction m with
+  | zero => simp
+  | succ m ih =>
+    have hc : ∀ k ∈ range (m + 1), ∑ j ∈ range (m + 1 - k), θ j * θ (j + k) =
+        ∑ j ∈ range (m - k), θ j * θ (j + k) + θ (m - k) * θ m := by
+      intro k hk
+      have hk' := mem_range.mp hk
+      rw [show m + 1 - k = m - k + 1 by omega, sum_range_succ, show m - k + k = m by omega]
+    have hrefl : ∑ k ∈ range (m + 1), θ (m - k) = ∑ k ∈ range (m + 1), θ k := by
+      have := sum_range_reflect θ (m + 1)
+      simpa only [Nat.add_sub_cancel] using this
+    have h3 : ∑ k ∈ range (m + 1), ∑ j ∈ range (m + 1 - k), θ j * θ (j + k) =
+        ∑ k ∈ range m, ∑ j ∈ range (m - k), θ j * θ (j + k) +
+          (∑ j ∈ range (m + 1), θ j) * θ m := by
+      rw [sum_congr rfl hc, sum_add_distrib,
+        sum_range_succ (fun k ↦ ∑ j ∈ range (m - k), θ j * θ (j + k)) m, Nat.sub_self,
+        range_zero, sum_empty, add_zero, ← sum_mul, hrefl]
+    have h1 : ∑ j ∈ range (m + 1), θ j = ∑ j ∈ range m, θ j + θ m := sum_range_succ _ _
+    have h2 : ∑ j ∈ range (m + 1), θ j * θ j = ∑ j ∈ range m, θ j * θ j + θ m * θ m :=
+      sum_range_succ _ _
+    rw [h3, h2, h1]
+    linear_combination ih
+
+open Filter Topology in
+/-- **The long-run variance of a moving average** (item 115 of MATH-PLAN-library-2; the draft
+`d115-r2-s1`, written by Claude Opus 5.5 through the Anthropic Batch API, the lane's API-CREDIT-1
+work, adapted by order LEAN-35's session). For white noise of variance `v` (each `e t`
+square-integrable, `cov(e s, e t) = v` if `s = t` and `0` otherwise) under a finite measure `μ`,
+and the moving average `X = movingAverage q θ e` of order `q` with weights `θ`, for every `n > q`,
+`Var(X 0 + ⋯ + X (n − 1)) = n v (∑_{j ≤ q} θ j)² − 2 ∑_{k ≤ q} k γ(k)` with
+`γ(k) = cov(X k, X 0)`, the autocovariance at lag `k` (`covariance_movingAverage`); and
+consequently `n · Var(mean of X 0, …, X (n − 1)) → v (∑_{j ≤ q} θ j)²`. The proof uses
+`EffectiveSampleSize`'s variance of a sum of covariance-stationary terms. -/
+theorem variance_sum_movingAverage {q : ℕ} {θ : ℕ → ℝ}
+    {e : ℕ → Ω → ℝ} {v : ℝ}
+    (he : ∀ t, MemLp (e t) 2 μ) (hcov : ∀ s t, cov[e s, e t; μ] = if s = t then v else 0) :
+    (∀ n : ℕ, q < n →
+      Var[fun ω ↦ ∑ t ∈ range n, movingAverage q θ e t ω; μ] =
+        n * v * (∑ j ∈ range (q + 1), θ j) ^ 2 -
+          2 * ∑ k ∈ range (q + 1),
+            (k : ℝ) * cov[movingAverage q θ e k, movingAverage q θ e 0; μ]) ∧
+    Tendsto (fun n : ℕ ↦
+        (n : ℝ) * Var[fun ω ↦ (∑ t ∈ range n, movingAverage q θ e t ω) / (n : ℝ); μ])
+      atTop (𝓝 (v * (∑ j ∈ range (q + 1), θ j) ^ 2)) := by
+  have hγ : ∀ k : ℕ, cov[movingAverage q θ e k, movingAverage q θ e 0; μ] = maCov q θ v k := by
+    intro k
+    rw [maCov]
+    simpa only [zero_add] using covariance_movingAverage (θ := θ) he hcov 0 k
+  have hmain : ∀ n : ℕ, q < n →
+      Var[fun ω ↦ ∑ t ∈ range n, movingAverage q θ e t ω; μ] =
+        n * v * (∑ j ∈ range (q + 1), θ j) ^ 2 -
+          2 * ∑ k ∈ range (q + 1),
+            (k : ℝ) * cov[movingAverage q θ e k, movingAverage q θ e 0; μ] := by
+    intro n hn
+    have hX : ∀ i < n, MemLp (movingAverage q θ e i) 2 μ := fun i _ ↦ by
+      change MemLp (fun ω ↦ ∑ j ∈ range (q + 1), θ j * e (i + q - j) ω) 2 μ
+      exact memLp_finsetSum (range (q + 1)) (f := fun j ω ↦ θ j * e (i + q - j) ω)
+        fun j _ ↦ (he _).const_mul _
+    have hcovX : ∀ i < n, ∀ j < n, cov[movingAverage q θ e i, movingAverage q θ e j; μ] =
+        maCov q θ v (max i j - min i j) := by
+      intro i _ j _
+      rcases le_total i j with h | h
+      · obtain ⟨d, rfl⟩ := Nat.exists_eq_add_of_le h
+        rw [maCov, max_eq_right h, min_eq_left h, Nat.add_sub_cancel_left, covariance_comm,
+          covariance_movingAverage he hcov]
+      · obtain ⟨d, rfl⟩ := Nat.exists_eq_add_of_le h
+        rw [maCov, max_eq_left h, min_eq_right h, Nat.add_sub_cancel_left,
+          covariance_movingAverage he hcov]
+    have hV := EffectiveSampleSize.variance_sum_range_eq_of_stationary (μ := μ)
+      (X := movingAverage q θ e) (k := n) (γ := maCov q θ v) hX hcovX
+    have k1 := EffectiveSampleSize.sum_sum_lag_eq (maCov q θ v) n
+    have k2 := EffectiveSampleSize.sum_sum_lag_eq_range (maCov q θ v) n
+    have hzero : ∀ k, q + 1 ≤ k → maCov q θ v k = 0 := by
+      intro k hk
+      rw [maCov, Nat.sub_eq_zero_of_le hk, range_zero, sum_empty, mul_zero]
+    have hR : ∑ j ∈ range n, ((n : ℝ) - j) * maCov q θ v j =
+        ∑ j ∈ range (q + 1), ((n : ℝ) - j) * maCov q θ v j := by
+      symm
+      refine sum_subset (fun x hx ↦ ?_) (fun x _ hx' ↦ ?_)
+      · rw [mem_range] at hx ⊢
+        omega
+      · rw [mem_range] at hx'
+        rw [hzero x (by omega), mul_zero]
+    have hsplit : ∑ j ∈ range (q + 1), ((n : ℝ) - j) * maCov q θ v j =
+        (n : ℝ) * ∑ j ∈ range (q + 1), maCov q θ v j -
+          ∑ j ∈ range (q + 1), (j : ℝ) * maCov q θ v j := by
+      rw [mul_sum, ← sum_sub_distrib]
+      exact sum_congr rfl fun j _ ↦ by ring
+    have hsq := sq_sum_eq θ (q + 1)
+    have hC : ∑ k ∈ range (q + 1), maCov q θ v k =
+        v * ∑ k ∈ range (q + 1), ∑ j ∈ range (q + 1 - k), θ j * θ (j + k) := by
+      rw [mul_sum]
+      rfl
+    have hc0 : maCov q θ v 0 = v * ∑ j ∈ range (q + 1), θ j * θ j := by
+      rw [maCov]
+      simp
+    have hW : ∑ k ∈ range (q + 1),
+          (k : ℝ) * cov[movingAverage q θ e k, movingAverage q θ e 0; μ] =
+        ∑ k ∈ range (q + 1), (k : ℝ) * maCov q θ v k :=
+      sum_congr rfl fun k _ ↦ by rw [hγ k]
+    linear_combination hV + 2 * hW - k1 + k2 + 2 * hR + 2 * hsplit + 2 * (n : ℝ) * hC
+      - (n : ℝ) * v * hsq - (n : ℝ) * hc0
+  refine ⟨hmain, ?_⟩
+  have hmean : ∀ n : ℕ,
+      Var[fun ω ↦ (∑ t ∈ range n, movingAverage q θ e t ω) / (n : ℝ); μ] =
+        Var[fun ω ↦ ∑ t ∈ range n, movingAverage q θ e t ω; μ] / (n : ℝ) ^ 2 := by
+    intro n
+    simp_rw [div_eq_mul_inv]
+    rw [variance_mul_const]
+    ring
+  have hlim : Tendsto (fun n : ℕ ↦ v * (∑ j ∈ range (q + 1), θ j) ^ 2 -
+      2 * (∑ k ∈ range (q + 1),
+        (k : ℝ) * cov[movingAverage q θ e k, movingAverage q θ e 0; μ]) / (n : ℝ))
+      atTop (𝓝 (v * (∑ j ∈ range (q + 1), θ j) ^ 2)) := by
+    have := (tendsto_const_nhds (x := v * (∑ j ∈ range (q + 1), θ j) ^ 2)).sub
+      (tendsto_const_div_atTop_nhds_zero_nat (2 * (∑ k ∈ range (q + 1),
+        (k : ℝ) * cov[movingAverage q θ e k, movingAverage q θ e 0; μ])))
+    simpa only [sub_zero] using this
+  refine hlim.congr' ?_
+  filter_upwards [eventually_gt_atTop q] with n hn
+  have hn0 : (n : ℝ) ≠ 0 := Nat.cast_ne_zero.mpr (by omega)
+  rw [hmean, hmain n hn]
+  field_simp
 
 end ClassicalLean.Probability
 
@@ -610,3 +757,121 @@ example := ClassicalLean.Probability.zero_le_sum_covariance_mul_cos
     subst hM hh
     exact key)
   (t := 3) (φ := 1)
+
+open MeasureTheory ProbabilityTheory in
+open scoped ENNReal in
+/-- The hypotheses of `variance_sum_movingAverage` hold together: the points `n = 0, 1, 2, …` with
+chance `2^-(n+1)` (Lean's finite-measure instance comes from conditioning on the whole space, which
+changes nothing, as the chances sum to `1`); the noise `e t = √(2^t) · h t`, where `h t n` is `1` at
+`n = t`, `-1` for `n > t` and `0` below `t`; each `e t` is bounded, so in `L²`, has mean `0`,
+variance `v = 1`, and is uncorrelated with every other; the order `q = 2` and the weights
+`θ j = j + 1` (the same model as `covariance_movingAverage`'s witness). -/
+example := ClassicalLean.Probability.variance_sum_movingAverage
+  (μ := (Measure.sum fun n : ℕ ↦ ((2 : ℝ≥0∞)⁻¹) ^ (n + 1) • Measure.dirac n)[|Set.univ])
+  (q := 2) (θ := fun j ↦ (j : ℝ) + 1)
+  (e := fun t n ↦ Real.sqrt (2 ^ t) * if n = t then 1 else if t < n then -1 else 0) (v := 1)
+  (fun t ↦ MemLp.of_bound (measurable_of_countable _).aestronglyMeasurable (Real.sqrt (2 ^ t))
+    (ae_of_all _ fun n ↦ by
+      rw [Real.norm_eq_abs, abs_mul, abs_of_nonneg (Real.sqrt_nonneg _)]
+      exact mul_le_of_le_one_right (Real.sqrt_nonneg _) (by split_ifs <;> norm_num)))
+  (by
+    obtain ⟨M, hM⟩ : ∃ M : Measure ℕ,
+        M = Measure.sum fun n : ℕ ↦ ((2 : ℝ≥0∞)⁻¹) ^ (n + 1) • Measure.dirac n := ⟨_, rfl⟩
+    obtain ⟨h, hh⟩ : ∃ h : ℕ → ℕ → ℝ,
+        h = fun t n ↦ if n = t then 1 else if t < n then -1 else 0 := ⟨_, rfl⟩
+    have M_single : ∀ m : ℕ, M {m} = (2⁻¹ : ℝ≥0∞) ^ (m + 1) := by
+      intro m
+      rw [hM, Measure.sum_apply _ (measurableSet_singleton m)]
+      simp only [Measure.smul_apply, Measure.dirac_apply' _ (measurableSet_singleton m),
+        smul_eq_mul]
+      rw [tsum_eq_single m]
+      · simp
+      · intro n hn; simp [Set.indicator, hn]
+    have cond_eq : M[|Set.univ] = M := by
+      have M_univ : M Set.univ = 1 := by
+        rw [hM, Measure.sum_apply _ MeasurableSet.univ]
+        simp only [Measure.smul_apply, measure_univ, smul_eq_mul, mul_one, pow_succ]
+        rw [ENNReal.tsum_mul_right, ENNReal.tsum_geometric, ENNReal.one_sub_inv_two, inv_inv,
+          ENNReal.mul_inv_cancel (by simp) (by simp)]
+      rw [ProbabilityTheory.cond, Measure.restrict_univ, M_univ, inv_one, one_smul]
+    have integral_eq : ∀ f : ℕ → ℝ, Integrable f M →
+        ∫ n, f n ∂M = ∑' n, ((2 : ℝ)⁻¹) ^ (n + 1) * f n := by
+      intro f hf
+      rw [integral_countable hf]
+      congr 1; ext n
+      rw [measureReal_def, M_single]; simp
+    have bdd : ∀ (f : ℕ → ℝ) (C : ℝ), (∀ n, |f n| ≤ C) → Integrable f M := by
+      intro f C hC
+      rw [← cond_eq]
+      exact Integrable.of_bound (measurable_of_countable _).aestronglyMeasurable C
+        (ae_of_all _ fun n ↦ by simpa using hC n)
+    have summ_tail : ∀ t : ℕ, Summable fun n : ℕ ↦ if t + 1 ≤ n then (2 : ℝ)⁻¹ ^ n else 0 :=
+      fun t ↦ (summable_geometric_of_lt_one (r := (2 : ℝ)⁻¹) (by norm_num) (by norm_num)
+        ).of_nonneg_of_le
+        (fun n ↦ by split_ifs <;> positivity)
+        (fun n ↦ by split_ifs <;> first | exact le_rfl | positivity)
+    have sum_h : ∀ t : ℕ, ∑' n, (2 : ℝ)⁻¹ ^ (n + 1) * h t n = 0 := by
+      intro t
+      have r : ∀ n, (2 : ℝ)⁻¹ ^ (n + 1) * h t n = (if n = t then (2 : ℝ)⁻¹ ^ (t + 1) else 0) -
+          2⁻¹ * (if t + 1 ≤ n then (2 : ℝ)⁻¹ ^ n else 0) := by
+        intro n; rw [hh]; dsimp only
+        split_ifs <;> subst_vars <;> first | (exfalso; omega) | ring1
+      simp_rw [r]
+      rw [Summable.tsum_sub (hasSum_ite_eq t _).summable ((summ_tail t).mul_left _), tsum_ite_eq,
+        tsum_mul_left, tsum_geometric_inv_two_ge]
+      ring
+    have sum_h_sq : ∀ t : ℕ, ∑' n, (2 : ℝ)⁻¹ ^ (n + 1) * (h t n * h t n) = (2 : ℝ)⁻¹ ^ t := by
+      intro t
+      have r : ∀ n, (2 : ℝ)⁻¹ ^ (n + 1) * (h t n * h t n) =
+          (if n = t then (2 : ℝ)⁻¹ ^ (t + 1) else 0) +
+            2⁻¹ * (if t + 1 ≤ n then (2 : ℝ)⁻¹ ^ n else 0) := by
+        intro n; rw [hh]; dsimp only
+        split_ifs <;> subst_vars <;> first | (exfalso; omega) | ring1
+      simp_rw [r]
+      rw [Summable.tsum_add (hasSum_ite_eq t _).summable ((summ_tail t).mul_left _), tsum_ite_eq,
+        tsum_mul_left, tsum_geometric_inv_two_ge]
+      ring
+    have h_mul_lt : ∀ {s t : ℕ}, s < t → ∀ n, h s n * h t n = - h t n := by
+      intro s t hst n; rw [hh]; dsimp only
+      split_ifs <;> first | (exfalso; omega) | norm_num
+    have h_abs : ∀ t n, |h t n| ≤ 1 := by
+      intro t n; rw [hh]; dsimp only; split_ifs <;> norm_num
+    have key : ∀ s t, cov[fun n ↦ Real.sqrt (2 ^ s) * h s n, fun n ↦ Real.sqrt (2 ^ t) * h t n;
+        M[|Set.univ]] = if s = t then 1 else 0 := by
+      intro s t
+      have mean : ∀ t, ∫ n, Real.sqrt (2 ^ t) * h t n ∂M = 0 := by
+        intro t
+        rw [integral_eq _ (bdd _ (Real.sqrt (2 ^ t)) fun n ↦ by
+          rw [abs_mul, abs_of_nonneg (Real.sqrt_nonneg _)]
+          exact mul_le_of_le_one_right (Real.sqrt_nonneg _) (h_abs t n))]
+        simp_rw [mul_left_comm _ (Real.sqrt _)]
+        rw [tsum_mul_left, sum_h, mul_zero]
+      rw [covariance, cond_eq]
+      rw [mean, mean]
+      simp only [sub_zero]
+      rw [integral_eq _ (bdd _ (Real.sqrt (2 ^ s) * Real.sqrt (2 ^ t)) fun n ↦ by
+        rw [abs_mul, abs_mul, abs_mul, abs_of_nonneg (Real.sqrt_nonneg _),
+          abs_of_nonneg (Real.sqrt_nonneg _)]
+        have := h_abs s n; have := h_abs t n
+        have := Real.sqrt_nonneg (2 ^ s); have := Real.sqrt_nonneg (2 ^ t)
+        calc _ = Real.sqrt (2 ^ s) * Real.sqrt (2 ^ t) * (|h s n| * |h t n|) := by ring
+          _ ≤ Real.sqrt (2 ^ s) * Real.sqrt (2 ^ t) * (1 * 1) := by gcongr
+          _ = _ := by ring)]
+      have r : ∀ n,
+          (2 : ℝ)⁻¹ ^ (n + 1) * (Real.sqrt (2 ^ s) * h s n * (Real.sqrt (2 ^ t) * h t n)) =
+          Real.sqrt (2 ^ s) * Real.sqrt (2 ^ t) * ((2 : ℝ)⁻¹ ^ (n + 1) * (h s n * h t n)) := by
+        intro n; ring
+      simp_rw [r]
+      rw [tsum_mul_left]
+      rcases lt_trichotomy s t with hst | rfl | hst
+      · simp_rw [h_mul_lt hst, mul_neg]
+        rw [tsum_neg, sum_h, neg_zero, mul_zero]
+        simp [hst.ne]
+      · rw [sum_h_sq, ← Real.sqrt_mul (by positivity), Real.sqrt_mul_self (by positivity),
+          ← mul_pow, mul_inv_cancel₀ (by norm_num), one_pow]
+        simp
+      · simp_rw [mul_comm (h s _), h_mul_lt hst, mul_neg]
+        rw [tsum_neg, sum_h, neg_zero, mul_zero]
+        simp [hst.ne']
+    subst hM hh
+    exact key)
