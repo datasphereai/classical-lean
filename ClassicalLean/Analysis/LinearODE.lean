@@ -20,6 +20,21 @@ For a real square matrix `A` and a starting vector `x₀`:
 * `quadForm_le_exp_mul` — order LEAN-32, item 108, **a Lyapunov bound**: if
   `v ⬝ᵥ ((Aᵀ * P + P * A + (2 * c) • P) *ᵥ v) ≤ 0` for every `v`, then every solution of `x' = A x`
   has `x t ⬝ᵥ (P *ᵥ x t) ≤ exp (−2 c t) (x 0 ⬝ᵥ (P *ᵥ x 0))` for `t ≥ 0`.
+* `eq_exp_smul_mulVec_add_integral` — order LEAN-36, item 129, **variation of constants**: if
+  `x' = A x + f(t)` at every time, with `f` continuous, then
+  `x t = exp (t A) x(0) + ∫₀ᵗ exp ((t − s) A) f(s) ds` for every `t`. It gives the form of every
+  solution; that the formula is a solution is not stated here. The proof is the draft
+  `d129-r2-s1` (written by Claude Opus 5.5 through the Anthropic Batch API, the lane's API-CREDIT-1
+  work), adapted by order LEAN-36's session: inside this namespace, using the module's `variable`
+  line; its `first` blocks cut to the branches that fire and its `show` steps written `change`. Its
+  hypotheses were not drop-tested by this order. It uses Mathlib's
+  `Continuous.integral_hasStrictDerivAt` (the case of a continuous integrand, which Mathlib proves
+  from `intervalIntegral.integral_hasStrictDerivAt_right`; the plan row names
+  `intervalIntegral.integral_hasDerivAt_right`) and
+  `ContinuousLinearMap.intervalIntegral_comp_comm`;
+  `grep -rniE 'duhamel|variation of (constants|parameters)'` over Mathlib at v4.34.0 finds 0 lines
+  (order LEAN-36). Its witness is claude-ai's (lane `lean/LEAN-36/data/witnesses.txt`, section
+  LinearODE), with the theorem called by its full name.
 
 Here `exp` is Mathlib's `NormedSpace.exp`, the sum `∑ (t A)ᵏ / k!`. The statements do not depend
 on a choice of matrix norm; one (the `ℓ∞` operator norm) is chosen inside the proofs only, as in
@@ -145,6 +160,86 @@ theorem quadForm_le_exp_mul {A P : Matrix n n ℝ} {c : ℝ}
     _ ≤ Real.exp (-(2 * c * t)) * (x 0 ⬝ᵥ (P *ᵥ x 0)) :=
         mul_le_mul_of_nonneg_left h0 (Real.exp_pos _).le
 
+/-- `exp (a A) exp (b A) = exp ((a + b) A)`, since `a A` and `b A` commute. -/
+private lemma exp_smul_mul_exp_smul (A : Matrix n n ℝ) (a b : ℝ) :
+    NormedSpace.exp (a • A) * NormedSpace.exp (b • A) = NormedSpace.exp ((a + b) • A) := by
+  have hc : Commute (a • A) (b • A) := ((Commute.refl A).smul_left a).smul_right b
+  rw [add_smul]
+  exact (Matrix.exp_add_of_commute _ _ hc).symm
+
+/-- The family of linear maps `v ↦ exp (s A) v` is differentiable in `s`, with derivative
+`v ↦ A (exp (s A) v)`. -/
+private lemma exists_clm_exp (A : Matrix n n ℝ) :
+    ∃ C : ℝ → (n → ℝ) →L[ℝ] (n → ℝ), (∀ s v, C s v = NormedSpace.exp (s • A) *ᵥ v) ∧
+      ∀ s, HasDerivAt C (LinearMap.toContinuousLinearMap (Matrix.mulVecLin A) ∘L C s) s := by
+  let _ : NormedRing (Matrix n n ℝ) := Matrix.linftyOpNormedRing
+  let _ : NormedAlgebra ℝ (Matrix n n ℝ) := Matrix.linftyOpNormedAlgebra
+  let B : Matrix n n ℝ →L[ℝ] (n → ℝ) →L[ℝ] (n → ℝ) :=
+    LinearMap.toContinuousLinearMap
+      ((LinearMap.toContinuousLinearMap :
+        ((n → ℝ) →ₗ[ℝ] (n → ℝ)) ≃ₗ[ℝ] ((n → ℝ) →L[ℝ] (n → ℝ))).toLinearMap ∘ₗ
+        Matrix.mulVecBilin ℝ ℝ)
+  have hB : ∀ M v, B M v = M *ᵥ v := fun M v => rfl
+  refine ⟨fun s => B (NormedSpace.exp (s • A)), fun s v => hB _ v, fun s => ?_⟩
+  have h := B.hasFDerivAt.comp_hasDerivAt s (hasDerivAt_exp_smul_const' (𝕂 := ℝ) A s)
+  refine h.congr_deriv ?_
+  refine ContinuousLinearMap.ext fun v => ?_
+  change (A * NormedSpace.exp (s • A)) *ᵥ v = A *ᵥ (NormedSpace.exp (s • A) *ᵥ v)
+  rw [Matrix.mulVec_mulVec]
+
+/-- **Variation of constants** (item 129 of MATH-PLAN-library-2; the draft `d129-r2-s1`, written by
+Claude Opus 5.5 through the Anthropic Batch API, the lane's API-CREDIT-1 work, adapted by order
+LEAN-36's session). If `x' = A x + f(t)` at every time, with `f` continuous, then
+`x t = exp (t A) x(0) + ∫₀ᵗ exp ((t - s) A) f(s) ds` for every `t`, in the past as well as the
+future. This is the form of every solution; that the formula is a solution is not stated here.
+The proof: `p t = exp (t A) ∫₀ᵗ exp (-s A) f(s) ds` solves the same equation with `p 0 = 0`, so
+`x - p` solves `x' = A x` and `eq_exp_smul_mulVec` gives `x t - p t = exp (t A) x(0)`. -/
+theorem eq_exp_smul_mulVec_add_integral {A : Matrix n n ℝ} {f : ℝ → n → ℝ}
+    (hf : Continuous f) {x : ℝ → n → ℝ} (hx : ∀ t, HasDerivAt x (A *ᵥ x t + f t) t)
+    (t : ℝ) :
+    x t = NormedSpace.exp (t • A) *ᵥ x 0 +
+      ∫ s in (0 : ℝ)..t, NormedSpace.exp ((t - s) • A) *ᵥ f s := by
+  obtain ⟨C, hCv, hC⟩ := exists_clm_exp A
+  have hCc : Continuous C := continuous_iff_continuousAt.2 fun s => (hC s).continuousAt
+  have hmul : ∀ (a b : ℝ) (v : n → ℝ),
+      C a (C b v) = NormedSpace.exp ((a + b) • A) *ᵥ v := by
+    intro a b v
+    rw [hCv, hCv, Matrix.mulVec_mulVec, exp_smul_mul_exp_smul]
+  let φ : ℝ → n → ℝ := fun s => C (-s) (f s)
+  have hφc : Continuous φ := (hCc.comp continuous_neg).clm_apply hf
+  let g : ℝ → n → ℝ := fun u => ∫ s in (0 : ℝ)..u, φ s
+  have hg : ∀ u, HasDerivAt g (φ u) u := fun u =>
+    (hφc.integral_hasStrictDerivAt 0 u).hasDerivAt
+  let p : ℝ → n → ℝ := fun u => C u (g u)
+  have hp : ∀ u, HasDerivAt p (A *ᵥ p u + f u) u := by
+    intro u
+    have h1 : (LinearMap.toContinuousLinearMap (Matrix.mulVecLin A) ∘L C u) (g u) =
+        A *ᵥ p u := rfl
+    have h2 : C u (φ u) = f u := by
+      change C u (C (-u) (f u)) = f u
+      rw [hmul, add_neg_cancel, zero_smul, NormedSpace.exp_zero, Matrix.one_mulVec]
+    have h := (hC u).clm_apply (hg u)
+    rw [h1, h2] at h
+    exact h
+  have hy : ∀ u, HasDerivAt (fun s => x s - p s) (A *ᵥ (x u - p u)) u := by
+    intro u
+    refine ((hx u).sub (hp u)).congr_deriv ?_
+    rw [Matrix.mulVec_sub]
+    abel
+  have key : x t - p t = NormedSpace.exp (t • A) *ᵥ (x 0 - p 0) :=
+    ClassicalLean.Analysis.eq_exp_smul_mulVec hy t
+  have hp0 : p 0 = 0 := by
+    change C 0 (∫ s in (0 : ℝ)..0, φ s) = 0
+    rw [intervalIntegral.integral_same, map_zero]
+  have hpt : p t = ∫ s in (0 : ℝ)..t, NormedSpace.exp ((t - s) • A) *ᵥ f s := by
+    change C t (∫ s in (0 : ℝ)..t, φ s) = _
+    rw [← ContinuousLinearMap.intervalIntegral_comp_comm (C t) (hφc.intervalIntegrable 0 t)]
+    refine intervalIntegral.integral_congr fun s _ => ?_
+    change C t (C (-s) (f s)) = NormedSpace.exp ((t - s) • A) *ᵥ f s
+    rw [hmul, ← sub_eq_add_neg]
+  rw [hp0, sub_zero] at key
+  rw [← hpt, ← key, sub_add_cancel]
+
 end ClassicalLean.Analysis
 
 open Matrix in
@@ -167,3 +262,18 @@ example := ClassicalLean.Analysis.quadForm_le_exp_mul (n := Fin 2) (A := !![-1, 
     nlinarith [sq_nonneg (v 0), sq_nonneg (v 1)])
   (x := fun s ↦ NormedSpace.exp (s • !![-1, 1; -1, -1]) *ᵥ ![1, 0])
   (fun t ↦ ClassicalLean.Analysis.hasDerivAt_exp_smul_mulVec _ _ t) (t := 1) zero_le_one
+
+open Matrix in
+/-- The hypotheses of `eq_exp_smul_mulVec_add_integral` hold together: on `ℝ²`, the rotation
+generator `A = [[0, 1], [−1, 0]]`, the constant push `f t = (0, 1)`, continuous, and the curve
+`x t = exp (t A) (1, 0) + (1, 0)`, whose derivative `A exp (t A) (1, 0)` equals `A x t + f t`
+since `A (1, 0) = (0, −1)`; `t = 1`. -/
+example := ClassicalLean.Analysis.eq_exp_smul_mulVec_add_integral (n := Fin 2)
+  (A := !![0, 1; -1, 0]) (f := fun _ ↦ ![0, 1]) continuous_const
+  (x := fun s ↦ NormedSpace.exp (s • !![0, 1; -1, 0]) *ᵥ ![1, 0] + ![1, 0])
+  (fun t ↦ by
+    convert (ClassicalLean.Analysis.hasDerivAt_exp_smul_mulVec
+      (!![0, 1; -1, 0] : Matrix (Fin 2) (Fin 2) ℝ) ![1, 0] t).add_const ![1, 0] using 1
+    rw [mulVec_add, add_assoc, add_eq_left]
+    ext i; fin_cases i <;> simp)
+  (t := 1)
