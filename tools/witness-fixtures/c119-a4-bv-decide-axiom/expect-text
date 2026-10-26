@@ -1,0 +1,1 @@
+COPY-ERROR ClassicalLean/Fixture.lean: the listing driver refused the module (ruling 4): line 8: Fix.bv uses Lean's own machinery: it mentions Fix.bv._native.bv_decide.ax_1, which the gate refused

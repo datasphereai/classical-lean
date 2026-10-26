@@ -12,7 +12,7 @@ It runs Lean's frontend over the original module, command by command: it parses 
 checks it, and only then elaborates it (ruling 4, section 2 item 1). It prints:
 
 * `cmd|<line>|<kind>`: each command's kind, before it is elaborated (a `declaration` by its own
-  form, `theorem`, `definition`, …; `… in` and `mutual` crossed);
+  form, `theorem`, `definition`, …; `… in` crossed; `mutual` printed, and refused);
 * `inner|<line>|<kind>`, `attr|<line>|<attribute>`, `opt|<line>|<option>`: each node inside the
   command whose kind is in `codeKinds`, each attribute, each option name;
 * `refuse|<why>`: a command whose kind is not in `allowedCommands`, that holds a node of a kind in
@@ -47,8 +47,8 @@ checks it, and only then elaborates it (ruling 4, section 2 item 1). It prints:
 
 Each line is `@@WD<nonce>|…|WD<nonce>@@`. The nonce is read from standard input before any module
 text is elaborated, and the lines go to the standard output stream captured at start. Since ruling
-4 a module runs none of its own code while it elaborates (what the checks above allow), so it
-cannot print a line here at all.
+4 a module's code is never compiled and run while it elaborates (what the checks above allow): at
+most Lean reduces its pure terms, which can print nothing here.
 -/
 
 open Lean Elab Frontend
@@ -123,7 +123,8 @@ def written (bs : Syntax) : Nat :=
 
 /-- The command kinds a module may use (ruling 4, section 2 item 2): an allowlist, from the census
 of the library (`r5/census`). A `declaration` is named by its own form (`theorem`, `definition`, …);
-`… in` and `mutual` are crossed and each part is checked. -/
+`… in` is crossed and each part is checked. `mutual` is not on the list (the library has none), so a
+`mutual` block is refused. -/
 def allowedCommands : List Name :=
   [``Lean.Parser.Command.theorem, `lemma, ``Lean.Parser.Command.definition,
    ``Lean.Parser.Command.abbrev, ``Lean.Parser.Command.instance, ``Lean.Parser.Command.structure,
@@ -135,7 +136,8 @@ def allowedCommands : List Name :=
 
 /-- The syntax kinds, anywhere inside an allowed command, that run code while Lean elaborates them
 (ruling 4, section 2 item 3): a list, not an allowlist, found by asking Lean for the kinds Lean and
-Mathlib register (run `r5-askkinds`). -/
+Mathlib register whose names show they run code (run `r5-askkinds`); a kind whose name does not
+show it is missed by that search (`decide +native` was: review a4, F1, now read in `inner`). -/
 def codeKinds : List Name :=
   [`Lean.byElab, `Lean.runCmd, `Lean.runElab, `Lean.runMeta, `Lean.Parser.Tactic.runTac,
    `Lean.Parser.Command.eval, `Lean.Parser.Command.evalBang, `Qq.termBy_elabq_,
@@ -162,6 +164,13 @@ partial def inner (acc : Array (String × String.Pos.Raw × String)) (stx : Synt
   | .node _ k args =>
     let p := stx.getPos?.getD 0
     let acc := if codeKinds.contains k then acc.push ("inner", p, toString k) else acc
+    -- the configuration item `native` (`decide +native`, `(native := true)`,
+    -- `(config := { native := true })`) compiles and runs the module's code (review a4, F1;
+    -- the kinds read from Lean, run r5-pcfg)
+    let native := ((k == ``Lean.Parser.Tactic.posConfigItem || k == ``Lean.Parser.Tactic.valConfigItem) &&
+        stx[1].isIdent && stx[1].getId == `native) ||
+      (k == ``Lean.Parser.Term.structInstLVal && stx[0].isIdent && stx[0].getId == `native)
+    let acc := if native then acc.push ("inner", p, "the configuration item native") else acc
     let acc := if k == ``Lean.Parser.Term.attrInstance then
         let a := stx[1]
         let w := if a.getKind == ``Lean.Parser.Attr.simple then a[0].getId.toString else toString a.getKind

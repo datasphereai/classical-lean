@@ -1,2 +1,1 @@
-COPY-ERROR ClassicalLean/Fixture.lean: the listing driver refused the module (ruling 4): line 12: 
-uses Lean's own machinery
+COPY-ERROR ClassicalLean/Fixture.lean: the listing driver refused the module (ruling 4): line 12: the configuration item native runs code while Lean elaborates it

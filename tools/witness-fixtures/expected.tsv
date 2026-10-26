@@ -111,6 +111,8 @@ c109-io-def	1	COPY-ERROR BROKEN@15
 c110-unsafe-baseio	1	COPY-ERROR BROKEN@15
 c111-native-decide	1	COPY-ERROR BROKEN@15
 c112-decide-native	1	COPY-ERROR BROKEN@15
+c118-mutual	1	COPY-ERROR BROKEN@18
+c119-a4-bv-decide-axiom	1	COPY-ERROR BROKEN@13
 c113-omega-proof-ok	0	OK@13
 c114-m1-driver-failed	1	COPY-ERROR BROKEN@13
 c115-m2-elab-error	1	BROKEN@19

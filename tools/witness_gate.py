@@ -91,17 +91,20 @@ from the driver's own line, nothing after the refused command is elaborated anyw
 made, and each witness-form block is `BROKEN` ("not checked"). The checks, each decided by Lean:
 * command kinds, by an allowlist (`allowedCommands` in the driver), the kinds the library used at
   the census of 2026-10-26 (run r5-census, 140 modules): `theorem`, `lemma`, `def`, `abbrev`,
-  `instance`, `structure`, `example` (declarations: Lean checks them and adds constants), the
-  module docstring `/-! … -/`, `namespace`, `section`, `end`, `open`, `… in`, `variable`, `omit`,
+  `instance`, `structure`, `example` (declarations: Lean checks them and adds constants; `mutual` is
+  not on the list, so a `mutual` block is refused), the module docstring `/-! … -/`, `namespace`, `section`, `end`, `open`, `… in`, `variable`, `omit`,
   `include`, `universe` (scope: names and binders only), `set_option` (an option's value, no code)
   and `attribute` (whose attributes are checked below), and the end of input. A kind outside it,
   harmless or not, is refused: a module that needs one needs a ruling first. `macro`, `elab`,
   `syntax`, `notation`, `initialize`, `run_cmd`, `#eval` and their kin are never on it;
 * code inside an allowed command, by a list (`codeKinds`), not an allowlist: `by_elab`,
   `by_elabq`, `run_tac`, `run_cmd`, `run_elab`, `run_meta`, `#eval`, `#eval!` and
-  `native_decide`, anywhere in the command's syntax (found by asking Lean and Mathlib for the kinds
-  they register, run r5-askkinds; since a module can no longer add syntax, Lean's and Mathlib's
-  forms are all there are);
+  `native_decide`, anywhere in the command's syntax, and the configuration item `native`
+  (`decide +native`, `(native := true)`, a field `native := …`). The list was found by asking Lean
+  and Mathlib for the kinds they register whose names show they run code (run r5-askkinds), so a
+  kind whose name does not show it can be missing (the configuration item was, until review a4,
+  F1); since a module can no longer add syntax, Lean's and Mathlib's forms are all there are. A
+  form missed here still meets the next check after it ran (review a4 measured pure code only);
 * attributes, by an allowlist (`allowedAttrs`): `simp` and `instance`, read from every `@[…]` and
   `attribute […]` in the syntax (neither runs code: `simp` adds a rewrite lemma, `instance` a
   candidate for instance search, both of them terms Lean has checked);
