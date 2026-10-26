@@ -356,8 +356,11 @@ def selfTest : CommandElabM Nat := do
 end UninformativeReport
 
 open UninformativeReport in
--- The budget of each theorem is set inside `judge`; this outer one only bounds the command.
-set_option maxHeartbeats 0 in
+-- Each theorem's try has its budget set inside `judge`. This outer one is the budget of every other
+-- lift in the command: each `liftCoreM` or `liftTermElabM` starts its own heartbeat count, so it
+-- caps each lift, not the total. It is finite, as `tools/VacuityGate.lean`'s is (order VACUITY-4,
+-- Goal item 7a).
+set_option maxHeartbeats 2000000 in
 run_cmd do
   let bad ← selfTest
   let (thms, defs) ← collect `ClassicalLean
