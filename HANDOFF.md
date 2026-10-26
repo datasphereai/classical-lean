@@ -470,7 +470,8 @@ the older witnesses brought to rule 2, and two gate leftovers; no theorem added 
 
 - The witness gate, `tools/witness_gate.py`, with its listing driver `tools/WitnessListing.lean`,
   its tests `tools/witness_gate_tests.py` and 119 fixtures under `tools/witness-fixtures/` (§4), after
-  five rounds of cold review and rulings 1 to 5 of the order; its listing file
+  five rounds of cold review, a confirming pass of the last fixes (review a4c, whose finding is
+  stated as a limit in §4) and rulings 1 to 6 of the order; its listing file
   `tools/witness_reviewed.txt` holds one entry, PrimitiveDivisor's line 423 (a name-resolution
   check, `LISTED`).
 - Witnesses: 23 new rule-2 witnesses in ten modules (Superadditive 5, Spectral3x3 1,
@@ -1091,20 +1092,25 @@ Seven gates, in `tools/`. Each was fail-tested; if you change one, fail-test it 
   `STALE-LISTING`, `RANGE-MISMATCH` and `DOC-MISMATCH`. A listing driver, `tools/WitnessListing.lean`, runs
   Lean's frontend over every module: it lists the `example` keywords Lean parses (the gate's own
   list must agree), reads `run_cmd`'s scope at each block, counts each theorem's binders, and checks
-  every command before Lean elaborates it, so that a module may not run its own code while it
-  elaborates (command kinds and attributes by allowlists taken from the library's census of
-  2026-10-26, kinds that run code by a list found by asking Lean, and constants that use Lean's own
-  machinery refused after each command; a module that needs a kind or attribute off the lists needs
-  a ruling first). Run `python3 -I tools/witness_gate.py` from the repository root (whole library
-  about 27 minutes on DSMain, one Lean process at a time); its tests are
+  every command before Lean elaborates it (command kinds and attributes by allowlists taken from the
+  library's census of 2026-10-26, kinds that run code by a list found by asking Lean, and the
+  `native` configuration item), then refuses the constants it added that use Lean's own machinery;
+  a module that needs a kind or attribute off the lists needs a ruling first. Run
+  `python3 -I tools/witness_gate.py` from the repository root (whole library about 27 minutes on
+  DSMain, one Lean process at a time); its tests are
   `python3 -I tools/witness_gate_tests.py` (119 fixtures). **Stated limits** (its docstring has them
   all): a hypothesis hidden behind a definition that reducible unfolding does not open passes as
   `OK`; a theorem whose conclusion itself opens with a hypothesis binder gives a false `PARTIAL`
   (listed with its reason); a process that stops moving inside the horizon is not seen (the case
   above is met by review); a theorem whose hypotheses are bundled in a data argument passes when the
   witness supplies nothing real inside it; a default of `optParam` or `autoParam` counts as
-  supplied; typed examples are read, not elaborated; and the code that Lean's and Mathlib's own
-  elaborators run, options included, is not the module's and is not checked. **Standing rule:** it
+  supplied; typed examples are read, not elaborated; the code that Lean's and Mathlib's own
+  elaborators run, options included, is not the module's and is not checked; and (review a4c,
+  ruling 6 of order VACUITY-4) a module's own pure code can be compiled and run during
+  elaboration, inside a tactic branch the elaborator then discards (for example a
+  `(config := ...)` value or `Lean.reduceBool` under `first`), and the gate does not see it. A
+  witness that rests on such a run is still caught, by the checked copy's axiom check. Whether
+  such a run can do IO was tried once and not reproduced; it is not excluded. **Standing rule:** it
   and its tests run as job 5a's gates in this order and every later one.
 - **`check_sorry.py`** — text-level, so it sees modules nobody wired into the aggregator. Scoped
   to `ClassicalLean/`; skips `.lake/` and `tools/`, and the reason is written in the file

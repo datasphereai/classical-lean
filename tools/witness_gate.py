@@ -85,7 +85,8 @@ fresh for each run, given on its standard input and never written to a file; a l
 if it is exactly one such line, and a key printed twice is `COPY-ERROR`.
 
 What a module may do (order VACUITY-4, ruling 4). A module may not run its own code while Lean
-elaborates it: the gate's reading (the driver's run and the copy's) rests on that. The driver
+elaborates it, and the gate refuses what it sees of that; what it does not see is the limit stated
+after the checks below (review a4c; ruling 6). The driver
 parses each command and checks it before it elaborates it; a module it refuses is `COPY-ERROR`
 from the driver's own line, nothing after the refused command is elaborated anywhere, no copy is
 made, and each witness-form block is `BROKEN` ("not checked"). The checks, each decided by Lean:
@@ -104,7 +105,8 @@ made, and each witness-form block is `BROKEN` ("not checked"). The checks, each 
   and Mathlib for the kinds they register whose names show they run code (run r5-askkinds), so a
   kind whose name does not show it can be missing (the configuration item was, until review a4,
   F1); since a module can no longer add syntax, Lean's and Mathlib's forms are all there are. A
-  form missed here still meets the next check after it ran (review a4 measured pure code only);
+  form missed here meets the next check only if it leaves a constant behind, and inside a tactic
+  branch the elaborator discards it leaves none (review a4c; the limit below);
 * attributes, by an allowlist (`allowedAttrs`): `simp` and `instance`, read from every `@[…]` and
   `attribute […]` in the syntax (neither runs code: `simp` adds a rewrite lemma, `instance` a
   candidate for instance search, both of them terms Lean has checked);
@@ -117,6 +119,11 @@ made, and each witness-form block is `BROKEN` ("not checked"). The checks, each 
   `Lean.reduceNat` (what older Lean versions leave), and when it mentions a constant refused before. `Lean.`
   names inside proofs are allowed (`omega` leaves them; a proof term runs no code).
 The census found none of these refusals in the library.
+The limit (review a4c; order VACUITY-4, ruling 6): a module's own pure code can be compiled and run
+during elaboration, inside a tactic branch the elaborator then discards (for example a
+`(config := ...)` value or `Lean.reduceBool` under `first`), and the gate does not see it. A witness
+that rests on such a run is still caught, by the checked copy's axiom check. Whether such a run can
+do IO was tried once and not reproduced; it is not excluded.
 
 The verdicts, one line each:
 
@@ -241,8 +248,9 @@ running, which makes the block `BROKEN`); the code
 Lean's and Mathlib's own elaborators, delaborators and option handlers run is not the module's
 and is not checked (a `set_option` can change how they behave; the census found four options:
 `backward.isDefEq.respectTransparency`, `linter.defProp`, `linter.style.haveILetI`,
-`maxHeartbeats`); a module's pure definitions can still be evaluated by Lean's own elaborators
-(a tactic's configuration term), with no way to the check's state; and the check's fingerprint
+`maxHeartbeats`); a module's pure definitions can still be compiled and run by Lean's own
+elaborators (a tactic's configuration term, `Lean.reduceBool`), unseen inside a branch the
+elaborator discards (the limit stated above, review a4c); and the check's fingerprint
 and props text use `ppExpr`, which only Lean's and Mathlib's delaborators now act on.
 
 Scope of the fixtures (`tools/witness-fixtures/`, read by `tools/witness_gate_tests.py`): they lie

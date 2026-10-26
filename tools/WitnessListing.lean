@@ -46,9 +46,15 @@ checks it, and only then elaborates it (ruling 4, section 2 item 1). It prints:
 * `end|<count of ex lines>`, last.
 
 Each line is `@@WD<nonce>|…|WD<nonce>@@`. The nonce is read from standard input before any module
-text is elaborated, and the lines go to the standard output stream captured at start. Since ruling
-4 a module's code is never compiled and run while it elaborates (what the checks above allow): at
-most Lean reduces its pure terms, which can print nothing here.
+text is elaborated, and the lines go to the standard output stream captured at start.
+
+Before it elaborates a command, the driver refuses a command kind off its list, the named inner
+forms that run code and the `native` configuration item; after it, item 4 reads only the constants
+that stay in the environment. The limit (review a4c; order VACUITY-4, ruling 6): a module's own pure
+code can be compiled and run during elaboration, inside a tactic branch the elaborator then discards
+(for example a `(config := ...)` value or `Lean.reduceBool` under `first`), and the gate does not
+see it. A witness that rests on such a run is still caught, by the checked copy's axiom check.
+Whether such a run can do IO was tried once and not reproduced; it is not excluded.
 -/
 
 open Lean Elab Frontend
