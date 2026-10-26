@@ -224,46 +224,6 @@ theorem integral_stoppedValue_sq_eq {Ω : Type*} {m0 : MeasurableSpace Ω} {μ :
 end ClassicalLean.Probability.FairGame
 
 open MeasureTheory ProbabilityTheory in
-/-- The hypotheses of `integral_stoppedValue_sum_eq` hold together: under the uniform probability
-on two points, the filtration that knows nothing at time `0` and everything from time `1` on; the
-first step `X 0 = (0, 2)`, of mean `m = 1`, known at time `1` and independent of what time `0`
-knows (nothing), and the later steps `X n = 1`, constants, so of mean `1` and independent of
-everything; the stopping time `τ = 1` at the point `0` and `2` at the point `1`, which time `0`
-does not need to know (no point stops at `0`) and time `1` knows, bounded by `N = 2`. -/
-example := ClassicalLean.Probability.FairGame.integral_stoppedValue_sum_eq (Ω := Fin 2)
-  (μ := uniformOn Set.univ)
-  (𝒢 := ⟨fun n ↦ if n = 0 then ⊥ else (inferInstance : MeasurableSpace (Fin 2)),
-    fun i j hij ↦ by
-      rcases i with _ | i
-      · exact bot_le
-      · rcases j with _ | j
-        · omega
-        · exact le_rfl,
-    fun i ↦ by rcases i with _ | i; exacts [bot_le, le_rfl]⟩)
-  (X := fun n ω ↦ if n = 0 then ![0, 2] ω else 1) (m := 1)
-  (fun n ↦ (StronglyMeasurable.of_discrete :
-    StronglyMeasurable[(inferInstance : MeasurableSpace (Fin 2))] (_ : Fin 2 → ℝ)))
-  (fun _ ↦ Integrable.of_finite)
-  (fun n ↦ by
-    rw [integral_fintype Integrable.of_finite]
-    rcases n with _ | n <;> simp [uniformOn_univ, Measure.real, Fin.sum_univ_two])
-  (fun n ↦ by
-    rcases n with _ | n
-    · exact indep_bot_right _
-    · change Indep (MeasurableSpace.comap (fun _ : Fin 2 ↦ (1 : ℝ)) _) _ _
-      rw [MeasurableSpace.comap_const]
-      exact indep_bot_left _)
-  (τ := fun ω ↦ if ω = 0 then 1 else 2)
-  (fun i ↦ by
-    rcases i with _ | i
-    · change MeasurableSet[⊥] _
-      convert @MeasurableSet.empty (Fin 2) ⊥
-      ext ω; fin_cases ω <;> simp
-    · exact (MeasurableSet.of_discrete :
-        MeasurableSet[(inferInstance : MeasurableSpace (Fin 2))] _))
-  (N := 2) (fun ω ↦ by fin_cases ω <;> simp)
-
-open MeasureTheory ProbabilityTheory in
 /-- The hypotheses of `integral_stoppedValue_sq_eq` hold together: on the space of coin sequences
 `ℕ → Bool` with independent fair coins (Mathlib's `Measure.infinitePi` of the uniform law on
 `Bool`), the filtration the coins' values generate; the steps `X n = ±1` read from coin `n + 1`, so
@@ -297,6 +257,68 @@ example := ClassicalLean.Probability.FairGame.integral_stoppedValue_sq_eq (Ω :=
   (fun n ↦ (iIndepFun_infinitePi (P := fun _ : ℕ ↦ (uniformOn Set.univ : Measure Bool))
     (X := fun _ (c : Bool) ↦ if c then (1 : ℝ) else -1)
     fun _ ↦ measurable_of_countable _).indep_comap_natural_of_lt _ (Nat.lt_succ_self n))
+  (τ := fun ω ↦ if ω 1 then 1 else 2)
+  (fun i ↦ by
+    rcases i with _ | _ | i
+    · convert MeasurableSet.empty
+      ext ω
+      by_cases h : ω 1 <;> simp [h]
+    · have hm := (Filtration.stronglyAdapted_natural
+        (u := fun i (ω : ℕ → Bool) ↦ if ω i then (1 : ℝ) else -1)
+        (fun i ↦ ((measurable_of_countable fun c : Bool ↦ if c then (1 : ℝ) else -1).comp
+          (measurable_pi_apply i)).stronglyMeasurable) 1).measurable
+      convert hm (measurableSet_singleton (1 : ℝ)) using 1
+      ext ω
+      by_cases h : ω 1
+      · simp [h]
+      · simp [h]
+        norm_num
+    · convert MeasurableSet.univ
+      ext ω
+      by_cases h : ω 1
+      · simp [h]
+      · simp [h]
+        norm_cast
+        omega)
+  (N := 2) (fun ω ↦ by split_ifs <;> simp)
+
+open MeasureTheory ProbabilityTheory in
+/-- The hypotheses of `integral_stoppedValue_sum_eq` hold together: on the space of coin sequences
+`ℕ → Bool` with independent fair coins (Mathlib's `Measure.infinitePi` of the uniform law on
+`Bool`), the filtration the coins' values generate; the steps `X n = 3` or `-1` read from coin
+`n + 1`, so step `n` is known at time `n + 1` and independent of what time `n` knows, of mean
+`m = 1`; every step moves the walk (it is never `0`); the stopping time `τ = 1` when coin `1` is
+heads and `2` otherwise, known at time `1`, bounded by `N = 2`, and `τ ≥ 2` with chance `1/2`; by
+hand, `E[S τ] = 1/2 · 3 + 1/2 · (−1 + 1) = 3/2 = m · E[τ]` (review (c) group 2 gave this witness in
+place of one whose independence held only through a trivial σ-algebra and constant steps). -/
+example := ClassicalLean.Probability.FairGame.integral_stoppedValue_sum_eq (Ω := ℕ → Bool)
+  (μ := Measure.infinitePi fun _ ↦ uniformOn Set.univ)
+  (𝒢 := Filtration.natural (fun i (ω : ℕ → Bool) ↦ if ω i then (1 : ℝ) else -1)
+    fun i ↦ ((measurable_of_countable fun c : Bool ↦ if c then (1 : ℝ) else -1).comp
+      (measurable_pi_apply i)).stronglyMeasurable)
+  (X := fun n ω ↦ 2 * (if ω (n + 1) then (1 : ℝ) else -1) + 1) (m := 1)
+  (fun n ↦ (Filtration.stronglyAdapted_natural
+    (u := fun i (ω : ℕ → Bool) ↦ if ω i then (1 : ℝ) else -1) _ (n + 1)).const_mul 2 |>.add
+      stronglyMeasurable_const)
+  (fun n ↦ Integrable.of_bound
+    ((measurable_of_countable fun c : Bool ↦ 2 * (if c then (1 : ℝ) else -1) + 1).comp
+      (measurable_pi_apply (n + 1))).aestronglyMeasurable 3
+    (ae_of_all _ fun ω ↦ by split_ifs <;> norm_num))
+  (fun n ↦ by
+    rw [← integral_map (φ := fun ω : ℕ → Bool ↦ ω (n + 1))
+      (f := fun c : Bool ↦ 2 * (if c then (1 : ℝ) else -1) + 1)
+      (measurable_pi_apply (n + 1)).aemeasurable
+      (measurable_of_countable fun c : Bool ↦
+        2 * (if c then (1 : ℝ) else -1) + 1).aestronglyMeasurable,
+      Measure.infinitePi_map_eval, integral_fintype Integrable.of_finite]
+    simp only [Measure.real, uniformOn_univ]
+    norm_num)
+  (fun n ↦ indep_of_indep_of_le_left
+    ((iIndepFun_infinitePi (P := fun _ : ℕ ↦ (uniformOn Set.univ : Measure Bool))
+      (X := fun _ (c : Bool) ↦ if c then (1 : ℝ) else -1)
+      fun _ ↦ measurable_of_countable _).indep_comap_natural_of_lt _ (Nat.lt_succ_self n))
+    (Measurable.comap_le ((comap_measurable
+      (fun ω : ℕ → Bool ↦ if ω (n + 1) then (1 : ℝ) else -1)).const_mul 2 |>.add_const 1)))
   (τ := fun ω ↦ if ω 1 then 1 else 2)
   (fun i ↦ by
     rcases i with _ | _ | i
