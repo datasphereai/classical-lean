@@ -257,11 +257,6 @@ theorem onesQuad_mul_onesInvOnes_le [Nonempty ι] {V : Matrix ι ι ℝ} {m M : 
   rw [div_le_iff₀ (by positivity)]
   exact h
 
-/-- The hypothesis of `glsMatrix_ones_eq_minWeights` can be met: `V = 1` on `ℝ²`. -/
-example : glsMatrix (1 : Matrix (Fin 2) (Fin 2) ℝ) (of fun _ _ ↦ (1 : ℝ) : Matrix (Fin 2) Unit ℝ)
-    () = minWeights 1 :=
-  glsMatrix_ones_eq_minWeights (transpose_one) ()
-
 end ClassicalLean.Statistics
 
 open Matrix in
@@ -298,3 +293,10 @@ example := ClassicalLean.Statistics.onesQuad_mul_onesInvOnes_le (ι := Fin 2)
         simp [conjTranspose_eq_transpose_of_trivial, mul_apply, Fin.sum_univ_two, one_fin_two] <;>
         norm_num]
     exact posSemidef_conjTranspose_mul_self _)
+
+/-- The hypotheses of `glsMatrix_ones_eq_minWeights` hold together: `V = [[2, 1], [1, 3]]` on `ℝ²`
+(symmetric, not `1`, not diagonal) with a single column of ones; then `minWeights V = (2/3, 1/3)`
+(by hand: `V⁻¹ 1 = (2, 1) / 5` and `1ᵀ V⁻¹ 1 = 3/5`), not the plain average, so this is not the
+case where generalised least squares is ordinary least squares. -/
+example := ClassicalLean.Statistics.glsMatrix_ones_eq_minWeights (ι := Fin 2) (κ := Unit)
+  (V := !![2, 1; 1, 3]) (by ext i j; fin_cases i <;> fin_cases j <;> rfl) (c := ())
