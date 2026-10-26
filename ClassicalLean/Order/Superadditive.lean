@@ -111,12 +111,45 @@ theorem pos_of_pos (h1 : 0 < f 1) {n : ℕ} (hn : 0 < n) : 0 < f n := by
 
 end Superadditive
 
-/-- The identity is superadditive, with equality throughout — a witness that the hypotheses of
-the results above are satisfiable, so none of them is vacuously about an empty class. -/
-example : Superadditive id := fun _ _ => le_of_eq rfl
-
 /-- `linear_le` is sharp: for `f = id` it holds with equality, so no bound better than
 `n * f 1 ≤ f n` is available from superadditivity alone. -/
 example (n : ℕ) : n * (id 1) = id n := by simp
 
 end ClassicalLean
+
+/-- The hypotheses of `Superadditive.map_zero` hold together: `f n = n * n`, superadditive with room
+to spare (`(m + n) * (m + n) - m * m - n * n = 2 * m * n`), so not the identity's equality. -/
+example := ClassicalLean.Superadditive.map_zero (f := fun n ↦ n * n)
+  (fun m n ↦ by
+    change m * m + n * n ≤ (m + n) * (m + n)
+    rw [Nat.add_mul, Nat.mul_add, Nat.mul_add]; omega)
+
+/-- The hypotheses of `Superadditive.monotone` hold together: `f n = n * n`, superadditive with room
+to spare, so not the identity's equality. -/
+example := ClassicalLean.Superadditive.monotone (f := fun n ↦ n * n)
+  (fun m n ↦ by
+    change m * m + n * n ≤ (m + n) * (m + n)
+    rw [Nat.add_mul, Nat.mul_add, Nat.mul_add]; omega)
+
+/-- The hypotheses of `Superadditive.linear_le` hold together: `f n = n * n` at `n = 3`, where the
+bound `3 * f 1 = 3` is strict against `f 3 = 9`. -/
+example := ClassicalLean.Superadditive.linear_le (f := fun n ↦ n * n) (n := 3)
+  (fun m n ↦ by
+    change m * m + n * n ≤ (m + n) * (m + n)
+    rw [Nat.add_mul, Nat.mul_add, Nat.mul_add]; omega)
+
+/-- The hypotheses of `Superadditive.unbounded` hold together: `f n = n * n`, with `f 1 = 1`
+positive. -/
+example := ClassicalLean.Superadditive.unbounded (f := fun n ↦ n * n)
+  (fun m n ↦ by
+    change m * m + n * n ≤ (m + n) * (m + n)
+    rw [Nat.add_mul, Nat.mul_add, Nat.mul_add]; omega)
+  (by decide)
+
+/-- The hypotheses of `Superadditive.pos_of_pos` hold together: `f n = n * n`, with `f 1 = 1`
+positive, at `n = 2` (at `n = 1` the conclusion would restate `0 < f 1`). -/
+example := ClassicalLean.Superadditive.pos_of_pos (f := fun n ↦ n * n) (n := 2)
+  (fun m n ↦ by
+    change m * m + n * n ≤ (m + n) * (m + n)
+    rw [Nat.add_mul, Nat.mul_add, Nat.mul_add]; omega)
+  (by decide) (by decide)
