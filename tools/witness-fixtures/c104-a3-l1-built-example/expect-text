@@ -1,0 +1,1 @@
+COPY-ERROR ClassicalLean/Fixture.lean: the listing driver refused the module (ruling 4): line 12: command kind Lean.Parser.Command.elab is not on the gate's list

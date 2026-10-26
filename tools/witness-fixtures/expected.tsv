@@ -1,0 +1,118 @@
+# case	rc	expected verdict tokens (written by mkfixtures.py, order VACUITY-4)
+c01-ok	0	OK@13
+c02-partial-end	1	PARTIAL@13
+c03-partial-data	1	PARTIAL@19
+c04-broken-proof	1	BROKEN@13
+c05-broken-copy	1	BROKEN@19 COPY-ERROR COPY-ERROR
+c06-broken-native	1	BROKEN@21 COPY-ERROR
+c07-wrong-name	1	WRONG-NAME@25
+c08-ok-short	0	OK@13
+c09-ok-inside	0	OK@15
+c10-ok-private	0	OK@19
+c11-ok-two-opens	0	OK@15
+c12-ok-nested	0	OK@13
+c13-nodoc	1	NO-DOCSTRING@12
+c14-nodoc-section	1	NO-DOCSTRING@20
+c15-claim-singular	1	TYPED-CLAIM@13
+c16-claim-blank	1	TYPED-CLAIM@14
+c17-claim-wrapped	1	TYPED-CLAIM@14
+c18-claim-dash	1	TYPED-CLAIM@14
+c19-typed	0	TYPED@13
+c20-typed-after-simp	0	TYPED@20 TYPED@22
+c21-ok-charlit	0	OK@19
+c22-unread-open	1	UNREAD@12
+c23-unread-doc	1	UNREAD@12
+c24-not-a-block	0	NOT-A-BLOCK@13
+c25-unread-indent	1	UNREAD@13
+c26-listed	0	LISTED@12
+c27-stale	1	NO-DOCSTRING@12 STALE-LISTING
+c28-listed-broken	1	BROKEN@13 STALE-LISTING
+c29-wrong-name-root	1	WRONG-NAME@19
+c30-ok-small	0	OK@13
+c31-listed-fault	0	LISTED-FAULT@13
+c32-unread-attr	1	UNREAD@12 UNREAD@14
+c33-range	1	OK@13 RANGE-MISMATCH@13
+c34-planted-name	1	COPY-ERROR
+c35-adjacent	0	OK@13 OK@15
+c36-col0-continuation	1	PARTIAL@13 COPY-ERROR
+c37-layouts	0	OK@14 OK@18 OK@22 OK@26 OK@30 OK@34 OK@38
+c38-layout-open-between	1	NO-DOCSTRING@14 COPY-ERROR
+c39-layout-setopt-between	1	NO-DOCSTRING@14 COPY-ERROR
+c40-fun-subtype	1	PARTIAL@13
+c41-fun-empty	1	PARTIAL@13
+c42-section-variable	1	PARTIAL@16
+c43-listed-stale-facts	1	PARTIAL@19 STALE-LISTING
+c44-listed-broken-nodoc	1	BROKEN@20 STALE-LISTING COPY-ERROR
+c45-interpolated	0	OK@19
+c46-unclosed-comment	1	COPY-ERROR
+c47-forged-marker	1	BROKEN@13 COPY-ERROR
+c48-modifier-nodoc	1	NO-DOCSTRING@13
+c49-two-identical	0	LISTED@12 LISTED@14
+c50-head-imported	1	WRONG-NAME@13
+c51-missing-module	1	OK@13 STALE-LISTING
+c52-hole-comment	1	BROKEN@19
+c53-throwerror-hole	1	BROKEN@19 COPY-ERROR
+c54-forged-swallow	1	BROKEN@29 COPY-ERROR
+c55-forged-duplicate	1	BROKEN@29 COPY-ERROR
+c56-bare-data-binder	1	PARTIAL@19
+c57-h1-throwerror-newline	1	NOT-A-BLOCK@20 COPY-ERROR
+c58-h2-panic-plain	1	NOT-A-BLOCK@19 COPY-ERROR
+c59-h3-sbang-space	1	NOT-A-BLOCK@19 COPY-ERROR
+c60-h4-throwerror-comment	1	NOT-A-BLOCK@19 COPY-ERROR
+c61-control-throwerror-newline	1	TYPED@19 COPY-ERROR
+c62-forged-driver-alone	1	BROKEN@27 COPY-ERROR
+c63-forged-driver-hidden	1	NOT-A-BLOCK@34 COPY-ERROR
+c64-shadow-control	1	PARTIAL@15 BROKEN@18
+c65-shadow-isprop-axioms	1	BROKEN@22 BROKEN@25 COPY-ERROR
+c66-shadow-tostring	1	PARTIAL@18 BROKEN@21
+c67-shadow-intercalate	1	PARTIAL@18 BROKEN@21
+c68-shadow-list	1	PARTIAL@18 BROKEN@21
+c69-shadow-pure	1	PARTIAL@18 BROKEN@21
+c70-refuse-check-name	1	COPY-ERROR
+c71-plain-module-doc	0	OK@15
+c72-runcmd-rule	1	BROKEN@32 COPY-ERROR
+c73-runcmd-rule-local	1	BROKEN@34 COPY-ERROR
+c74-runcmd-rule-open-in	1	BROKEN@37 COPY-ERROR
+c75-runcmd-control	1	BROKEN@28 COPY-ERROR
+c76-runcmd-control-local	1	BROKEN@30 COPY-ERROR
+c77-runcmd-control-open-in	1	BROKEN@29 COPY-ERROR
+c78-bare-no-binder	0	OK@19
+c79-bare-forall-conclusion	0	OK@19
+c81-error-typed-only	1	TYPED@18 COPY-ERROR
+c80-sleep	1	SIGNAL
+c82-a2-n10-root-name	1	PARTIAL@17
+c83-a2-n8-paren-name	1	PARTIAL@13
+c84-a2-n2-strict-binder	1	PARTIAL@13
+c85-a2-n5-alias	1	BROKEN@15 COPY-ERROR
+c86-ascription	1	PARTIAL@19
+c87-implicit-at	1	PARTIAL@19
+c88-instance-filled	1	PARTIAL@19
+c89-partial-app	1	PARTIAL@19
+c90-private	1	PARTIAL@19
+c91-alias-chain	1	BROKEN@23 COPY-ERROR
+c92-implicit-unfilled	1	BROKEN@19
+c93-control-theorem-value	0	OK@21
+c94-a2-n7-at-name	1	PARTIAL@13
+c95-a2-n9-eta	1	PARTIAL@13
+c96-ac-r10	1	PARTIAL@15 PARTIAL@18
+c97-a2-n4-variable-binder	1	PARTIAL@15
+c98-a2-n3-after-colon	0	OK@13
+c99-a2-n1-lemma-binder	1	PARTIAL@13
+c100-a3-p1-runcmd-divergent	1	COPY-ERROR BROKEN@36
+c101-a3-p2-variable-divergent	1	COPY-ERROR BROKEN@28
+c102-a3-p3b-planted	1	COPY-ERROR BROKEN@30
+c103-a3-p6-functor-instance	1	COPY-ERROR BROKEN@36
+c104-a3-l1-built-example	1	COPY-ERROR
+c105-syntax-lone	1	COPY-ERROR BROKEN@15
+c106-by-elab	1	COPY-ERROR BROKEN@15
+c107-run-tac	1	COPY-ERROR BROKEN@15
+c108-term-elab-attr	1	COPY-ERROR BROKEN@15
+c109-io-def	1	COPY-ERROR BROKEN@15
+c110-unsafe-baseio	1	COPY-ERROR BROKEN@15
+c111-native-decide	1	COPY-ERROR BROKEN@15
+c112-decide-native	1	COPY-ERROR BROKEN@15
+c113-omega-proof-ok	0	OK@13
+c114-m1-driver-failed	1	COPY-ERROR BROKEN@13
+c115-m2-elab-error	1	BROKEN@19
+c116-control-allowed	0	OK@57
+c117-core-functor-instance	1	BROKEN@17

@@ -1,0 +1,2 @@
+# a test listing
+Fixture.lean	47381585c5f099a2c8dbcde6951291d1958a5ead518c3d5f7c5d7fd63b2fb77b	PARTIAL	9a0c6758a3a627105a2eaf47fc98eeffd2b80d45b2a92493406059cb09b724e3	a false PARTIAL: the conclusion opens with a binder

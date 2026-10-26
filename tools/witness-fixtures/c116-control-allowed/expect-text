@@ -1,0 +1,2 @@
+OK ClassicalLean/Fixture.lean:
+foo = Fix.foo; k=3 n=3

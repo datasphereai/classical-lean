@@ -1,0 +1,2 @@
+the listing driver took more than 1 s and was stopped
+BROKEN ClassicalLean/Fixture.lean:13 no binder count for Fix.foo (the listing driver failed)
