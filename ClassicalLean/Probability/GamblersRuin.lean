@@ -78,9 +78,9 @@ the next time and independent of the past, as above; `r = (1 - p) / p`.
   and on reaching `a` it is at least `r ^ a`; Ville's inequality (`MaximalInequality`, finite
   horizon) bounds each horizon `N`, and the events grow with `N` (continuity of the measure from
   below).
-* The hypotheses hold together: the first `example` at the end of the file, at `p = 1/3`
-  (independent steps from Mathlib's `ProbabilityTheory.exists_iid`, which brings in
-  `Mathlib.Probability.HasLawExists`).
+* The hypotheses hold together: the witnesses of the three theorems at the end of the file, at
+  `p = 1/3` (coins with three equally likely faces under Mathlib's `Measure.infinitePi`, a step up
+  when a coin shows `0`).
 
 Which hypotheses are needed (order LEAN-28's `checks.py`, exact, unless a row says otherwise; each
 case keeps the others):
@@ -107,7 +107,7 @@ case keeps the others):
   chance `1/3`, `a = 1`, `b = 2`, gives `1/3` against `3/7`; three paths of mass `1/3`, each step
   `+1` on exactly one, reach `1` with chance `2/3 > 1/2`. With the filtration that knows nothing,
   independence holds and the same steps break only "each step known by the next time".
-* a probability measure: needed by the first theorem (cold review r84; the second `example` at
+* a probability measure: needed by the first theorem (cold review r84; the `Unit` `example` at
   the end of the file): on one point of mass `∞`, Lean's `μ.real` of every set is
   `∞.toReal = 0`, so `hp` holds with `p = 0` for the steps `+1, -1, +1, …`, which are independent
   and known in time, and the walk never leaves `(-1, 2)`: the set where it stays has mass `∞`, not
@@ -152,7 +152,7 @@ the others, is by hand in every row.
   against `U 1 / U 2 = 1/3`.
 * a probability measure (an instance of the section): follows from the others, by hand, as for
   item 84's second theorem above.
-* The hypotheses hold together: the last `example` at the end of the file (coins with three equally
+* The hypotheses hold together: the witness of `measureReal_hit_eq_lucasU` (coins with three equally
   likely faces, a step up when the coin shows `0`, so `p = 1/3`; `a = 1`, `b = 2`).
 
 ## What Mathlib provides
@@ -1039,42 +1039,6 @@ theorem measureReal_hit_eq_lucasU (hX : ∀ n, StronglyMeasurable[𝒢 (n + 1)] 
 
 end Biased
 
-/-- The hypotheses of `ae_exitTime_ne_top_of_biased`, `measureReal_hit_eq_of_biased` and
-`measureReal_exists_ge_le_of_biased` hold together, at `p = 1/3`: independent steps `B n`, `true`
-with chance `1/3` (Mathlib's `ProbabilityTheory.exists_iid`), read as `±1`; the step at time `n` is
-the one indexed `n + 1`, and the filtration is the one the steps generate. -/
-example : ∃ (Ω : Type) (m0 : MeasurableSpace Ω) (μ : Measure Ω) (_ : IsProbabilityMeasure μ)
-    (𝒢 : Filtration ℕ m0) (X : ℕ → Ω → ℝ),
-    (∀ n, StronglyMeasurable[𝒢 (n + 1)] (X n)) ∧
-      (∀ n, Indep (MeasurableSpace.comap (X n) inferInstance) (𝒢 n) μ) ∧
-      (∀ n ω, X n ω = 1 ∨ X n ω = -1) ∧ (∀ n, μ.real {ω | X n ω = 1} = 1 / 3) ∧
-      (0 : ℝ) < 1 / 3 ∧ (1 / 3 : ℝ) < 1 ∧ (1 / 3 : ℝ) ≠ 1 / 2 ∧ (1 / 3 : ℝ) < 1 - 1 / 3 := by
-  set ν : Measure Bool := ENNReal.ofReal (1 / 3) • Measure.dirac true +
-    ENNReal.ofReal (2 / 3) • Measure.dirac false with hν
-  have hν1 : IsProbabilityMeasure ν := ⟨by
-    simp only [hν, Measure.add_apply, Measure.smul_apply, measure_univ, smul_eq_mul, mul_one]
-    rw [← ENNReal.ofReal_add (by norm_num) (by norm_num)]
-    norm_num⟩
-  obtain ⟨Ω, mΩ, P, B, hBm, hBlaw, hBind, hP⟩ := exists_iid ℕ ν
-  set g : Bool → ℝ := fun c ↦ if c then 1 else -1 with hg
-  have hgm : Measurable g := measurable_of_countable g
-  set f : ℕ → Ω → ℝ := fun i ω ↦ g (B i ω) with hf
-  have hfm : ∀ i, StronglyMeasurable (f i) := fun i ↦ (hgm.comp (hBm i)).stronglyMeasurable
-  have hfind : iIndepFun f P := hBind.comp (fun _ ↦ g) fun _ ↦ hgm
-  refine ⟨Ω, mΩ, P, hP, Filtration.natural f hfm, fun n ↦ f (n + 1), fun n ↦ ?_, fun n ↦ ?_,
-    fun n ω ↦ ?_, fun n ↦ ?_, by norm_num, by norm_num, by norm_num, by norm_num⟩
-  · exact Filtration.stronglyAdapted_natural hfm (n + 1)
-  · exact hfind.indep_comap_natural_of_lt hfm (Nat.lt_succ_self n)
-  · simp only [f, g]
-    split_ifs <;> simp
-  · have hset : {ω | f (n + 1) ω = 1} = B (n + 1) ⁻¹' {true} := by
-      ext ω
-      simp only [f, g, Set.mem_ofPred_eq, Set.mem_preimage, Set.mem_singleton_iff]
-      cases B (n + 1) ω <;> norm_num
-    rw [hset, measureReal_def, ← Measure.map_apply (hBm _) (measurableSet_singleton _),
-      (hBlaw (n + 1)).map_eq]
-    simp [hν]
-
 open scoped ENNReal in
 /-- **Why `ae_exitTime_ne_top_of_biased` needs a probability measure** (cold review r84): one point
 of mass `∞`. Lean's `μ.real` of every set is `∞.toReal = 0`, so `hp` holds with `p = 0` for the
@@ -1189,3 +1153,104 @@ example := ClassicalLean.Probability.GamblersRuin.measureReal_hit_eq_lucasU (Ω 
       (measurableSet_singleton 0), Measure.infinitePi_map_eval, uniformOn_univ]
     simp)
   (a := 1) (b := 2)
+
+open MeasureTheory ProbabilityTheory in
+/-- The hypotheses of `ae_exitTime_ne_top_of_biased` hold together: a biased walk, on the space of
+sequences `ℕ → Fin 3` of independent coins with three equally likely faces (Mathlib's
+`Measure.infinitePi` of the uniform law on `Fin 3`), the step `X n` is `+1` when coin `n + 1` shows
+`0` and `-1` otherwise, so each step is `1` with chance `p = 1/3`; the filtration is the one the
+coins' values generate (read as `±1`), so step `n` is known at time `n + 1` and independent of what
+time `n` knows; every step moves the walk, which is never constant; the targets `a = 2` and `b = 1`.
+-/
+example := ClassicalLean.Probability.GamblersRuin.ae_exitTime_ne_top_of_biased
+  (Ω := ℕ → Fin 3)
+  (μ := Measure.infinitePi fun _ ↦ uniformOn Set.univ)
+  (𝒢 := Filtration.natural (fun i (ω : ℕ → Fin 3) ↦ if ω i = 0 then (1 : ℝ) else -1)
+    fun i ↦ ((measurable_of_countable fun c : Fin 3 ↦ if c = 0 then (1 : ℝ) else -1).comp
+      (measurable_pi_apply i)).stronglyMeasurable)
+  (X := fun n ω ↦ if ω (n + 1) = 0 then 1 else -1)
+  (fun n ↦ Filtration.stronglyAdapted_natural
+    (u := fun i (ω : ℕ → Fin 3) ↦ if ω i = 0 then (1 : ℝ) else -1) _ (n + 1))
+  (fun n ↦ (iIndepFun_infinitePi (P := fun _ : ℕ ↦ (uniformOn Set.univ : Measure (Fin 3)))
+    (X := fun _ (c : Fin 3) ↦ if c = 0 then (1 : ℝ) else -1)
+    fun _ ↦ measurable_of_countable _).indep_comap_natural_of_lt _ (Nat.lt_succ_self n))
+  (fun n ω ↦ by split_ifs <;> simp) (p := 1 / 3)
+  (fun n ↦ by
+    have hset : {ω : ℕ → Fin 3 | (if ω (n + 1) = 0 then (1 : ℝ) else -1) = 1} =
+        (fun ω : ℕ → Fin 3 ↦ ω (n + 1)) ⁻¹' {0} := by
+      ext ω
+      by_cases h : ω (n + 1) = 0
+      · simp [h]
+      · norm_num [h]
+    rw [hset, measureReal_def, ← Measure.map_apply (measurable_pi_apply (n + 1))
+      (measurableSet_singleton 0), Measure.infinitePi_map_eval, uniformOn_univ]
+    simp)
+  (a := 2) (b := 1)
+
+open MeasureTheory ProbabilityTheory in
+/-- The hypotheses of `measureReal_hit_eq_of_biased` hold together: a biased walk, on the space of
+sequences `ℕ → Fin 3` of independent coins with three equally likely faces (Mathlib's
+`Measure.infinitePi` of the uniform law on `Fin 3`), the step `X n` is `+1` when coin `n + 1` shows
+`0` and `-1` otherwise, so each step is `1` with chance `p = 1/3`; the filtration is the one the
+coins' values generate (read as `±1`), so step `n` is known at time `n + 1` and independent of what
+time `n` knows; every step moves the walk, which is never constant; `0 < 1/3 < 1` and `1/3 ≠ 1/2`;
+the targets `a = 2` and `b = 1`. -/
+example := ClassicalLean.Probability.GamblersRuin.measureReal_hit_eq_of_biased
+  (Ω := ℕ → Fin 3)
+  (μ := Measure.infinitePi fun _ ↦ uniformOn Set.univ)
+  (𝒢 := Filtration.natural (fun i (ω : ℕ → Fin 3) ↦ if ω i = 0 then (1 : ℝ) else -1)
+    fun i ↦ ((measurable_of_countable fun c : Fin 3 ↦ if c = 0 then (1 : ℝ) else -1).comp
+      (measurable_pi_apply i)).stronglyMeasurable)
+  (X := fun n ω ↦ if ω (n + 1) = 0 then 1 else -1)
+  (fun n ↦ Filtration.stronglyAdapted_natural
+    (u := fun i (ω : ℕ → Fin 3) ↦ if ω i = 0 then (1 : ℝ) else -1) _ (n + 1))
+  (fun n ↦ (iIndepFun_infinitePi (P := fun _ : ℕ ↦ (uniformOn Set.univ : Measure (Fin 3)))
+    (X := fun _ (c : Fin 3) ↦ if c = 0 then (1 : ℝ) else -1)
+    fun _ ↦ measurable_of_countable _).indep_comap_natural_of_lt _ (Nat.lt_succ_self n))
+  (fun n ω ↦ by split_ifs <;> simp) (p := 1 / 3)
+  (by norm_num) (by norm_num) (by norm_num)
+  (fun n ↦ by
+    have hset : {ω : ℕ → Fin 3 | (if ω (n + 1) = 0 then (1 : ℝ) else -1) = 1} =
+        (fun ω : ℕ → Fin 3 ↦ ω (n + 1)) ⁻¹' {0} := by
+      ext ω
+      by_cases h : ω (n + 1) = 0
+      · simp [h]
+      · norm_num [h]
+    rw [hset, measureReal_def, ← Measure.map_apply (measurable_pi_apply (n + 1))
+      (measurableSet_singleton 0), Measure.infinitePi_map_eval, uniformOn_univ]
+    simp)
+  (a := 2) (b := 1)
+
+open MeasureTheory ProbabilityTheory in
+/-- The hypotheses of `measureReal_exists_ge_le_of_biased` hold together: a biased walk, on the
+space of sequences `ℕ → Fin 3` of independent coins with three equally likely faces (Mathlib's
+`Measure.infinitePi` of the uniform law on `Fin 3`), the step `X n` is `+1` when coin `n + 1` shows
+`0` and `-1` otherwise, so each step is `1` with chance `p = 1/3`; the filtration is the one the
+coins' values generate (read as `±1`), so step `n` is known at time `n + 1` and independent of what
+time `n` knows; every step moves the walk, which is never constant; `0 < 1/3 < 1 - 1/3`; the level
+`a = 2`. -/
+example := ClassicalLean.Probability.GamblersRuin.measureReal_exists_ge_le_of_biased
+  (Ω := ℕ → Fin 3)
+  (μ := Measure.infinitePi fun _ ↦ uniformOn Set.univ)
+  (𝒢 := Filtration.natural (fun i (ω : ℕ → Fin 3) ↦ if ω i = 0 then (1 : ℝ) else -1)
+    fun i ↦ ((measurable_of_countable fun c : Fin 3 ↦ if c = 0 then (1 : ℝ) else -1).comp
+      (measurable_pi_apply i)).stronglyMeasurable)
+  (X := fun n ω ↦ if ω (n + 1) = 0 then 1 else -1)
+  (fun n ↦ Filtration.stronglyAdapted_natural
+    (u := fun i (ω : ℕ → Fin 3) ↦ if ω i = 0 then (1 : ℝ) else -1) _ (n + 1))
+  (fun n ↦ (iIndepFun_infinitePi (P := fun _ : ℕ ↦ (uniformOn Set.univ : Measure (Fin 3)))
+    (X := fun _ (c : Fin 3) ↦ if c = 0 then (1 : ℝ) else -1)
+    fun _ ↦ measurable_of_countable _).indep_comap_natural_of_lt _ (Nat.lt_succ_self n))
+  (fun n ω ↦ by split_ifs <;> simp) (p := 1 / 3)
+  (by norm_num) (by norm_num)
+  (fun n ↦ by
+    have hset : {ω : ℕ → Fin 3 | (if ω (n + 1) = 0 then (1 : ℝ) else -1) = 1} =
+        (fun ω : ℕ → Fin 3 ↦ ω (n + 1)) ⁻¹' {0} := by
+      ext ω
+      by_cases h : ω (n + 1) = 0
+      · simp [h]
+      · norm_num [h]
+    rw [hset, measureReal_def, ← Measure.map_apply (measurable_pi_apply (n + 1))
+      (measurableSet_singleton 0), Measure.infinitePi_map_eval, uniformOn_univ]
+    simp)
+  (a := 2)
