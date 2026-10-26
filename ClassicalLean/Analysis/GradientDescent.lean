@@ -623,12 +623,14 @@ example := ClassicalLean.Analysis.sub_le_pow_mul_of_polyakLojasiewicz (E := ℝ)
   (fun k ↦ by simp [pow_succ]; ring) (k := 3)
 
 /-- The hypotheses of `sub_le_of_projGradientStep` hold together: on `ℝ`, `f x = x ^ 2 / 2`
-(convex, gradient `f' x = x`, Lipschitz with `L = 2 > 0`) on the convex set `K = [1/4, 1]`; the
-iterates `1, 1/2, 1/4, 1/4, …` start in `K`, and each is the nearest point of `K` to the plain
-gradient step `x k / 2` (from `x 2` on the plain step `1/8` leaves `K` and the projection moves it
-back to `1/4`); `z = 1/2 ∈ K` and `k = 3`. -/
+(convex, gradient `f' x = x`, Lipschitz with `L = 2 > 0`) on the convex set `K = [1/5, 1]`; the
+iterates `1, 1/2, 1/4, 1/5, 1/5, …` start in `K`, and each is the nearest point of `K` to the plain
+gradient step `x k / 2`; at step `2 → 3` the plain step `1/8` leaves `K` and the projection moves it
+back to `1/5`, so the iterates move at every step before `k = 3` and first pause after it;
+`z = 1/2 ∈ K` and `k = 3` (review (c) group 1 gave these values in place of `K = [1/4, 1]`, whose
+iterates paused before the horizon). -/
 example := ClassicalLean.Analysis.sub_le_of_projGradientStep (E := ℝ)
-  (f := fun y ↦ y ^ 2 / 2) (f' := fun y ↦ y) (L := 2) (K := Set.Icc (1 / 4) 1)
+  (f := fun y ↦ y ^ 2 / 2) (f' := fun y ↦ y) (L := 2) (K := Set.Icc (1 / 5) 1)
   (convex_Icc _ _)
   (((show StrongConvexOn Set.univ 1 (fun y : ℝ ↦ y ^ 2 / 2) by
     rw [strongConvexOn_iff_convex]
@@ -636,11 +638,11 @@ example := ClassicalLean.Analysis.sub_le_of_projGradientStep (E := ℝ)
     ext x; simp; ring).convexOn fun r ↦ by positivity).subset (Set.subset_univ _) (convex_Icc _ _))
   (fun x ↦ by simpa using ((hasDerivAt_pow 2 x).div_const 2).hasGradientAt)
   (LipschitzWith.id.weaken (by norm_num)) (by norm_num)
-  (x := fun k ↦ if k = 0 then 1 else if k = 1 then 1 / 2 else 1 / 4)
-  (by norm_num) (fun k ↦ by rcases k with _ | _ | k <;> norm_num)
+  (x := fun k ↦ if k = 0 then 1 else if k = 1 then 1 / 2 else if k = 2 then 1 / 4 else 1 / 5)
+  (by norm_num) (fun k ↦ by rcases k with _ | _ | _ | k <;> norm_num)
   (fun k ↦ by
     rw [norm_eq_iInf_iff_real_inner_le_zero (convex_Icc _ _)
-      (by rcases k with _ | _ | k <;> norm_num)]
+      (by rcases k with _ | _ | _ | k <;> norm_num)]
     intro w hw
-    rcases k with _ | _ | k <;> simp at hw ⊢ <;> nlinarith [hw.1, hw.2])
+    rcases k with _ | _ | _ | k <;> simp at hw ⊢ <;> nlinarith [hw.1, hw.2])
   (z := 1 / 2) (by norm_num) (k := 3) (by norm_num)
