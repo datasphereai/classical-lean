@@ -465,6 +465,32 @@ Narrowing: none. Counts predicted by this order's job 3, to be re-measured by it
 tree (round 72's fragment): **140 modules, 3602 theorem constants (3574 + 28, the censuses of the
 changed modules), `lake build` 4193 jobs, 0 warnings** (no module added).
 
+**Dated 2026-10-26 UTC (order VACUITY-4, round 73; branch `vacuity-4`, DSMain):** the witness gate,
+the older witnesses brought to rule 2, and two gate leftovers; no theorem added or changed.
+
+- The witness gate, `tools/witness_gate.py`, with its listing driver `tools/WitnessListing.lean`,
+  its tests `tools/witness_gate_tests.py` and 119 fixtures under `tools/witness-fixtures/` (§4), after
+  five rounds of cold review and rulings 1 to 5 of the order; its listing file
+  `tools/witness_reviewed.txt` holds one entry, PrimitiveDivisor's line 423 (a name-resolution
+  check, `LISTED`).
+- Witnesses: 23 new rule-2 witnesses in ten modules (Superadditive 5, Spectral3x3 1,
+  ConvexConjugate 1, GeneralizedLeastSquares 1, Kantorovich 2, MinMax 2, CompressionTest 2,
+  EffectiveSampleSize 4, GamblersRuin 3, MaximalInequality 2); MinMax's line 443 moved after the
+  module's last line and rewritten (`sum_eigenvalues_eq_iSup`); 15 blocks removed: the thirteen
+  typed examples that claimed a witness, and MaximalInequality's two frozen witnesses, re-witnessed
+  at one step (Goal item 4's case, dated below in §4); the sweep's three re-witnesses (below) replace
+  their blocks one for one and are in neither count. Each group had a cold review (b) and a
+  confirming pass; several values are the reviewers'.
+- The process sweep (Goal item 5): 44 witnesses read by three fresh reviewers; three re-witnessed
+  (GradientDescent `sub_le_of_projGradientStep` and YuleWalker `durbinLevinson_spec`, frozen;
+  FairGame `integral_stoppedValue_sum_eq`, degenerate under rule 3); no `LISTED-FAULT`.
+- The leftovers: the vacuity gate's FAIL text names case 5 and says what UNCHECKED and
+  KERNEL-REJECTED mean; the report tool's whole-library command has a finite outer budget.
+
+Narrowing: none. Counts predicted by this order's job 6, to be re-measured by its gates on the clean
+tree (round 73's fragment): **140 modules, 3602 theorem constants, `lake build` 4193 jobs, 0
+warnings**; the witness gate `WITNESSGATE PASS` with 171 `OK`, 1 `LISTED`, 205 `TYPED`.
+
 ---
 
 ## 2. What I claimed, and what I actually checked
@@ -878,7 +904,7 @@ v4.34.0 by this session. The ranking holds, with two changes of scope:
 
 ## 4. The gates, and their known limits
 
-Five gates, in `tools/`. Each was fail-tested; if you change one, fail-test it again.
+Seven gates, in `tools/`. Each was fail-tested; if you change one, fail-test it again.
 
 - **`AxiomGate.lean`** — enumerates every theorem constant under `ClassicalLean` and requires its
   kernel dependencies to be a subset of `{propext, Classical.choice, Quot.sound}`, plus named
@@ -962,7 +988,11 @@ Five gates, in `tools/`. Each was fail-tested; if you change one, fail-test it a
   **Left for a later gate order** (cold review of VACUITY-3's job 2, finding 5(c), older than that
   job): the gate's FAIL text lists the cases but omits case 5 (a glued conclusion), and does not
   say what UNCHECKED or KERNEL-REJECTED mean, so a FAIL caused by an UNCHECKED theorem explains
-  nothing to the reader.
+  nothing to the reader. **Done (dated 2026-10-26 UTC, order VACUITY-4, Goal item 7):** the FAIL
+  text now names case 5 and says in one sentence each what UNCHECKED and KERNEL-REJECTED mean (the
+  vacuity tests' 89 verdicts and the gate's code, outside comments and strings, unchanged); and the
+  report tool's whole-library command, which had no outer budget, has `maxHeartbeats 2000000`, as
+  the vacuity gate has (its summary lines unchanged).
 - **`UninformativeReport.lean`** (order VACUITY-3, item 90) — **a report, not a gate and not a
   check**: nothing it lists fails anything; only its own self-test and count check give rc 1. It
   narrows the gate's first stated limit (a true statement that carries no information) for a
@@ -1035,6 +1065,47 @@ Five gates, in `tools/`. Each was fail-tested; if you change one, fail-test it a
   (finite, not Markov), as VACUITY-3's ruling 1 asked; the hand-worked value is removed from its
   docstring. With LEAN-33's rows 7 and 8, no row uses the older rows' forbidden-word exception any
   more.
+  **Dated 2026-10-26 UTC (order VACUITY-4): rule 3's case of the moving process.** A witness of a
+  theorem about a process `X` up to a time `n` (the process the conclusion is about; for a stopped
+  process, the underlying process and the stopping time together) makes `X` move at every step before
+  `n`: for each `k < n`, `X (k + 1) ≠ X k` with positive probability, or, for a deterministic
+  sequence, `X (k + 1) ≠ X k`; and `n ≥ 1` (at least one step). For a stopped process, `τ ≥ n` has
+  positive probability. Where the theorem's hypotheses force `X` to stop or to pause (an absorbing
+  state, a bounded stopping time, a sequence they make constant from some point), the witness stops or
+  pauses it no earlier than they force, and its docstring says so. For a theorem with no horizon (a
+  limit, or a statement for every `n`), a witness whose process is constant from some time on is
+  degenerate unless the hypotheses force it.
+- **`witness_gate.py`** (order VACUITY-4) — reads every `example` block of the library in place.
+  A witness-form block (`example :=` at column 0) with the docstring "The hypotheses of `NAME` hold
+  together" is turned, in a copy outside the repository, into a definition where it stood, and a
+  check inserted after the imports reports what Lean knows of it: `BROKEN` (an error in it, or an
+  axiom outside the kernel trio, so `sorry` and `native_decide` are caught), `WRONG-NAME` (its head
+  is not the theorem `NAME` names, or not a theorem of the module), `PARTIAL` (a proposition binder
+  is left, the value is a function, or the theorem is applied to fewer arguments than its binders
+  before the colon, as Lean counts them), else `OK`, whose line prints the head and both counts.
+  Other blocks: `NO-DOCSTRING`, `TYPED-CLAIM` (a typed example whose docstring claims a witness;
+  fails), `TYPED`, `NOT-A-BLOCK`, `UNREAD` (fails), `LISTED` and `LISTED-FAULT` (entries of
+  `tools/witness_reviewed.txt`, matched by the block's hash and a fingerprint of what Lean reports,
+  so a changed block or theorem goes stale); `COPY-ERROR` for a module whose copy or listing does
+  not match the build, or that the driver refuses (fails), and three failures counted apart,
+  `STALE-LISTING`, `RANGE-MISMATCH` and `DOC-MISMATCH`. A listing driver, `tools/WitnessListing.lean`, runs
+  Lean's frontend over every module: it lists the `example` keywords Lean parses (the gate's own
+  list must agree), reads `run_cmd`'s scope at each block, counts each theorem's binders, and checks
+  every command before Lean elaborates it, so that a module may not run its own code while it
+  elaborates (command kinds and attributes by allowlists taken from the library's census of
+  2026-10-26, kinds that run code by a list found by asking Lean, and constants that use Lean's own
+  machinery refused after each command; a module that needs a kind or attribute off the lists needs
+  a ruling first). Run `python3 -I tools/witness_gate.py` from the repository root (whole library
+  about 27 minutes on DSMain, one Lean process at a time); its tests are
+  `python3 -I tools/witness_gate_tests.py` (119 fixtures). **Stated limits** (its docstring has them
+  all): a hypothesis hidden behind a definition that reducible unfolding does not open passes as
+  `OK`; a theorem whose conclusion itself opens with a hypothesis binder gives a false `PARTIAL`
+  (listed with its reason); a process that stops moving inside the horizon is not seen (the case
+  above is met by review); a theorem whose hypotheses are bundled in a data argument passes when the
+  witness supplies nothing real inside it; a default of `optParam` or `autoParam` counts as
+  supplied; typed examples are read, not elaborated; and the code that Lean's and Mathlib's own
+  elaborators run, options included, is not the module's and is not checked. **Standing rule:** it
+  and its tests run as job 5a's gates in this order and every later one.
 - **`check_sorry.py`** — text-level, so it sees modules nobody wired into the aggregator. Scoped
   to `ClassicalLean/`; skips `.lake/` and `tools/`, and the reason is written in the file
   (it does not parse string literals, and the gates quote the words they detect).
@@ -1059,6 +1130,11 @@ Five gates, in `tools/`. Each was fail-tested; if you change one, fail-test it a
   only a hit inside its context (`finditer`, span containment); `(r"[retired term]",
   r"unconscious statistician")` is a second entry. Fail-tested before and after, ten tests,
   both runs in the commit that changed it (round 23).
+- **`compile_rules.py`** (order RULES-1) — the rules gate: it validates the rule registry
+  `records/rules.toml` against the registry at the base commit (no rule number disappears, a changed
+  rule needs a change note, the budget of self-applied rules does not rise without Dustin's row),
+  and checks that §6's generated block equals what the registry generates (`drift`). CI runs both
+  as its rules gate.
 - **`check_records.py`** — every `.lean` module under `ClassicalLean/` must be named in
   the old round archive (read only if present), in a fragment under `records/rounds/`,
   or in an order under `records/orders/`. A **tree** check rather than a `git log` audit, deliberately: a commit
@@ -1086,6 +1162,26 @@ branch (`concurrency`, `cancel-in-progress: true`). A run takes about 11 minutes
 plan gives 2,000 minutes a month for private repositories. Its planted-fault test (a `sorry`
 theorem on a scratch branch, `cloud-ci-fault`: the axiom gate and `check_sorry` failed, the clean
 tree passed) is lane `CLOUD-1-CI-result.md`.
+
+**The witness gate is not in CI (dated 2026-10-26 UTC, order VACUITY-4, Goal item 6).** Its
+whole-library time at HEAD after the order's leftover commits, on DSMain (16 cores), one Lean process
+at a time under the 12 GB cap, was 27 minutes, above the 20 minutes Goal item 6 sets (the gate's
+output does not split the time; the session judges that most of it is the listing driver, which
+checks every command of all 140 modules). Ruling 5 of the order keeps
+the limit and leaves speed to a later order (GATE-SPEED); until then claude-ai's push review of
+every Lean order reads the session's whole-library `WITNESSGATE` result at G. `ci.yml` is unchanged
+by this order (sha256 `2dc680ea9b745963f72fd49835ae433286a56564bf643aeccf90b220f03b8182` at
+`ac62f50` and at HEAD; the hash in the MERGE-1 paragraph above predates order RULES-1's change of
+the file); the gate's time on GitHub's runner is not measured.
+
+**Research actions step 4 (dated 2026-10-26 UTC, order VACUITY-4, Goal item 8).** The re-check
+outside the build is gate 7 since order RECHECK-1 (leanchecker per module, then nanoda on a
+`lean4export` export, with a planted fault), measured at `d21fd22`. `lake comparator` and `lake
+check` exist from Lean v4.35.0 on (the standalone Comparator, now superseded, needs a newer
+toolchain at its latest commit), not at v4.34.0. So they wait for the order that moves the
+toolchain to v4.35.0 or later, which then decides how comparator checks AI-drafted statements
+against their approved statements (the plan's purpose), and whether `lake check --paranoid`, with
+the toolchain's bundled nanoda and `--from-export`, replaces gate 7's hand-built steps.
 
 ---
 
