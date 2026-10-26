@@ -877,9 +877,16 @@ A statement is vacuous here if its conclusion is `True`; is one of its own hypot
 (`P → P`); follows from one hypothesis by applying it, with that hypothesis's premises met by \
 the other hypotheses (`(∀ a, Q a → P a) → Q a → P a`, also through `⊆` and named definitions; \
 a flag labelled `old case 3 only` matched a hypothesis's conclusion without meeting its premises); \
-or is `∃ y, y = e` with `e` independent of `y` (provable by `⟨e, rfl⟩` for any `e`); or its \
+or is `∃ y, y = e` with `e` independent of `y` (provable by `⟨e, rfl⟩` for any `e`); or is \
+glued from its hypotheses (case 5: an `∧`, an `↔` or another structure whose type is a \
+proposition, every part of which is `True`, is or follows from one hypothesis as above, or is \
+itself glued); or its \
 hypotheses contradict each other (rule 5: `contradiction`, `linarith`, `omega`, `norm_num` or \
 `decide` proves `False` from them).\n\
+UNCHECKED means the gate's test did not finish on the theorem (it ran out of heartbeats, could \
+not confirm an all-`True` reading, or threw), so the gate fails rather than pass it unread. \
+KERNEL-REJECTED means the kernel refused the proof the gate built behind a flag, so that flag \
+is not trusted and the gate fails.\n\
 Such a theorem builds green and is sorry-free while proving nothing. State a real conclusion \
 over real objects, or delete it. A deliberate helper that applies a hypothesis can go on \
 {VacuityGate.reviewedPath} under its name and statement hash, after review."
