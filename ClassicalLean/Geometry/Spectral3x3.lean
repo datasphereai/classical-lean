@@ -171,11 +171,15 @@ example : (1 : Matrix (Fin 3) (Fin 3) ℤ).det = 1 := Matrix.det_one
 example : minorSum (1 : Matrix (Fin 3) (Fin 3) ℤ) = 3 := by
   simp [minorSum]
 
-/-- A diagonal matrix satisfies the hypothesis of `gap_identity_of_offDiagCross_eq_zero`. -/
-example : offDiagCross !![(1 : ℤ), 0, 0; 0, 2, 0; 0, 0, 3] = 0 := by
-  simp [offDiagCross]
-
 example : minorSum !![(0 : ℤ), 1, 2; 3, 4, 5; 6, 7, 8] = -18 := by
   simp [minorSum]
 
 end ClassicalLean.Geometry.Matrix3
+
+/-- The hypotheses of `gap_identity_of_offDiagCross_eq_zero` hold together: over `ℤ`, the matrix
+`!![1, 1, 1; 2, 2, 1; -3, 1, 3]` has `offDiagCross = 1 * 2 + 1 * (-3) + 1 * 1 = 0` with every
+product nonzero (not a diagonal matrix, where each product is `0`), and distinct diagonal
+entries. -/
+example := ClassicalLean.Geometry.Matrix3.gap_identity_of_offDiagCross_eq_zero
+  (R := ℤ) (M := !![1, 1, 1; 2, 2, 1; -3, 1, 3])
+  (by simp [ClassicalLean.Geometry.Matrix3.offDiagCross])
