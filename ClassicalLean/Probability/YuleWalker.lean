@@ -306,21 +306,25 @@ end ClassicalLean.Probability
 
 open Finset in
 /-- The hypotheses of `durbinLevinson_spec` hold together: order `n = 2`; the even function
-`γ 0 = 1`, `γ z = 1/2` for `z ≠ 0` (not `0` past any lag), whose Toeplitz matrix of size `4` is
-positive definite, its quadratic form being `½ ∑ xᵢ² + ½ (∑ xᵢ)²`; `a = (1/3, 1/3)`, which
-solves both order-2 equations, with error variance `v₂ = 2/3`; `φ = 1/4`, from its formula; and
-`b = (1/4, 1/4, 1/4)`, which meets `b j = a j − φ a (1 − j)` and `b 2 = φ`. -/
+`γ z = 1 / (|z| + 1)` (`1, 1/2, 1/3, 1/4` at lags `0` to `3`, moving at every lag), whose Toeplitz
+matrix of size `4` is positive definite; `a = (4/9, 1/9)`, two different coefficients, which solves
+both order-2 equations; `φ = 1/16`, from its formula; and `b = (7/16, 1/12, 1/16)`, which meets
+`b j = a j − φ a (1 − j)` and `b 2 = φ` (review (c) group 3 gave these values in place of constant
+`γ`, `a` and `b`, which could not tell `a (n − 1 − j)` from `a j`). -/
 example := ClassicalLean.Probability.durbinLevinson_spec
-  (γ := fun z ↦ if z = 0 then 1 else 1 / 2) (fun z ↦ by simp)
+  (γ := fun z : ℤ ↦ 1 / (|(z : ℝ)| + 1)) (fun z ↦ by simp)
   (n := 2)
   (fun x ⟨i, hi, hx⟩ ↦ by
     simp only [sum_range_succ, sum_range_zero]
     norm_num
     interval_cases i
-    all_goals nlinarith [mul_self_pos.mpr hx, sq_nonneg (x 0 + x 1 + x 2 + x 3), sq_nonneg (x 0),
+    all_goals nlinarith [mul_self_pos.mpr hx, sq_nonneg (x 0 + x 1 + x 2 + x 3),
+      sq_nonneg (x 0 + x 1 + x 2), sq_nonneg (x 1 + x 2 + x 3), sq_nonneg (x 0 + x 1),
+      sq_nonneg (x 1 + x 2), sq_nonneg (x 2 + x 3), sq_nonneg (x 0),
       sq_nonneg (x 1), sq_nonneg (x 2), sq_nonneg (x 3)])
-  (a := fun _ ↦ 1 / 3)
+  (a := fun j ↦ if j = 0 then 4 / 9 else 1 / 9)
   (fun i hi1 hi2 ↦ by
     interval_cases i <;> simp only [sum_range_succ, sum_range_zero] <;> norm_num)
-  (φ := 1 / 4) (by simp only [sum_range_succ, sum_range_zero]; norm_num)
-  (b := fun _ ↦ 1 / 4) (fun j hj ↦ by norm_num) rfl
+  (φ := 1 / 16) (by simp only [sum_range_succ, sum_range_zero]; norm_num)
+  (b := fun j ↦ if j = 0 then 7 / 16 else if j = 1 then 1 / 12 else 1 / 16)
+  (fun j hj ↦ by interval_cases j <;> norm_num) rfl
