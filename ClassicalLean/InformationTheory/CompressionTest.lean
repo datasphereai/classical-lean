@@ -456,23 +456,6 @@ theorem integral_eFalseShare_score_le {q : ℝ} (hq : 0 < q) {H : Finset ι}
 
 end EBH
 
-/-- The hypotheses of `integral_eFalseShare_score_le` and
-`integral_eFalseShare_score_le_mul_card_div` hold together: one test, strings of length `1`
-under the fair coin, the code `x ↦ [x 0]`, the null law the fair coin, `q = 1/2`. -/
-example : ∃ (μ : Measure (Fin 1 → Bool)) (_ : IsProbabilityMeasure μ)
-    (c : Unit → (Fin 1 → Bool) → List Bool) (p₀ : Unit → Measure (Fin 1 → Bool))
-    (X : Unit → (Fin 1 → Bool) → Fin 1 → Bool),
-    (0 : ℝ) < 1 / 2 ∧ (∀ i ∈ (univ : Finset Unit), Function.Injective (c i)) ∧
-      (∀ i ∈ (univ : Finset Unit), InformationTheory.IsPrefixFree (Set.range (c i))) ∧
-      (∀ i ∈ (univ : Finset Unit), μ.map (X i) = p₀ i) := by
-  refine ⟨bernProd 1 fairCoin, inferInstance, fun _ x ↦ [x 0], fun _ ↦ bernProd 1 fairCoin,
-    fun _ ↦ id, by norm_num, fun _ _ x y h ↦ ?_, fun _ _ ↦ ?_, fun _ _ ↦ Measure.map_id⟩
-  · funext j
-    rw [Subsingleton.elim j 0]
-    simpa using h
-  · rintro _ ⟨x, rfl⟩ _ ⟨y, rfl⟩ hxy
-    exact hxy.eq_of_length (by simp)
-
 end ClassicalLean.InformationTheory.CompressionTest
 
 open InformationTheory in
@@ -528,3 +511,56 @@ example := ClassicalLean.InformationTheory.CompressionTest.measureReal_score_plu
     rintro _ ⟨x, rfl⟩ _ ⟨y, rfl⟩ h
     exact (List.IsPrefix.eq_of_length h (by simp)))
   (p := ⟨1 / 3, by norm_num, by norm_num⟩) (α := 1 / 2) (by norm_num)
+
+/-- The hypotheses of `integral_eFalseShare_score_le` hold together: three tests (`ι = Fin 3`) on
+strings of length `2` under the fair coin, each coded by `x ↦ [x 0, x 1]` (injective, and
+prefix-free since every word has length `2`), each with null law the fair coin; `H = {0, 1}`, the
+true nulls being tests `0` and `1`, which read the data itself, so the law of each is its null law;
+test `2`, outside `H`, reads `(ω 0, ω 0)`, not of its null law; `q = 1/2` (review (b) group 2 gave
+the two true nulls in place of one). -/
+example := ClassicalLean.InformationTheory.CompressionTest.integral_eFalseShare_score_le
+  (ι := Fin 3) (Ω := Fin 2 → Bool)
+  (μ := ClassicalLean.InformationTheory.CompressionTest.bernProd 2
+    ClassicalLean.InformationTheory.CompressionTest.fairCoin)
+  (len := fun _ ↦ 2) (c := fun _ x ↦ [x 0, x 1])
+  (p₀ := fun _ ↦ ClassicalLean.InformationTheory.CompressionTest.bernProd 2
+    ClassicalLean.InformationTheory.CompressionTest.fairCoin)
+  (X := fun i ω ↦ if i = 2 then ![ω 0, ω 0] else ω) (q := 1 / 2) (H := {0, 1}) (by norm_num)
+  (fun _ _ x y h ↦ by
+    simp only [List.cons.injEq] at h
+    funext j; fin_cases j <;> simp [h.1, h.2.1])
+  (fun _ _ ↦ by
+    rintro _ ⟨x, rfl⟩ _ ⟨y, rfl⟩ hxy
+    exact hxy.eq_of_length (by simp))
+  (fun i hi ↦ by
+    have h2 : i ≠ 2 := by
+      rintro rfl
+      exact absurd hi (by decide)
+    simp [h2])
+
+/-- The hypotheses of `integral_eFalseShare_score_le_mul_card_div` hold together: three tests
+(`ι = Fin 3`) on strings of length `2` under the fair coin, each coded by `x ↦ [x 0, x 1]`
+(injective, and prefix-free since every word has length `2`), each with null law the fair coin;
+`H = {0, 1}`, the true nulls being tests `0` and `1`, which read the data itself, so the law of each
+is its null law; test `2`, outside `H`, reads `(ω 0, ω 0)`, not of its null law; `q = 1/2` (review
+(b) group 2 gave the two true nulls in place of one). The bound here is `q · 2 / 3 = 1/3`. -/
+example :=
+  ClassicalLean.InformationTheory.CompressionTest.integral_eFalseShare_score_le_mul_card_div
+  (ι := Fin 3) (Ω := Fin 2 → Bool)
+  (μ := ClassicalLean.InformationTheory.CompressionTest.bernProd 2
+    ClassicalLean.InformationTheory.CompressionTest.fairCoin)
+  (len := fun _ ↦ 2) (c := fun _ x ↦ [x 0, x 1])
+  (p₀ := fun _ ↦ ClassicalLean.InformationTheory.CompressionTest.bernProd 2
+    ClassicalLean.InformationTheory.CompressionTest.fairCoin)
+  (X := fun i ω ↦ if i = 2 then ![ω 0, ω 0] else ω) (q := 1 / 2) (H := {0, 1}) (by norm_num)
+  (fun _ _ x y h ↦ by
+    simp only [List.cons.injEq] at h
+    funext j; fin_cases j <;> simp [h.1, h.2.1])
+  (fun _ _ ↦ by
+    rintro _ ⟨x, rfl⟩ _ ⟨y, rfl⟩ hxy
+    exact hxy.eq_of_length (by simp))
+  (fun i hi ↦ by
+    have h2 : i ≠ 2 := by
+      rintro rfl
+      exact absurd hi (by decide)
+    simp [h2])
