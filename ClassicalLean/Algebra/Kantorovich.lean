@@ -212,24 +212,6 @@ theorem dotProduct_mulVec_mul_inv_add_eq {A : Matrix n n ℝ} (hA : IsUnit A.det
   field_simp
   ring
 
-/-- The hypotheses of `dotProduct_mulVec_mul_inv_le` hold together: `A = 1`, `m = 1`, `M = 2`. -/
-example : ∃ (A : Matrix (Fin 2) (Fin 2) ℝ) (m M : ℝ),
-    0 < m ∧ (A - m • 1).PosSemidef ∧ (M • 1 - A).PosSemidef :=
-  ⟨1, 1, 2, one_pos, by simpa using PosSemidef.zero, by
-    rw [show (2 : ℝ) • (1 : Matrix (Fin 2) (Fin 2) ℝ) - 1 = 1 by
-      rw [two_smul, add_sub_cancel_right]]
-    exact PosSemidef.one⟩
-
-/-- The hypotheses of `dotProduct_mulVec_mul_inv_add_eq` hold together: `A = diag(1, 2)` with
-its two unit eigenvectors. -/
-example : ∃ (A : Matrix (Fin 2) (Fin 2) ℝ) (m M : ℝ) (u v : Fin 2 → ℝ),
-    IsUnit A.det ∧ A *ᵥ u = m • u ∧ A *ᵥ v = M • v ∧ u ⬝ᵥ u = v ⬝ᵥ v := by
-  refine ⟨diagonal ![1, 2], 1, 2, Pi.single 0 1, Pi.single 1 1, ?_, ?_, ?_, ?_⟩
-  · simp [det_diagonal, Fin.prod_univ_two]
-  · ext j; fin_cases j <;> simp [mulVec_diagonal]
-  · ext j; fin_cases j <;> simp [mulVec_diagonal]
-  · simp
-
 /-- **Steepest descent with exact line search** (item 111 of MATH-PLAN-library-2; the draft
 `d111-r1-s2`, written by Claude Opus 5.5 through the Anthropic Batch API, the lane's API-CREDIT-1
 work, adapted by order LEAN-33's session). For `m ≤ A ≤ M` in the Loewner order and `0 < m`, one
@@ -336,3 +318,39 @@ example := ClassicalLean.Algebra.Kantorovich.quadForm_steepestStep_le (n := Fin 
       ext i j; fin_cases i <;> fin_cases j <;> norm_num]
     exact posSemidef_diagonal_iff.mpr fun i ↦ by fin_cases i <;> norm_num)
   (x := ![1, 1])
+
+open Matrix in
+/-- The hypotheses of `dotProduct_mulVec_mul_inv_le` hold together: `A = [[2, 1], [1, 3]]`, `m = 1`,
+`M = 4`, `x = (1, 2)`. `A − I = [[1, 1], [1, 2]] = Bᵀ B` with `B = [[1, 1], [0, 1]]`, and
+`4 I − A = [[2, −1], [−1, 1]] = Cᵀ C` with `C = [[1, −1], [1, 0]]`, so both are positive
+semidefinite; the eigenvalues of `A`, `(5 ± √5) / 2`, lie strictly inside `[1, 4]` (not `A = 1`,
+where `A − m I = 0`), and `x` is not an eigenvector (`A x = (4, 7)`). -/
+example := ClassicalLean.Algebra.Kantorovich.dotProduct_mulVec_mul_inv_le (n := Fin 2)
+  (A := !![2, 1; 1, 3]) (m := 1) (M := 4) one_pos
+  (by
+    rw [show (!![2, 1; 1, 3] : Matrix (Fin 2) (Fin 2) ℝ) - (1 : ℝ) • 1 =
+        (!![1, 1; 0, 1] : Matrix (Fin 2) (Fin 2) ℝ)ᴴ * !![1, 1; 0, 1] by
+      ext i j; fin_cases i <;> fin_cases j <;>
+        simp [conjTranspose_eq_transpose_of_trivial, mul_apply, Fin.sum_univ_two, one_fin_two] <;>
+        norm_num]
+    exact posSemidef_conjTranspose_mul_self _)
+  (by
+    rw [show (4 : ℝ) • (1 : Matrix (Fin 2) (Fin 2) ℝ) - !![2, 1; 1, 3] =
+        (!![1, -1; 1, 0] : Matrix (Fin 2) (Fin 2) ℝ)ᴴ * !![1, -1; 1, 0] by
+      ext i j; fin_cases i <;> fin_cases j <;>
+        simp [conjTranspose_eq_transpose_of_trivial, mul_apply, Fin.sum_univ_two, one_fin_two] <;>
+        norm_num]
+    exact posSemidef_conjTranspose_mul_self _)
+  (x := ![1, 2])
+
+open Matrix in
+/-- The hypotheses of `dotProduct_mulVec_mul_inv_add_eq` hold together: `A = [[2, 1], [1, 2]]`
+(determinant `3`), `u = (1, −1)` with `A u = u` (`m = 1`) and `v = (1, 1)` with `A v = 3 v`
+(`M = 3`), `u ⬝ u = v ⬝ v = 2`: two different eigenvalues, and eigenvectors that are not on the
+axes (not a diagonal matrix with its unit vectors). -/
+example := ClassicalLean.Algebra.Kantorovich.dotProduct_mulVec_mul_inv_add_eq (n := Fin 2)
+  (A := !![2, 1; 1, 2]) (isUnit_iff_ne_zero.mpr (by rw [det_fin_two_of]; norm_num))
+  (m := 1) (M := 3) (u := ![1, -1]) (v := ![1, 1])
+  (by ext i; fin_cases i <;> simp [mulVec, dotProduct, Fin.sum_univ_two] <;> norm_num)
+  (by ext i; fin_cases i <;> simp [mulVec, dotProduct, Fin.sum_univ_two] <;> norm_num)
+  (by simp [dotProduct, Fin.sum_univ_two])
