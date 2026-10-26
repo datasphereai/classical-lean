@@ -120,11 +120,6 @@ theorem convexConjugate_convexConjugate_le (f : (ι → ℝ) → EReal) :
   rw [EReal.sub_le_iff_le_add (.inr hx) (.inl hy), dotProduct_comm, add_comm]
   exact h
 
-/-- The hypothesis of `convexConjugate_anti` can be met with the order really reversing:
-`f = 0 ≤ g = 1` on `ℝ²`, where `g* 0 = −1 < 0 = f* 0` (the same values on `ℝ¹` are the last two
-`example`s at the end of this file, which name the two functions the other way round). -/
-example : ∃ f g : (Fin 2 → ℝ) → EReal, f ≤ g := ⟨0, 1, fun _ ↦ zero_le_one⟩
-
 /-- **The convex conjugate of log-sum-exp** (item 117 of MATH-PLAN-library-2; the draft
 `d117-r1-s2`, written by Claude Opus 5.5 through the Anthropic Batch API, the lane's API-CREDIT-1
 work, adapted by order LEAN-33's session): at a point `p` of the open probability simplex it is the
@@ -204,3 +199,13 @@ example := ClassicalLean.Analysis.ConvexConjugate.convexConjugate_logSumExp (ι 
   (p := ![1 / 4, 3 / 4])
   (ClassicalLean.Simplex.mem_openSimplex.mpr
     ⟨fun i ↦ by fin_cases i <;> norm_num, by simp [Fin.sum_univ_two]; norm_num⟩)
+
+/-- The hypotheses of `convexConjugate_anti` hold together: on `ℝ²`, `f x = (x 0) ^ 2 + (x 1) ^ 2`
+lies below `g x = f x + (x 1) ^ 2 + 1` with room (`g - f ≥ 1`), both strictly convex; their
+conjugates are finite everywhere, `f* y = ((y 0) ^ 2 + (y 1) ^ 2) / 4` and
+`g* y = (y 0) ^ 2 / 4 + (y 1) ^ 2 / 8 - 1`, so the order reverses strictly at every `y`
+(review (b) group 1, finding 1, gave this pair). -/
+example := ClassicalLean.Analysis.ConvexConjugate.convexConjugate_anti (ι := Fin 2)
+  (f := fun x ↦ ((x 0 ^ 2 + x 1 ^ 2 : ℝ) : EReal))
+  (g := fun x ↦ ((x 0 ^ 2 + x 1 ^ 2 + x 1 ^ 2 + 1 : ℝ) : EReal))
+  (fun x ↦ EReal.coe_le_coe_iff.mpr (by nlinarith [sq_nonneg (x 1)]))
