@@ -105,7 +105,7 @@ its integral almost everywhere (Mathlib's `ae_eq_integral_of_variance_eq_zero`),
 sum's are: dropping `MemLp` gives the sum's case above (left side `1`, Lean's junk covariances `0`,
 the integral of a non-integrable function, so `γ = 0` and the product form is `0`); dropping the
 covariance condition, `X 0 = X 1` with variance `1` and `γ = 0`, `k = 2`, gives `4` against `0`. The
-finite measure is needed by the sum and the product form alike (cold review r80b; the third
+finite measure is needed by the sum and the product form alike (cold review r80b; the `∞`
 `example` at the end of the module):
 with masses `1`, `1` and `∞` on three points, `X 0` the indicator of the first and `X 1` minus the
 indicator of the second, each centred product is a nonzero constant on the point of infinite mass,
@@ -117,9 +117,9 @@ A series indexed by `ℕ`, `X : ℕ → Ω → ℝ`, with the sum over `range k`
 above apply to it unchanged, and its `example` meets its hypotheses.
 
 The hypotheses of `variance_sum_eq_of_stationary`, `variance_sum_div_eq` and
-`variance_sum_eq_mul_one_add` can be met together, with `γ 0 ≠ 0` and a lag `γ 1 ≠ 0`: the first
-`example` at the end of the module (two points of mass one, a measure of mass `2`, and twice the
-quantity that is `1` at one point and `0` at the other: `Var (2 X) = 4 = 2 · 1 + 2 · 1 · 1`).
+`variance_sum_eq_mul_one_add` can be met together, with `γ 0 ≠ 0` and a lag `γ 1 ≠ 0`: their
+witnesses at the end of the module (three points of mass one, `X 0 = (1, −1, 0)`,
+`X 1 = (0, 1, −1)`, `γ = (2, −1, 0, …)`: `Var (X 0 + X 1) = 2 = 2 · 2 + 2 · 1 · (−1)`).
 
 ## What Mathlib provides
 
@@ -576,30 +576,6 @@ theorem variance_sum_range_eq_of_stationary {k : ℕ} {X : ℕ → Ω → ℝ}
   rw [hfun]
   exact h
 
-/-- The hypotheses of `variance_sum_eq_of_stationary`, `variance_sum_div_eq` and
-`variance_sum_eq_mul_one_add` hold together, with a lag `γ 1 ≠ 0`: two points with mass one each
-(a measure of mass `2`), and `X 0 = X 1` the quantity that is `1` at one point and `0` at the other
-(every covariance is `1`). -/
-example : ∃ (μ : Measure Bool) (_ : IsFiniteMeasure μ) (X : Fin 2 → Bool → ℝ) (γ : ℕ → ℝ),
-    (∀ i, MemLp (X i) 2 μ) ∧
-      (∀ i j : Fin 2, cov[X i, X j; μ] = γ (max (i : ℕ) j - min (i : ℕ) j)) ∧
-      0 < 2 ∧ γ 0 ≠ 0 ∧ γ 1 ≠ 0 := by
-  refine ⟨Measure.dirac true + Measure.dirac false, inferInstance,
-    fun _ b ↦ if b then 1 else 0, fun _ ↦ 1, fun _ ↦ MemLp.of_discrete, ?_, two_pos, one_ne_zero,
-    one_ne_zero⟩
-  intro i j
-  simp [covariance, integral_add_measure, Integrable.of_finite]
-
-/-- The hypotheses of `variance_sum_range_eq_of_stationary` hold together: the same two points
-and quantity, indexed by `ℕ`, `k = 2`. -/
-example : ∃ (μ : Measure Bool) (_ : IsFiniteMeasure μ) (X : ℕ → Bool → ℝ) (γ : ℕ → ℝ),
-    (∀ i < 2, MemLp (X i) 2 μ) ∧
-      (∀ i < 2, ∀ j < 2, cov[X i, X j; μ] = γ (max i j - min i j)) ∧ γ 0 ≠ 0 := by
-  refine ⟨Measure.dirac true + Measure.dirac false, inferInstance,
-    fun _ b ↦ if b then 1 else 0, fun _ ↦ 1, fun _ _ ↦ MemLp.of_discrete, ?_, one_ne_zero⟩
-  intro i _ j _
-  simp [covariance, integral_add_measure, Integrable.of_finite]
-
 open scoped ENNReal in
 /-- **Why `variance_sum_eq_of_stationary` and `variance_sum_eq_mul_one_add` need the finite
 measure** (cold review r80b): masses `1`, `1` and `∞` on three points, `X 0` the indicator of the
@@ -765,3 +741,62 @@ example := ClassicalLean.Probability.EffectiveSampleSize.variance_average_le_of_
     norm_num
     rfl)
   (n := 3)
+
+open MeasureTheory ProbabilityTheory in
+/-- The hypotheses of `variance_sum_eq_of_stationary` hold together: three points of mass one each
+(a finite measure of mass `3`), `X 0 = (1, -1, 0)` and `X 1 = (0, 1, -1)`, each of integral `0`;
+`cov (X 0, X 0) = cov (X 1, X 1) = 2` and `cov (X 0, X 1) = -1`, so `γ = (2, -1, 0, …)`, with
+`γ 0 ≠ 0` and a lag `γ 1 ≠ 0`; `X 1 ≠ X 0` at every point, the one step the theorem reads (`k = 2`).
+-/
+example := ClassicalLean.Probability.EffectiveSampleSize.variance_sum_eq_of_stationary
+  (Ω := Fin 3) (μ := Measure.dirac 0 + Measure.dirac 1 + Measure.dirac 2)
+  (k := 2) (X := ![![1, -1, 0], ![0, 1, -1]]) (fun _ ↦ MemLp.of_discrete)
+  (γ := fun j ↦ if j = 0 then 2 else if j = 1 then -1 else 0)
+  (fun i j ↦ by
+    fin_cases i <;> fin_cases j <;>
+      norm_num [covariance, integral_add_measure, integral_dirac, Integrable.of_finite])
+
+open MeasureTheory ProbabilityTheory in
+/-- The hypotheses of `variance_sum_div_eq` hold together: three points of mass one each (a finite
+measure of mass `3`), `X 0 = (1, -1, 0)` and `X 1 = (0, 1, -1)`, each of integral `0`;
+`cov (X 0, X 0) = cov (X 1, X 1) = 2` and `cov (X 0, X 1) = -1`, so `γ = (2, -1, 0, …)`, with
+`γ 0 ≠ 0` and a lag `γ 1 ≠ 0`; `X 1 ≠ X 0` at every point, the one step the theorem reads (`k = 2`);
+`k = 2 > 0`. -/
+example := ClassicalLean.Probability.EffectiveSampleSize.variance_sum_div_eq
+  (Ω := Fin 3) (μ := Measure.dirac 0 + Measure.dirac 1 + Measure.dirac 2)
+  (k := 2) (X := ![![1, -1, 0], ![0, 1, -1]]) (fun _ ↦ MemLp.of_discrete)
+  (γ := fun j ↦ if j = 0 then 2 else if j = 1 then -1 else 0)
+  (fun i j ↦ by
+    fin_cases i <;> fin_cases j <;>
+      norm_num [covariance, integral_add_measure, integral_dirac, Integrable.of_finite])
+  (by norm_num) (by norm_num)
+
+open MeasureTheory ProbabilityTheory in
+/-- The hypotheses of `variance_sum_eq_mul_one_add` hold together: three points of mass one each (a
+finite measure of mass `3`), `X 0 = (1, -1, 0)` and `X 1 = (0, 1, -1)`, each of integral `0`;
+`cov (X 0, X 0) = cov (X 1, X 1) = 2` and `cov (X 0, X 1) = -1`, so `γ = (2, -1, 0, …)`, with
+`γ 0 ≠ 0` and a lag `γ 1 ≠ 0`; `X 1 ≠ X 0` at every point, the one step the theorem reads (`k = 2`).
+-/
+example := ClassicalLean.Probability.EffectiveSampleSize.variance_sum_eq_mul_one_add
+  (Ω := Fin 3) (μ := Measure.dirac 0 + Measure.dirac 1 + Measure.dirac 2)
+  (k := 2) (X := ![![1, -1, 0], ![0, 1, -1]]) (fun _ ↦ MemLp.of_discrete)
+  (γ := fun j ↦ if j = 0 then 2 else if j = 1 then -1 else 0)
+  (fun i j ↦ by
+    fin_cases i <;> fin_cases j <;>
+      norm_num [covariance, integral_add_measure, integral_dirac, Integrable.of_finite])
+
+open MeasureTheory ProbabilityTheory in
+/-- The hypotheses of `variance_sum_range_eq_of_stationary` hold together: the same values indexed
+by `ℕ`, on three points of mass one each (a finite measure of mass `3`), `X 0 = (1, -1, 0)` and
+`X 1 = (0, 1, -1)`, each of integral `0`; `cov (X 0, X 0) = cov (X 1, X 1) = 2` and
+`cov (X 0, X 1) = -1`, so `γ = (2, -1, 0, …)`, with `γ 0 ≠ 0` and a lag `γ 1 ≠ 0`; `X 1 ≠ X 0` at
+every point, the one step the theorem reads (`k = 2`; only `i < 2` enters); `X` alternates between
+the two, so it moves at every step (review (b) group 3 gave the alternation). -/
+example := ClassicalLean.Probability.EffectiveSampleSize.variance_sum_range_eq_of_stationary
+  (Ω := Fin 3) (μ := Measure.dirac 0 + Measure.dirac 1 + Measure.dirac 2)
+  (k := 2) (X := fun i ↦ if i % 2 = 0 then ![1, -1, 0] else ![0, 1, -1])
+  (fun _ _ ↦ MemLp.of_discrete)
+  (γ := fun j ↦ if j = 0 then 2 else if j = 1 then -1 else 0)
+  (fun i hi j hj ↦ by
+    interval_cases i <;> interval_cases j <;>
+      norm_num [covariance, integral_add_measure, integral_dirac, Integrable.of_finite])
