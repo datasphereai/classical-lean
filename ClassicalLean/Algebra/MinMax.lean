@@ -423,26 +423,6 @@ theorem sum_eigenvalues_eq_iSup {k : ℕ} (hk : k ≤ n) :
     sum_re_inner_le_sum_eigenvalues hn hT hk u.2⟩ ⟨_, hv⟩ ?_
   exact (sum_re_inner_eigenvectorBasis hn hT hk).ge
 
-/-- The hypotheses of `sum_mul_le_sum_of_antitone` can be met together. -/
-example : ∃ (lam w : Fin 2 → ℝ), Antitone lam ∧ (∀ j, 0 ≤ w j) ∧ (∀ j, w j ≤ 1) ∧ 1 ≤ 2 ∧
-    ∑ j, w j = (1 : ℕ) :=
-  ⟨0, fun _ ↦ 1 / 2, antitone_const, fun _ ↦ by norm_num, fun _ ↦ by norm_num, by norm_num,
-    by simp⟩
-
-/-- The hypotheses of `sum_re_inner_le_sum_eigenvalues` and `sum_eigenvalues_eq_iSup` can be met
-together: the identity on `ℝ²`, `k = 1`, `u₀` the first standard basis vector. -/
-example : ∃ (T : EuclideanSpace ℝ (Fin 2) →ₗ[ℝ] EuclideanSpace ℝ (Fin 2))
-    (u : Fin 1 → EuclideanSpace ℝ (Fin 2)), T.IsSymmetric ∧
-      finrank ℝ (EuclideanSpace ℝ (Fin 2)) = 2 ∧ 1 ≤ 2 ∧ Orthonormal ℝ u :=
-  ⟨LinearMap.id, EuclideanSpace.basisFun (Fin 2) ℝ ∘ Fin.castLE (by norm_num),
-    LinearMap.IsSymmetric.id, finrank_euclideanSpace_fin, by norm_num,
-    (EuclideanSpace.basisFun (Fin 2) ℝ).orthonormal.comp _ (Fin.castLE_injective _)⟩
-
-/-- Ky Fan applied on a concrete space, every type given (cold review r83): the identity on
-`ℝ²`, `k = 1`. -/
-example := sum_eigenvalues_eq_iSup (𝕜 := ℝ) (E := EuclideanSpace ℝ (Fin 2))
-  finrank_euclideanSpace_fin LinearMap.IsSymmetric.id (k := 1) (by norm_num)
-
 end ClassicalLean.MinMax
 
 open Module LinearMap Submodule in
@@ -468,3 +448,56 @@ example := ClassicalLean.MinMax.eigenvalues_eq_iSup_iInf (𝕜 := ℝ) (E := Euc
   (T := LinearMap.id + ((span ℝ {EuclideanSpace.single (0 : Fin 2) (1 : ℝ)}).starProjection :
     EuclideanSpace ℝ (Fin 2) →ₗ[ℝ] EuclideanSpace ℝ (Fin 2)))
   (hT := IsSymmetric.id.add (starProjection_isSymmetric _)) (k := 1)
+
+/-- The hypotheses of `sum_mul_le_sum_of_antitone` hold together: `N = 3`, the antitone
+`lam = (3, 2, 1)`, the weights `w = (1, 1/2, 1/2)`, each in `[0, 1]` and not all `0` or `1`, summing
+to `k = 2`; the bound is strict, `3 + 1 + 1/2 = 9/2 < 5 = 3 + 2`. -/
+example := ClassicalLean.MinMax.sum_mul_le_sum_of_antitone (N := 3) (lam := ![3, 2, 1])
+  (w := ![1, 1 / 2, 1 / 2])
+  (by
+    intro i j hij
+    fin_cases i <;> fin_cases j <;> first | exact absurd hij (by decide) | norm_num)
+  (fun j ↦ by fin_cases j <;> norm_num) (fun j ↦ by fin_cases j <;> norm_num) (k := 2)
+  (by norm_num) (by simp [Fin.sum_univ_three]; norm_num)
+
+open Module LinearMap Submodule in
+/-- The hypotheses of `sum_re_inner_le_sum_eigenvalues` hold together: on `ℝ³` (dimension
+`n = 3`), `T = id + P₀ + P₀ + P₁`, with `P₀` and `P₁` the orthogonal projections onto the first two
+axes, is symmetric (a sum of symmetric maps), with eigenvalues `3`, `2`, `1`; `k = 2`, and
+`u = ((2/3, 2/3, 1/3), (2/3, -1/3, -2/3))` is orthonormal (norms `1`, inner product `0`) and not
+made of eigenvectors: the left side is `21/9 + 18/9 = 13/3`, strictly below `3 + 2`. -/
+example := ClassicalLean.MinMax.sum_re_inner_le_sum_eigenvalues (𝕜 := ℝ)
+  (E := EuclideanSpace ℝ (Fin 3)) (n := 3) (hn := finrank_euclideanSpace_fin)
+  (T := LinearMap.id
+    + ((span ℝ {EuclideanSpace.single (0 : Fin 3) (1 : ℝ)}).starProjection :
+      EuclideanSpace ℝ (Fin 3) →ₗ[ℝ] EuclideanSpace ℝ (Fin 3))
+    + ((span ℝ {EuclideanSpace.single (0 : Fin 3) (1 : ℝ)}).starProjection :
+      EuclideanSpace ℝ (Fin 3) →ₗ[ℝ] EuclideanSpace ℝ (Fin 3))
+    + ((span ℝ {EuclideanSpace.single (1 : Fin 3) (1 : ℝ)}).starProjection :
+      EuclideanSpace ℝ (Fin 3) →ₗ[ℝ] EuclideanSpace ℝ (Fin 3)))
+  (hT := ((IsSymmetric.id.add (starProjection_isSymmetric _)).add
+    (starProjection_isSymmetric _)).add (starProjection_isSymmetric _))
+  (k := 2) (hk := by norm_num)
+  (u := ![!₂[2 / 3, 2 / 3, 1 / 3], !₂[2 / 3, -1 / 3, -2 / 3]])
+  (orthonormal_iff_ite.mpr fun i j ↦ by
+    fin_cases i <;> fin_cases j <;>
+      (rw [EuclideanSpace.inner_eq_star_dotProduct]; norm_num [dotProduct, Fin.sum_univ_three]))
+
+open Module LinearMap Submodule in
+/-- The hypotheses of `sum_eigenvalues_eq_iSup` hold together: on `ℝ³` (dimension `n = 3`),
+`T = id + P₀ + P₀ + P₁`, with `P₀` and `P₁` the orthogonal projections onto the first two axes, is
+symmetric (a sum of symmetric maps), with eigenvalues `3`, `2`, `1`; `k = 2`, so the supremum runs
+over orthonormal pairs and equals `3 + 2 = 5` (review (b) group 2 gave these values in place of the
+identity on `ℝ²` at `k = 1`, where every eigenvalue is equal). -/
+example := ClassicalLean.MinMax.sum_eigenvalues_eq_iSup (𝕜 := ℝ)
+  (E := EuclideanSpace ℝ (Fin 3)) (n := 3) (hn := finrank_euclideanSpace_fin)
+  (T := LinearMap.id
+    + ((span ℝ {EuclideanSpace.single (0 : Fin 3) (1 : ℝ)}).starProjection :
+      EuclideanSpace ℝ (Fin 3) →ₗ[ℝ] EuclideanSpace ℝ (Fin 3))
+    + ((span ℝ {EuclideanSpace.single (0 : Fin 3) (1 : ℝ)}).starProjection :
+      EuclideanSpace ℝ (Fin 3) →ₗ[ℝ] EuclideanSpace ℝ (Fin 3))
+    + ((span ℝ {EuclideanSpace.single (1 : Fin 3) (1 : ℝ)}).starProjection :
+      EuclideanSpace ℝ (Fin 3) →ₗ[ℝ] EuclideanSpace ℝ (Fin 3)))
+  (hT := ((IsSymmetric.id.add (starProjection_isSymmetric _)).add
+    (starProjection_isSymmetric _)).add (starProjection_isSymmetric _))
+  (k := 2) (hk := by norm_num)
