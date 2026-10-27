@@ -526,6 +526,17 @@ tree (round 74's fragment): **140 modules, 3666 theorem constants (3602 + 64, th
 changed modules), `lake build` 4193 jobs, 0 warnings** (no module added); the witness gate
 `WITNESSGATE PASS` with 179 `OK` (171 + this order's 8), 1 `LISTED`, 205 `TYPED`.
 
+**Dated 2026-10-27 UTC (order VACUITY-5, round 75; branch `vacuity-5`, DSMain):** three rule-2
+witnesses in `Probability/YuleWalker`, one each for `covariance_eq_sum`, `isSolution_autocovariance`
+and `exists_poly_mk_autocovariance_eq` (VACUITY-3 rows 31 and 32, and the third theorem), on one
+covariance-stationary autoregression of order 2 driven by independent Gaussian noises on `ℕ → ℝ`
+(`Measure.infinitePi`); dated in §4. No declaration added or changed. The module now imports
+Mathlib's `Probability/Distributions/Gaussian/Real` and `Probability/Independence/InfinitePi`, both
+already in the root's import closure. Counts measured by this order's gates on the clean tree at G
+(round 75's fragment): **140 modules, 3666 theorem constants (unchanged), `lake build` 4193 jobs, 0
+warnings**; the type dump unchanged (removed 0, added 0, changed 0, proof-only 0); the witness gate
+`WITNESSGATE PASS` with 182 `OK` (179 + 3), 1 `LISTED`, 205 `TYPED`.
+
 ---
 
 ## 2. What I claimed, and what I actually checked
@@ -1110,6 +1121,14 @@ Seven gates, in `tools/`. Each was fail-tested; if you change one, fail-test it 
   pauses it no earlier than they force, and its docstring says so. For a theorem with no horizon (a
   limit, or a statement for every `n`), a witness whose process is constant from some time on is
   degenerate unless the hypotheses force it.
+  **Dated 2026-10-27 UTC (order VACUITY-5):** the two YuleWalker rows listed above as not
+  witnessed, `covariance_eq_sum` and `isSolution_autocovariance`, and the third theorem of the
+  group, `exists_poly_mk_autocovariance_eq`, are now witnessed by VACUITY-5, with Mathlib's
+  `Measure.infinitePi`: an autoregression of order 2 (`a = (1/2, 1/4)`) driven by independent
+  Gaussian noises of variances `48/25, 16/15, 1, 1, …`, covariance-stationary from time `0`
+  (`γ 0, γ 1, γ 2 = 48/25, 32/25, 28/25`), moving at every time; each witness is one inline block of
+  about 250 lines, with no helper declaration. By this section's count, no row of the 83 remains
+  not witnessed.
 - **`witness_gate.py`** (order VACUITY-4) — reads every `example` block of the library in place.
   A witness-form block (`example :=` at column 0) with the docstring "The hypotheses of `NAME` hold
   together" is turned, in a copy outside the repository, into a definition where it stood, and a
