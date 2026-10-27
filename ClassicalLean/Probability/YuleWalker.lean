@@ -337,13 +337,16 @@ example := ClassicalLean.Probability.durbinLevinson_spec
 /-- The hypotheses of `covariance_eq_sum` hold together: at lag `k = 2`. The model, the same in the
 three witnesses here: `Ω = ℕ → ℝ` with `μ` the product of the Gaussian laws `N(0, 48/25)` for
 coordinate `0`, `N(0, 16/15)` for coordinate `1` and `N(0, 1)` for every later one
-(`Measure.infinitePi`, a probability measure); the noises `e t` the coordinates, independent
-(`iIndepFun_infinitePi`), each of positive variance; the autoregression of order `p = 2` with two
-different, nonzero coefficients `a = (1/2, 1/4)`, `X (t + 2) = X (t + 1)/2 + X t/4 + e (t + 2)`,
-started at `X 0 = e 0` and `X 1 = 2/3 · X 0 + e 1`, which makes it stationary from time `0`; and
-`γ k = cov(X k, X 0)`, so `γ 0 = 48/25`, `γ 1 = 32/25` and `γ 2 = 28/25` (the process moves at every
-time; lag `2` uses both coefficients). Each proof below names the measure, the noises and the
-process, proves the noises' moments from the Gaussian laws, and then works on the names alone. -/
+(`Measure.infinitePi`, a probability measure; Lean finds `mΩ` from `μ`'s type and the finite-measure
+instance); the noises `e t` the coordinates, independent (`iIndepFun_infinitePi`), each of positive
+variance; the autoregression of order `p = 2` with two different, nonzero coefficients
+`a = (1/2, 1/4)`, `X (t + 2) = X (t + 1)/2 + X t/4 + e (t + 2)`, started at `X 0 = e 0` and
+`X 1 = 2/3 · X 0 + e 1`, which makes it covariance-stationary from time `0`; and
+`γ k = cov(X k, e 0)`, which is `cov(X k, X 0)` since `X 0 = e 0`, so `γ 0 = 48/25`, `γ 1 = 32/25`
+and `γ 2 = 28/25` (lag `2` uses both coefficients). The process moves at every time:
+`Var(X (t + 1) − X t) = 2 γ 0 − 2 γ 1 = 32/25 > 0`. The proofs of `hX`, `hγ` and `hnoise` name the
+measure, the noises and the process, prove what they use of the noises from the Gaussian laws and
+their independence, and then work on the names alone; the proof of `hγ` computes the variances. -/
 example := ClassicalLean.Probability.covariance_eq_sum (Ω := ℕ → ℝ)
   (μ := Measure.infinitePi fun t : ℕ ↦ gaussianReal 0
     (if t = 0 then ⟨48 / 25, by norm_num⟩ else if t = 1 then ⟨16 / 15, by norm_num⟩ else 1))
@@ -582,13 +585,16 @@ example := ClassicalLean.Probability.covariance_eq_sum (Ω := ℕ → ℝ)
 /-- The hypotheses of `isSolution_autocovariance` hold together: with `p = 2 > 0`. The model, the
 same in the three witnesses here: `Ω = ℕ → ℝ` with `μ` the product of the Gaussian laws
 `N(0, 48/25)` for coordinate `0`, `N(0, 16/15)` for coordinate `1` and `N(0, 1)` for every later one
-(`Measure.infinitePi`, a probability measure); the noises `e t` the coordinates, independent
-(`iIndepFun_infinitePi`), each of positive variance; the autoregression of order `p = 2` with two
-different, nonzero coefficients `a = (1/2, 1/4)`, `X (t + 2) = X (t + 1)/2 + X t/4 + e (t + 2)`,
-started at `X 0 = e 0` and `X 1 = 2/3 · X 0 + e 1`, which makes it stationary from time `0`; and
-`γ k = cov(X k, X 0)`, so `γ 0 = 48/25`, `γ 1 = 32/25` and `γ 2 = 28/25` (the process moves at every
-time; lag `2` uses both coefficients). Each proof below names the measure, the noises and the
-process, proves the noises' moments from the Gaussian laws, and then works on the names alone. -/
+(`Measure.infinitePi`, a probability measure; Lean finds `mΩ` from `μ`'s type and the finite-measure
+instance); the noises `e t` the coordinates, independent (`iIndepFun_infinitePi`), each of positive
+variance; the autoregression of order `p = 2` with two different, nonzero coefficients
+`a = (1/2, 1/4)`, `X (t + 2) = X (t + 1)/2 + X t/4 + e (t + 2)`, started at `X 0 = e 0` and
+`X 1 = 2/3 · X 0 + e 1`, which makes it covariance-stationary from time `0`; and
+`γ k = cov(X k, e 0)`, which is `cov(X k, X 0)` since `X 0 = e 0`, so `γ 0 = 48/25`, `γ 1 = 32/25`
+and `γ 2 = 28/25` (lag `2` uses both coefficients). The process moves at every time:
+`Var(X (t + 1) − X t) = 2 γ 0 − 2 γ 1 = 32/25 > 0`. The proofs of `hX`, `hγ` and `hnoise` name the
+measure, the noises and the process, prove what they use of the noises from the Gaussian laws and
+their independence, and then work on the names alone; the proof of `hγ` computes the variances. -/
 example := ClassicalLean.Probability.isSolution_autocovariance (Ω := ℕ → ℝ)
   (μ := Measure.infinitePi fun t : ℕ ↦ gaussianReal 0
     (if t = 0 then ⟨48 / 25, by norm_num⟩ else if t = 1 then ⟨16 / 15, by norm_num⟩ else 1))
@@ -827,13 +833,16 @@ example := ClassicalLean.Probability.isSolution_autocovariance (Ω := ℕ → �
 /-- The hypotheses of `exists_poly_mk_autocovariance_eq` hold together: with `p = 2 > 0`. The model,
 the same in the three witnesses here: `Ω = ℕ → ℝ` with `μ` the product of the Gaussian laws
 `N(0, 48/25)` for coordinate `0`, `N(0, 16/15)` for coordinate `1` and `N(0, 1)` for every later one
-(`Measure.infinitePi`, a probability measure); the noises `e t` the coordinates, independent
-(`iIndepFun_infinitePi`), each of positive variance; the autoregression of order `p = 2` with two
-different, nonzero coefficients `a = (1/2, 1/4)`, `X (t + 2) = X (t + 1)/2 + X t/4 + e (t + 2)`,
-started at `X 0 = e 0` and `X 1 = 2/3 · X 0 + e 1`, which makes it stationary from time `0`; and
-`γ k = cov(X k, X 0)`, so `γ 0 = 48/25`, `γ 1 = 32/25` and `γ 2 = 28/25` (the process moves at every
-time; lag `2` uses both coefficients). Each proof below names the measure, the noises and the
-process, proves the noises' moments from the Gaussian laws, and then works on the names alone. -/
+(`Measure.infinitePi`, a probability measure; Lean finds `mΩ` from `μ`'s type and the finite-measure
+instance); the noises `e t` the coordinates, independent (`iIndepFun_infinitePi`), each of positive
+variance; the autoregression of order `p = 2` with two different, nonzero coefficients
+`a = (1/2, 1/4)`, `X (t + 2) = X (t + 1)/2 + X t/4 + e (t + 2)`, started at `X 0 = e 0` and
+`X 1 = 2/3 · X 0 + e 1`, which makes it covariance-stationary from time `0`; and
+`γ k = cov(X k, e 0)`, which is `cov(X k, X 0)` since `X 0 = e 0`, so `γ 0 = 48/25`, `γ 1 = 32/25`
+and `γ 2 = 28/25` (lag `2` uses both coefficients). The process moves at every time:
+`Var(X (t + 1) − X t) = 2 γ 0 − 2 γ 1 = 32/25 > 0`. The proofs of `hX`, `hγ` and `hnoise` name the
+measure, the noises and the process, prove what they use of the noises from the Gaussian laws and
+their independence, and then work on the names alone; the proof of `hγ` computes the variances. -/
 example := ClassicalLean.Probability.exists_poly_mk_autocovariance_eq (Ω := ℕ → ℝ)
   (μ := Measure.infinitePi fun t : ℕ ↦ gaussianReal 0
     (if t = 0 then ⟨48 / 25, by norm_num⟩ else if t = 1 then ⟨16 / 15, by norm_num⟩ else 1))
