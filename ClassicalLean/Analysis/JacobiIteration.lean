@@ -24,6 +24,21 @@ To solve `A x = b`, Jacobi's method starts from any guess and repeats one step: 
 * `tendsto_jacobiIterate` — then the iterates converge, from every start, to `A⁻¹ b`, which is the
   one solution of `A x = b` because `A` is invertible (Mathlib's `det_ne_zero_of_sum_row_lt_diag`,
   the Levy–Desplanques theorem, proved in Mathlib's Gershgorin file).
+* `gaussSeidelUpdate`, `gaussSeidelStep`, `gaussSeidelIterate`, `norm_gaussSeidelStep_sub_le`,
+  `norm_gaussSeidelIterate_sub_le` — order LEAN-36, item 132, **Gauss–Seidel**: a sweep updates
+  coordinates `0, 1, …, m − 1` in turn on `Fin m`, each from equation `i` with the values already
+  updated in that sweep. Under the hypotheses of `norm_jacobiStep_sub_le` and `ρ ≤ 1`, one sweep
+  multiplies the error by at most `ρ` (`norm_gaussSeidelStep_sub_le`, the one-sweep lemma, public
+  since this order) and `k` sweeps by at most `ρ ^ k`. Wider than the plan's row (GENERALIZED): the
+  row asks strict dominance, the case `ρ < 1`; `ρ = 1` is allowed, and then the bound says only that
+  the error does not grow. The proofs are the draft `d132-r1-s1` (written by Claude Opus 5.5 through
+  the Anthropic Batch API, the lane's API-CREDIT-1 work), adapted by order LEAN-36's session: inside
+  this namespace, the draft's `variable {m : ℕ}` in a section `GaussSeidel`, the one-sweep lemma
+  made public under its name without the prime. The session did not drop-test their hypotheses;
+  order LEAN-36's review (d) did, outside the library (`ρ ≤ 1` in Lean, the other three by exact
+  arithmetic). No citation for Gauss–Seidel was checked. The two witnesses are claude-ai's (lane
+  `lean/LEAN-36/data/witnesses.txt`, section JacobiIteration), with the theorems called by their
+  full names.
 
 Citation: Jacobi 1845, "Ueber eine neue Auflösungsart der bei der Methode der kleinsten Quadrate
 vorkommenden linearen Gleichungen". That a strictly diagonally dominant matrix is invertible
@@ -162,6 +177,137 @@ theorem tendsto_jacobiIterate {A : Matrix n n ℝ}
     (fun k ↦ norm_jacobiIterate_sub_le hdiag hrow hy k) ?_
   simpa using (tendsto_pow_atTop_nhds_zero_of_lt_one hρ0 hρ1).mul_const ‖x₀ - A⁻¹ *ᵥ b‖
 
+section GaussSeidel
+
+variable {m : ℕ}
+
+/-- One Gauss–Seidel coordinate update: coordinate `i` is solved from equation `i`, using the
+current values of all other coordinates. -/
+noncomputable def gaussSeidelUpdate (A : Matrix (Fin m) (Fin m) ℝ) (b x : Fin m → ℝ)
+    (i : Fin m) : Fin m → ℝ :=
+  Function.update x i (jacobiStep A b x i)
+
+/-- One Gauss–Seidel sweep: coordinates `0, 1, …, m - 1` are updated in turn, each update using
+the values already updated in this sweep. -/
+noncomputable def gaussSeidelStep (A : Matrix (Fin m) (Fin m) ℝ) (b x : Fin m → ℝ) :
+    Fin m → ℝ :=
+  (List.finRange m).foldl (gaussSeidelUpdate A b) x
+
+/-- `k` Gauss–Seidel sweeps from the guess `x₀`. -/
+noncomputable def gaussSeidelIterate (A : Matrix (Fin m) (Fin m) ℝ) (b x₀ : Fin m → ℝ)
+    (k : ℕ) : Fin m → ℝ :=
+  (gaussSeidelStep A b)^[k] x₀
+
+private lemma gs_fold_bound {A : Matrix (Fin m) (Fin m) ℝ} {b y : Fin m → ℝ} {ρ E : ℝ}
+    (hdiag : ∀ i, A i i ≠ 0) (hrow : ∀ i, ∑ j ∈ univ.erase i, |A i j| ≤ ρ * |A i i|)
+    (hy : A *ᵥ y = b) (hρ0 : 0 ≤ ρ) (hρ1 : ρ ≤ 1) (l : List (Fin m)) :
+    ∀ (x : Fin m → ℝ) (T : Set (Fin m)), ‖x - y‖ ≤ E → (∀ i ∈ T, |x i - y i| ≤ ρ * E) →
+      ‖l.foldl (gaussSeidelUpdate A b) x - y‖ ≤ E ∧
+        ∀ i, (i ∈ T ∨ i ∈ l) → |l.foldl (gaussSeidelUpdate A b) x i - y i| ≤ ρ * E := by
+  induction l with
+  | nil =>
+    intro x T hx hT
+    refine ⟨hx, fun i hi => ?_⟩
+    rcases hi with hi | hi
+    · exact hT i hi
+    · simp at hi
+  | cons i l ih =>
+    intro x T hx hT
+    have hE : 0 ≤ E := (norm_nonneg _).trans hx
+    have hi : |jacobiStep A b x i - y i| ≤ ρ * E := by
+      have h1 : ‖(jacobiStep A b x - y) i‖ ≤ ‖jacobiStep A b x - y‖ := norm_le_pi_norm _ i
+      rw [Pi.sub_apply, Real.norm_eq_abs] at h1
+      exact h1.trans ((norm_jacobiStep_sub_le hdiag hrow hy).trans
+        (mul_le_mul_of_nonneg_left hx hρ0))
+    have hcoord : ∀ j, |x j - y j| ≤ E := fun j => by
+      have h1 : ‖(x - y) j‖ ≤ ‖x - y‖ := norm_le_pi_norm _ j
+      rw [Pi.sub_apply, Real.norm_eq_abs] at h1
+      exact h1.trans hx
+    have hx' : ‖gaussSeidelUpdate A b x i - y‖ ≤ E := by
+      refine (pi_norm_le_iff_of_nonneg hE).mpr fun j => ?_
+      rw [Pi.sub_apply, Real.norm_eq_abs, gaussSeidelUpdate]
+      by_cases hj : j = i
+      · rw [hj, Function.update_self]
+        exact hi.trans (by nlinarith)
+      · rw [Function.update_of_ne hj]
+        exact hcoord j
+    have hT' : ∀ j ∈ insert i T, |gaussSeidelUpdate A b x i j - y j| ≤ ρ * E := by
+      intro j hj
+      rw [gaussSeidelUpdate]
+      by_cases hji : j = i
+      · rw [hji, Function.update_self]
+        exact hi
+      · rw [Function.update_of_ne hji]
+        exact hT j ((Set.mem_insert_iff.mp hj).resolve_left hji)
+    obtain ⟨h1, h2⟩ := ih _ _ hx' hT'
+    refine ⟨by rw [List.foldl_cons]; exact h1, fun j hj => ?_⟩
+    rw [List.foldl_cons]
+    refine h2 j ?_
+    rcases hj with hj | hj
+    · exact Or.inl (Set.mem_insert_of_mem _ hj)
+    · rcases List.mem_cons.mp hj with h | hj
+      · rw [h]
+        exact Or.inl (Set.mem_insert _ _)
+      · exact Or.inr hj
+
+/-- **One Gauss–Seidel sweep multiplies the error by at most `ρ`** (item 132 of
+MATH-PLAN-library-2, the one-sweep lemma, made public by order LEAN-36; from the draft
+`d132-r1-s1`, where it is the private `norm_gaussSeidelStep_sub_le'`). If `A i i ≠ 0`,
+`∑_{j ≠ i} |A i j| ≤ ρ |A i i|` in every row with `ρ ≤ 1`, and `A y = b`, then
+`‖gaussSeidelStep A b x − y‖ ≤ ρ ‖x − y‖`, the norm being the largest absolute coordinate: each
+coordinate's update is a Jacobi update from values each within the current error bound. -/
+theorem norm_gaussSeidelStep_sub_le {A : Matrix (Fin m) (Fin m) ℝ} {b x y : Fin m → ℝ}
+    {ρ : ℝ} (hdiag : ∀ i, A i i ≠ 0) (hrow : ∀ i, ∑ j ∈ univ.erase i, |A i j| ≤ ρ * |A i i|)
+    (hρ1 : ρ ≤ 1) (hy : A *ᵥ y = b) :
+    ‖gaussSeidelStep A b x - y‖ ≤ ρ * ‖x - y‖ := by
+  rcases isEmpty_or_nonempty (Fin m) with hn | ⟨⟨i₀⟩⟩
+  · simp [Subsingleton.elim (gaussSeidelStep A b x - y) 0, Subsingleton.elim (x - y) 0]
+  have hρ : 0 ≤ ρ := by
+    have h1 := hrow i₀
+    have h2 : 0 ≤ ∑ j ∈ univ.erase i₀, |A i₀ j| := sum_nonneg fun _ _ ↦ abs_nonneg _
+    have h3 : 0 < |A i₀ i₀| := abs_pos.mpr (hdiag i₀)
+    nlinarith
+  obtain ⟨_, h2⟩ := gs_fold_bound (E := ‖x - y‖) hdiag hrow hy hρ hρ1 (List.finRange m) x ∅
+    le_rfl (by simp)
+  refine (pi_norm_le_iff_of_nonneg (mul_nonneg hρ (norm_nonneg _))).mpr fun i => ?_
+  rw [Pi.sub_apply, Real.norm_eq_abs]
+  exact h2 i (Or.inr (List.mem_finRange i))
+
+end GaussSeidel
+
+/-- **The error of Gauss–Seidel falls like `ρ ^ k`, `ρ` the row bound of Jacobi's method** (item
+132 of MATH-PLAN-library-2; the draft `d132-r1-s1`, written by Claude Opus 5.5 through the Anthropic
+Batch API, the lane's API-CREDIT-1 work, adapted by order LEAN-36's session). If `A i i ≠ 0`,
+`∑_{j ≠ i} |A i j| ≤ ρ |A i i|` in every row with `ρ ≤ 1`, and `A y = b`, then after `k` sweeps
+the error, in the largest-coordinate norm, is at most `ρ ^ k` times the initial error. Wider than
+the plan's row (review r6: GENERALIZED): the row asks strict diagonal dominance, which is the case
+`ρ < 1` (a strictly dominant matrix has such a `ρ`, `exists_rowRatio_lt_one`); here `ρ = 1`, weak
+dominance with a nonzero diagonal, is allowed too, and the bound then says only that the error does
+not grow. The start `x₀` and the row bound `ρ` are any, as in the row. The proof applies
+`norm_gaussSeidelStep_sub_le` at each sweep. -/
+theorem norm_gaussSeidelIterate_sub_le {m : ℕ} {A : Matrix (Fin m) (Fin m) ℝ}
+    {b x₀ y : Fin m → ℝ} {ρ : ℝ} (hdiag : ∀ i, A i i ≠ 0)
+    (hrow : ∀ i, ∑ j ∈ Finset.univ.erase i, |A i j| ≤ ρ * |A i i|) (hρ1 : ρ ≤ 1)
+    (hy : A *ᵥ y = b) (k : ℕ) :
+    ‖gaussSeidelIterate A b x₀ k - y‖ ≤ ρ ^ k * ‖x₀ - y‖ := by
+  rcases isEmpty_or_nonempty (Fin m) with hn | ⟨⟨i₀⟩⟩
+  · simp [Subsingleton.elim (gaussSeidelIterate A b x₀ k - y) 0, Subsingleton.elim (x₀ - y) 0]
+  have hρ : 0 ≤ ρ := by
+    have h1 := hrow i₀
+    have h2 : 0 ≤ ∑ j ∈ Finset.univ.erase i₀, |A i₀ j| :=
+      Finset.sum_nonneg fun _ _ ↦ abs_nonneg _
+    have h3 : 0 < |A i₀ i₀| := abs_pos.mpr (hdiag i₀)
+    nlinarith
+  induction k with
+  | zero => simp [gaussSeidelIterate]
+  | succ k ih =>
+    rw [gaussSeidelIterate, Function.iterate_succ_apply', ← gaussSeidelIterate]
+    calc ‖gaussSeidelStep A b (gaussSeidelIterate A b x₀ k) - y‖
+        ≤ ρ * ‖gaussSeidelIterate A b x₀ k - y‖ :=
+          norm_gaussSeidelStep_sub_le hdiag hrow hρ1 hy
+      _ ≤ ρ * (ρ ^ k * ‖x₀ - y‖) := mul_le_mul_of_nonneg_left ih hρ
+      _ = ρ ^ (k + 1) * ‖x₀ - y‖ := by ring
+
 end ClassicalLean.Analysis
 
 open Finset Matrix in
@@ -173,3 +319,28 @@ example := ClassicalLean.Analysis.norm_jacobiIterate_sub_le (n := Fin 2) (A := !
   (fun i ↦ by fin_cases i <;> simp)
   (fun i ↦ by fin_cases i <;> simp [Finset.sum_erase_eq_sub, Fin.sum_univ_two])
   (by ext i; fin_cases i <;> simp [mulVec, dotProduct, Fin.sum_univ_two] <;> norm_num) (k := 3)
+
+open Finset Matrix in
+/-- The hypotheses of `norm_gaussSeidelIterate_sub_le` hold together: the `2 × 2` matrix with
+rows `(4, 1)` and `(1, 4)` has nonzero diagonal and each row's off-diagonal entry `1` at most
+`ρ = 1/4` times its diagonal `4`, with `ρ ≤ 1`; `b = (6, 9) = A y` for `y = (1, 2)`; start
+`x₀ = 0`, `k = 3` sweeps, each of which moves the iterate: `(3/2, 15/8)`, `(33/32, 255/128)`,
+`(513/512, 4095/2048)`. -/
+example := ClassicalLean.Analysis.norm_gaussSeidelIterate_sub_le (m := 2) (A := !![4, 1; 1, 4])
+  (b := ![6, 9]) (x₀ := 0) (y := ![1, 2]) (ρ := 1 / 4)
+  (fun i ↦ by fin_cases i <;> simp)
+  (fun i ↦ by fin_cases i <;> simp [Finset.sum_erase_eq_sub, Fin.sum_univ_two])
+  (by norm_num)
+  (by ext i; fin_cases i <;> simp [mulVec, dotProduct, Fin.sum_univ_two] <;> norm_num) (k := 3)
+
+open Finset Matrix in
+/-- The hypotheses of `norm_gaussSeidelStep_sub_le` hold together: the same `2 × 2` matrix with
+rows `(4, 1)` and `(1, 4)`, nonzero diagonal, each row's off-diagonal entry `1` at most `ρ = 1/4`
+times its diagonal `4`, `ρ ≤ 1`, and `b = (6, 9) = A y` for `y = (1, 2)`; one sweep from `x = 0`
+moves to `(3/2, 15/8)`. -/
+example := ClassicalLean.Analysis.norm_gaussSeidelStep_sub_le (m := 2) (A := !![4, 1; 1, 4])
+  (b := ![6, 9]) (x := 0) (y := ![1, 2]) (ρ := 1 / 4)
+  (fun i ↦ by fin_cases i <;> simp)
+  (fun i ↦ by fin_cases i <;> simp [Finset.sum_erase_eq_sub, Fin.sum_univ_two])
+  (by norm_num)
+  (by ext i; fin_cases i <;> simp [mulVec, dotProduct, Fin.sum_univ_two] <;> norm_num)
