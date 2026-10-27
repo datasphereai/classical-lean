@@ -30,6 +30,25 @@ In the standard model of rounding, every arithmetic result is the exact result t
   2002, (5.3)). `hornerRev` runs the rule on the coefficients listed from the highest;
   `exists_hornerRev_eq` gives each term its own error of at most `γ (2k)` after `k` steps, as
   `exists_sumComputed_eq` does for a sum; `self_le_gamma` is `u ≤ γ m` for `m ≥ 1`.
+* `exists_forwardSubstComputed_eq` — order LEAN-36, item 133, **forward substitution is backward
+  stable**: `forwardSubstComputed` solves a lower-triangular `L x = b` row by row, each product,
+  subtraction and division rounded (`subComputed` is one row's running remainder); with nonzero
+  diagonal, every rounding at most `u` in size and `n u < 1`, the computed `x` solves
+  `(L + ΔL) x = b` exactly on rows `i < n`, with `|ΔL i j| ≤ γ n · |L i j|` for `j ≤ i < n` (the
+  plan's row cites Higham 2002, Theorem 8.5; not checked against the book by this order). Against
+  the plan's row (FAITHFUL): `L`, `b` and the roundings are functions on `ℕ`, the system is the
+  first `n` rows, and the bound is stated where forward substitution reads `L`, on and below the
+  diagonal. The proofs are the draft `d133-r1-s1` (written by Claude Opus 5.5 through the Anthropic
+  Batch API, the lane's API-CREDIT-1 work), adapted by order LEAN-36's session: inside this
+  namespace without the draft's `open … RoundingError`; in `forwardSubstComputed`, `if h : j < i`
+  written `if _h : j < i` (the name is unused); in four proof lines about the private `deltaL`,
+  Lean's deprecated `if_pos` and `if_neg` replaced by `ite_eq_left` and `ite_eq_right`, as its
+  deprecation warnings name; the private `gamma_mono'` kept, this module having no monotonicity
+  lemma for `γ`. The session did not drop-test the theorem's five hypotheses; order LEAN-36's review
+  (e) did, outside the library: dropping any one alone, the conclusion fails at an instance where
+  the other four hold (the failure proved in Lean). The witness is claude-ai's (lane
+  `lean/LEAN-36/data/witnesses.txt`, section RoundingError), its head written as the full name and
+  its `b` changed by the session (said in its docstring).
 
 Lean's `Float` is opaque to proof, so the model is stated over the reals with the `d`'s as
 hypotheses. As a fact about hardware, not a theorem here: IEEE 754 double precision with round to
@@ -276,6 +295,143 @@ theorem abs_hornerComputed_sub_le {u x : ℝ} {a ε δ : ℕ → ℝ} {n : ℕ} 
       = η i * (a (n - i) * x ^ (n - i)) by ring, abs_mul, abs_mul, abs_pow]
   exact mul_le_mul_of_nonneg_right (hη i hi) (by positivity)
 
+/-- Row `i` of forward substitution: start from `b i`; at step `k + 1` subtract `l i k * x k`,
+the product rounded by `1 + ε i k` and the subtraction rounded in the form `exact / (1 + δ i k)`. -/
+noncomputable def subComputed (l : ℕ → ℕ → ℝ) (b x : ℕ → ℝ) (ε δ : ℕ → ℕ → ℝ) (i : ℕ) :
+    ℕ → ℝ
+  | 0 => b i
+  | k + 1 => (subComputed l b x ε δ i k - l i k * x k * (1 + ε i k)) / (1 + δ i k)
+
+/-- Forward substitution for lower-triangular `L x = b` in the standard model: `x i` is the
+computed `(b i - ∑_{j<i} l i j x j)` divided by `l i i`, the division rounded in the form
+`exact / (1 + ρ i)`. -/
+noncomputable def forwardSubstComputed (l : ℕ → ℕ → ℝ) (b : ℕ → ℝ) (ε δ : ℕ → ℕ → ℝ)
+    (ρ : ℕ → ℝ) (i : ℕ) : ℝ :=
+  subComputed l b (fun j ↦ if _h : j < i then forwardSubstComputed l b ε δ ρ j else 0) ε δ i i
+    / l i i / (1 + ρ i)
+termination_by i
+
+/-- The backward error of forward substitution. -/
+private noncomputable def deltaL (l : ℕ → ℕ → ℝ) (ε δ : ℕ → ℕ → ℝ) (ρ : ℕ → ℝ) (i j : ℕ) : ℝ :=
+  if j < i then l i j * ((1 + ε i j) * ∏ m ∈ range j, (1 + δ i m) - 1)
+  else if j = i then l i i * ((1 + ρ i) * ∏ m ∈ range i, (1 + δ i m) - 1) else 0
+
+private lemma subComputed_congr (l : ℕ → ℕ → ℝ) (b : ℕ → ℝ) (ε δ : ℕ → ℕ → ℝ) (i : ℕ)
+    {x x' : ℕ → ℝ} (k : ℕ) (h : ∀ j < k, x j = x' j) :
+    subComputed l b x ε δ i k = subComputed l b x' ε δ i k := by
+  induction k with
+  | zero => simp [subComputed]
+  | succ k ih =>
+    simp only [subComputed]
+    rw [ih (fun j hj ↦ h j (by omega)), h k (by omega)]
+
+private lemma forwardSubstComputed_eq_sub (l : ℕ → ℕ → ℝ) (b : ℕ → ℝ) (ε δ : ℕ → ℕ → ℝ)
+    (ρ : ℕ → ℝ) (i : ℕ) :
+    forwardSubstComputed l b ε δ ρ i =
+      subComputed l b (forwardSubstComputed l b ε δ ρ) ε δ i i / l i i / (1 + ρ i) := by
+  rw [forwardSubstComputed]
+  have := subComputed_congr l b ε δ i
+    (x := fun j ↦ if h : j < i then forwardSubstComputed l b ε δ ρ j else 0)
+    (x' := forwardSubstComputed l b ε δ ρ) i (fun j hj ↦ by simp [hj])
+  rw [this]
+
+private lemma subComputed_mul_prod (l : ℕ → ℕ → ℝ) (b x : ℕ → ℝ) (ε δ : ℕ → ℕ → ℝ)
+    (i k : ℕ) (hne : ∀ m < k, 1 + δ i m ≠ 0) :
+    subComputed l b x ε δ i k * ∏ m ∈ range k, (1 + δ i m) +
+      ∑ j ∈ range k, l i j * x j * (1 + ε i j) * ∏ m ∈ range j, (1 + δ i m) = b i := by
+  induction k with
+  | zero => simp [subComputed]
+  | succ k ih =>
+    have ih' := ih (fun m hm ↦ hne m (by omega))
+    have hk := hne k (by omega)
+    have e : subComputed l b x ε δ i (k + 1) * (1 + δ i k)
+        = subComputed l b x ε δ i k - l i k * x k * (1 + ε i k) := by
+      simp only [subComputed]
+      field_simp
+    rw [prod_range_succ, sum_range_succ]
+    linear_combination ih' + (∏ m ∈ range k, (1 + δ i m)) * e
+
+private lemma gamma_mono' {u : ℝ} (hu : 0 ≤ u) {a b : ℕ} (hab : a ≤ b) (h : (b : ℝ) * u < 1) :
+    gamma u a ≤ gamma u b := by
+  have hab' : (a : ℝ) ≤ b := by exact_mod_cast hab
+  have hm := mul_le_mul_of_nonneg_right hab' hu
+  have ha : (a : ℝ) * u < 1 := by nlinarith
+  unfold gamma
+  rw [div_le_div_iff₀ (by linarith) (by linarith)]
+  nlinarith
+
+private lemma abs_one_add_mul_prod_sub_one_le' {u r : ℝ} {d : ℕ → ℝ} {m n : ℕ}
+    (hd : ∀ k < m, |d k| ≤ u) (hr : |r| ≤ u) (hmn : m + 1 ≤ n) (h : (n : ℝ) * u < 1) :
+    |(1 + r) * ∏ k ∈ range m, (1 + d k) - 1| ≤ gamma u n := by
+  have hu : 0 ≤ u := (abs_nonneg r).trans hr
+  have hmn' : ((m : ℝ) + 1) ≤ n := by exact_mod_cast hmn
+  have hmul := mul_le_mul_of_nonneg_right hmn' hu
+  have h1 : ((m : ℝ) + 1) * u < 1 := by nlinarith
+  have h0 : (m : ℝ) * u < 1 := by nlinarith
+  have hP := abs_prod_one_add_sub_one_le hd h0
+  have hb := abs_one_add_mul_sub_one_le h1 hP hr
+  have e : (1 + (∏ k ∈ range m, (1 + d k) - 1)) * (1 + r) - 1
+      = (1 + r) * ∏ k ∈ range m, (1 + d k) - 1 := by ring
+  rw [e] at hb
+  exact hb.trans (gamma_mono' hu hmn h)
+
+private lemma one_add_ne_zero' {u r : ℝ} {n : ℕ} (hr : |r| ≤ u) (hn : 1 ≤ n)
+    (h : (n : ℝ) * u < 1) : 1 + r ≠ 0 := by
+  intro h0
+  have hr' : r = -1 := by linarith
+  rw [hr', abs_neg, abs_one] at hr
+  have hn' : (1 : ℝ) ≤ n := by exact_mod_cast hn
+  nlinarith
+
+/-- **Forward substitution is backward stable** (item 133 of MATH-PLAN-library-2, whose row cites
+Higham 2002, Theorem 8.5, not checked against the book; the draft `d133-r1-s1`, written by Claude
+Opus 5.5 through the Anthropic Batch API, the lane's API-CREDIT-1 work, adapted by order LEAN-36's
+session). With every rounding at most `u` in size, `n u < 1` and nonzero diagonal, the computed
+solution `forwardSubstComputed` of the lower-triangular system `L x = b` (rows `i < n`) solves
+`(L + ΔL) x = b` exactly, with `|ΔL i j| ≤ γ n · |L i j|` for `j ≤ i < n`. Only the entries with
+`j ≤ i` enter: forward substitution never reads the entries above the diagonal, and the statement
+says nothing of `ΔL` there. The proof takes `ΔL` from the rounding factors each product,
+subtraction and division carries (`abs_prod_one_add_sub_one_le`, `abs_one_add_mul_sub_one_le`). -/
+theorem exists_forwardSubstComputed_eq {u : ℝ} {l : ℕ → ℕ → ℝ} {b : ℕ → ℝ}
+    {ε δ : ℕ → ℕ → ℝ} {ρ : ℕ → ℝ} {n : ℕ}
+    (hl : ∀ i < n, l i i ≠ 0)
+    (hε : ∀ i < n, ∀ j < i, |ε i j| ≤ u) (hδ : ∀ i < n, ∀ j < i, |δ i j| ≤ u)
+    (hρ : ∀ i < n, |ρ i| ≤ u) (h : (n : ℝ) * u < 1) :
+    ∃ ΔL : ℕ → ℕ → ℝ, (∀ i < n, ∀ j ≤ i, |ΔL i j| ≤ gamma u n * |l i j|) ∧
+      ∀ i < n, ∑ j ∈ range (i + 1), (l i j + ΔL i j) * forwardSubstComputed l b ε δ ρ j
+        = b i := by
+  refine ⟨deltaL l ε δ ρ, ?_, ?_⟩
+  · intro i hi j hj
+    by_cases hji : j < i
+    · rw [deltaL, ite_eq_left hji, abs_mul, mul_comm (gamma u n)]
+      exact mul_le_mul_of_nonneg_left
+        (abs_one_add_mul_prod_sub_one_le' (m := j) (d := δ i)
+          (fun k hk ↦ hδ i hi k (by omega)) (hε i hi j hji) (by omega) h) (abs_nonneg _)
+    · have hji' : j = i := by omega
+      rw [hji', deltaL, ite_eq_right (lt_irrefl i), ite_eq_left rfl, abs_mul, mul_comm (gamma u n)]
+      exact mul_le_mul_of_nonneg_left
+        (abs_one_add_mul_prod_sub_one_le' (m := i) (d := δ i)
+          (fun k hk ↦ hδ i hi k hk) (hρ i hi) (by omega) h) (abs_nonneg _)
+  · intro i hi
+    have hne : ∀ m < i, 1 + δ i m ≠ 0 := fun m hm ↦
+      one_add_ne_zero' (hδ i hi m hm) (by omega) h
+    have hρne : 1 + ρ i ≠ 0 := one_add_ne_zero' (hρ i hi) (by omega) h
+    have hli : l i i ≠ 0 := hl i hi
+    have hrow := subComputed_mul_prod l b (forwardSubstComputed l b ε δ ρ) ε δ i i hne
+    have hs : forwardSubstComputed l b ε δ ρ i * (1 + ρ i) * l i i
+        = subComputed l b (forwardSubstComputed l b ε δ ρ) ε δ i i := by
+      rw [forwardSubstComputed_eq_sub l b ε δ ρ i]
+      field_simp
+    have hsum : ∑ j ∈ range i, (l i j + deltaL l ε δ ρ i j) * forwardSubstComputed l b ε δ ρ j
+        = ∑ j ∈ range i, l i j * forwardSubstComputed l b ε δ ρ j * (1 + ε i j) *
+            ∏ m ∈ range j, (1 + δ i m) :=
+      sum_congr rfl fun j hj ↦ by rw [deltaL, ite_eq_left (mem_range.mp hj)]; ring
+    have hdiag : l i i + deltaL l ε δ ρ i i
+        = l i i * ((1 + ρ i) * ∏ m ∈ range i, (1 + δ i m)) := by
+      rw [deltaL, ite_eq_right (lt_irrefl i), ite_eq_left rfl]; ring
+    rw [sum_range_succ, hsum, hdiag]
+    linear_combination hrow + (∏ m ∈ range i, (1 + δ i m)) * hs
+
 end ClassicalLean.Analysis.RoundingError
 
 /-- The hypotheses of `abs_dotComputed_sub_le` hold together: unit roundoff `u = 1/10`, every
@@ -291,3 +447,17 @@ rounding error `ε k` and `δ k` equal to `1/20`, so at most `u` in size, and de
 example := ClassicalLean.Analysis.RoundingError.abs_hornerComputed_sub_le (u := 1 / 10) (x := 3)
   (a := fun i ↦ i + 1) (ε := fun _ ↦ 1 / 20) (δ := fun _ ↦ 1 / 20) (n := 2)
   (fun _ _ ↦ by norm_num [abs_of_pos]) (fun _ _ ↦ by norm_num [abs_of_pos]) (by norm_num)
+
+/-- The hypotheses of `exists_forwardSubstComputed_eq` hold together: unit roundoff `u = 1/10`,
+the lower-triangular `l` with `l i j = 2` below the diagonal, `1` on it (so `l i i ≠ 0`) and `0`
+above, `b i = 2 i + 1`, every rounding error `ε i j`, `δ i j` and `ρ i` equal to `1/20`, so at most
+`u` in size and none zero, and `n = 2` rows, where `n u = 1/5 < 1`. Order LEAN-36's session
+changed `b` from claude-ai's `b i = i + 1`, under which row 1's remainder is exactly `0`, so that
+its subtraction and division roundings act on an exact zero; with `b i = 2 i + 1` every rounding
+moves the computed solution. -/
+example := ClassicalLean.Analysis.RoundingError.exists_forwardSubstComputed_eq (u := 1 / 10)
+  (l := fun i j ↦ if j < i then 2 else if j = i then 1 else 0) (b := fun i ↦ 2 * i + 1)
+  (ε := fun _ _ ↦ 1 / 20) (δ := fun _ _ ↦ 1 / 20) (ρ := fun _ ↦ 1 / 20) (n := 2)
+  (fun i _ ↦ by simp)
+  (fun _ _ _ _ ↦ by norm_num [abs_of_pos]) (fun _ _ _ _ ↦ by norm_num [abs_of_pos])
+  (fun _ _ ↦ by norm_num [abs_of_pos]) (by norm_num)
