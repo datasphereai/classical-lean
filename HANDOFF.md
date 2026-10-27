@@ -492,6 +492,40 @@ Narrowing: none. Counts predicted by this order's job 6, to be re-measured by it
 tree (round 73's fragment): **140 modules, 3602 theorem constants, `lake build` 4193 jobs, 0
 warnings**; the witness gate `WITNESSGATE PASS` with 171 `OK`, 1 `LISTED`, 205 `TYPED`.
 
+**Dated 2026-10-27 UTC (order LEAN-36, round 74; branch `lean-36`, DSMain):** six items from below
+MATH-PLAN-library-2's cut, from the API-credit drafts, each in its home module; no new module, six
+extended:
+
+- item 127, `Analysis/HermiteHadamard`: Fejér's inequality,
+  `f ((a + b)/2) ∫ g ≤ ∫ f g ≤ ((f a + f b)/2) ∫ g` for `f` convex and continuous on `[a, b]` and a
+  weight `g ≥ 0`, integrable and symmetric about the midpoint (`convexOn_midpoint_mul_integral_le`,
+  `integral_mul_le_endpoints`);
+- item 128, `Analysis/EulerMaclaurin`: Euler–Maclaurin to second order, for integers `a ≤ b`, `f`
+  and `f'` continuous on `[a, b]` with derivatives `f'`, `f''` inside and `f''` integrable,
+  `∑_{k=a}^{b} f k = ∫ₐᵇ f + (f a + f b)/2 + (f' b − f' a)/12 − ∫ₐᵇ B₂(fract t)/2 · f''`
+  (`sum_eq_integral_add_two`);
+- item 129, `Analysis/LinearODE`: variation of constants, every solution of `x' = A x + f(t)` with
+  `f` continuous is `x t = exp (t A) x(0) + ∫₀ᵗ exp ((t − s) A) f(s) ds`
+  (`eq_exp_smul_mulVec_add_integral`);
+- item 132, `Analysis/JacobiIteration`: Gauss–Seidel, under the hypotheses of
+  `norm_jacobiStep_sub_le` and `ρ ≤ 1`, one sweep multiplies the error by at most `ρ`
+  (`norm_gaussSeidelStep_sub_le`) and `k` sweeps by at most `ρ ^ k`
+  (`norm_gaussSeidelIterate_sub_le`), GENERALIZED: `ρ = 1` (weak dominance) is allowed;
+- item 133, `Analysis/RoundingError`: forward substitution is backward stable, with a nonzero
+  diagonal, every rounding at most `u` and `n u < 1`, the computed solution of a lower-triangular
+  `L x = b` solves `(L + ΔL) x = b` with `|ΔL i j| ≤ γ n · |L i j|` for
+  `j ≤ i < n` (`exists_forwardSubstComputed_eq`);
+- item 146, `Analysis/EulerMethod`: Heun's method (`heunIterate`, iterates `u_k` from `y t₀`) has
+  global error of order `h²`, under the hypotheses of `abs_sub_eulerIterate_le` and a `K`-Lipschitz
+  derivative of `t ↦ f (t, y t)`,
+  `|y (t₀ + k h) − u_k| ≤ h² (K + 3 L M)/(12 L) · (exp (L k h) − 1)` (`abs_sub_heunIterate_le`); the
+  module now imports Mathlib's `Analysis/SpecialFunctions/Trigonometric/Bounds`, for its witness.
+
+Narrowing: none. Counts predicted by this order's job 3, to be re-measured by its gates on the clean
+tree (round 74's fragment): **140 modules, 3666 theorem constants (3602 + 64, the censuses of the
+changed modules), `lake build` 4193 jobs, 0 warnings** (no module added); the witness gate
+`WITNESSGATE PASS` with 179 `OK` (171 + this order's 8), 1 `LISTED`, 205 `TYPED`.
+
 ---
 
 ## 2. What I claimed, and what I actually checked

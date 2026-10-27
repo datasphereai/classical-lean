@@ -908,6 +908,44 @@ No module is added. Narrowing: none; items 125 and 138 are wider than their plan
   earlier statement, every entry at least `δ > 0` and a nonempty target, is kept as a corollary
   (`meanHitting_eq_of_le`).
 
+### 1.30 Six items from below the plan's cut (order LEAN-36, round 74)
+
+Items 127, 128, 129, 132, 133 and 146 of MATH-PLAN-library-2 sit below the plan's cut. Their proofs
+were drafted and reviewed outside the library (the lane's API-CREDIT-1 work); order LEAN-36 landed
+them on DSMain in their home modules, each with a witness, a statement review and a cold module
+review. No module is added. Narrowing: none; item 132 is wider than its plan row:
+
+* `Analysis/HermiteHadamard` (item 127): Fejér's inequality. For `f` convex and continuous on
+  `[a, b]` with `a ≤ b`, and a weight `g ≥ 0` integrable on `[a, b]` and symmetric about the
+  midpoint there, `f ((a + b)/2) ∫ g ≤ ∫ f g` (`convexOn_midpoint_mul_integral_le`) and
+  `∫ f g ≤ ((f a + f b)/2) ∫ g` (`integral_mul_le_endpoints`); with `g = 1`, the module's two halves
+  of Hermite–Hadamard (the left one multiplied out).
+* `Analysis/EulerMaclaurin` (item 128): Euler–Maclaurin to second order. For integers `a ≤ b` and
+  `f`, `f'` continuous on `[a, b]` with derivatives `f'`, `f''` inside, `f''` integrable,
+  `∑_{k=a}^{b} f k = ∫ₐᵇ f + (f a + f b)/2 + (f' b − f' a)/12 − ∫ₐᵇ B₂(fract t)/2 · f''`, `B₂` the
+  Bernoulli polynomial `x² − x + 1/6` (`sum_eq_integral_add_two`).
+* `Analysis/LinearODE` (item 129): variation of constants. If `x' = A x + f(t)` at every time, with
+  `f` continuous, then `x t = exp (t A) x(0) + ∫₀ᵗ exp ((t − s) A) f(s) ds` for every `t`
+  (`eq_exp_smul_mulVec_add_integral`); that the formula is a solution is not stated.
+* `Analysis/JacobiIteration` (item 132): Gauss–Seidel. A sweep updates the coordinates of `Fin m` in
+  order, each from the values already updated in that sweep; under the hypotheses of
+  `norm_jacobiStep_sub_le` and `ρ ≤ 1`, one sweep multiplies the error by at most `ρ`
+  (`norm_gaussSeidelStep_sub_le`) and `k` sweeps by at most `ρ ^ k`
+  (`norm_gaussSeidelIterate_sub_le`); wider: `ρ = 1`, weak dominance with a nonzero diagonal, is
+  allowed, and the bound then says only that the error does not grow.
+* `Analysis/RoundingError` (item 133): forward substitution is backward stable. With a nonzero
+  diagonal, every rounding at most `u` in size and `n u < 1`, the computed solution of a
+  lower-triangular `L x = b` solves `(L + ΔL) x = b` on its first `n` rows, with
+  `|ΔL i j| ≤ γ n · |L i j|` for `j ≤ i < n` (`exists_forwardSubstComputed_eq`); `ΔL` is not
+  constrained above the diagonal, which forward substitution never reads (review r6's minor to set
+  it to `0` there was not taken).
+* `Analysis/EulerMethod` (item 146, which now imports Mathlib's
+  `Analysis/SpecialFunctions/Trigonometric/Bounds`, for its witness): Heun's method. Under the
+  hypotheses of `abs_sub_eulerIterate_le` and a `K`-Lipschitz derivative of `t ↦ f (t, y t)`, the
+  `k`-th Heun iterate `u_k` (`heunIterate`, from `y t₀`) satisfies
+  `|y (t₀ + k h) − u_k| ≤ h² (K + 3 L M)/(12 L) · (exp (L k h) − 1)`, of order `h²` for a fixed end
+  time (`abs_sub_heunIterate_le`).
+
 ## 2. Categories to add
 
 Tiered by how much work they do inside the system that already exists, not by how interesting
