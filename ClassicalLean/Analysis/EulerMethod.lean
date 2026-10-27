@@ -5,6 +5,7 @@ Authors: Dustin Watkins, Claude (Anthropic)
 -/
 
 import ClassicalLean.Analysis.GradientDescent
+import Mathlib.Analysis.SpecialFunctions.Trigonometric.Bounds
 
 /-!
 # The global error of Euler's method
@@ -24,6 +25,22 @@ For the equation `y' = f (t, y)`, Euler's method with step `h` from `(t₀, y₀
 * `tendsto_explicitEuler_iff` — order LEAN-29, item 94: explicit Euler for the same equation
   (`eulerIterate` with `f t y = −c y`), with a step `h > 0` and a start `y₀ ≠ 0`, tends to `0`
   exactly when `h c < 2`.
+* `heunIterate`, `abs_sub_heunIterate_le` — order LEAN-36, item 146, **Heun's method**, the explicit
+  trapezoid rule `u_{k+1} = u_k + (h/2) (f (t_k, u_k) + f (t_k + h, u_k + h f (t_k, u_k)))`: under
+  the hypotheses of `abs_sub_eulerIterate_le` and a `K`-Lipschitz derivative `G` of
+  `t ↦ f (t, y t)`, after `k` steps
+  `|y (t₀ + k h) − u_k| ≤ h² (K + 3 L M) / (12 L) · (exp (L k h) − 1)`, so for a fixed end time the
+  error is of order `h²`. Against the plan's row (FAITHFUL): the hypotheses are assumed at every
+  time, as for Euler's method above, and the order `h²` is stated as this explicit bound. The proofs
+  are the draft `d146-r3-s1` (written by Claude Opus 5.5 through the Anthropic Batch API, the lane's
+  API-CREDIT-1 work), adapted by order LEAN-36's session: inside this namespace without the draft's
+  module docstring, own `namespace` lines and `open`; its private `heun_abs_add` replaced by
+  Mathlib's `abs_add_le`; one tactic step's unused alternatives and `simp` arguments cut, as the
+  linter's warnings name. The import of `Mathlib.Analysis.SpecialFunctions.Trigonometric.Bounds` was
+  added by this order for the witness, whose derivative and Lipschitz facts for sine and cosine
+  (`Real.hasDerivAt_sin`, `Real.lipschitzWith_cos` and two more) this module did not reach before.
+  The hypotheses were not drop-tested by the session. The witness is claude-ai's (lane
+  `lean/LEAN-36/data/witnesses.txt`, section EulerMethod), its head written as the full name.
 
 This matches the bound in numerical-analysis textbooks; checked for this order by web search,
 it is Theorem 5.9 of Burden and Faires, Numerical Analysis, as numbered in lecture notes that
@@ -228,6 +245,169 @@ theorem tendsto_explicitEuler_iff {c h t₀ y₀ : ℝ} (hc : 0 < c) (hh : 0 < h
   · intro h2
     exact ⟨by linarith [mul_pos hh hc], by linarith⟩
 
+/-- `k` steps of Heun's method for `y' = f (t, y)` with step `h` from `(t₀, y₀)`. -/
+noncomputable def heunIterate (f : ℝ → ℝ → ℝ) (t₀ h y₀ : ℝ) : ℕ → ℝ
+  | 0 => y₀
+  | k + 1 => heunIterate f t₀ h y₀ k + h / 2 * (f (t₀ + k * h) (heunIterate f t₀ h y₀ k)
+      + f (t₀ + k * h + h) (heunIterate f t₀ h y₀ k + h * f (t₀ + k * h) (heunIterate f t₀ h y₀ k)))
+
+/-- If `g 0 = 0` and `|g' s| ≤ C s²` for `s ≥ 0`, then `|g h| ≤ (C/3) h³` for `h ≥ 0`. -/
+private theorem heun_abs_le_of_deriv {g g' : ℝ → ℝ} {C h : ℝ}
+    (hg : ∀ s, HasDerivAt g (g' s) s) (h0 : g 0 = 0)
+    (hb : ∀ s, 0 ≤ s → |g' s| ≤ C * s ^ 2) (hh : 0 ≤ h) :
+    |g h| ≤ C / 3 * h ^ 3 := by
+  have key : ∀ σ : ℝ, (∀ x : ℝ, σ * x ≤ |x|) → σ * g h ≤ C / 3 * h ^ 3 := by
+    intro σ hσ
+    have hp : ∀ s : ℝ, HasDerivAt (fun x : ℝ => x ^ 3) (3 * s ^ 2) s := by
+      intro s
+      exact (hasDerivAt_pow (n := 3) (x := s)).congr_deriv (by norm_num)
+    have hψ : ∀ s, HasDerivAt (fun x => σ * g x - C / 3 * x ^ 3) (σ * g' s - C * s ^ 2) s :=
+      fun s => (((hg s).const_mul σ).sub ((hp s).const_mul (C / 3))).congr_deriv (by ring)
+    have hanti : AntitoneOn (fun x => σ * g x - C / 3 * x ^ 3) (Set.Icc 0 h) := by
+      refine antitoneOn_of_hasDerivWithinAt_nonpos (convex_Icc 0 h)
+        (fun s _ ↦ (hψ s).continuousAt.continuousWithinAt) (fun s _ ↦ (hψ s).hasDerivWithinAt) ?_
+      intro s hs
+      rw [interior_Icc] at hs
+      have h1 := hb s hs.1.le
+      have h2 := hσ (g' s)
+      linarith
+    have h1 := hanti (Set.left_mem_Icc.2 hh) (Set.right_mem_Icc.2 hh) hh
+    have h0' : (0 : ℝ) ^ 3 = 0 := by norm_num
+    simp only [h0, h0', mul_zero, sub_zero] at h1
+    linarith
+  rw [abs_le]
+  constructor
+  · have := key (-1) (fun x => by rw [neg_one_mul]; exact neg_le_abs x)
+    linarith
+  · have := key 1 (fun x => by rw [one_mul]; exact le_abs_self x)
+    linarith
+
+/-- The local error of the trapezoid rule: if `y' = F`, `F' = G` and `G` is `K`-Lipschitz, then
+`|y (t + h) − y t − (h/2)(F t + F (t + h))| ≤ (K/12) h³` for `h ≥ 0`. -/
+private theorem heun_trapezoid {y F G : ℝ → ℝ} {K : ℝ≥0}
+    (hy : ∀ t, HasDerivAt y (F t) t) (hF : ∀ t, HasDerivAt F (G t) t)
+    (hK : LipschitzWith K G) (t h : ℝ) (hh : 0 ≤ h) :
+    |y (t + h) - y t - h / 2 * (F t + F (t + h))| ≤ (K : ℝ) / 12 * h ^ 3 := by
+  have hd : ∀ s, HasDerivAt (fun s => y (t + s) - y t - s / 2 * (F t + F (t + s)))
+      ((F t - F (t + s) + s * G (t + s)) * (-1 / 2)) s := by
+    intro s
+    have h1 : HasDerivAt (fun x : ℝ => t + x) 1 s := (hasDerivAt_id' s).const_add t
+    have hy' : HasDerivAt (fun x => y (t + x)) (F (t + s)) s :=
+      ((hy (t + s)).comp s h1).congr_deriv (mul_one _)
+    have hF' : HasDerivAt (fun x => F (t + x)) (G (t + s)) s :=
+      ((hF (t + s)).comp s h1).congr_deriv (mul_one _)
+    have h2 := ((hasDerivAt_id' s).div_const 2).mul ((hasDerivAt_const s (F t)).add hF')
+    have := (hy'.sub_const (y t)).sub h2
+    convert this using 1
+    all_goals (simp only [Pi.add_apply]; ring1)
+  have hb : ∀ s, 0 ≤ s → |(F t - F (t + s) + s * G (t + s)) * (-1 / 2)| ≤ (K : ℝ) / 4 * s ^ 2 := by
+    intro s _
+    have := abs_sub_sub_mul_le_of_lipschitzWith hF hK (t + s) (-s)
+    rw [show t + s + -s = t by ring, neg_sq] at this
+    rw [abs_mul, show |(-1 / 2 : ℝ)| = 1 / 2 by norm_num]
+    have e : F t - F (t + s) + s * G (t + s) = F t - F (t + s) - -s * G (t + s) := by ring
+    rw [e]
+    linarith
+  have h' : |y (t + h) - y t - h / 2 * (F t + F (t + h))| ≤ (K : ℝ) / 4 / 3 * h ^ 3 :=
+    heun_abs_le_of_deriv hd (by simp) hb hh
+  linarith
+
+/-- **The global error of Heun's method is of order `h²`** (item 146 of MATH-PLAN-library-2; the
+draft `d146-r3-s1`, written by Claude Opus 5.5 through the Anthropic Batch API, the lane's
+API-CREDIT-1 work, adapted by order LEAN-36's session). If `y` solves `y' = f (t, y)`,
+`t ↦ f (t, y t)` is `M`-Lipschitz and has a `K`-Lipschitz derivative `G`, every `f (t, ·)` is
+`L`-Lipschitz with `L > 0`, `h ≥ 0`, and the method starts at `y t₀`, then after `k` steps
+`|y (t₀ + k h) − u_k| ≤ h² (K + 3 L M) / (12 L) · (exp (L k h) − 1)`: for a fixed end time `k h`
+the error is of order `h²`. The hypotheses are assumed at every time, as for
+`abs_sub_eulerIterate_le`. Each step's local error is at most `(K/12 + L M/4) h³` (the trapezoid
+rule's, a private helper of this module, plus the inner Euler step's,
+`abs_sub_sub_mul_le_of_lipschitzWith`), and the errors grow by at most
+`1 + h L + (h L)²/2 ≤ exp (h L)` per step. -/
+theorem abs_sub_heunIterate_le {f : ℝ → ℝ → ℝ} {y G : ℝ → ℝ} {t₀ h : ℝ} {K L M : ℝ≥0}
+    (hy : ∀ t, HasDerivAt y (f t (y t)) t)
+    (hG : ∀ t, HasDerivAt (fun t ↦ f t (y t)) (G t) t)
+    (hM : LipschitzWith M fun t ↦ f t (y t)) (hK : LipschitzWith K G)
+    (hL : ∀ t, LipschitzWith L (f t)) (hL0 : 0 < L) (hh : 0 ≤ h) (k : ℕ) :
+    |y (t₀ + k * h) - heunIterate f t₀ h (y t₀) k|
+      ≤ h ^ 2 * (K + 3 * L * M) / (12 * L) * (Real.exp (L * (k * h)) - 1) := by
+  have hL0' : (0 : ℝ) < L := hL0
+  have hM0 : (0 : ℝ) ≤ M := M.2
+  have hK0 : (0 : ℝ) ≤ K := K.2
+  have hhL : 0 ≤ h * (L : ℝ) := mul_nonneg hh hL0'.le
+  set c : ℝ := h ^ 2 * (K + 3 * L * M) / (12 * L) with hc_def
+  have hc : 0 ≤ c := by rw [hc_def]; positivity
+  set E : ℝ := Real.exp (h * L) with hE_def
+  have hE0 : 0 ≤ E := (Real.exp_pos _).le
+  have hE1 : h * L + 1 ≤ E := Real.add_one_le_exp _
+  have hcE : c * (h * L) ≤ c * (E - 1) := mul_le_mul_of_nonneg_left (by linarith) hc
+  have hcD : c * (h * L) = (K : ℝ) / 12 * h ^ 3 + L * M / 4 * h ^ 3 := by
+    have h12 : (12 * (L : ℝ)) ≠ 0 := by positivity
+    rw [hc_def, div_mul_eq_mul_div, div_eq_iff h12]
+    ring
+  have hAE : 1 + h * L + (h * L) ^ 2 / 2 ≤ E := Real.quadratic_le_exp_of_nonneg hhL
+  have hrec : ∀ k : ℕ, |y (t₀ + k * h) - heunIterate f t₀ h (y t₀) k| ≤ c * (E ^ k - 1) := by
+    intro k
+    induction k with
+    | zero => simp [heunIterate]
+    | succ k ih =>
+      set u := heunIterate f t₀ h (y t₀) k
+      set t := t₀ + k * h with ht_def
+      have ht : t₀ + ((k + 1 : ℕ) : ℝ) * h = t + h := by rw [ht_def]; push_cast; ring
+      have hloc := abs_sub_sub_mul_le_of_lipschitzWith hy hM t h
+      have htrap := heun_trapezoid hy hG hK t h hh
+      have hl1 : |f t (y t) - f t u| ≤ L * |y t - u| := by
+        have := (hL t).dist_le_mul (y t) u
+        rwa [Real.dist_eq, Real.dist_eq] at this
+      have hl2 : |f (t + h) (y (t + h)) - f (t + h) (u + h * f t u)|
+          ≤ L * |y (t + h) - (u + h * f t u)| := by
+        have := (hL (t + h)).dist_le_mul (y (t + h)) (u + h * f t u)
+        rwa [Real.dist_eq, Real.dist_eq] at this
+      have hh2 : 0 ≤ h / 2 := by linarith
+      have hw : |y (t + h) - (u + h * f t u)|
+          ≤ M / 2 * h ^ 2 + |y t - u| + h * (L * |y t - u|) := by
+        have hs : y (t + h) - (u + h * f t u) = (y (t + h) - y t - h * f t (y t)) + (y t - u)
+            + h * (f t (y t) - f t u) := by ring
+        have habs : |h * (f t (y t) - f t u)| ≤ h * (L * |y t - u|) := by
+          rw [abs_mul, abs_of_nonneg hh]; exact mul_le_mul_of_nonneg_left hl1 hh
+        rw [hs]
+        have := abs_add_three (y (t + h) - y t - h * f t (y t)) (y t - u)
+          (h * (f t (y t) - f t u))
+        linarith
+      have hX : |h / 2 * (f t (y t) - f t u)| ≤ h / 2 * (L * |y t - u|) := by
+        rw [abs_mul, abs_of_nonneg hh2]; exact mul_le_mul_of_nonneg_left hl1 hh2
+      have hY : |h / 2 * (f (t + h) (y (t + h)) - f (t + h) (u + h * f t u))|
+          ≤ h / 2 * (L * (M / 2 * h ^ 2 + |y t - u| + h * (L * |y t - u|))) := by
+        rw [abs_mul, abs_of_nonneg hh2]
+        exact mul_le_mul_of_nonneg_left (hl2.trans (mul_le_mul_of_nonneg_left hw hL0'.le)) hh2
+      have hsplit : y (t + h) - (u + h / 2 * (f t u + f (t + h) (u + h * f t u)))
+          = (y (t + h) - y t - h / 2 * (f t (y t) + f (t + h) (y (t + h)))) + (y t - u)
+            + (h / 2 * (f t (y t) - f t u)
+              + h / 2 * (f (t + h) (y (t + h)) - f (t + h) (u + h * f t u))) := by ring
+      change |y (t₀ + ((k + 1 : ℕ) : ℝ) * h)
+        - (u + h / 2 * (f t u + f (t + h) (u + h * f t u)))| ≤ _
+      rw [ht, hsplit]
+      have h3 := abs_add_three (y (t + h) - y t - h / 2 * (f t (y t) + f (t + h) (y (t + h))))
+        (y t - u) (h / 2 * (f t (y t) - f t u)
+              + h / 2 * (f (t + h) (y (t + h)) - f (t + h) (u + h * f t u)))
+      have h4 := abs_add_le (h / 2 * (f t (y t) - f t u))
+        (h / 2 * (f (t + h) (y (t + h)) - f (t + h) (u + h * f t u)))
+      set e := |y t - u| with he
+      have he0 : 0 ≤ e := abs_nonneg _
+      have hP : (K : ℝ) / 12 * h ^ 3 + e + h / 2 * (L * e)
+          + h / 2 * (L * (M / 2 * h ^ 2 + e + h * (L * e)))
+          = (1 + h * L + (h * L) ^ 2 / 2) * e + c * (h * L) := by
+        rw [hcD]; ring
+      have h5 : (1 + h * L + (h * L) ^ 2 / 2) * e ≤ E * e := mul_le_mul_of_nonneg_right hAE he0
+      have h6 : E * e ≤ E * (c * (E ^ k - 1)) := mul_le_mul_of_nonneg_left ih hE0
+      have h7 : E * (c * (E ^ k - 1)) + c * (E - 1) = c * (E ^ (k + 1) - 1) := by ring
+      linarith
+  refine (hrec k).trans (mul_le_mul_of_nonneg_left ?_ hc)
+  have hEk : E ^ k = Real.exp (L * (k * h)) := by
+    rw [hE_def, ← Real.exp_nat_mul]
+    congr 1
+    ring
+  linarith
+
 end ClassicalLean.Analysis
 
 /-- The hypotheses of `abs_sub_eulerIterate_le` hold together: the equation `y' = f t y` with
@@ -253,3 +433,19 @@ example := ClassicalLean.Analysis.tendsto_implicitEuler (c := 1) (h := 1)
 the factor would be `0` and every iterate after the first `0`), from `y₀ = 1 ≠ 0` at `t₀ = 0`. -/
 example := ClassicalLean.Analysis.tendsto_explicitEuler_iff (c := 1) (h := 1 / 2) (t₀ := 0)
   (y₀ := 1) (by norm_num) (by norm_num) (by norm_num)
+
+/-- The hypotheses of `abs_sub_heunIterate_le` hold together: the equation `y' = f t y` with
+`f t y = cos t + (y − sin t)`, which depends on `y` with Lipschitz constant `L = 1 > 0`; its
+solution `y = sin`, along which `f t (y t) = cos t` is Lipschitz with `M = 1` and has derivative
+`G t = −sin t`, Lipschitz with `K = 1 > 0` and not constant (with `G` constant, `K = 0` would do and
+the bound's `K` term would test nothing); start `t₀ = 0`, step `h = 1/10 ≥ 0`, `k = 3` steps, and
+each step moves (`u₀ = 0`, `u₁ ≈ 0.0998`, `u₂ ≈ 0.1985`, `u₃ ≈ 0.2954`). -/
+example := ClassicalLean.Analysis.abs_sub_heunIterate_le
+  (f := fun t y ↦ Real.cos t + (y - Real.sin t)) (y := Real.sin) (G := fun t ↦ -Real.sin t)
+  (t₀ := 0) (h := 1 / 10) (K := 1) (L := 1) (M := 1)
+  (fun t ↦ by simpa using Real.hasDerivAt_sin t)
+  (fun t ↦ by simpa using Real.hasDerivAt_cos t)
+  (by simpa using Real.lipschitzWith_cos)
+  Real.lipschitzWith_sin.neg
+  (fun t ↦ LipschitzWith.of_dist_le_mul fun a b ↦ by simp [Real.dist_eq])
+  (by norm_num) (by norm_num) (k := 3)
