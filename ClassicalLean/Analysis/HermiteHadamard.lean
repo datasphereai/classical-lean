@@ -31,6 +31,23 @@ between its value at the midpoint and the average of its two end values:
   of a convex function: for `a ≤ b` and `N > 0` trapezoids, `∫ f ≤ trapezoidal_integral f N a b`
   (Mathlib's definition). Each trapezoid is the right half on its own piece, summed with
   Mathlib's `sum_trapezoidal_integral_adjacent_intervals` and `sum_integral_adjacent_intervals`.
+* `convexOn_midpoint_mul_integral_le`, `integral_mul_le_endpoints` — order LEAN-36, item 127,
+  **Fejér's inequality**: for `f` convex and continuous on `[a, b]` with `a ≤ b`, and a weight
+  `g ≥ 0` integrable on `[a, b]` and symmetric about the midpoint,
+  `f ((a + b) / 2) ∫ g ≤ ∫ f g ≤ ((f a + f b) / 2) ∫ g`, the two halves stated apart. With `g = 1`
+  they are the module's two halves of Hermite–Hadamard, multiplied out. Against the plan's row
+  (FAITHFUL): `a ≤ b`, the weight asked to be nonnegative and symmetric only on `[a, b]`, `g`
+  integrable on `[a, b]` (the row's `∫ g` presumes it), and `f` continuous on `[a, b]` added, as
+  this module's own theorems ask (not shown needed: see Hypotheses). The proofs are the draft
+  `d127-r1-s2` (written by Claude Opus 5.5 through the Anthropic Batch API, the lane's API-CREDIT-1
+  work), placed by order LEAN-36's session inside this namespace, the draft's import line, module
+  docstring and `open` lines left out (this module's `open` lines cover them), its two docstrings
+  rewritten; its proofs unchanged. The session did not drop-test their hypotheses; order LEAN-36's
+  review (a) did, outside the library: `a ≤ b`, convexity, `g ≥ 0` and the symmetry each fail when
+  dropped (in Lean); the integrability of `g` judged needed and the continuity of `f` judged
+  removable, not checked in Lean. The two witnesses are claude-ai's (lane
+  `lean/LEAN-36/data/witnesses.txt`, section HermiteHadamard), with the theorems called by their
+  full names.
 
 ## Hypotheses
 
@@ -174,6 +191,123 @@ theorem integral_le_trapezoidal_integral {f : ℝ → ℝ} {a b : ℝ} (hab : a 
     (hfc.mono (hsub k hk))
   linarith
 
+/-- For `f` convex on `[a, b]`, `f x + f (a + b - x) ≤ f a + f b` on `[a, b]`. -/
+private lemma fejer_pair_le {f : ℝ → ℝ} {a b : ℝ} (hab : a ≤ b)
+    (hf : ConvexOn ℝ (Icc a b) f) :
+    ∀ x ∈ Icc a b, f x + f (a + b - x) ≤ f a + f b := by
+  intro x hx
+  rcases hab.eq_or_lt with rfl | hlt
+  · have : x = a := le_antisymm hx.2 hx.1
+    subst this; simp
+  have hba : 0 < b - a := sub_pos.mpr hlt
+  set t := (x - a) / (b - a)
+  have ht0 : 0 ≤ t := div_nonneg (sub_nonneg.mpr hx.1) hba.le
+  have ht1 : t ≤ 1 := (div_le_one hba).mpr (by linarith [hx.2])
+  have ha : a ∈ Icc a b := ⟨le_rfl, hab⟩
+  have hb : b ∈ Icc a b := ⟨hab, le_rfl⟩
+  have h1 := hf.2 ha hb (sub_nonneg.mpr ht1) ht0 (by ring)
+  have h2 := hf.2 ha hb ht0 (sub_nonneg.mpr ht1) (by ring)
+  have e1 : (1 - t) • a + t • b = x := by
+    simp only [smul_eq_mul, t]; field_simp; ring
+  have e2 : t • a + (1 - t) • b = a + b - x := by
+    simp only [smul_eq_mul, t]; field_simp; ring
+  rw [e1] at h1
+  rw [e2] at h2
+  simp only [smul_eq_mul] at h1 h2
+  linarith
+
+/-- The product `f g` is integrable on `[a, b]`. -/
+private lemma fejer_integrable {f g : ℝ → ℝ} {a b : ℝ} (hab : a ≤ b)
+    (hfc : ContinuousOn f (Icc a b)) (hg : IntervalIntegrable g volume a b) :
+    IntervalIntegrable (fun x => f x * g x) volume a b :=
+  hg.continuousOn_mul (by rwa [uIcc_of_le hab])
+
+/-- The reflected product `x ↦ f (a + b - x) g (a + b - x)` is integrable on `[a, b]`. -/
+private lemma fejer_integrable_refl {f g : ℝ → ℝ} {a b : ℝ}
+    (hfg : IntervalIntegrable (fun x => f x * g x) volume a b) :
+    IntervalIntegrable (fun x => f (a + b - x) * g (a + b - x)) volume a b := by
+  have := hfg.comp_sub_left (a + b)
+  simpa using this.symm
+
+/-- Reflection about the midpoint preserves the integral of `f g`. -/
+private lemma fejer_integral_refl (f g : ℝ → ℝ) (a b : ℝ) :
+    ∫ x in a..b, f (a + b - x) * g (a + b - x) = ∫ x in a..b, f x * g x := by
+  have h : ∫ x in a..b, f (a + b - x) * g (a + b - x)
+      = ∫ x in (a + b) - b..(a + b) - a, f x * g x :=
+    intervalIntegral.integral_comp_sub_left (fun x => f x * g x) (a + b)
+  rw [show a + b - b = a by ring, show a + b - a = b by ring] at h
+  exact h
+
+/-- **Fejér's inequality, left half** (item 127 of MATH-PLAN-library-2; the draft `d127-r1-s2`,
+written by Claude Opus 5.5 through the Anthropic Batch API, the lane's API-CREDIT-1 work, adapted
+by order LEAN-36's session). For `f` convex and continuous on `[a, b]` with `a ≤ b`, and a weight
+`g ≥ 0` integrable on `[a, b]` and symmetric about the midpoint (`g (a + b - x) = g x` on
+`[a, b]`), `f ((a + b) / 2) ∫ g ≤ ∫ f g`. With `g = 1` it is the left half of Hermite–Hadamard
+(`convexOn_midpoint_le_average`, multiplied out). Convexity at the midpoint, applied to `x` and
+`a + b - x`, integrated against `g`, whose reflection leaves `∫ f g` unchanged. -/
+theorem convexOn_midpoint_mul_integral_le {f g : ℝ → ℝ} {a b : ℝ} (hab : a ≤ b)
+    (hf : ConvexOn ℝ (Icc a b) f) (hfc : ContinuousOn f (Icc a b))
+    (hg : IntervalIntegrable g volume a b) (hg0 : ∀ x ∈ Icc a b, 0 ≤ g x)
+    (hgs : ∀ x ∈ Icc a b, g (a + b - x) = g x) :
+    f ((a + b) / 2) * ∫ x in a..b, g x ≤ ∫ x in a..b, f x * g x := by
+  have hfg := fejer_integrable hab hfc hg
+  have hfg' := fejer_integrable_refl hfg
+  have hI := fejer_integral_refl f g a b
+  have hpt : ∀ x ∈ Icc a b, f ((a + b) / 2) * g x
+      ≤ (1 / 2) * (f x * g x + f (a + b - x) * g (a + b - x)) := by
+    intro x hx
+    have hy : a + b - x ∈ Icc a b := ⟨by linarith [hx.2], by linarith [hx.1]⟩
+    have h := hf.2 hx hy (by norm_num : (0 : ℝ) ≤ 1 / 2) (by norm_num : (0 : ℝ) ≤ 1 / 2)
+      (by norm_num)
+    have e : (1 / 2 : ℝ) • x + (1 / 2 : ℝ) • (a + b - x) = (a + b) / 2 := by
+      simp only [smul_eq_mul]; ring
+    rw [e] at h
+    simp only [smul_eq_mul] at h
+    rw [hgs x hx]
+    have hm := mul_le_mul_of_nonneg_right h (hg0 x hx)
+    exact hm.trans_eq (by ring)
+  have hmono : ∫ x in a..b, f ((a + b) / 2) * g x
+      ≤ ∫ x in a..b, (1 / 2) * (f x * g x + f (a + b - x) * g (a + b - x)) :=
+    intervalIntegral.integral_mono_on hab (hg.const_mul _) ((hfg.add hfg').const_mul _) hpt
+  have e1 : ∫ x in a..b, f ((a + b) / 2) * g x = f ((a + b) / 2) * ∫ x in a..b, g x := by
+    rw [intervalIntegral.integral_const_mul]
+  have e2 : ∫ x in a..b, (1 / 2) * (f x * g x + f (a + b - x) * g (a + b - x))
+      = (1 / 2) * ((∫ x in a..b, f x * g x) + ∫ x in a..b, f (a + b - x) * g (a + b - x)) := by
+    rw [intervalIntegral.integral_const_mul, intervalIntegral.integral_add hfg hfg']
+  rw [e1, e2, hI] at hmono
+  linarith
+
+/-- **Fejér's inequality, right half** (item 127 of MATH-PLAN-library-2; the draft `d127-r1-s2`,
+written by Claude Opus 5.5 through the Anthropic Batch API, the lane's API-CREDIT-1 work, adapted
+by order LEAN-36's session). For `f` convex and continuous on `[a, b]` with `a ≤ b`, and a weight
+`g ≥ 0` integrable on `[a, b]` and symmetric about the midpoint (`g (a + b - x) = g x` on
+`[a, b]`), `∫ f g ≤ ((f a + f b) / 2) ∫ g`. With `g = 1` it is
+`integral_le_mul_add_div_two_of_convexOn`. Convexity gives `f x + f (a + b - x) ≤ f a + f b` on
+`[a, b]`, integrated against `g`, whose reflection leaves `∫ f g` unchanged. -/
+theorem integral_mul_le_endpoints {f g : ℝ → ℝ} {a b : ℝ} (hab : a ≤ b)
+    (hf : ConvexOn ℝ (Icc a b) f) (hfc : ContinuousOn f (Icc a b))
+    (hg : IntervalIntegrable g volume a b) (hg0 : ∀ x ∈ Icc a b, 0 ≤ g x)
+    (hgs : ∀ x ∈ Icc a b, g (a + b - x) = g x) :
+    ∫ x in a..b, f x * g x ≤ (f a + f b) / 2 * ∫ x in a..b, g x := by
+  have hfg := fejer_integrable hab hfc hg
+  have hfg' := fejer_integrable_refl hfg
+  have hI := fejer_integral_refl f g a b
+  have hpt : ∀ x ∈ Icc a b,
+      f x * g x + f (a + b - x) * g (a + b - x) ≤ (f a + f b) * g x := by
+    intro x hx
+    rw [hgs x hx]
+    have hm := mul_le_mul_of_nonneg_right (fejer_pair_le hab hf x hx) (hg0 x hx)
+    rw [← add_mul]
+    exact hm
+  have hmono : ∫ x in a..b, (f x * g x + f (a + b - x) * g (a + b - x))
+      ≤ ∫ x in a..b, (f a + f b) * g x :=
+    intervalIntegral.integral_mono_on hab (hfg.add hfg') (hg.const_mul _) hpt
+  rw [intervalIntegral.integral_add hfg hfg', hI, intervalIntegral.integral_const_mul] at hmono
+  have e : (f a + f b) / 2 * ∫ x in a..b, g x = ((f a + f b) * ∫ x in a..b, g x) / 2 := by
+    ring
+  rw [e]
+  linarith
+
 end ClassicalLean.Analysis
 
 open Set in
@@ -197,3 +331,29 @@ and the rule takes `N = 2` steps. -/
 example := ClassicalLean.Analysis.integral_le_trapezoidal_integral (f := fun x ↦ x ^ 2) (a := 0)
   (b := 1) (by norm_num) ((Even.convexOn_pow even_two).subset (subset_univ _) (convex_Icc 0 1))
   (continuous_pow 2).continuousOn (N := 2) (by norm_num)
+
+open Set in
+/-- The hypotheses of `convexOn_midpoint_mul_integral_le` hold together: on `[0, 1]`, with
+`0 ≤ 1`, the function `x ↦ x ^ 2` is convex (an even power) and continuous, and the weight
+`g x = x (1 − x)` is continuous, so integrable, nonnegative on `[0, 1]` and symmetric about `1/2`;
+the inequality is strict here (`1/24 < 1/20`). -/
+example := ClassicalLean.Analysis.convexOn_midpoint_mul_integral_le (f := fun x ↦ x ^ 2)
+  (g := fun x ↦ x * (1 - x)) (a := 0) (b := 1) (by norm_num)
+  ((Even.convexOn_pow even_two).subset (subset_univ _) (convex_Icc 0 1))
+  (continuous_pow 2).continuousOn
+  ((continuous_id.mul (continuous_const.sub continuous_id)).intervalIntegrable _ _)
+  (fun x hx ↦ mul_nonneg hx.1 (by linarith [hx.2]))
+  (fun x _ ↦ by ring)
+
+open Set in
+/-- The hypotheses of `integral_mul_le_endpoints` hold together: on `[0, 1]`, with `0 ≤ 1`, the
+function `x ↦ x ^ 2` is convex (an even power) and continuous, and the weight `g x = x (1 − x)` is
+continuous, so integrable, nonnegative on `[0, 1]` and symmetric about `1/2`; the inequality is
+strict here (`1/20 < 1/12`). -/
+example := ClassicalLean.Analysis.integral_mul_le_endpoints (f := fun x ↦ x ^ 2)
+  (g := fun x ↦ x * (1 - x)) (a := 0) (b := 1) (by norm_num)
+  ((Even.convexOn_pow even_two).subset (subset_univ _) (convex_Icc 0 1))
+  (continuous_pow 2).continuousOn
+  ((continuous_id.mul (continuous_const.sub continuous_id)).intervalIntegrable _ _)
+  (fun x hx ↦ mul_nonneg hx.1 (by linarith [hx.2]))
+  (fun x _ ↦ by ring)
