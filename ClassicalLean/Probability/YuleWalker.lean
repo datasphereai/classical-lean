@@ -6,6 +6,8 @@ Authors: Dustin Watkins, Claude (Anthropic)
 
 import ClassicalLean.Combinatorics.RecurrenceGeneratingFunction
 import Mathlib.Probability.Moments.Covariance
+import Mathlib.Probability.Distributions.Gaussian.Real
+import Mathlib.Probability.Independence.InfinitePi
 
 /-!
 # The Yule–Walker equations
@@ -35,7 +37,10 @@ does not depend on `s`. Then:
   `simp` arguments removed, and a `show` that changed the goal written as `change`. Its witness
   is at the end of the file.
 
-Nothing here says a stationary solution exists; it is assumed. The lag-`0` equation, which brings
+A stationary solution exists: the three witnesses at the end of the file (order VACUITY-5) build
+one, an autoregression of order 2 with independent Gaussian noise, at which the hypotheses of
+`covariance_eq_sum`, `isSolution_autocovariance` and `exists_poly_mk_autocovariance_eq` hold
+together. The lag-`0` equation, which brings
 in the noise variance, is not stated.
 
 The equations are named after Yule (1927, Philosophical Transactions of the Royal Society A 226,
@@ -328,3 +333,738 @@ example := ClassicalLean.Probability.durbinLevinson_spec
   (φ := 1 / 16) (by simp only [sum_range_succ, sum_range_zero]; norm_num)
   (b := fun j ↦ if j = 0 then 7 / 16 else if j = 1 then 1 / 12 else 1 / 16)
   (fun j hj ↦ by interval_cases j <;> norm_num) rfl
+
+/-- The hypotheses of `covariance_eq_sum` hold together: at lag `k = 2`. The model, the same in the
+three witnesses here: `Ω = ℕ → ℝ` with `μ` the product of the Gaussian laws `N(0, 48/25)` for
+coordinate `0`, `N(0, 16/15)` for coordinate `1` and `N(0, 1)` for every later one
+(`Measure.infinitePi`, a probability measure); the noises `e t` the coordinates, independent
+(`iIndepFun_infinitePi`), each of positive variance; the autoregression of order `p = 2` with two
+different, nonzero coefficients `a = (1/2, 1/4)`, `X (t + 2) = X (t + 1)/2 + X t/4 + e (t + 2)`,
+started at `X 0 = e 0` and `X 1 = 2/3 · X 0 + e 1`, which makes it stationary from time `0`; and
+`γ k = cov(X k, X 0)`, so `γ 0 = 48/25`, `γ 1 = 32/25` and `γ 2 = 28/25` (the process moves at every
+time; lag `2` uses both coefficients). Each proof below names the measure, the noises and the
+process, proves the noises' moments from the Gaussian laws, and then works on the names alone. -/
+example := ClassicalLean.Probability.covariance_eq_sum (Ω := ℕ → ℝ)
+  (μ := Measure.infinitePi fun t : ℕ ↦ gaussianReal 0
+    (if t = 0 then ⟨48 / 25, by norm_num⟩ else if t = 1 then ⟨16 / 15, by norm_num⟩ else 1))
+  (p := 2) (a := ![1 / 2, 1 / 4])
+  (X := fun t ω ↦ (Nat.rec (motive := fun _ ↦ ℝ × ℝ) (ω 0, 2 / 3 * ω 0 + ω 1)
+    (fun n q ↦ (q.2, 1 / 2 * q.2 + 1 / 4 * q.1 + ω (n + 2))) t).1)
+  (e := fun t ω ↦ ω t)
+  (γ := fun k ↦ cov[fun ω ↦ (Nat.rec (motive := fun _ ↦ ℝ × ℝ) (ω 0, 2 / 3 * ω 0 + ω 1)
+      (fun n q ↦ (q.2, 1 / 2 * q.2 + 1 / 4 * q.1 + ω (n + 2))) k).1,
+    fun ω ↦ ω 0; Measure.infinitePi fun t : ℕ ↦ gaussianReal 0
+      (if t = 0 then ⟨48 / 25, by norm_num⟩ else if t = 1 then ⟨16 / 15, by norm_num⟩ else 1)])
+  (by
+    let P : Measure (ℕ → ℝ) := Measure.infinitePi fun t : ℕ ↦ gaussianReal 0
+      (if t = 0 then ⟨48 / 25, by norm_num⟩ else if t = 1 then ⟨16 / 15, by norm_num⟩ else 1)
+    let W : ℕ → (ℕ → ℝ) → ℝ := fun t ω ↦ ω t
+    let X : ℕ → (ℕ → ℝ) → ℝ := fun t ω ↦ (Nat.rec (motive := fun _ ↦ ℝ × ℝ)
+      (ω 0, 2 / 3 * ω 0 + ω 1) (fun n q ↦ (q.2, 1 / 2 * q.2 + 1 / 4 * q.1 + ω (n + 2))) t).1
+    change ∀ t, MemLp (X t) 2 P
+    have hWm : ∀ t, MemLp (W t) 2 P := fun t ↦ by
+      have h : MemLp id 2 (P.map (W t)) := by
+        rw [Measure.infinitePi_map_eval]
+        exact memLp_id_gaussianReal' 2 (by norm_num)
+      exact (memLp_map_measure_iff aestronglyMeasurable_id
+        (measurable_pi_apply t).aemeasurable).mp h
+    have hX0 : X 0 = W 0 := rfl
+    have hX1 : X 1 = (fun ω ↦ 2 / 3 * X 0 ω) + W 1 := rfl
+    have hXrec : ∀ t, X (t + 2) =
+        (fun ω ↦ 1 / 2 * X (t + 1) ω) + (fun ω ↦ 1 / 4 * X t ω) + W (t + 2) := fun t ↦ rfl
+    clear_value X W
+    have hXm2 : ∀ t, MemLp (X t) 2 P ∧ MemLp (X (t + 1)) 2 P := by
+      intro t
+      induction t with
+      | zero =>
+        have h0 : MemLp (X 0) 2 P := by rw [hX0]; exact hWm 0
+        refine ⟨h0, ?_⟩
+        rw [zero_add, hX1]
+        exact (h0.const_mul (2 / 3 : ℝ)).add (hWm 1)
+      | succ n ih =>
+        refine ⟨ih.2, ?_⟩
+        rw [hXrec n]
+        exact ((ih.2.const_mul (1 / 2 : ℝ)).add (ih.1.const_mul (1 / 4 : ℝ))).add (hWm _)
+    exact fun t ↦ (hXm2 t).1)
+  (fun t ht ω ↦ by
+    obtain ⟨s, rfl⟩ : ∃ s, t = s + 2 := ⟨t - 2, by omega⟩
+    rw [Fin.sum_univ_two]
+    simp only [Matrix.cons_val_zero, Matrix.cons_val_one, Fin.val_zero, Fin.val_one]
+    rw [show s + 2 - 1 - 0 = s + 1 by omega, show s + 2 - 1 - 1 = s by omega])
+  (by
+    let P : Measure (ℕ → ℝ) := Measure.infinitePi fun t : ℕ ↦ gaussianReal 0
+      (if t = 0 then ⟨48 / 25, by norm_num⟩ else if t = 1 then ⟨16 / 15, by norm_num⟩ else 1)
+    let W : ℕ → (ℕ → ℝ) → ℝ := fun t ω ↦ ω t
+    let X : ℕ → (ℕ → ℝ) → ℝ := fun t ω ↦ (Nat.rec (motive := fun _ ↦ ℝ × ℝ)
+      (ω 0, 2 / 3 * ω 0 + ω 1) (fun n q ↦ (q.2, 1 / 2 * q.2 + 1 / 4 * q.1 + ω (n + 2))) t).1
+    change ∀ s k, cov[X (s + k), X s; P] = cov[X k, X 0; P]
+    have hWm : ∀ t, MemLp (W t) 2 P := fun t ↦ by
+      have h : MemLp id 2 (P.map (W t)) := by
+        rw [Measure.infinitePi_map_eval]
+        exact memLp_id_gaussianReal' 2 (by norm_num)
+      exact (memLp_map_measure_iff aestronglyMeasurable_id
+        (measurable_pi_apply t).aemeasurable).mp h
+    have hvar : ∀ t, cov[W t, W t; P] =
+        ((if t = 0 then ⟨48 / 25, by norm_num⟩ else if t = 1 then ⟨16 / 15, by norm_num⟩ else 1 :
+          NNReal) : ℝ) := fun t ↦ by
+      rw [covariance_self (measurable_pi_apply t).aemeasurable,
+        ← variance_id_map (measurable_pi_apply t).aemeasurable, Measure.infinitePi_map_eval,
+        variance_id_gaussianReal]
+    have hv0 : cov[W 0, W 0; P] = 48 / 25 := by rw [hvar]; rfl
+    have hv1 : cov[W 1, W 1; P] = 16 / 15 := by rw [hvar]; rfl
+    have hv2 : ∀ t, cov[W (t + 2), W (t + 2); P] = 1 := fun t ↦ by
+      rw [hvar]; simp
+    have hind : ∀ s t, s ≠ t → cov[W t, W s; P] = 0 := fun s t hst ↦
+      ((iIndepFun_infinitePi (X := fun _ ↦ id) fun _ ↦ measurable_id).indepFun
+        (Ne.symm hst)).covariance_eq_zero (hWm t) (hWm s)
+    have hX0 : X 0 = W 0 := rfl
+    have hX1 : X 1 = (fun ω ↦ 2 / 3 * X 0 ω) + W 1 := rfl
+    have hXrec : ∀ t, X (t + 2) =
+        (fun ω ↦ 1 / 2 * X (t + 1) ω) + (fun ω ↦ 1 / 4 * X t ω) + W (t + 2) := fun t ↦ rfl
+    clear_value X W
+    have hXm2 : ∀ t, MemLp (X t) 2 P ∧ MemLp (X (t + 1)) 2 P := by
+      intro t
+      induction t with
+      | zero =>
+        have h0 : MemLp (X 0) 2 P := by rw [hX0]; exact hWm 0
+        refine ⟨h0, ?_⟩
+        rw [zero_add, hX1]
+        exact (h0.const_mul (2 / 3 : ℝ)).add (hWm 1)
+      | succ n ih =>
+        refine ⟨ih.2, ?_⟩
+        rw [hXrec n]
+        exact ((ih.2.const_mul (1 / 2 : ℝ)).add (ih.1.const_mul (1 / 4 : ℝ))).add (hWm _)
+    have hXm : ∀ t, MemLp (X t) 2 P := fun t ↦ (hXm2 t).1
+    have hexpL : ∀ (t : ℕ) (Z : (ℕ → ℝ) → ℝ), MemLp Z 2 P →
+        cov[X (t + 2), Z; P] = 1 / 2 * cov[X (t + 1), Z; P] + 1 / 4 * cov[X t, Z; P]
+          + cov[W (t + 2), Z; P] := by
+      intro t Z hZ
+      have hA := (hXm (t + 1)).const_mul (1 / 2 : ℝ)
+      have hB := (hXm t).const_mul (1 / 4 : ℝ)
+      rw [hXrec t, covariance_add_left (hA.add hB) (hWm (t + 2)) hZ,
+        covariance_add_left hA hB hZ, covariance_const_mul_left, covariance_const_mul_left]
+    have hexpR : ∀ (t : ℕ) (Z : (ℕ → ℝ) → ℝ), MemLp Z 2 P →
+        cov[Z, X (t + 2); P] = 1 / 2 * cov[Z, X (t + 1); P] + 1 / 4 * cov[Z, X t; P]
+          + cov[Z, W (t + 2); P] := by
+      intro t Z hZ
+      have hA := (hXm (t + 1)).const_mul (1 / 2 : ℝ)
+      have hB := (hXm t).const_mul (1 / 4 : ℝ)
+      rw [hXrec t, covariance_add_right hZ (hA.add hB) (hWm (t + 2)),
+        covariance_add_right hZ hA hB, covariance_const_mul_right, covariance_const_mul_right]
+    have hexp1L : ∀ Z : (ℕ → ℝ) → ℝ, MemLp Z 2 P →
+        cov[X 1, Z; P] = 2 / 3 * cov[X 0, Z; P] + cov[W 1, Z; P] := by
+      intro Z hZ
+      rw [hX1, covariance_add_left ((hXm 0).const_mul (2 / 3 : ℝ)) (hWm 1) hZ,
+        covariance_const_mul_left]
+    have hexp1R : ∀ Z : (ℕ → ℝ) → ℝ, MemLp Z 2 P →
+        cov[Z, X 1; P] = 2 / 3 * cov[Z, X 0; P] + cov[Z, W 1; P] := by
+      intro Z hZ
+      rw [hX1, covariance_add_right hZ ((hXm 0).const_mul (2 / 3 : ℝ)) (hWm 1),
+        covariance_const_mul_right]
+    have hWX2 : ∀ s, (∀ t, s < t → cov[W t, X s; P] = 0) ∧
+        (∀ t, s + 1 < t → cov[W t, X (s + 1); P] = 0) := by
+      intro s
+      induction s with
+      | zero =>
+        refine ⟨fun t ht ↦ ?_, fun t ht ↦ ?_⟩
+        · rw [hX0]; exact hind 0 t (by omega)
+        · rw [zero_add, hexp1R (W t) (hWm t), hX0, hind 0 t (by omega), hind 1 t (by omega)]
+          norm_num
+      | succ n ih =>
+        refine ⟨ih.2, fun t ht ↦ ?_⟩
+        rw [hexpR n (W t) (hWm t), ih.1 t (by omega), ih.2 t (by omega),
+          hind (n + 2) t (by omega)]
+        norm_num
+    have hWX : ∀ s t, s < t → cov[W t, X s; P] = 0 := fun s t h ↦ (hWX2 s).1 t h
+    have hV : ∀ t, cov[X t, X t; P] = 48 / 25 ∧ cov[X (t + 1), X (t + 1); P] = 48 / 25 ∧
+        cov[X (t + 1), X t; P] = 32 / 25 := by
+      intro t
+      induction t with
+      | zero =>
+        have h0 : cov[X 0, X 0; P] = 48 / 25 := by rw [hX0, hv0]
+        have h10 : cov[X 1, X 0; P] = 32 / 25 := by
+          rw [hexp1L (X 0) (hXm 0), h0, hX0, hind 0 1 (by omega)]
+          norm_num
+        have hw : cov[W 1, X 1; P] = 16 / 15 := by
+          rw [hexp1R (W 1) (hWm 1), hX0, hind 0 1 (by omega), hv1]
+          norm_num
+        have h11 : cov[X 1, X 1; P] = 48 / 25 := by
+          rw [hexp1L (X 1) (hXm 1), covariance_comm (X 0) (X 1), h10, hw]
+          norm_num
+        exact ⟨h0, h11, h10⟩
+      | succ n ih =>
+        obtain ⟨h0, h1, h10⟩ := ih
+        have h21 : cov[X (n + 2), X (n + 1); P] = 32 / 25 := by
+          rw [hexpL n (X (n + 1)) (hXm _), h1, covariance_comm (X n) (X (n + 1)), h10,
+            hWX (n + 1) (n + 2) (by omega)]
+          norm_num
+        have h20 : cov[X (n + 2), X n; P] = 28 / 25 := by
+          rw [hexpL n (X n) (hXm _), h10, h0, hWX n (n + 2) (by omega)]
+          norm_num
+        have hw2 : cov[W (n + 2), X (n + 2); P] = 1 := by
+          rw [hexpR n (W (n + 2)) (hWm _), hWX (n + 1) (n + 2) (by omega),
+            hWX n (n + 2) (by omega), hv2]
+          norm_num
+        have h22 : cov[X (n + 2), X (n + 2); P] = 48 / 25 := by
+          rw [hexpL n (X (n + 2)) (hXm _), covariance_comm (X (n + 1)) (X (n + 2)), h21,
+            covariance_comm (X n) (X (n + 2)), h20, hw2]
+          norm_num
+        exact ⟨h1, h22, h21⟩
+    have hst : ∀ s k, cov[X (s + k), X s; P] = cov[X k, X 0; P] ∧
+        cov[X (s + k + 1), X s; P] = cov[X (k + 1), X 0; P] := by
+      intro s k
+      induction k with
+      | zero =>
+        exact ⟨((hV s).1).trans ((hV 0).1).symm, ((hV s).2.2).trans ((hV 0).2.2).symm⟩
+      | succ k ih =>
+        refine ⟨ih.2, ?_⟩
+        rw [show s + (k + 1) + 1 = s + k + 2 by omega, hexpL (s + k) (X s) (hXm s),
+          hexpL k (X 0) (hXm 0), ih.1, ih.2, hWX s (s + k + 2) (by omega),
+          hWX 0 (k + 2) (by omega)]
+    exact fun s k ↦ (hst s k).1)
+  (by
+    let P : Measure (ℕ → ℝ) := Measure.infinitePi fun t : ℕ ↦ gaussianReal 0
+      (if t = 0 then ⟨48 / 25, by norm_num⟩ else if t = 1 then ⟨16 / 15, by norm_num⟩ else 1)
+    let W : ℕ → (ℕ → ℝ) → ℝ := fun t ω ↦ ω t
+    let X : ℕ → (ℕ → ℝ) → ℝ := fun t ω ↦ (Nat.rec (motive := fun _ ↦ ℝ × ℝ)
+      (ω 0, 2 / 3 * ω 0 + ω 1) (fun n q ↦ (q.2, 1 / 2 * q.2 + 1 / 4 * q.1 + ω (n + 2))) t).1
+    change ∀ s t, s < t → cov[W t, X s; P] = 0
+    have hWm : ∀ t, MemLp (W t) 2 P := fun t ↦ by
+      have h : MemLp id 2 (P.map (W t)) := by
+        rw [Measure.infinitePi_map_eval]
+        exact memLp_id_gaussianReal' 2 (by norm_num)
+      exact (memLp_map_measure_iff aestronglyMeasurable_id
+        (measurable_pi_apply t).aemeasurable).mp h
+    have hind : ∀ s t, s ≠ t → cov[W t, W s; P] = 0 := fun s t hst ↦
+      ((iIndepFun_infinitePi (X := fun _ ↦ id) fun _ ↦ measurable_id).indepFun
+        (Ne.symm hst)).covariance_eq_zero (hWm t) (hWm s)
+    have hX0 : X 0 = W 0 := rfl
+    have hX1 : X 1 = (fun ω ↦ 2 / 3 * X 0 ω) + W 1 := rfl
+    have hXrec : ∀ t, X (t + 2) =
+        (fun ω ↦ 1 / 2 * X (t + 1) ω) + (fun ω ↦ 1 / 4 * X t ω) + W (t + 2) := fun t ↦ rfl
+    clear_value X W
+    have hXm2 : ∀ t, MemLp (X t) 2 P ∧ MemLp (X (t + 1)) 2 P := by
+      intro t
+      induction t with
+      | zero =>
+        have h0 : MemLp (X 0) 2 P := by rw [hX0]; exact hWm 0
+        refine ⟨h0, ?_⟩
+        rw [zero_add, hX1]
+        exact (h0.const_mul (2 / 3 : ℝ)).add (hWm 1)
+      | succ n ih =>
+        refine ⟨ih.2, ?_⟩
+        rw [hXrec n]
+        exact ((ih.2.const_mul (1 / 2 : ℝ)).add (ih.1.const_mul (1 / 4 : ℝ))).add (hWm _)
+    have hXm : ∀ t, MemLp (X t) 2 P := fun t ↦ (hXm2 t).1
+    have hWX2 : ∀ s, (∀ t, s < t → cov[W t, X s; P] = 0) ∧
+        (∀ t, s + 1 < t → cov[W t, X (s + 1); P] = 0) := by
+      intro s
+      induction s with
+      | zero =>
+        refine ⟨fun t ht ↦ ?_, fun t ht ↦ ?_⟩
+        · rw [hX0]; exact hind 0 t (by omega)
+        · rw [zero_add, hX1, covariance_add_right (hWm t) ((hXm 0).const_mul (2 / 3 : ℝ)) (hWm 1),
+            covariance_const_mul_right, hX0, hind 0 t (by omega), hind 1 t (by omega)]
+          norm_num
+      | succ n ih =>
+        refine ⟨ih.2, fun t ht ↦ ?_⟩
+        have hA := (hXm (n + 1)).const_mul (1 / 2 : ℝ)
+        have hB := (hXm n).const_mul (1 / 4 : ℝ)
+        rw [show n + 1 + 1 = n + 2 by omega, hXrec n,
+          covariance_add_right (hWm t) (hA.add hB) (hWm (n + 2)),
+          covariance_add_right (hWm t) hA hB, covariance_const_mul_right,
+          covariance_const_mul_right, ih.1 t (by omega), ih.2 t (by omega),
+          hind (n + 2) t (by omega)]
+        norm_num
+    exact fun s t h ↦ (hWX2 s).1 t h)
+  (k := 2) (by norm_num)
+
+/-- The hypotheses of `isSolution_autocovariance` hold together: with `p = 2 > 0`. The model, the
+same in the three witnesses here: `Ω = ℕ → ℝ` with `μ` the product of the Gaussian laws
+`N(0, 48/25)` for coordinate `0`, `N(0, 16/15)` for coordinate `1` and `N(0, 1)` for every later one
+(`Measure.infinitePi`, a probability measure); the noises `e t` the coordinates, independent
+(`iIndepFun_infinitePi`), each of positive variance; the autoregression of order `p = 2` with two
+different, nonzero coefficients `a = (1/2, 1/4)`, `X (t + 2) = X (t + 1)/2 + X t/4 + e (t + 2)`,
+started at `X 0 = e 0` and `X 1 = 2/3 · X 0 + e 1`, which makes it stationary from time `0`; and
+`γ k = cov(X k, X 0)`, so `γ 0 = 48/25`, `γ 1 = 32/25` and `γ 2 = 28/25` (the process moves at every
+time; lag `2` uses both coefficients). Each proof below names the measure, the noises and the
+process, proves the noises' moments from the Gaussian laws, and then works on the names alone. -/
+example := ClassicalLean.Probability.isSolution_autocovariance (Ω := ℕ → ℝ)
+  (μ := Measure.infinitePi fun t : ℕ ↦ gaussianReal 0
+    (if t = 0 then ⟨48 / 25, by norm_num⟩ else if t = 1 then ⟨16 / 15, by norm_num⟩ else 1))
+  (p := 2) (a := ![1 / 2, 1 / 4])
+  (X := fun t ω ↦ (Nat.rec (motive := fun _ ↦ ℝ × ℝ) (ω 0, 2 / 3 * ω 0 + ω 1)
+    (fun n q ↦ (q.2, 1 / 2 * q.2 + 1 / 4 * q.1 + ω (n + 2))) t).1)
+  (e := fun t ω ↦ ω t)
+  (γ := fun k ↦ cov[fun ω ↦ (Nat.rec (motive := fun _ ↦ ℝ × ℝ) (ω 0, 2 / 3 * ω 0 + ω 1)
+      (fun n q ↦ (q.2, 1 / 2 * q.2 + 1 / 4 * q.1 + ω (n + 2))) k).1,
+    fun ω ↦ ω 0; Measure.infinitePi fun t : ℕ ↦ gaussianReal 0
+      (if t = 0 then ⟨48 / 25, by norm_num⟩ else if t = 1 then ⟨16 / 15, by norm_num⟩ else 1)])
+  (by
+    let P : Measure (ℕ → ℝ) := Measure.infinitePi fun t : ℕ ↦ gaussianReal 0
+      (if t = 0 then ⟨48 / 25, by norm_num⟩ else if t = 1 then ⟨16 / 15, by norm_num⟩ else 1)
+    let W : ℕ → (ℕ → ℝ) → ℝ := fun t ω ↦ ω t
+    let X : ℕ → (ℕ → ℝ) → ℝ := fun t ω ↦ (Nat.rec (motive := fun _ ↦ ℝ × ℝ)
+      (ω 0, 2 / 3 * ω 0 + ω 1) (fun n q ↦ (q.2, 1 / 2 * q.2 + 1 / 4 * q.1 + ω (n + 2))) t).1
+    change ∀ t, MemLp (X t) 2 P
+    have hWm : ∀ t, MemLp (W t) 2 P := fun t ↦ by
+      have h : MemLp id 2 (P.map (W t)) := by
+        rw [Measure.infinitePi_map_eval]
+        exact memLp_id_gaussianReal' 2 (by norm_num)
+      exact (memLp_map_measure_iff aestronglyMeasurable_id
+        (measurable_pi_apply t).aemeasurable).mp h
+    have hX0 : X 0 = W 0 := rfl
+    have hX1 : X 1 = (fun ω ↦ 2 / 3 * X 0 ω) + W 1 := rfl
+    have hXrec : ∀ t, X (t + 2) =
+        (fun ω ↦ 1 / 2 * X (t + 1) ω) + (fun ω ↦ 1 / 4 * X t ω) + W (t + 2) := fun t ↦ rfl
+    clear_value X W
+    have hXm2 : ∀ t, MemLp (X t) 2 P ∧ MemLp (X (t + 1)) 2 P := by
+      intro t
+      induction t with
+      | zero =>
+        have h0 : MemLp (X 0) 2 P := by rw [hX0]; exact hWm 0
+        refine ⟨h0, ?_⟩
+        rw [zero_add, hX1]
+        exact (h0.const_mul (2 / 3 : ℝ)).add (hWm 1)
+      | succ n ih =>
+        refine ⟨ih.2, ?_⟩
+        rw [hXrec n]
+        exact ((ih.2.const_mul (1 / 2 : ℝ)).add (ih.1.const_mul (1 / 4 : ℝ))).add (hWm _)
+    exact fun t ↦ (hXm2 t).1)
+  (fun t ht ω ↦ by
+    obtain ⟨s, rfl⟩ : ∃ s, t = s + 2 := ⟨t - 2, by omega⟩
+    rw [Fin.sum_univ_two]
+    simp only [Matrix.cons_val_zero, Matrix.cons_val_one, Fin.val_zero, Fin.val_one]
+    rw [show s + 2 - 1 - 0 = s + 1 by omega, show s + 2 - 1 - 1 = s by omega])
+  (by
+    let P : Measure (ℕ → ℝ) := Measure.infinitePi fun t : ℕ ↦ gaussianReal 0
+      (if t = 0 then ⟨48 / 25, by norm_num⟩ else if t = 1 then ⟨16 / 15, by norm_num⟩ else 1)
+    let W : ℕ → (ℕ → ℝ) → ℝ := fun t ω ↦ ω t
+    let X : ℕ → (ℕ → ℝ) → ℝ := fun t ω ↦ (Nat.rec (motive := fun _ ↦ ℝ × ℝ)
+      (ω 0, 2 / 3 * ω 0 + ω 1) (fun n q ↦ (q.2, 1 / 2 * q.2 + 1 / 4 * q.1 + ω (n + 2))) t).1
+    change ∀ s k, cov[X (s + k), X s; P] = cov[X k, X 0; P]
+    have hWm : ∀ t, MemLp (W t) 2 P := fun t ↦ by
+      have h : MemLp id 2 (P.map (W t)) := by
+        rw [Measure.infinitePi_map_eval]
+        exact memLp_id_gaussianReal' 2 (by norm_num)
+      exact (memLp_map_measure_iff aestronglyMeasurable_id
+        (measurable_pi_apply t).aemeasurable).mp h
+    have hvar : ∀ t, cov[W t, W t; P] =
+        ((if t = 0 then ⟨48 / 25, by norm_num⟩ else if t = 1 then ⟨16 / 15, by norm_num⟩ else 1 :
+          NNReal) : ℝ) := fun t ↦ by
+      rw [covariance_self (measurable_pi_apply t).aemeasurable,
+        ← variance_id_map (measurable_pi_apply t).aemeasurable, Measure.infinitePi_map_eval,
+        variance_id_gaussianReal]
+    have hv0 : cov[W 0, W 0; P] = 48 / 25 := by rw [hvar]; rfl
+    have hv1 : cov[W 1, W 1; P] = 16 / 15 := by rw [hvar]; rfl
+    have hv2 : ∀ t, cov[W (t + 2), W (t + 2); P] = 1 := fun t ↦ by
+      rw [hvar]; simp
+    have hind : ∀ s t, s ≠ t → cov[W t, W s; P] = 0 := fun s t hst ↦
+      ((iIndepFun_infinitePi (X := fun _ ↦ id) fun _ ↦ measurable_id).indepFun
+        (Ne.symm hst)).covariance_eq_zero (hWm t) (hWm s)
+    have hX0 : X 0 = W 0 := rfl
+    have hX1 : X 1 = (fun ω ↦ 2 / 3 * X 0 ω) + W 1 := rfl
+    have hXrec : ∀ t, X (t + 2) =
+        (fun ω ↦ 1 / 2 * X (t + 1) ω) + (fun ω ↦ 1 / 4 * X t ω) + W (t + 2) := fun t ↦ rfl
+    clear_value X W
+    have hXm2 : ∀ t, MemLp (X t) 2 P ∧ MemLp (X (t + 1)) 2 P := by
+      intro t
+      induction t with
+      | zero =>
+        have h0 : MemLp (X 0) 2 P := by rw [hX0]; exact hWm 0
+        refine ⟨h0, ?_⟩
+        rw [zero_add, hX1]
+        exact (h0.const_mul (2 / 3 : ℝ)).add (hWm 1)
+      | succ n ih =>
+        refine ⟨ih.2, ?_⟩
+        rw [hXrec n]
+        exact ((ih.2.const_mul (1 / 2 : ℝ)).add (ih.1.const_mul (1 / 4 : ℝ))).add (hWm _)
+    have hXm : ∀ t, MemLp (X t) 2 P := fun t ↦ (hXm2 t).1
+    have hexpL : ∀ (t : ℕ) (Z : (ℕ → ℝ) → ℝ), MemLp Z 2 P →
+        cov[X (t + 2), Z; P] = 1 / 2 * cov[X (t + 1), Z; P] + 1 / 4 * cov[X t, Z; P]
+          + cov[W (t + 2), Z; P] := by
+      intro t Z hZ
+      have hA := (hXm (t + 1)).const_mul (1 / 2 : ℝ)
+      have hB := (hXm t).const_mul (1 / 4 : ℝ)
+      rw [hXrec t, covariance_add_left (hA.add hB) (hWm (t + 2)) hZ,
+        covariance_add_left hA hB hZ, covariance_const_mul_left, covariance_const_mul_left]
+    have hexpR : ∀ (t : ℕ) (Z : (ℕ → ℝ) → ℝ), MemLp Z 2 P →
+        cov[Z, X (t + 2); P] = 1 / 2 * cov[Z, X (t + 1); P] + 1 / 4 * cov[Z, X t; P]
+          + cov[Z, W (t + 2); P] := by
+      intro t Z hZ
+      have hA := (hXm (t + 1)).const_mul (1 / 2 : ℝ)
+      have hB := (hXm t).const_mul (1 / 4 : ℝ)
+      rw [hXrec t, covariance_add_right hZ (hA.add hB) (hWm (t + 2)),
+        covariance_add_right hZ hA hB, covariance_const_mul_right, covariance_const_mul_right]
+    have hexp1L : ∀ Z : (ℕ → ℝ) → ℝ, MemLp Z 2 P →
+        cov[X 1, Z; P] = 2 / 3 * cov[X 0, Z; P] + cov[W 1, Z; P] := by
+      intro Z hZ
+      rw [hX1, covariance_add_left ((hXm 0).const_mul (2 / 3 : ℝ)) (hWm 1) hZ,
+        covariance_const_mul_left]
+    have hexp1R : ∀ Z : (ℕ → ℝ) → ℝ, MemLp Z 2 P →
+        cov[Z, X 1; P] = 2 / 3 * cov[Z, X 0; P] + cov[Z, W 1; P] := by
+      intro Z hZ
+      rw [hX1, covariance_add_right hZ ((hXm 0).const_mul (2 / 3 : ℝ)) (hWm 1),
+        covariance_const_mul_right]
+    have hWX2 : ∀ s, (∀ t, s < t → cov[W t, X s; P] = 0) ∧
+        (∀ t, s + 1 < t → cov[W t, X (s + 1); P] = 0) := by
+      intro s
+      induction s with
+      | zero =>
+        refine ⟨fun t ht ↦ ?_, fun t ht ↦ ?_⟩
+        · rw [hX0]; exact hind 0 t (by omega)
+        · rw [zero_add, hexp1R (W t) (hWm t), hX0, hind 0 t (by omega), hind 1 t (by omega)]
+          norm_num
+      | succ n ih =>
+        refine ⟨ih.2, fun t ht ↦ ?_⟩
+        rw [hexpR n (W t) (hWm t), ih.1 t (by omega), ih.2 t (by omega),
+          hind (n + 2) t (by omega)]
+        norm_num
+    have hWX : ∀ s t, s < t → cov[W t, X s; P] = 0 := fun s t h ↦ (hWX2 s).1 t h
+    have hV : ∀ t, cov[X t, X t; P] = 48 / 25 ∧ cov[X (t + 1), X (t + 1); P] = 48 / 25 ∧
+        cov[X (t + 1), X t; P] = 32 / 25 := by
+      intro t
+      induction t with
+      | zero =>
+        have h0 : cov[X 0, X 0; P] = 48 / 25 := by rw [hX0, hv0]
+        have h10 : cov[X 1, X 0; P] = 32 / 25 := by
+          rw [hexp1L (X 0) (hXm 0), h0, hX0, hind 0 1 (by omega)]
+          norm_num
+        have hw : cov[W 1, X 1; P] = 16 / 15 := by
+          rw [hexp1R (W 1) (hWm 1), hX0, hind 0 1 (by omega), hv1]
+          norm_num
+        have h11 : cov[X 1, X 1; P] = 48 / 25 := by
+          rw [hexp1L (X 1) (hXm 1), covariance_comm (X 0) (X 1), h10, hw]
+          norm_num
+        exact ⟨h0, h11, h10⟩
+      | succ n ih =>
+        obtain ⟨h0, h1, h10⟩ := ih
+        have h21 : cov[X (n + 2), X (n + 1); P] = 32 / 25 := by
+          rw [hexpL n (X (n + 1)) (hXm _), h1, covariance_comm (X n) (X (n + 1)), h10,
+            hWX (n + 1) (n + 2) (by omega)]
+          norm_num
+        have h20 : cov[X (n + 2), X n; P] = 28 / 25 := by
+          rw [hexpL n (X n) (hXm _), h10, h0, hWX n (n + 2) (by omega)]
+          norm_num
+        have hw2 : cov[W (n + 2), X (n + 2); P] = 1 := by
+          rw [hexpR n (W (n + 2)) (hWm _), hWX (n + 1) (n + 2) (by omega),
+            hWX n (n + 2) (by omega), hv2]
+          norm_num
+        have h22 : cov[X (n + 2), X (n + 2); P] = 48 / 25 := by
+          rw [hexpL n (X (n + 2)) (hXm _), covariance_comm (X (n + 1)) (X (n + 2)), h21,
+            covariance_comm (X n) (X (n + 2)), h20, hw2]
+          norm_num
+        exact ⟨h1, h22, h21⟩
+    have hst : ∀ s k, cov[X (s + k), X s; P] = cov[X k, X 0; P] ∧
+        cov[X (s + k + 1), X s; P] = cov[X (k + 1), X 0; P] := by
+      intro s k
+      induction k with
+      | zero =>
+        exact ⟨((hV s).1).trans ((hV 0).1).symm, ((hV s).2.2).trans ((hV 0).2.2).symm⟩
+      | succ k ih =>
+        refine ⟨ih.2, ?_⟩
+        rw [show s + (k + 1) + 1 = s + k + 2 by omega, hexpL (s + k) (X s) (hXm s),
+          hexpL k (X 0) (hXm 0), ih.1, ih.2, hWX s (s + k + 2) (by omega),
+          hWX 0 (k + 2) (by omega)]
+    exact fun s k ↦ (hst s k).1)
+  (by
+    let P : Measure (ℕ → ℝ) := Measure.infinitePi fun t : ℕ ↦ gaussianReal 0
+      (if t = 0 then ⟨48 / 25, by norm_num⟩ else if t = 1 then ⟨16 / 15, by norm_num⟩ else 1)
+    let W : ℕ → (ℕ → ℝ) → ℝ := fun t ω ↦ ω t
+    let X : ℕ → (ℕ → ℝ) → ℝ := fun t ω ↦ (Nat.rec (motive := fun _ ↦ ℝ × ℝ)
+      (ω 0, 2 / 3 * ω 0 + ω 1) (fun n q ↦ (q.2, 1 / 2 * q.2 + 1 / 4 * q.1 + ω (n + 2))) t).1
+    change ∀ s t, s < t → cov[W t, X s; P] = 0
+    have hWm : ∀ t, MemLp (W t) 2 P := fun t ↦ by
+      have h : MemLp id 2 (P.map (W t)) := by
+        rw [Measure.infinitePi_map_eval]
+        exact memLp_id_gaussianReal' 2 (by norm_num)
+      exact (memLp_map_measure_iff aestronglyMeasurable_id
+        (measurable_pi_apply t).aemeasurable).mp h
+    have hind : ∀ s t, s ≠ t → cov[W t, W s; P] = 0 := fun s t hst ↦
+      ((iIndepFun_infinitePi (X := fun _ ↦ id) fun _ ↦ measurable_id).indepFun
+        (Ne.symm hst)).covariance_eq_zero (hWm t) (hWm s)
+    have hX0 : X 0 = W 0 := rfl
+    have hX1 : X 1 = (fun ω ↦ 2 / 3 * X 0 ω) + W 1 := rfl
+    have hXrec : ∀ t, X (t + 2) =
+        (fun ω ↦ 1 / 2 * X (t + 1) ω) + (fun ω ↦ 1 / 4 * X t ω) + W (t + 2) := fun t ↦ rfl
+    clear_value X W
+    have hXm2 : ∀ t, MemLp (X t) 2 P ∧ MemLp (X (t + 1)) 2 P := by
+      intro t
+      induction t with
+      | zero =>
+        have h0 : MemLp (X 0) 2 P := by rw [hX0]; exact hWm 0
+        refine ⟨h0, ?_⟩
+        rw [zero_add, hX1]
+        exact (h0.const_mul (2 / 3 : ℝ)).add (hWm 1)
+      | succ n ih =>
+        refine ⟨ih.2, ?_⟩
+        rw [hXrec n]
+        exact ((ih.2.const_mul (1 / 2 : ℝ)).add (ih.1.const_mul (1 / 4 : ℝ))).add (hWm _)
+    have hXm : ∀ t, MemLp (X t) 2 P := fun t ↦ (hXm2 t).1
+    have hWX2 : ∀ s, (∀ t, s < t → cov[W t, X s; P] = 0) ∧
+        (∀ t, s + 1 < t → cov[W t, X (s + 1); P] = 0) := by
+      intro s
+      induction s with
+      | zero =>
+        refine ⟨fun t ht ↦ ?_, fun t ht ↦ ?_⟩
+        · rw [hX0]; exact hind 0 t (by omega)
+        · rw [zero_add, hX1, covariance_add_right (hWm t) ((hXm 0).const_mul (2 / 3 : ℝ)) (hWm 1),
+            covariance_const_mul_right, hX0, hind 0 t (by omega), hind 1 t (by omega)]
+          norm_num
+      | succ n ih =>
+        refine ⟨ih.2, fun t ht ↦ ?_⟩
+        have hA := (hXm (n + 1)).const_mul (1 / 2 : ℝ)
+        have hB := (hXm n).const_mul (1 / 4 : ℝ)
+        rw [show n + 1 + 1 = n + 2 by omega, hXrec n,
+          covariance_add_right (hWm t) (hA.add hB) (hWm (n + 2)),
+          covariance_add_right (hWm t) hA hB, covariance_const_mul_right,
+          covariance_const_mul_right, ih.1 t (by omega), ih.2 t (by omega),
+          hind (n + 2) t (by omega)]
+        norm_num
+    exact fun s t h ↦ (hWX2 s).1 t h)
+  (by norm_num)
+
+/-- The hypotheses of `exists_poly_mk_autocovariance_eq` hold together: with `p = 2 > 0`. The model,
+the same in the three witnesses here: `Ω = ℕ → ℝ` with `μ` the product of the Gaussian laws
+`N(0, 48/25)` for coordinate `0`, `N(0, 16/15)` for coordinate `1` and `N(0, 1)` for every later one
+(`Measure.infinitePi`, a probability measure); the noises `e t` the coordinates, independent
+(`iIndepFun_infinitePi`), each of positive variance; the autoregression of order `p = 2` with two
+different, nonzero coefficients `a = (1/2, 1/4)`, `X (t + 2) = X (t + 1)/2 + X t/4 + e (t + 2)`,
+started at `X 0 = e 0` and `X 1 = 2/3 · X 0 + e 1`, which makes it stationary from time `0`; and
+`γ k = cov(X k, X 0)`, so `γ 0 = 48/25`, `γ 1 = 32/25` and `γ 2 = 28/25` (the process moves at every
+time; lag `2` uses both coefficients). Each proof below names the measure, the noises and the
+process, proves the noises' moments from the Gaussian laws, and then works on the names alone. -/
+example := ClassicalLean.Probability.exists_poly_mk_autocovariance_eq (Ω := ℕ → ℝ)
+  (μ := Measure.infinitePi fun t : ℕ ↦ gaussianReal 0
+    (if t = 0 then ⟨48 / 25, by norm_num⟩ else if t = 1 then ⟨16 / 15, by norm_num⟩ else 1))
+  (p := 2) (a := ![1 / 2, 1 / 4])
+  (X := fun t ω ↦ (Nat.rec (motive := fun _ ↦ ℝ × ℝ) (ω 0, 2 / 3 * ω 0 + ω 1)
+    (fun n q ↦ (q.2, 1 / 2 * q.2 + 1 / 4 * q.1 + ω (n + 2))) t).1)
+  (e := fun t ω ↦ ω t)
+  (γ := fun k ↦ cov[fun ω ↦ (Nat.rec (motive := fun _ ↦ ℝ × ℝ) (ω 0, 2 / 3 * ω 0 + ω 1)
+      (fun n q ↦ (q.2, 1 / 2 * q.2 + 1 / 4 * q.1 + ω (n + 2))) k).1,
+    fun ω ↦ ω 0; Measure.infinitePi fun t : ℕ ↦ gaussianReal 0
+      (if t = 0 then ⟨48 / 25, by norm_num⟩ else if t = 1 then ⟨16 / 15, by norm_num⟩ else 1)])
+  (by
+    let P : Measure (ℕ → ℝ) := Measure.infinitePi fun t : ℕ ↦ gaussianReal 0
+      (if t = 0 then ⟨48 / 25, by norm_num⟩ else if t = 1 then ⟨16 / 15, by norm_num⟩ else 1)
+    let W : ℕ → (ℕ → ℝ) → ℝ := fun t ω ↦ ω t
+    let X : ℕ → (ℕ → ℝ) → ℝ := fun t ω ↦ (Nat.rec (motive := fun _ ↦ ℝ × ℝ)
+      (ω 0, 2 / 3 * ω 0 + ω 1) (fun n q ↦ (q.2, 1 / 2 * q.2 + 1 / 4 * q.1 + ω (n + 2))) t).1
+    change ∀ t, MemLp (X t) 2 P
+    have hWm : ∀ t, MemLp (W t) 2 P := fun t ↦ by
+      have h : MemLp id 2 (P.map (W t)) := by
+        rw [Measure.infinitePi_map_eval]
+        exact memLp_id_gaussianReal' 2 (by norm_num)
+      exact (memLp_map_measure_iff aestronglyMeasurable_id
+        (measurable_pi_apply t).aemeasurable).mp h
+    have hX0 : X 0 = W 0 := rfl
+    have hX1 : X 1 = (fun ω ↦ 2 / 3 * X 0 ω) + W 1 := rfl
+    have hXrec : ∀ t, X (t + 2) =
+        (fun ω ↦ 1 / 2 * X (t + 1) ω) + (fun ω ↦ 1 / 4 * X t ω) + W (t + 2) := fun t ↦ rfl
+    clear_value X W
+    have hXm2 : ∀ t, MemLp (X t) 2 P ∧ MemLp (X (t + 1)) 2 P := by
+      intro t
+      induction t with
+      | zero =>
+        have h0 : MemLp (X 0) 2 P := by rw [hX0]; exact hWm 0
+        refine ⟨h0, ?_⟩
+        rw [zero_add, hX1]
+        exact (h0.const_mul (2 / 3 : ℝ)).add (hWm 1)
+      | succ n ih =>
+        refine ⟨ih.2, ?_⟩
+        rw [hXrec n]
+        exact ((ih.2.const_mul (1 / 2 : ℝ)).add (ih.1.const_mul (1 / 4 : ℝ))).add (hWm _)
+    exact fun t ↦ (hXm2 t).1)
+  (fun t ht ω ↦ by
+    obtain ⟨s, rfl⟩ : ∃ s, t = s + 2 := ⟨t - 2, by omega⟩
+    rw [Fin.sum_univ_two]
+    simp only [Matrix.cons_val_zero, Matrix.cons_val_one, Fin.val_zero, Fin.val_one]
+    rw [show s + 2 - 1 - 0 = s + 1 by omega, show s + 2 - 1 - 1 = s by omega])
+  (by
+    let P : Measure (ℕ → ℝ) := Measure.infinitePi fun t : ℕ ↦ gaussianReal 0
+      (if t = 0 then ⟨48 / 25, by norm_num⟩ else if t = 1 then ⟨16 / 15, by norm_num⟩ else 1)
+    let W : ℕ → (ℕ → ℝ) → ℝ := fun t ω ↦ ω t
+    let X : ℕ → (ℕ → ℝ) → ℝ := fun t ω ↦ (Nat.rec (motive := fun _ ↦ ℝ × ℝ)
+      (ω 0, 2 / 3 * ω 0 + ω 1) (fun n q ↦ (q.2, 1 / 2 * q.2 + 1 / 4 * q.1 + ω (n + 2))) t).1
+    change ∀ s k, cov[X (s + k), X s; P] = cov[X k, X 0; P]
+    have hWm : ∀ t, MemLp (W t) 2 P := fun t ↦ by
+      have h : MemLp id 2 (P.map (W t)) := by
+        rw [Measure.infinitePi_map_eval]
+        exact memLp_id_gaussianReal' 2 (by norm_num)
+      exact (memLp_map_measure_iff aestronglyMeasurable_id
+        (measurable_pi_apply t).aemeasurable).mp h
+    have hvar : ∀ t, cov[W t, W t; P] =
+        ((if t = 0 then ⟨48 / 25, by norm_num⟩ else if t = 1 then ⟨16 / 15, by norm_num⟩ else 1 :
+          NNReal) : ℝ) := fun t ↦ by
+      rw [covariance_self (measurable_pi_apply t).aemeasurable,
+        ← variance_id_map (measurable_pi_apply t).aemeasurable, Measure.infinitePi_map_eval,
+        variance_id_gaussianReal]
+    have hv0 : cov[W 0, W 0; P] = 48 / 25 := by rw [hvar]; rfl
+    have hv1 : cov[W 1, W 1; P] = 16 / 15 := by rw [hvar]; rfl
+    have hv2 : ∀ t, cov[W (t + 2), W (t + 2); P] = 1 := fun t ↦ by
+      rw [hvar]; simp
+    have hind : ∀ s t, s ≠ t → cov[W t, W s; P] = 0 := fun s t hst ↦
+      ((iIndepFun_infinitePi (X := fun _ ↦ id) fun _ ↦ measurable_id).indepFun
+        (Ne.symm hst)).covariance_eq_zero (hWm t) (hWm s)
+    have hX0 : X 0 = W 0 := rfl
+    have hX1 : X 1 = (fun ω ↦ 2 / 3 * X 0 ω) + W 1 := rfl
+    have hXrec : ∀ t, X (t + 2) =
+        (fun ω ↦ 1 / 2 * X (t + 1) ω) + (fun ω ↦ 1 / 4 * X t ω) + W (t + 2) := fun t ↦ rfl
+    clear_value X W
+    have hXm2 : ∀ t, MemLp (X t) 2 P ∧ MemLp (X (t + 1)) 2 P := by
+      intro t
+      induction t with
+      | zero =>
+        have h0 : MemLp (X 0) 2 P := by rw [hX0]; exact hWm 0
+        refine ⟨h0, ?_⟩
+        rw [zero_add, hX1]
+        exact (h0.const_mul (2 / 3 : ℝ)).add (hWm 1)
+      | succ n ih =>
+        refine ⟨ih.2, ?_⟩
+        rw [hXrec n]
+        exact ((ih.2.const_mul (1 / 2 : ℝ)).add (ih.1.const_mul (1 / 4 : ℝ))).add (hWm _)
+    have hXm : ∀ t, MemLp (X t) 2 P := fun t ↦ (hXm2 t).1
+    have hexpL : ∀ (t : ℕ) (Z : (ℕ → ℝ) → ℝ), MemLp Z 2 P →
+        cov[X (t + 2), Z; P] = 1 / 2 * cov[X (t + 1), Z; P] + 1 / 4 * cov[X t, Z; P]
+          + cov[W (t + 2), Z; P] := by
+      intro t Z hZ
+      have hA := (hXm (t + 1)).const_mul (1 / 2 : ℝ)
+      have hB := (hXm t).const_mul (1 / 4 : ℝ)
+      rw [hXrec t, covariance_add_left (hA.add hB) (hWm (t + 2)) hZ,
+        covariance_add_left hA hB hZ, covariance_const_mul_left, covariance_const_mul_left]
+    have hexpR : ∀ (t : ℕ) (Z : (ℕ → ℝ) → ℝ), MemLp Z 2 P →
+        cov[Z, X (t + 2); P] = 1 / 2 * cov[Z, X (t + 1); P] + 1 / 4 * cov[Z, X t; P]
+          + cov[Z, W (t + 2); P] := by
+      intro t Z hZ
+      have hA := (hXm (t + 1)).const_mul (1 / 2 : ℝ)
+      have hB := (hXm t).const_mul (1 / 4 : ℝ)
+      rw [hXrec t, covariance_add_right hZ (hA.add hB) (hWm (t + 2)),
+        covariance_add_right hZ hA hB, covariance_const_mul_right, covariance_const_mul_right]
+    have hexp1L : ∀ Z : (ℕ → ℝ) → ℝ, MemLp Z 2 P →
+        cov[X 1, Z; P] = 2 / 3 * cov[X 0, Z; P] + cov[W 1, Z; P] := by
+      intro Z hZ
+      rw [hX1, covariance_add_left ((hXm 0).const_mul (2 / 3 : ℝ)) (hWm 1) hZ,
+        covariance_const_mul_left]
+    have hexp1R : ∀ Z : (ℕ → ℝ) → ℝ, MemLp Z 2 P →
+        cov[Z, X 1; P] = 2 / 3 * cov[Z, X 0; P] + cov[Z, W 1; P] := by
+      intro Z hZ
+      rw [hX1, covariance_add_right hZ ((hXm 0).const_mul (2 / 3 : ℝ)) (hWm 1),
+        covariance_const_mul_right]
+    have hWX2 : ∀ s, (∀ t, s < t → cov[W t, X s; P] = 0) ∧
+        (∀ t, s + 1 < t → cov[W t, X (s + 1); P] = 0) := by
+      intro s
+      induction s with
+      | zero =>
+        refine ⟨fun t ht ↦ ?_, fun t ht ↦ ?_⟩
+        · rw [hX0]; exact hind 0 t (by omega)
+        · rw [zero_add, hexp1R (W t) (hWm t), hX0, hind 0 t (by omega), hind 1 t (by omega)]
+          norm_num
+      | succ n ih =>
+        refine ⟨ih.2, fun t ht ↦ ?_⟩
+        rw [hexpR n (W t) (hWm t), ih.1 t (by omega), ih.2 t (by omega),
+          hind (n + 2) t (by omega)]
+        norm_num
+    have hWX : ∀ s t, s < t → cov[W t, X s; P] = 0 := fun s t h ↦ (hWX2 s).1 t h
+    have hV : ∀ t, cov[X t, X t; P] = 48 / 25 ∧ cov[X (t + 1), X (t + 1); P] = 48 / 25 ∧
+        cov[X (t + 1), X t; P] = 32 / 25 := by
+      intro t
+      induction t with
+      | zero =>
+        have h0 : cov[X 0, X 0; P] = 48 / 25 := by rw [hX0, hv0]
+        have h10 : cov[X 1, X 0; P] = 32 / 25 := by
+          rw [hexp1L (X 0) (hXm 0), h0, hX0, hind 0 1 (by omega)]
+          norm_num
+        have hw : cov[W 1, X 1; P] = 16 / 15 := by
+          rw [hexp1R (W 1) (hWm 1), hX0, hind 0 1 (by omega), hv1]
+          norm_num
+        have h11 : cov[X 1, X 1; P] = 48 / 25 := by
+          rw [hexp1L (X 1) (hXm 1), covariance_comm (X 0) (X 1), h10, hw]
+          norm_num
+        exact ⟨h0, h11, h10⟩
+      | succ n ih =>
+        obtain ⟨h0, h1, h10⟩ := ih
+        have h21 : cov[X (n + 2), X (n + 1); P] = 32 / 25 := by
+          rw [hexpL n (X (n + 1)) (hXm _), h1, covariance_comm (X n) (X (n + 1)), h10,
+            hWX (n + 1) (n + 2) (by omega)]
+          norm_num
+        have h20 : cov[X (n + 2), X n; P] = 28 / 25 := by
+          rw [hexpL n (X n) (hXm _), h10, h0, hWX n (n + 2) (by omega)]
+          norm_num
+        have hw2 : cov[W (n + 2), X (n + 2); P] = 1 := by
+          rw [hexpR n (W (n + 2)) (hWm _), hWX (n + 1) (n + 2) (by omega),
+            hWX n (n + 2) (by omega), hv2]
+          norm_num
+        have h22 : cov[X (n + 2), X (n + 2); P] = 48 / 25 := by
+          rw [hexpL n (X (n + 2)) (hXm _), covariance_comm (X (n + 1)) (X (n + 2)), h21,
+            covariance_comm (X n) (X (n + 2)), h20, hw2]
+          norm_num
+        exact ⟨h1, h22, h21⟩
+    have hst : ∀ s k, cov[X (s + k), X s; P] = cov[X k, X 0; P] ∧
+        cov[X (s + k + 1), X s; P] = cov[X (k + 1), X 0; P] := by
+      intro s k
+      induction k with
+      | zero =>
+        exact ⟨((hV s).1).trans ((hV 0).1).symm, ((hV s).2.2).trans ((hV 0).2.2).symm⟩
+      | succ k ih =>
+        refine ⟨ih.2, ?_⟩
+        rw [show s + (k + 1) + 1 = s + k + 2 by omega, hexpL (s + k) (X s) (hXm s),
+          hexpL k (X 0) (hXm 0), ih.1, ih.2, hWX s (s + k + 2) (by omega),
+          hWX 0 (k + 2) (by omega)]
+    exact fun s k ↦ (hst s k).1)
+  (by
+    let P : Measure (ℕ → ℝ) := Measure.infinitePi fun t : ℕ ↦ gaussianReal 0
+      (if t = 0 then ⟨48 / 25, by norm_num⟩ else if t = 1 then ⟨16 / 15, by norm_num⟩ else 1)
+    let W : ℕ → (ℕ → ℝ) → ℝ := fun t ω ↦ ω t
+    let X : ℕ → (ℕ → ℝ) → ℝ := fun t ω ↦ (Nat.rec (motive := fun _ ↦ ℝ × ℝ)
+      (ω 0, 2 / 3 * ω 0 + ω 1) (fun n q ↦ (q.2, 1 / 2 * q.2 + 1 / 4 * q.1 + ω (n + 2))) t).1
+    change ∀ s t, s < t → cov[W t, X s; P] = 0
+    have hWm : ∀ t, MemLp (W t) 2 P := fun t ↦ by
+      have h : MemLp id 2 (P.map (W t)) := by
+        rw [Measure.infinitePi_map_eval]
+        exact memLp_id_gaussianReal' 2 (by norm_num)
+      exact (memLp_map_measure_iff aestronglyMeasurable_id
+        (measurable_pi_apply t).aemeasurable).mp h
+    have hind : ∀ s t, s ≠ t → cov[W t, W s; P] = 0 := fun s t hst ↦
+      ((iIndepFun_infinitePi (X := fun _ ↦ id) fun _ ↦ measurable_id).indepFun
+        (Ne.symm hst)).covariance_eq_zero (hWm t) (hWm s)
+    have hX0 : X 0 = W 0 := rfl
+    have hX1 : X 1 = (fun ω ↦ 2 / 3 * X 0 ω) + W 1 := rfl
+    have hXrec : ∀ t, X (t + 2) =
+        (fun ω ↦ 1 / 2 * X (t + 1) ω) + (fun ω ↦ 1 / 4 * X t ω) + W (t + 2) := fun t ↦ rfl
+    clear_value X W
+    have hXm2 : ∀ t, MemLp (X t) 2 P ∧ MemLp (X (t + 1)) 2 P := by
+      intro t
+      induction t with
+      | zero =>
+        have h0 : MemLp (X 0) 2 P := by rw [hX0]; exact hWm 0
+        refine ⟨h0, ?_⟩
+        rw [zero_add, hX1]
+        exact (h0.const_mul (2 / 3 : ℝ)).add (hWm 1)
+      | succ n ih =>
+        refine ⟨ih.2, ?_⟩
+        rw [hXrec n]
+        exact ((ih.2.const_mul (1 / 2 : ℝ)).add (ih.1.const_mul (1 / 4 : ℝ))).add (hWm _)
+    have hXm : ∀ t, MemLp (X t) 2 P := fun t ↦ (hXm2 t).1
+    have hWX2 : ∀ s, (∀ t, s < t → cov[W t, X s; P] = 0) ∧
+        (∀ t, s + 1 < t → cov[W t, X (s + 1); P] = 0) := by
+      intro s
+      induction s with
+      | zero =>
+        refine ⟨fun t ht ↦ ?_, fun t ht ↦ ?_⟩
+        · rw [hX0]; exact hind 0 t (by omega)
+        · rw [zero_add, hX1, covariance_add_right (hWm t) ((hXm 0).const_mul (2 / 3 : ℝ)) (hWm 1),
+            covariance_const_mul_right, hX0, hind 0 t (by omega), hind 1 t (by omega)]
+          norm_num
+      | succ n ih =>
+        refine ⟨ih.2, fun t ht ↦ ?_⟩
+        have hA := (hXm (n + 1)).const_mul (1 / 2 : ℝ)
+        have hB := (hXm n).const_mul (1 / 4 : ℝ)
+        rw [show n + 1 + 1 = n + 2 by omega, hXrec n,
+          covariance_add_right (hWm t) (hA.add hB) (hWm (n + 2)),
+          covariance_add_right (hWm t) hA hB, covariance_const_mul_right,
+          covariance_const_mul_right, ih.1 t (by omega), ih.2 t (by omega),
+          hind (n + 2) t (by omega)]
+        norm_num
+    exact fun s t h ↦ (hWX2 s).1 t h)
+  (by norm_num)
