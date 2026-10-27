@@ -27,6 +27,19 @@ Euler–Maclaurin formula says how close. To first order the correction is the t
   at `k + 1`, and one integration by parts gives
   `∫ₖᵏ⁺¹ sawtooth · f' = (f k + f (k + 1))/2 − ∫ₖᵏ⁺¹ f`.
   The formula follows by induction on `b`, one unit interval at a time.
+* `sum_eq_integral_add_two` — order LEAN-36, item 128, **Euler–Maclaurin to second order**: for
+  integers `a ≤ b`, `f` continuous on `[a, b]` with derivative `f'` inside, `f'` continuous on
+  `[a, b]` with derivative `f''` inside, and `f''` integrable,
+  `∑_{k=a}^{b} f k = ∫ₐᵇ f + (f a + f b)/2 + (f' b − f' a)/12 − ∫ₐᵇ B₂(fract t)/2 · f''`, where
+  `B₂` is Mathlib's `bernoulliFun 2`, the polynomial `x² − x + 1/6`. It integrates the sawtooth
+  term of `sum_eq_integral_add` by parts once more on each unit interval. The proof is the draft
+  `d128-r1-s2` (written by Claude Opus 5.5 through the Anthropic Batch API, the lane's API-CREDIT-1
+  work), adapted by order LEAN-36's session: inside this namespace; its private
+  `bernoulliFun_two_eq'` replaced by Mathlib's `bernoulliFun_two` (with `6⁻¹` for `1 / 6` in one
+  measurability step). Its hypotheses were not drop-tested by this order. Its witness is claude-ai's
+  (lane `lean/LEAN-36/data/witnesses.txt`, section EulerMaclaurin), with the theorem called by its
+  full name and the parenthesis "(a cubic would make it zero)" cut from its docstring (order
+  LEAN-36's review (b)).
 
 ## Hypotheses
 
@@ -164,6 +177,111 @@ theorem abs_sum_sub_integral_le {f f' : ℝ → ℝ} {a b : ℤ} (hab : a ≤ b)
         gcongr; exact abs_sawtooth_le t
     _ = |f' t| / 2 := by ring
 
+/-- `B₂(fract t)/2` times an integrable function is integrable. -/
+private lemma intervalIntegrable_B2_mul {g : ℝ → ℝ} {a b : ℝ}
+    (hg : IntervalIntegrable g volume a b) :
+    IntervalIntegrable (fun t ↦ bernoulliFun 2 (Int.fract t) / 2 * g t) volume a b := by
+  have hm : Measurable fun t : ℝ ↦ bernoulliFun 2 (Int.fract t) / 2 := by
+    simp only [bernoulliFun_two]
+    exact ((((measurable_fract (R := ℝ)).pow_const 2).sub measurable_fract).add_const
+      (6⁻¹ : ℝ)).div_const 2
+  have hb : ∀ t : ℝ, ‖bernoulliFun 2 (Int.fract t) / 2‖ ≤ 1 := by
+    intro t
+    rw [bernoulliFun_two, Real.norm_eq_abs, abs_le]
+    have h0 := Int.fract_nonneg t
+    have h1 := Int.fract_lt_one t
+    constructor <;> nlinarith
+  exact ⟨hg.1.bdd_mul hm.aestronglyMeasurable (ae_of_all _ hb),
+    hg.2.bdd_mul hm.aestronglyMeasurable (ae_of_all _ hb)⟩
+
+/-- One unit interval: integrate the sawtooth term by parts once more. -/
+private lemma unit_step {f' f'' : ℝ → ℝ} (k : ℤ)
+    (hc : ContinuousOn f' (Icc (k : ℝ) (k + 1)))
+    (hd : ∀ t ∈ Ioo (k : ℝ) (k + 1), HasDerivAt f' (f'' t) t)
+    (hint : IntervalIntegrable f'' volume (k : ℝ) (k + 1)) :
+    ∫ t in (k : ℝ)..(k + 1), sawtooth t * f' t =
+      (f' ((k : ℝ) + 1) - f' k) / 12 -
+        ∫ t in (k : ℝ)..(k + 1), bernoulliFun 2 (Int.fract t) / 2 * f'' t := by
+  have hkk : (k : ℝ) ≤ k + 1 := by linarith
+  have hfr : ∀ t ∈ Ioo (k : ℝ) (k + 1), Int.fract t = t - k := fun t ht ↦ by
+    simp only [Int.fract, Int.floor_eq_iff.mpr ⟨ht.1.le, ht.2⟩]
+  have e1 : ∫ t in (k : ℝ)..(k + 1), sawtooth t * f' t =
+      ∫ t in (k : ℝ)..(k + 1), (t - (k : ℝ) - 1 / 2) * f' t :=
+    integral_congr_Ioo_of_le hkk fun t ht ↦ by rw [sawtooth, hfr t ht]
+  have e2 : ∫ t in (k : ℝ)..(k + 1), bernoulliFun 2 (Int.fract t) / 2 * f'' t =
+      ∫ t in (k : ℝ)..(k + 1),
+        ((t - (k : ℝ)) * (t - k) - (t - k) + 1 / 6) / 2 * f'' t :=
+    integral_congr_Ioo_of_le hkk fun t ht ↦ by rw [hfr t ht, bernoulliFun_two]; ring
+  have hQ : ∀ x : ℝ, HasDerivAt (fun t : ℝ ↦ ((t - (k : ℝ)) * (t - k) - (t - k) + 1 / 6) / 2)
+      (x - k - 1 / 2) x := by
+    intro x
+    have h1 : HasDerivAt (fun t : ℝ ↦ t - (k : ℝ)) 1 x := (hasDerivAt_id' x).sub_const _
+    convert (((h1.mul h1).sub h1).add_const (1 / 6 : ℝ)).div_const 2 using 1
+    ring
+  have hibp : ∫ t in (k : ℝ)..(k + 1),
+        ((t - (k : ℝ)) * (t - k) - (t - k) + 1 / 6) / 2 * f'' t =
+      (((k : ℝ) + 1 - k) * ((k : ℝ) + 1 - k) - ((k : ℝ) + 1 - k) + 1 / 6) / 2 *
+          f' ((k : ℝ) + 1) -
+        (((k : ℝ) - k) * ((k : ℝ) - k) - ((k : ℝ) - k) + 1 / 6) / 2 * f' (k : ℝ) -
+        ∫ t in (k : ℝ)..(k + 1), (t - (k : ℝ) - 1 / 2) * f' t :=
+    integral_mul_deriv_eq_deriv_mul_of_hasDerivAt
+      (u := fun t : ℝ ↦ ((t - (k : ℝ)) * (t - k) - (t - k) + 1 / 6) / 2)
+      (u' := fun t : ℝ ↦ t - (k : ℝ) - 1 / 2) (v := f') (v' := f'')
+      (by fun_prop) (by rwa [uIcc_of_le hkk]) (fun x _ ↦ hQ x)
+      (by rwa [min_eq_left hkk, max_eq_right hkk])
+      ((by fun_prop : Continuous fun t : ℝ ↦ t - (k : ℝ) - 1 / 2).intervalIntegrable _ _)
+      hint
+  linear_combination e1 + hibp + e2
+
+/-- The sawtooth term, integrated by parts over `[a, b]`. -/
+private lemma integral_sawtooth_mul_eq' {f' f'' : ℝ → ℝ} {a b : ℤ} (hab : a ≤ b)
+    (hc : ContinuousOn f' (Icc (a : ℝ) b))
+    (hd : ∀ t ∈ Ioo (a : ℝ) b, HasDerivAt f' (f'' t) t)
+    (hint : IntervalIntegrable f'' volume (a : ℝ) b) :
+    ∫ t in (a : ℝ)..b, sawtooth t * f' t =
+      (f' b - f' a) / 12 - ∫ t in (a : ℝ)..b, bernoulliFun 2 (Int.fract t) / 2 * f'' t := by
+  induction b, hab using Int.leInduction with
+  | base => simp
+  | succ b hab ih =>
+    push_cast at hc hd hint ⊢
+    have hb : (a : ℝ) ≤ b := by exact_mod_cast hab
+    have hb1 : (b : ℝ) ≤ b + 1 := by linarith
+    have hsub : Icc (a : ℝ) b ⊆ Icc (a : ℝ) (b + 1) := Icc_subset_Icc le_rfl hb1
+    have hsub' : Icc (b : ℝ) (b + 1) ⊆ Icc (a : ℝ) (b + 1) := Icc_subset_Icc hb le_rfl
+    have hI₁ : IntervalIntegrable f'' volume (a : ℝ) b :=
+      hint.mono_set (by rw [uIcc_of_le hb, uIcc_of_le (hb.trans hb1)]; exact hsub)
+    have hI₂ : IntervalIntegrable f'' volume (b : ℝ) (b + 1) :=
+      hint.mono_set (by rw [uIcc_of_le hb1, uIcc_of_le (hb.trans hb1)]; exact hsub')
+    have ih' := ih (hc.mono hsub) (fun t ht ↦ hd t ⟨ht.1, ht.2.trans (by linarith)⟩) hI₁
+    have hu := unit_step b (hc.mono hsub') (fun t ht ↦ hd t ⟨hb.trans_lt ht.1, ht.2⟩) hI₂
+    rw [← integral_add_adjacent_intervals (b := (b : ℝ))
+        (intervalIntegrable_sawtooth_mul ((hc.mono hsub).intervalIntegrable_of_Icc hb))
+        (intervalIntegrable_sawtooth_mul ((hc.mono hsub').intervalIntegrable_of_Icc hb1)),
+      ← integral_add_adjacent_intervals (b := (b : ℝ)) (intervalIntegrable_B2_mul hI₁)
+        (intervalIntegrable_B2_mul hI₂), ih', hu]
+    ring
+
+/-- **Euler–Maclaurin, second order** (item 128 of MATH-PLAN-library-2; the draft `d128-r1-s2`,
+written by Claude Opus 5.5 through the Anthropic Batch API, the lane's API-CREDIT-1 work, adapted
+by order LEAN-36's session). For integers `a ≤ b`, `f` continuous on `[a, b]` with derivative `f'`
+inside, `f'` continuous on `[a, b]` with derivative `f''` inside, and `f''` integrable:
+`∑_{k=a}^{b} f k = ∫ₐᵇ f + (f a + f b)/2 + (f' b − f' a)/12 − ∫ₐᵇ B₂(fract t)/2 · f''`, where
+`B₂(x) = x² − x + 1/6` is the second Bernoulli polynomial (Mathlib's `bernoulliFun 2`). The proof
+integrates `sum_eq_integral_add`'s sawtooth term by parts once more, one unit interval at a time. -/
+theorem sum_eq_integral_add_two {f f' f'' : ℝ → ℝ} {a b : ℤ} (hab : a ≤ b)
+    (hf : ContinuousOn f (Icc (a : ℝ) b))
+    (hf' : ∀ t ∈ Ioo (a : ℝ) b, HasDerivAt f (f' t) t)
+    (hf'c : ContinuousOn f' (Icc (a : ℝ) b))
+    (hf'' : ∀ t ∈ Ioo (a : ℝ) b, HasDerivAt f' (f'' t) t)
+    (hint : IntervalIntegrable f'' volume (a : ℝ) b) :
+    ∑ k ∈ Finset.Icc a b, f k =
+      (∫ t in (a : ℝ)..b, f t) + (f a + f b) / 2 + (f' b - f' a) / 12 -
+        ∫ t in (a : ℝ)..b, bernoulliFun 2 (Int.fract t) / 2 * f'' t := by
+  have hab' : (a : ℝ) ≤ b := by exact_mod_cast hab
+  rw [sum_eq_integral_add hab hf hf' (hf'c.intervalIntegrable_of_Icc hab'),
+    integral_sawtooth_mul_eq' hab hf'c hf'' hint]
+  ring
+
 end ClassicalLean
 
 open Set in
@@ -174,3 +292,16 @@ example := ClassicalLean.sum_eq_integral_add (f := fun x ↦ x ^ 2) (f' := fun x
   (a := 0) (b := 3) (by norm_num) (continuous_pow 2).continuousOn
   (fun t _ ↦ by simpa using hasDerivAt_pow 2 t)
   ((continuous_const.mul continuous_id).intervalIntegrable _ _)
+
+open Set in
+/-- The hypotheses of `sum_eq_integral_add_two` hold together: the integers from `a = 0` to
+`b = 2` (`0 ≤ 2`, three points), `f x = x ^ 4`, continuous, with derivative `f' x = 4 x ^ 3` at
+every point, which is continuous with derivative `f'' x = 12 x ^ 2`, continuous, so integrable on
+`[0, 2]`; `f''` is not linear, so the remainder term is not zero. -/
+example := ClassicalLean.sum_eq_integral_add_two (f := fun x ↦ x ^ 4) (f' := fun x ↦ 4 * x ^ 3)
+  (f'' := fun x ↦ 12 * x ^ 2) (a := 0) (b := 2) (by norm_num)
+  (continuous_pow 4).continuousOn
+  (fun t _ ↦ by simpa using hasDerivAt_pow 4 t)
+  (continuous_const.mul (continuous_pow 3)).continuousOn
+  (fun t _ ↦ by convert (hasDerivAt_pow 3 t).const_mul (4 : ℝ) using 1; norm_num; ring)
+  ((continuous_const.mul (continuous_pow 2)).intervalIntegrable _ _)
