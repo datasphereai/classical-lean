@@ -570,6 +570,32 @@ constants of the five modules), `lake build` 4193 jobs, 0 warnings** (no module 
 dump `added=183`, `removed=0 changed=0`; the witness gate `WITNESSGATE PASS` with 189 `OK` (182 +
 this order's 7), 1 `LISTED`, 205 `TYPED`.
 
+**Dated 2026-10-28 UTC (orders CLOUD-MATH-4, round 77, cloud branch `cloud-math-4`; and MERGE-4,
+round 78, branch `merge-4`, DSMain):** three bridges of `MATH-PLAN-library-2-bridges-2.md` as three
+new modules, stated and proved in a cloud session (no drafts) and merged onto LEAN-37 by one merge
+commit; no existing module changed:
+
+- bridge 160, `InformationTheory/HuffmanEntropy` (new, imports `InformationTheory/Huffman`):
+  Huffman's mean length is within one bit of the entropy, `H(p)/log 2 ≤ ∑ p i · ℓ i` for `p ≥ 0`
+  summing to `1` (`le_sum_mul_huffmanLength`) and `∑ p i · ℓ i < H(p)/log 2 + 1` for `p > 0`
+  (`sum_mul_huffmanLength_lt`); 3 theorem constants (round 77's census);
+- bridge 162, `Probability/PrincipalComponents` (new, imports `Probability/CovarianceDirections`
+  and `Analysis/PowerMethod`): principal components by power iteration. With a gap between the top
+  two eigenvalues of the covariance map, the normalized iterates converge to the top eigenvector at
+  rate `(λ₁/λ₀)^k` (`tendsto_powerIterate_covLin`), and that eigenvector is the direction of largest
+  variance, the variance there being `λ₀` (`variance_mix_eigenvectorBasis_eq_and_le`); 4 theorem
+  constants;
+- bridge 161, `Statistics/JamesSteinRisk` (new, imports `Statistics/JamesStein` and
+  `Probability/ChiSquared`): for `d ≥ 3` and a standard normal vector at the origin,
+  `E[1/‖X‖²] = 1/(d − 2)` (`integral_inv_sqNorm_zero`) and the James–Stein estimator's risk is `2`
+  (`integral_sqNorm_jamesStein_zero`); 10 theorem constants.
+
+Narrowing: none. Counts predicted by order MERGE-4's step 7, to be re-measured by its gates on the
+clean tree (round 78's fragment): **143 modules, 3844 theorem constants (3827 + 17), `lake build`
+4196 jobs, 0 warnings**; the root's import closure 5732 modules (5729 + 3); the type dump
+`added=17`, `removed=0 changed=0 proof_only=0`; the witness gate `WITNESSGATE PASS` with 195 `OK`
+(189 + the cloud order's 6), copy-error 0.
+
 ---
 
 ## 2. What I claimed, and what I actually checked

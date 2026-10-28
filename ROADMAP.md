@@ -975,6 +975,25 @@ witnesses. No module is added. Narrowing: none; items 141 and 149 are wider than
   `C_n / 2^(2n+1)` at the odd places, `0` at the even ones, and sum to `1`
   (`coeff_progeny_catalan`); wider: no `p 0 > 0`.
 
+### 1.32 Three bridges as three new modules (orders CLOUD-MATH-4, round 77, and MERGE-4, round 78)
+
+Rows 160, 162 and 161 of `MATH-PLAN-library-2-bridges-2.md` join two parts of the library each.
+Order CLOUD-MATH-4 stated and proved them in a cloud session, with no drafts, six witnesses and one
+cold review of the statements and witnesses; order MERGE-4 merged them into master on DSMain. Three
+modules are added; none existing changes. Narrowing: none; bridge 160's lower side is wider than its
+row (`p i ≥ 0`, not `p i > 0`):
+
+* `InformationTheory/HuffmanEntropy` (bridge 160, Huffman × entropy): Huffman's mean length is
+  within one bit of the entropy, `H(p)/log 2 ≤ ∑ p i · ℓ i` (`le_sum_mul_huffmanLength`) and
+  `∑ p i · ℓ i < H(p)/log 2 + 1` (`sum_mul_huffmanLength_lt`).
+* `Probability/PrincipalComponents` (bridge 162, covariance directions × the power method): with a
+  gap between the top two eigenvalues, power iteration on the covariance map converges to its top
+  eigenvector at rate `(λ₁/λ₀)^k` (`tendsto_powerIterate_covLin`), and that eigenvector is the
+  direction of largest variance (`variance_mix_eigenvectorBasis_eq_and_le`).
+* `Statistics/JamesSteinRisk` (bridge 161, James–Stein × chi-squared): at the origin, for `d ≥ 3`,
+  `E[1/‖X‖²] = 1/(d − 2)` (`integral_inv_sqNorm_zero`) and the James–Stein risk is `2`, against `d`
+  for `X` itself (`integral_sqNorm_jamesStein_zero`).
+
 ## 2. Categories to add
 
 Tiered by how much work they do inside the system that already exists, not by how interesting
