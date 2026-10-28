@@ -50,6 +50,10 @@ space `E` of dimension `n`; Mathlib's `hT.eigenvalues hn : Fin n → ℝ` lists 
   `Mathlib.Analysis.Matrix.Spectrum`; take `hn := finrank_euclideanSpace` and
   `hT := Matrix.isSymmetric_toEuclideanLin_iff.mpr hA`, and the left side is `hA.eigenvalues₀`;
   a note for item 142 of the plan, cold review r83).
+* `eigenvalues_compression_le`, `le_eigenvalues_compression` — order LEAN-37, item 123,
+  **Cauchy interlacing**: for a subspace `V` of dimension `m` and the compression `A` of `T` to
+  `V` (`⟪A x, y⟫ = ⟪T x, y⟫` on `V`), `λ_k(A) ≤ λ_i(T)` when `i ≤ k`, and `λ_j(T) ≤ λ_k(A)` when
+  `k + n ≤ j + m`; so `λ_k(T) ≥ λ_k(A) ≥ λ_{k+n−m}(T)`.
 
 The proof of Courant–Fischer and Weyl: in an orthonormal basis of eigenvectors,
 `re ⟪T x, x⟫ = ∑ λᵢ |cᵢ|²` and `‖x‖² = ∑ |cᵢ|²` (`re_inner_eq_sum`, `norm_sq_eq_sum`), so the
@@ -423,6 +427,53 @@ theorem sum_eigenvalues_eq_iSup {k : ℕ} (hk : k ≤ n) :
     sum_re_inner_le_sum_eigenvalues hn hT hk u.2⟩ ⟨_, hv⟩ ?_
   exact (sum_re_inner_eigenvectorBasis hn hT hk).ge
 
+/-- Interlacing, upper side: `λ_k(A) ≤ λ_i(T)` whenever `i ≤ k`, in particular for `i = k`. -/
+theorem eigenvalues_compression_le {𝕜 E : Type*} [RCLike 𝕜] [NormedAddCommGroup E]
+    [InnerProductSpace 𝕜 E] [FiniteDimensional 𝕜 E] {n : ℕ} (hn : finrank 𝕜 E = n)
+    {T : E →ₗ[𝕜] E} (hT : T.IsSymmetric)
+    {V : Submodule 𝕜 E} {m : ℕ} (hm : finrank 𝕜 V = m)
+    {A : V →ₗ[𝕜] V} (hA : A.IsSymmetric)
+    (hAT : ∀ x y : V, ⟪A x, y⟫_𝕜 = ⟪T (x : E), (y : E)⟫_𝕜)
+    (k : Fin m) (i : Fin n) (hik : i.val ≤ k.val) :
+    hA.eigenvalues hm k ≤ hT.eigenvalues hn i := by
+  obtain ⟨U, hU, hUle⟩ := exists_submodule_eigenvalues_le hm hA k
+  have hinj : Function.Injective V.subtype := fun a b h ↦ Subtype.ext h
+  have hfin : finrank 𝕜 (U.map V.subtype) = k.val + 1 := by
+    rw [← (Submodule.equivMapOfInjective V.subtype hinj U).finrank_eq, hU]
+  obtain ⟨x, hx, hx1, hle⟩ :=
+    exists_re_inner_le_eigenvalues hn hT i (U.map V.subtype) (by omega)
+  obtain ⟨y, hyU, rfl⟩ := Submodule.mem_map.mp hx
+  have h1 : ‖y‖ = 1 := by
+    exact hx1
+  have h2 := hUle y hyU
+  rw [h1, one_pow, mul_one, hAT] at h2
+  exact h2.trans hle
+
+/-- Interlacing, lower side: `λ_j(T) ≤ λ_k(A)` whenever `k + n ≤ j + m`, in particular for
+`j = k + n − m`. -/
+theorem le_eigenvalues_compression {𝕜 E : Type*} [RCLike 𝕜] [NormedAddCommGroup E]
+    [InnerProductSpace 𝕜 E] [FiniteDimensional 𝕜 E] {n : ℕ} (hn : finrank 𝕜 E = n)
+    {T : E →ₗ[𝕜] E} (hT : T.IsSymmetric)
+    {V : Submodule 𝕜 E} {m : ℕ} (hm : finrank 𝕜 V = m)
+    {A : V →ₗ[𝕜] V} (hA : A.IsSymmetric)
+    (hAT : ∀ x y : V, ⟪A x, y⟫_𝕜 = ⟪T (x : E), (y : E)⟫_𝕜)
+    (k : Fin m) (j : Fin n) (hjk : k.val + n ≤ j.val + m) :
+    hT.eigenvalues hn j ≤ hA.eigenvalues hm k := by
+  obtain ⟨U, hU, hUle⟩ := exists_submodule_le_eigenvalues hm hA k
+  have hinj : Function.Injective V.subtype := fun a b h ↦ Subtype.ext h
+  have hfin : finrank 𝕜 (U.map V.subtype) = m - k.val := by
+    rw [← (Submodule.equivMapOfInjective V.subtype hinj U).finrank_eq, hU]
+  have hk := k.isLt
+  have hj := j.isLt
+  obtain ⟨x, hx, hx1, hle⟩ :=
+    exists_eigenvalues_le_re_inner hn hT j (U.map V.subtype) (by omega)
+  obtain ⟨y, hyU, rfl⟩ := Submodule.mem_map.mp hx
+  have h1 : ‖y‖ = 1 := by
+    exact hx1
+  have h2 := hUle y hyU
+  rw [h1, one_pow, mul_one, hAT] at h2
+  exact hle.trans h2
+
 end ClassicalLean.MinMax
 
 open Module LinearMap Submodule in
@@ -501,3 +552,99 @@ example := ClassicalLean.MinMax.sum_eigenvalues_eq_iSup (𝕜 := ℝ)
   (hT := ((IsSymmetric.id.add (starProjection_isSymmetric _)).add
     (starProjection_isSymmetric _)).add (starProjection_isSymmetric _))
   (k := 2) (hk := by norm_num)
+
+open Module LinearMap Submodule in
+/-- The hypotheses of `eigenvalues_compression_le` hold together: on `ℝ³` (dimension `n = 3`), `T =
+id + P₀ + P₀ + P₁`, with `P₀` and `P₁` the orthogonal projections onto the first two axes, is
+symmetric, with eigenvalues `3`, `2`, `1`; `V` is the span of `e₀ + e₁` and `e₂` (dimension `m = 2`,
+the two vectors independent), a proper subspace not spanned by eigenvectors of `T`; `A` is the
+compression of `T` to `V` (the orthogonal projection onto `V` after `T` after `V`'s inclusion),
+symmetric, with `⟪A x, y⟫ = ⟪T x, y⟫` on `V`; its eigenvalues are `5/2` (on `(e₀ + e₁)/√2`) and `1`
+(on `e₂`); `k = 0`, `i = 0`: the bound is strict, `5/2 < 3`. -/
+example := ClassicalLean.MinMax.eigenvalues_compression_le (𝕜 := ℝ)
+  (E := EuclideanSpace ℝ (Fin 3)) (n := 3) (hn := finrank_euclideanSpace_fin)
+  (T := LinearMap.id
+    + ((span ℝ {EuclideanSpace.single (0 : Fin 3) (1 : ℝ)}).starProjection :
+      EuclideanSpace ℝ (Fin 3) →ₗ[ℝ] EuclideanSpace ℝ (Fin 3))
+    + ((span ℝ {EuclideanSpace.single (0 : Fin 3) (1 : ℝ)}).starProjection :
+      EuclideanSpace ℝ (Fin 3) →ₗ[ℝ] EuclideanSpace ℝ (Fin 3))
+    + ((span ℝ {EuclideanSpace.single (1 : Fin 3) (1 : ℝ)}).starProjection :
+      EuclideanSpace ℝ (Fin 3) →ₗ[ℝ] EuclideanSpace ℝ (Fin 3)))
+  (hT := ((IsSymmetric.id.add (starProjection_isSymmetric _)).add
+    (starProjection_isSymmetric _)).add (starProjection_isSymmetric _))
+  (V := span ℝ (Set.range ![EuclideanSpace.single (0 : Fin 3) (1 : ℝ)
+    + EuclideanSpace.single (1 : Fin 3) (1 : ℝ), EuclideanSpace.single (2 : Fin 3) (1 : ℝ)]))
+  (m := 2)
+  (hm := (finrank_span_eq_card (LinearIndependent.pair_iff.mpr fun s t h ↦ by
+    have h0 := congrArg (· 0) h
+    have h2 := congrArg (· 2) h
+    simp only [Fin.isValue, smul_add, PiLp.add_apply, PiLp.smul_apply, PiLp.single_eq_same,
+      smul_eq_mul, mul_one, ne_eq, zero_ne_one, not_false_eq_true, PiLp.single_eq_of_ne, mul_zero,
+      add_zero, Fin.reduceEq, PiLp.zero_apply, zero_add] at h0 h2
+    exact ⟨h0, h2⟩)).trans (Fintype.card_fin 2))
+  (A := ((orthogonalProjectionOnto (span ℝ (Set.range ![EuclideanSpace.single (0 : Fin 3) (1 : ℝ)
+      + EuclideanSpace.single (1 : Fin 3) (1 : ℝ), EuclideanSpace.single (2 : Fin 3) (1 : ℝ)])) :
+      EuclideanSpace ℝ (Fin 3) →L[ℝ] _) : EuclideanSpace ℝ (Fin 3) →ₗ[ℝ] _) ∘ₗ
+    (LinearMap.id
+      + ((span ℝ {EuclideanSpace.single (0 : Fin 3) (1 : ℝ)}).starProjection :
+        EuclideanSpace ℝ (Fin 3) →ₗ[ℝ] EuclideanSpace ℝ (Fin 3))
+      + ((span ℝ {EuclideanSpace.single (0 : Fin 3) (1 : ℝ)}).starProjection :
+        EuclideanSpace ℝ (Fin 3) →ₗ[ℝ] EuclideanSpace ℝ (Fin 3))
+      + ((span ℝ {EuclideanSpace.single (1 : Fin 3) (1 : ℝ)}).starProjection :
+        EuclideanSpace ℝ (Fin 3) →ₗ[ℝ] EuclideanSpace ℝ (Fin 3))) ∘ₗ Submodule.subtype _)
+  (hA := fun x y ↦ by
+    simp only [LinearMap.comp_apply, ContinuousLinearMap.coe_coe, Submodule.subtype_apply]
+    rw [inner_orthogonalProjectionOnto_eq_of_mem_right,
+      inner_orthogonalProjectionOnto_eq_of_mem_left]
+    exact (((IsSymmetric.id.add (starProjection_isSymmetric _)).add
+    (starProjection_isSymmetric _)).add (starProjection_isSymmetric _)) _ _)
+  (hAT := fun x y ↦ inner_orthogonalProjectionOnto_eq_of_mem_right y _)
+  (k := 0) (i := 0) (hik := le_rfl)
+
+open Module LinearMap Submodule in
+/-- The hypotheses of `le_eigenvalues_compression` hold together: on `ℝ³` (dimension `n = 3`), `T =
+id + P₀ + P₀ + P₁`, with `P₀` and `P₁` the orthogonal projections onto the first two axes, is
+symmetric, with eigenvalues `3`, `2`, `1`; `V` is the span of `e₀ + e₁` and `e₂` (dimension `m = 2`,
+the two vectors independent), a proper subspace not spanned by eigenvectors of `T`; `A` is the
+compression of `T` to `V` (the orthogonal projection onto `V` after `T` after `V`'s inclusion),
+symmetric, with `⟪A x, y⟫ = ⟪T x, y⟫` on `V`; its eigenvalues are `5/2` (on `(e₀ + e₁)/√2`) and `1`
+(on `e₂`); `k = 0`, `j = 1`, with `0 + 3 ≤ 1 + 2`: the bound is strict, `2 < 5/2`. -/
+example := ClassicalLean.MinMax.le_eigenvalues_compression (𝕜 := ℝ)
+  (E := EuclideanSpace ℝ (Fin 3)) (n := 3) (hn := finrank_euclideanSpace_fin)
+  (T := LinearMap.id
+    + ((span ℝ {EuclideanSpace.single (0 : Fin 3) (1 : ℝ)}).starProjection :
+      EuclideanSpace ℝ (Fin 3) →ₗ[ℝ] EuclideanSpace ℝ (Fin 3))
+    + ((span ℝ {EuclideanSpace.single (0 : Fin 3) (1 : ℝ)}).starProjection :
+      EuclideanSpace ℝ (Fin 3) →ₗ[ℝ] EuclideanSpace ℝ (Fin 3))
+    + ((span ℝ {EuclideanSpace.single (1 : Fin 3) (1 : ℝ)}).starProjection :
+      EuclideanSpace ℝ (Fin 3) →ₗ[ℝ] EuclideanSpace ℝ (Fin 3)))
+  (hT := ((IsSymmetric.id.add (starProjection_isSymmetric _)).add
+    (starProjection_isSymmetric _)).add (starProjection_isSymmetric _))
+  (V := span ℝ (Set.range ![EuclideanSpace.single (0 : Fin 3) (1 : ℝ)
+    + EuclideanSpace.single (1 : Fin 3) (1 : ℝ), EuclideanSpace.single (2 : Fin 3) (1 : ℝ)]))
+  (m := 2)
+  (hm := (finrank_span_eq_card (LinearIndependent.pair_iff.mpr fun s t h ↦ by
+    have h0 := congrArg (· 0) h
+    have h2 := congrArg (· 2) h
+    simp only [Fin.isValue, smul_add, PiLp.add_apply, PiLp.smul_apply, PiLp.single_eq_same,
+      smul_eq_mul, mul_one, ne_eq, zero_ne_one, not_false_eq_true, PiLp.single_eq_of_ne, mul_zero,
+      add_zero, Fin.reduceEq, PiLp.zero_apply, zero_add] at h0 h2
+    exact ⟨h0, h2⟩)).trans (Fintype.card_fin 2))
+  (A := ((orthogonalProjectionOnto (span ℝ (Set.range ![EuclideanSpace.single (0 : Fin 3) (1 : ℝ)
+      + EuclideanSpace.single (1 : Fin 3) (1 : ℝ), EuclideanSpace.single (2 : Fin 3) (1 : ℝ)])) :
+      EuclideanSpace ℝ (Fin 3) →L[ℝ] _) : EuclideanSpace ℝ (Fin 3) →ₗ[ℝ] _) ∘ₗ
+    (LinearMap.id
+      + ((span ℝ {EuclideanSpace.single (0 : Fin 3) (1 : ℝ)}).starProjection :
+        EuclideanSpace ℝ (Fin 3) →ₗ[ℝ] EuclideanSpace ℝ (Fin 3))
+      + ((span ℝ {EuclideanSpace.single (0 : Fin 3) (1 : ℝ)}).starProjection :
+        EuclideanSpace ℝ (Fin 3) →ₗ[ℝ] EuclideanSpace ℝ (Fin 3))
+      + ((span ℝ {EuclideanSpace.single (1 : Fin 3) (1 : ℝ)}).starProjection :
+        EuclideanSpace ℝ (Fin 3) →ₗ[ℝ] EuclideanSpace ℝ (Fin 3))) ∘ₗ Submodule.subtype _)
+  (hA := fun x y ↦ by
+    simp only [LinearMap.comp_apply, ContinuousLinearMap.coe_coe, Submodule.subtype_apply]
+    rw [inner_orthogonalProjectionOnto_eq_of_mem_right,
+      inner_orthogonalProjectionOnto_eq_of_mem_left]
+    exact (((IsSymmetric.id.add (starProjection_isSymmetric _)).add
+    (starProjection_isSymmetric _)).add (starProjection_isSymmetric _)) _ _)
+  (hAT := fun x y ↦ inner_orthogonalProjectionOnto_eq_of_mem_right y _)
+  (k := 0) (j := 1) (hjk := by decide)
