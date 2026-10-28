@@ -539,36 +539,11 @@ section LinearProgramDual
 
 open ClassicalLean.LinearProgram
 
-/-- Every consecutive pair of the walk carries a positive entry of `y`. -/
-private def LpPosWalk {ι : Type*} (y : ι × ι → ℝ) : List ι → Prop
-  | [] => True
-  | [_] => True
-  | a :: b :: rest => 0 < y (a, b) ∧ LpPosWalk y (b :: rest)
-
 /-- How often each pair occurs consecutively along a walk. -/
 private noncomputable def lpMult {ι : Type*} [DecidableEq ι] : List ι → ι × ι → ℝ
   | [], _ => 0
   | [_], _ => 0
   | a :: b :: rest, p => (if p = (a, b) then 1 else 0) + lpMult (b :: rest) p
-
-private theorem lpPosWalk_tail {ι : Type*} {y : ι × ι → ℝ} :
-    ∀ {a : ι} {L : List ι}, LpPosWalk y (a :: L) → LpPosWalk y L
-  | _, [], _ => by simp [LpPosWalk]
-  | _, _ :: _, h => by simp only [LpPosWalk] at h; exact h.2
-
-private theorem lpPosWalk_append_left {ι : Type*} {y : ι × ι → ℝ} :
-    ∀ (A B : List ι), LpPosWalk y (A ++ B) → LpPosWalk y B
-  | [], _, h => h
-  | _ :: A, B, h => lpPosWalk_append_left A B (lpPosWalk_tail h)
-
-private theorem lpPosWalk_append_right {ι : Type*} {y : ι × ι → ℝ} :
-    ∀ (A B : List ι), LpPosWalk y (A ++ B) → LpPosWalk y A
-  | [], _, _ => by simp [LpPosWalk]
-  | [_], _, _ => by simp [LpPosWalk]
-  | a :: b :: A, B, h => by
-    have h' : LpPosWalk y (a :: b :: (A ++ B)) := h
-    simp only [LpPosWalk] at h' ⊢
-    exact ⟨h'.1, lpPosWalk_append_right (b :: A) B h'.2⟩
 
 private theorem lpMult_nonneg {ι : Type*} [DecidableEq ι] :
     ∀ (L : List ι) (p : ι × ι), 0 ≤ lpMult L p
@@ -580,11 +555,12 @@ private theorem lpMult_nonneg {ι : Type*} [DecidableEq ι] :
     split_ifs <;> linarith
 
 private theorem lpPos_of_mult {ι : Type*} [DecidableEq ι] {y : ι × ι → ℝ} :
-    ∀ (L : List ι) (p : ι × ι), LpPosWalk y L → lpMult L p ≠ 0 → 0 < y p
+    ∀ (L : List ι) (p : ι × ι), List.IsChain (fun a b ↦ 0 < y (a, b)) L → lpMult L p ≠ 0 →
+      0 < y p
   | [], _, _, hm => by simp [lpMult] at hm
   | [_], _, _, hm => by simp [lpMult] at hm
   | a :: b :: rest, p, h, hm => by
-    simp only [LpPosWalk] at h
+    rw [List.isChain_cons_cons] at h
     simp only [lpMult] at hm
     by_cases hp : p = (a, b)
     · rw [hp]; exact h.1
@@ -650,26 +626,26 @@ private theorem lpKey {ι : Type*} [Fintype ι] {w : ι → ι → ℝ}
     rw [Finset.sum_const_zero] at hlt
     linarith [H ind hx]
   -- a long backward walk along positive entries
-  have walk : ∀ m : ℕ, ∃ a L, L.length = m ∧ LpPosWalk y (a :: L) ∧ ∃ b, 0 < y (a, b) := by
+  have walk : ∀ m : ℕ, ∃ a L, L.length = m ∧ List.IsChain (fun a b ↦ 0 < y (a, b)) (a :: L) ∧
+      ∃ b, 0 < y (a, b) := by
     intro m
     induction m with
-    | zero => exact ⟨k, [], rfl, by simp [LpPosWalk], j, hkj⟩
+    | zero => exact ⟨k, [], rfl, List.isChain_singleton k, j, hkj⟩
     | succ m ihm =>
       obtain ⟨a, L, hL, hP, b, hb⟩ := ihm
       obtain ⟨i, hi⟩ := pred a b hb
       refine ⟨i, a :: L, by simp [hL], ?_, a, hi⟩
-      simp only [LpPosWalk]
-      exact ⟨hi, hP⟩
+      exact List.isChain_cons_cons.mpr ⟨hi, hP⟩
   obtain ⟨a, L, hL, hP, -⟩ := walk (Fintype.card ι)
   have hnd : ¬ (a :: L).Nodup := fun hnd => by
     have := hnd.length_le_card
     simp only [List.length_cons, hL] at this
     omega
   obtain ⟨s, x, u, v, hsv⟩ := exists_dup_of_not_nodup hnd
-  have hC : LpPosWalk y (x :: (u ++ [x])) := by
+  have hC : List.IsChain (fun a b ↦ 0 < y (a, b)) (x :: (u ++ [x])) := by
     have e : a :: L = s ++ ((x :: (u ++ [x])) ++ v) := by rw [hsv]; simp
     rw [e] at hP
-    exact lpPosWalk_append_right _ _ (lpPosWalk_append_left _ _ hP)
+    exact hP.right_of_append.left_of_append
   have hcyc : ∀ w' : ι → ι → ℝ, cycleSum w' (x :: u) = walkSum w' (x :: (u ++ [x])) :=
     fun w' => by rfl
   obtain ⟨b, rest, hbr⟩ := List.exists_cons_of_ne_nil (show u ++ [x] ≠ [] by simp)
@@ -753,10 +729,11 @@ private theorem lpKey {ι : Type*} [Fintype ι] {w : ι → ι → ℝ}
   rw [hsplit (fun p => w p.1 p.2)] at hrec
   linarith [mul_nonneg ht hcw]
 
-/-- **Prices ⇔ no gain around any cycle, by linear-program duality.** For finitely many assets
-with positive rates, positive prices with `r i j · p j ≤ p i` exist exactly when every cycle's
-product of rates is at most `1`; the potentials `log p` are the variables of a linear program,
-whose feasibility Farkas' lemma reduces to cycles. -/
+/-- **Prices ⇔ no gain around any cycle, by linear-program duality.** For finitely many assets with
+positive rates, positive prices with `r i j · p j ≤ p i` exist exactly when every cycle's product of
+rates is at most `1`; the potentials `log p` are the variables of a linear program, whose
+feasibility Farkas' lemma reduces to cycles. Only (a) ⇒ (b) uses duality (`farkas`); (b) ⇒ (a) is
+item 65's telescoping (`cycleSum_nonneg_of_potential`). -/
 theorem hasPrices_iff_of_lp {ι : Type*} [Finite ι] {r : ι → ι → ℝ}
     (hr : ∀ i j, 0 < r i j) : HasPrices r ↔ NoGainCycle r := by
   constructor
@@ -793,8 +770,10 @@ example := ClassicalLean.Combinatorics.forall_cycle_prod_le_one_iff_exists_price
 equal: `1` from an asset to itself, `2` from `0` to `1`, `1/2` back and `1/2` for every other pair.
 Every cycle's product is at most `1`; it is exactly `1` only for cycles that use no conversion but
 `0 → 1`, `1 → 0` and the trips `i → i` (the round trip `0 → 1 → 0` has product `2 · 1/2 = 1`, which
-forces `p₀ = 2 p₁` on any prices), and below `1` for every cycle using another conversion (all
-3279 cycles of length at most `7`, in exact fractions, `~/lean/lean37-checks/w145/cycles.py`). -/
+forces `p₀ = 2 p₁` on any prices), and below `1` for every cycle using another conversion (all 3279
+cycles of length at most `7`, in exact fractions, round 76's fragment,
+`records/rounds/20261028T194100Z__round-76-interlacing-minimax-lp-runs-prices-progeny.md`, section
+`w145-cycles.py`). -/
 example := ClassicalLean.Combinatorics.hasPrices_iff_of_lp (ι := Fin 3)
   (r := ![![1, 2, 1 / 2], ![1 / 2, 1, 1 / 2], ![1 / 2, 1 / 2, 1]])
   (fun i j ↦ by fin_cases i <;> fin_cases j <;> norm_num)

@@ -914,7 +914,9 @@ comes up heads (a loss), for `i < 4`, measurable (the space is discrete) and ind
 of every intersection of `k` of them is `(1/2)^k`, checked for all sixteen sets of flips); each has
 chance `1/2`; `n = 4` trials. A run of two losses has three overlapping windows and is possible but
 not certain: the chance of none is `fib 6 / 16 = 8/16 = 1/2` (eight of the sixteen sequences,
-counted in `~/lean/lean37-checks/w143/runs.py`). -/
+counted in round 76's fragment,
+`records/rounds/20261028T194100Z__round-76-interlacing-minimax-lp-runs-prices-progeny.md`, section
+`w143-runs.py`). -/
 example := ClassicalLean.Probability.LongestRun.measureReal_no_run_two_eq (Ω := Fin 4 → Bool)
   (P := (16⁻¹ : ℝ≥0∞) • Measure.count)
   (A := fun i ↦ {ω | ∃ h : i < 4, ω ⟨i, h⟩ = true}) (n := 4)
@@ -959,7 +961,9 @@ comes up heads (a loss), for `i < 4`, measurable (the space is discrete) and ind
 of every intersection of `k` of them is `(1/2)^k`, checked for all sixteen sets of flips); each has
 chance `1/2`; `n = 4` trials. A run of three losses has two overlapping windows and is possible but
 not certain: the chance of none is `tribonacci 7 / 16 = 13/16` (thirteen of the sixteen sequences,
-counted in `~/lean/lean37-checks/w143/runs.py`). -/
+counted in round 76's fragment,
+`records/rounds/20261028T194100Z__round-76-interlacing-minimax-lp-runs-prices-progeny.md`, section
+`w143-runs.py`). -/
 example := ClassicalLean.Probability.LongestRun.measureReal_no_run_three_eq (Ω := Fin 4 → Bool)
   (P := (16⁻¹ : ℝ≥0∞) • Measure.count)
   (A := fun i ↦ {ω | ∃ h : i < 4, ω ⟨i, h⟩ = true}) (n := 4)

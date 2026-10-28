@@ -971,8 +971,9 @@ theorem iSup_bayesRisk_eq_minimaxRisk_of_finite' {Θ 𝓧 𝓨 : Type*} [Measura
 
 end BayesFinite
 
-/-- **Von Neumann's minimax theorem from linear-program duality.** The upper value equals the
-lower value for every real payoff matrix. -/
+/-- **Von Neumann's minimax theorem from linear-program duality.** The upper value equals the lower
+value for every real payoff matrix. With no rows or no columns both values are Lean's `0`, an
+infimum or supremum over an empty family of reals. -/
 theorem minimax_eq_of_lp {ι κ : Type*} [Fintype ι] [Fintype κ]
     (A : Matrix ι κ ℝ) :
     ⨅ x : closedSimplex ι, ⨆ y : closedSimplex κ, payoff A x y =

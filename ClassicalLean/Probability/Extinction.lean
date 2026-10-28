@@ -770,8 +770,9 @@ chance `1/4` of no child, `1/4` of one and `1/2` of two (mean `5/4`), nonnegativ
 `existsUnique_progeny` gives (`Classical.choose`), and `hT` its defining equation
 (`Classical.choose_spec`). `p 0 > 0` and `p` is not a point mass, so the progeny series has
 infinitely many nonzero coefficients (`1/4`, `1/16`, `3/64`, `7/256`, …; all of the first 80
-nonzero, in exact fractions, `~/lean/lean37-checks/w149/series.py`) and its sum is the extinction
-chance `1/2`, strictly between `0` and `1`. -/
+nonzero, in exact fractions, round 76's fragment,
+`records/rounds/20261028T194100Z__round-76-interlacing-minimax-lp-runs-prices-progeny.md`, section
+`w149-series.py`) and its sum is the extinction chance `1/2`, strictly between `0` and `1`. -/
 example := ClassicalLean.Probability.Extinction.progeny_eval_one_eq_extinctionChance
   (p := fun k : ℕ ↦ if k = 0 then (1 / 4 : ℝ) else if k = 1 then 1 / 4 else if k = 2 then 1 / 2
     else 0)
@@ -793,8 +794,10 @@ example := ClassicalLean.Probability.Extinction.progeny_eval_one_eq_extinctionCh
 k = 1/2` for `k = 0` and `k = 2`, `0` otherwise (written as in the theorem's hypothesis), the
 solution `existsUnique_progeny` gives (`Classical.choose`), and `hT` its defining equation
 (`Classical.choose_spec`); `existsUnique_progeny` does not rest on this theorem. What moves: the odd
-coefficients are the Catalan numbers over powers of `2`, `1/2`, `1/8`, `2/32`, …, all positive
-(checked to degree 80 in `~/lean/lean37-checks/w149/series.py`). -/
+coefficients are the Catalan numbers over powers of `2`, `1/2`, `1/8`, `2/32`, …, all positive (the
+odd ones checked to degree 79 and the even ones to degree 80, in round 76's fragment,
+`records/rounds/20261028T194100Z__round-76-interlacing-minimax-lp-runs-prices-progeny.md`, section
+`w149-series.py`). -/
 example := ClassicalLean.Probability.Extinction.coeff_progeny_catalan
   (T := Classical.choose (ClassicalLean.Probability.Extinction.existsUnique_progeny
     (fun k ↦ if k = 0 ∨ k = 2 then 1 / 2 else 0)).exists)
