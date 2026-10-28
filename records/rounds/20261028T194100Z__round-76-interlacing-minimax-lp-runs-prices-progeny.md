@@ -124,3 +124,108 @@ cat = lambda n: comb(2 * n, n) // (n + 1)
 print("law (1/2,0,1/2): odd = catalan/2^(2n+1):", all(T2[2 * n + 1] == F(cat(n), 2 ** (2 * n + 1)) for n in range(N // 2)),
       "; even = 0:", all(T2[2 * n] == 0 for n in range(N // 2 + 1)), "; partial sum", float(sum(T2)))
 ```
+
+## Completed after the work (2026-10-28 UTC)
+
+### What landed
+
+| commit | what |
+|---|---|
+| `2123af1` | records first (this fragment's first part, the order's copy, the INDEX and CLAIMS rows, VACUITY-5's push) |
+| `f1e1a0e` | item 123, `ClassicalLean/Algebra/MinMax.lean`: `eigenvalues_compression_le`, `le_eigenvalues_compression`, two witnesses |
+| `cbaf9d5` | item 141, `ClassicalLean/Analysis/FiniteGame.lean`: `minimax_eq_of_lp` (no hypothesis, no witness); import `ClassicalLean.Analysis.LinearProgram` |
+| `ab2c5c5` | item 145, `ClassicalLean/Combinatorics/ArbitrageCycle.lean`: `hasPrices_iff_of_lp` and helpers, one witness; import `ClassicalLean.Analysis.LinearProgram` |
+| `b834a99` | item 143, `ClassicalLean/Probability/LongestRun.lean`: `measureReal_no_run_two_eq`, `measureReal_no_run_three_eq` and helpers, two witnesses; import `ClassicalLean.NumberTheory.Tribonacci` |
+| `f6a9dd7` | item 149, `ClassicalLean/Probability/Extinction.lean`: `progeny_eval_one_eq_extinctionChance`, `existsUnique_progeny`, `coeff_progeny_catalan` and helpers, two witnesses; imports `ClassicalLean.Combinatorics.AlgebraicGeneratingFunction`, `Mathlib.RingTheory.PowerSeries.Trunc` |
+| `afb7d99` | review r1's fixes (findings 1, 2, 3, 5) and ruling 1 (the witness scripts below; docstring pointers) |
+| `43c9019` | `HANDOFF.md` section 1, `ROADMAP.md` section 1.31 (documents, G) |
+
+Statements: all nine as drafted; type check (`set_option pp.fullNames true in #check @…`, draft on
+the clean `67d05bf` against the landed module, compared by `typecmp.py` after universe renaming)
+SAME for all nine, the last runs after `afb7d99` (planted control: without the rename map, 0/2 for
+item 123). Narrowing: none. Verdicts (cold review r1): 123, 141, 143, 145 FAITHFUL; 149's
+`progeny_eval_one_eq_extinctionChance` and `existsUnique_progeny` GENERALIZED (no `p 0 > 0`; the
+uniqueness a theorem of its own), `coeff_progeny_catalan` FAITHFUL with one extra conjunct. The
+order predicted 141 GENERALIZED (no nonempty sides); the review called it FAITHFUL to its row (the
+row's statement is item 85's, which has no nonempty sides either); HANDOFF and ROADMAP keep the
+order's GENERALIZED against `minimax_eq_of_matrix`.
+
+Departures from the drafts, proof text and helpers only: the deprecated `if_pos`, `if_neg`,
+`tendsto_finset_sum` replaced as the warnings say; never-executed tactics removed; goal-changing
+`show` became `change` (the module build's style linter, 18 places: FiniteGame 2, ArbitrageCycle 3,
+LongestRun 8, Extinction 5); `lpKey` lost its unused `[DecidableEq ι]` (the `unusedDecidableInType`
+linter) and uses `classical`; `lrPre` is a `private abbrev`, not `@[instance_reducible] def` as the
+linter suggests, because the witness gate's attribute allowlist (`simp`, `instance`) refuses that
+attribute (first LongestRun gate run: COPY-ERROR); review finding 3 replaced `LpPosWalk` and its
+three lemmas by Mathlib's `List.IsChain`.
+
+The cold review (one fresh subagent; `~/lean/lean37-checks/review/review-1.md`): PASS WITH
+FINDINGS, no MAJOR, seven MINOR. Applied: 1 and 2 (docstrings), 3 (in part: `LpPosWalk` and its
+lemmas; `lpMult` kept, its equality with `List.count` on `L.zip L.tail` was read, not checked), 5
+(docstring wording). Not applied: 4 (a general existence theorem in `AlgebraicGeneratingFunction`,
+outside this order's Scope: a follow-up), 6 (the session's packet extractor repeated blocks; the
+reviewer read the module sources), 7 (a note: item 123 uses the lemmas beneath
+`eigenvalues_eq_iSup_iInf`). No statement and no witness argument changed, so no second pass.
+
+Witnesses (seven, rule 2's form, each OK in the witness gate): 123 twice on `ℝ³`,
+`T = diag(3, 2, 1)`, `V = span {e₀ + e₁, e₂}`; 145 on three assets with rates `2`, `1/2`, `1/2`;
+143 twice on four fair flips (`Fin 4 → Bool`, `(1/16) · count`); 149 on the law `(1/4, 1/4, 1/2)`
+and on the law `1/2` at `0` and `2`, each `T` from `existsUnique_progeny` (the review ruled this
+acceptable: no circularity, by a dependency walk with a positive control).
+
+Heads-ups passed in by Dustin: (1) witness docstrings cited DSMain scratch paths: ruling 1, applied
+below and in `afb7d99`; (2) step 5's predictions predated `afb7d99`: revision 2 written before G
+(below).
+
+### Expected results (step 5)
+
+`~/lean/lean37-checks/expected-step5.txt`, revision 2, sha256
+`a5c63327873d6fb99de4b8baddebc27470acad6d72bda491abed49f7ec14a42c`, written after `afb7d99` and
+before G and before any gate ran; revision 1 (`expected-step5-r1.txt`, sha256 `467bddd2…906e`:
+added 204, thm 171, AxiomGate 3837) predated `afb7d99`'s removal of four helpers (21 constants
+gone, 3 proof constants of `lpKey` renumbered). The ADDED list `added-predicted.txt`, sha256
+`35af0cbe…e5e9`, 183 lines.
+
+### The gates, on the clean tree at G `43c9019`
+
+| gate | expected | measured |
+|---|---|---|
+| `lake build` | 4193 jobs, 0 warnings | `Build completed successfully (4193 jobs).`, 0 warning lines, 0 error lines |
+| AxiomGate | PASS 3827 | `axiom gate PASS — 3827 theorem constant(s)`, 0 scoped exceptions |
+| check_sorry | PASS | `check_sorry PASS — 140 file(s)` |
+| check_records | PASS 140 | `check_records PASS — 140 module(s)`, 116 files searched |
+| VacuityGate | PASS | `vacuity gate PASS`, 1 reviewed helper, 0 VACUOUS-PENDING, 0 rule-5 run-outs |
+| run_vacuity_tests | 0 mismatches | `89 tests, 47 flagged, 0 rule-5 run-outs, 0 mismatches` |
+| banned scan | PASS | `banned_vocab_scan PASS — 140 file(s) … 0 hits` |
+| witness gate, library | PASS, OK 189, copy-error 0 | `WITNESSGATE PASS modules=140 elaborated=72 OK=189 … TYPED=205 … LISTED=1 … copy-error=0`, 1642.9 s |
+| witness_gate_tests | pass | `WITNESSGATE-TESTS 119 cases, 0 mismatch(es)` |
+| module count | 5729 | `MODULES 5729` |
+| type dump | 4346 records; removed 0, added 183, changed 0, proof-only 0 | `CHECK records=4346 thm=3827 def=519 elided=0 missing_fields=0`; `DIFF removed=0 added=183 changed=0 proof_only=0`; the 183 ADDED lines equal `added-predicted.txt` (`diff`, no output) |
+| gate 7 | ALL PASSED | `SUMMARY modules=140 failed=0`; the three standard axioms; planted fault `FAILED ClassicalLean.Analysis.LogDrag.mean_log_one_add_le` caught; `ALL PASSED for 43c9019c0323cb3e0b8c6fcb9eea7b46b242cc3a` |
+| drift (on G) | PASS | `PASS no drift` |
+
+Misses against the order's own predictions: none in the gates. The push-review prediction "only
+ArbitrageCycle line 45" for the `admit` prose is line 46 now (the module's new import line).
+Outputs: `~/lean/lean37-checks/G-*.out`.
+
+### Bridge search
+
+`python3 -I tools/bridge_search.py --diff records/bridges/LEAN-36/ --out
+~/lean/lean37-checks/bridges/LEAN-37`, rc 1: 3039 pairs, 788 shape candidates, 55 NEW pairs, 15
+NEW shapes, 42 GONE keys. Read: 50 of the new pairs share only general lemmas (`add_mul`,
+`pow_mul`, `Finset.sum_ite_eq'`, `Nat.cast_sum`, `Finset.exists_min_image`, …); `NumberTheory.Catalan
+× Probability.Extinction` shares `catalan`, but Mathlib's `succ_mul_catalan_eq_centralBinom` and
+`catalan_eq_centralBinom_div` already give what the library's Catalan module adds, so no proof needs
+both modules; the Fibonacci modules × `Probability.LongestRun` share `Nat.fib` and
+`Nat.twoStepInduction`, and a statement joining them only restates Mathlib's Fibonacci facts at
+`fib (n + 2) / 2^n`; `NumberTheory.LucasSequenceGeneratingFunction × Probability.Extinction` share
+`PowerSeries` machinery, not an object; the 15 new shapes are all `stochastic matrix` on
+`Analysis.FiniteGame`, the shape's regex matching `vecMul` in `minimax_eq_of_lp`'s proof (no
+stochastic matrix there). No real bridge: no row appended. Baseline: `records/bridges/LEAN-37/`.
+
+### Report tool
+
+`lake env lean tools/UninformativeReport.lean`, once: no `CLOSES` line names this order's theorems
+(they are listed `A OPEN` or `A DEPENDENT`).
+
+Theorem-constant count: 3827 (3666 + 161), measured by AxiomGate at G.
