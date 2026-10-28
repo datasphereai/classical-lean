@@ -5,6 +5,7 @@ Authors: Dustin Watkins, Claude (Anthropic)
 -/
 
 import ClassicalLean.Analysis.ExponentialWeights
+import ClassicalLean.Analysis.LinearProgram
 import ClassicalLean.Simplex.Basic
 import Mathlib.Topology.Sion
 import Mathlib.Probability.Decision.Risk.Basic
@@ -74,6 +75,11 @@ player picks a mixed strategy `x` (a probability vector on the rows, a point of
   rows or no columns both values are Lean's `0` (an infimum or supremum over an empty family of
   reals), so the theorem asks for neither `Nonempty ι` nor `Nonempty κ`, unlike
   `minimax_eq_of_matrix` (wider in form, the same content).
+* **Item 141 (order LEAN-37), the minimax theorem from linear-program duality.**
+  `minimax_eq_of_lp`: the upper and lower values are equal for every real matrix, by shifting every
+  entry up to at least `1` and reading an optimal strategy pair off `lp_strong_duality` (module
+  `ClassicalLean.Analysis.LinearProgram`) for the shifted matrix. No hypothesis: with no rows or no
+  columns both values are Lean's `0`, as in item 85.
 
 ## Hypotheses
 
@@ -964,6 +970,124 @@ theorem iSup_bayesRisk_eq_minimaxRisk_of_finite' {Θ 𝓧 𝓨 : Type*} [Measura
         exact (ENNReal.ofReal_le_ofReal (hK₀bound m θ)).trans (ENNReal.ofReal_toReal hS).le
 
 end BayesFinite
+
+/-- **Von Neumann's minimax theorem from linear-program duality.** The upper value equals the
+lower value for every real payoff matrix. -/
+theorem minimax_eq_of_lp {ι κ : Type*} [Fintype ι] [Fintype κ]
+    (A : Matrix ι κ ℝ) :
+    ⨅ x : closedSimplex ι, ⨆ y : closedSimplex κ, payoff A x y =
+      ⨆ y : closedSimplex κ, ⨅ x : closedSimplex ι, payoff A x y := by
+  rcases isEmpty_or_nonempty ι with hι | hι
+  · have : IsEmpty (closedSimplex ι) := ⟨fun x ↦ by
+      have h := x.2.2
+      simp at h⟩
+    simp [Real.iSup_const_zero]
+  rcases isEmpty_or_nonempty κ with hκ | hκ
+  · have : IsEmpty (closedSimplex κ) := ⟨fun y ↦ by
+      have h := y.2.2
+      simp at h⟩
+    simp [Real.iInf_const_zero]
+  have : Nonempty (closedSimplex ι) := closedSimplex_nonempty.to_subtype
+  have : Nonempty (closedSimplex κ) := closedSimplex_nonempty.to_subtype
+  have habs : ∀ i j, |A i j| ≤ ∑ i, ∑ j, |A i j| := fun i j ↦
+    (single_le_sum (f := fun j ↦ |A i j|) (fun j _ ↦ abs_nonneg _) (mem_univ j)).trans
+      (single_le_sum (f := fun i ↦ ∑ j, |A i j|) (fun i _ ↦ sum_nonneg fun j _ ↦ abs_nonneg _)
+        (mem_univ i))
+  obtain ⟨c, hc⟩ : ∃ c : ℝ, c = ∑ i, ∑ j, |A i j| + 1 := ⟨_, rfl⟩
+  obtain ⟨B, hB⟩ : ∃ B : Matrix ι κ ℝ, B = of fun i j ↦ A i j + c := ⟨_, rfl⟩
+  have hBij : ∀ i j, B i j = A i j + c := by intro i j; rw [hB]; rfl
+  have hB1 : ∀ i j, 1 ≤ B i j := fun i j ↦ by
+    rw [hBij]
+    have h1 := neg_abs_le (A i j)
+    have h2 := habs i j
+    rw [hc]
+    linarith
+  have hpay : ∀ x ∈ closedSimplex ι, ∀ y ∈ closedSimplex κ,
+      payoff A x y = payoff B x y - c := by
+    intro x hx y hy
+    have hrow : ∀ i, (B *ᵥ y) i = (A *ᵥ y) i + c := fun i ↦ by
+      calc (B *ᵥ y) i = ∑ j, B i j * y j := rfl
+        _ = ∑ j, A i j * y j + c * ∑ j, y j := by
+            rw [mul_sum, ← sum_add_distrib]
+            exact sum_congr rfl fun j _ ↦ by rw [hBij]; ring
+        _ = (A *ᵥ y) i + c := by rw [hy.2, mul_one]; rfl
+    have e : payoff B x y = payoff A x y + c := by
+      calc payoff B x y = ∑ i, x i * (B *ᵥ y) i := rfl
+        _ = ∑ i, x i * ((A *ᵥ y) i + c) := sum_congr rfl fun i _ ↦ by rw [hrow]
+        _ = ∑ i, x i * (A *ᵥ y) i + (∑ i, x i) * c := by
+            rw [sum_mul, ← sum_add_distrib]
+            exact sum_congr rfl fun i _ ↦ by ring
+        _ = payoff A x y + c := by rw [hx.2, one_mul]; rfl
+    linarith
+  have hP : ∃ x, ClassicalLean.LinearProgram.PrimalFeasible Bᵀ (1 : κ → ℝ) x :=
+    ⟨0, le_rfl, fun j ↦ by simp⟩
+  have hD : ∃ y, ClassicalLean.LinearProgram.DualFeasible Bᵀ (1 : ι → ℝ) y := by
+    obtain ⟨j0⟩ := (inferInstance : Nonempty κ)
+    refine ⟨fun _ ↦ 1, fun _ ↦ by simp, fun i ↦ ?_⟩
+    have h : ((fun _ : κ ↦ (1 : ℝ)) ᵥ* Bᵀ) i = ∑ j, B i j := by simp [vecMul, dotProduct]
+    calc (1 : ι → ℝ) i = 1 := rfl
+      _ ≤ B i j0 := hB1 i j0
+      _ ≤ ∑ j, B i j := single_le_sum (f := fun j ↦ B i j)
+          (fun j _ ↦ le_trans zero_le_one (hB1 i j)) (mem_univ j0)
+      _ = _ := h.symm
+  obtain ⟨x, y, hx, hy, hxy⟩ :=
+    ClassicalLean.LinearProgram.lp_strong_duality (A := Bᵀ) (b := (1 : κ → ℝ))
+      (c := (1 : ι → ℝ)) hP hD
+  obtain ⟨s, hs⟩ : ∃ s : ℝ, s = ∑ j, y j := ⟨_, rfl⟩
+  have hsx : ∑ i, x i = s := by
+    rw [hs]
+    simpa [dotProduct] using hxy
+  have hv : 0 < s := by
+    rw [hs]
+    obtain ⟨i0⟩ := (inferInstance : Nonempty ι)
+    rcases (sum_nonneg fun j _ ↦ hy.1 j : 0 ≤ ∑ j, y j).lt_or_eq with h | h
+    · exact h
+    · exfalso
+      have hy0 : ∀ j, y j = 0 := fun j ↦
+        (sum_eq_zero_iff_of_nonneg fun j _ ↦ hy.1 j).mp h.symm j (mem_univ j)
+      have h1 : (1 : ι → ℝ) i0 ≤ (y ᵥ* Bᵀ) i0 := hy.2 i0
+      have h2 : (y ᵥ* Bᵀ) i0 = 0 := by simp [vecMul, dotProduct, hy0]
+      have h3 : (1 : ι → ℝ) i0 = 1 := rfl
+      linarith
+  have hs0 : 0 ≤ s⁻¹ := inv_nonneg.mpr hv.le
+  have hxm : s⁻¹ • x ∈ closedSimplex ι := by
+    refine ⟨fun i ↦ ?_, ?_⟩
+    · simp only [Pi.smul_apply, smul_eq_mul]
+      exact mul_nonneg hs0 (hx.1 i)
+    · simp only [Pi.smul_apply, smul_eq_mul]
+      rw [← mul_sum, hsx, inv_mul_cancel₀ hv.ne']
+  have hym : s⁻¹ • y ∈ closedSimplex κ := by
+    refine ⟨fun j ↦ ?_, ?_⟩
+    · simp only [Pi.smul_apply, smul_eq_mul]
+      exact mul_nonneg hs0 (hy.1 j)
+    · simp only [Pi.smul_apply, smul_eq_mul]
+      rw [← mul_sum, ← hs, inv_mul_cancel₀ hv.ne']
+  have hxB : ∀ y' ∈ closedSimplex κ, payoff B x y' ≤ 1 := by
+    intro y' hy'
+    calc payoff B x y' = (Bᵀ *ᵥ x) ⬝ᵥ y' := by
+          rw [payoff, dotProduct_mulVec, mulVec_transpose]
+      _ ≤ 1 ⬝ᵥ y' := dotProduct_le_dotProduct_of_nonneg_right hx.2 (fun j ↦ hy'.1 j)
+      _ = 1 := by simp [dotProduct, hy'.2]
+  have hyB : ∀ x' ∈ closedSimplex ι, 1 ≤ payoff B x' y := by
+    intro x' hx'
+    calc (1 : ℝ) = x' ⬝ᵥ 1 := by simp [dotProduct, hx'.2]
+      _ ≤ x' ⬝ᵥ (y ᵥ* Bᵀ) := dotProduct_le_dotProduct_of_nonneg_left hy.2 (fun i ↦ hx'.1 i)
+      _ = payoff B x' y := by rw [vecMul_transpose]; rfl
+  have hup : ⨅ x' : closedSimplex ι, ⨆ y' : closedSimplex κ, payoff A x' y' ≤ s⁻¹ - c := by
+    refine (ciInf_le (bddBelow_iSup_payoff A) ⟨_, hxm⟩).trans (ciSup_le fun y' ↦ ?_)
+    change payoff A (s⁻¹ • x) y' ≤ s⁻¹ - c
+    rw [hpay _ hxm _ y'.2, payoff_smul_left]
+    have h1 := mul_le_mul_of_nonneg_left (hxB y' y'.2) hs0
+    linarith
+  have hlow : s⁻¹ - c ≤ ⨆ y' : closedSimplex κ, ⨅ x' : closedSimplex ι, payoff A x' y' := by
+    refine le_trans (le_ciInf fun x' ↦ ?_)
+      (le_ciSup (f := fun y' : closedSimplex κ ↦ ⨅ x' : closedSimplex ι, payoff A x' y')
+        (bddAbove_iInf_payoff A) ⟨_, hym⟩)
+    change s⁻¹ - c ≤ payoff A x' (s⁻¹ • y)
+    rw [hpay _ x'.2 _ hym, payoff_smul_right]
+    have h1 := mul_le_mul_of_nonneg_left (hyB x' x'.2) hs0
+    linarith
+  exact le_antisymm (hup.trans hlow) (iSup_iInf_le_iInf_iSup A)
 
 end ClassicalLean.Analysis
 
