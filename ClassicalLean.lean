@@ -144,6 +144,7 @@ import ClassicalLean.Probability.EfronStein
 import ClassicalLean.InformationTheory.ChannelCapacity
 import ClassicalLean.Probability.BernsteinInequality
 import ClassicalLean.Probability.OrderStatistics
+import ClassicalLean.InformationTheory.HuffmanEntropy
 
 /-!
 # ClassicalLean
