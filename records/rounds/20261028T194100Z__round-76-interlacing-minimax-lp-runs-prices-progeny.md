@@ -182,8 +182,9 @@ below and in `afb7d99`; (2) step 5's predictions predated `afb7d99`: revision 2 
 `~/lean/lean37-checks/expected-step5.txt`, revision 2, sha256
 `a5c63327873d6fb99de4b8baddebc27470acad6d72bda491abed49f7ec14a42c`, written after `afb7d99` and
 before G and before any gate ran; revision 1 (`expected-step5-r1.txt`, sha256 `467bddd2…906e`:
-added 204, thm 171, AxiomGate 3837) predated `afb7d99`'s removal of four helpers (21 constants
-gone, 3 proof constants of `lpKey` renumbered). The ADDED list `added-predicted.txt`, sha256
+added 204, thm 171, AxiomGate 3837) predated `afb7d99`'s removal of four helpers (24 constants
+gone and 3 new auxiliary constants of `lpKey`, net 21 fewer; `added-predicted-r1.txt` against
+`added-predicted.txt`). The ADDED list `added-predicted.txt`, sha256
 `35af0cbe…e5e9`, 183 lines.
 
 ### The gates, on the clean tree at G `43c9019`
