@@ -537,6 +537,39 @@ already in the root's import closure. Counts measured by this order's gates on t
 warnings**; the type dump unchanged (removed 0, added 0, changed 0, proof-only 0); the witness gate
 `WITNESSGATE PASS` with 182 `OK` (179 + 3), 1 `LISTED`, 205 `TYPED`.
 
+**Dated 2026-10-28 UTC (order LEAN-37, round 76; branch `lean-37`, DSMain):** five items from below
+MATH-PLAN-library-2's cut, from the API-credit drafts, each in its home module; no new module, five
+extended:
+
+- item 123, `Algebra/MinMax`: Cauchy interlacing. For symmetric `T` on `E` (dimension `n`), a
+  subspace `V` of dimension `m` and a symmetric `A` on `V` with `⟪A x, y⟫ = ⟪T x, y⟫` on `V` (the
+  compression of `T`), `λ_k(A) ≤ λ_i(T)` when `i ≤ k` (`eigenvalues_compression_le`) and
+  `λ_j(T) ≤ λ_k(A)` when `k + n ≤ j + m` (`le_eigenvalues_compression`);
+- item 141, `Analysis/FiniteGame` (which now imports `Analysis/LinearProgram`): the minimax theorem
+  for every real matrix, from linear-program duality (`minimax_eq_of_lp`); GENERALIZED against
+  `minimax_eq_of_matrix`: no `Nonempty ι` or `Nonempty κ`, an empty side settled by Lean's `0` for
+  an empty `⨅` or `⨆` in `ℝ`;
+- item 143, `Probability/LongestRun` (which now imports `NumberTheory/Tribonacci`): in `n` fair
+  independent trials the chance of no run of two losses is `fib (n + 2) / 2^n`
+  (`measureReal_no_run_two_eq`) and of no run of three `tribonacci (n + 3) / 2^n`
+  (`measureReal_no_run_three_eq`);
+- item 145, `Combinatorics/ArbitrageCycle` (which now imports `Analysis/LinearProgram`): prices
+  exist exactly when no cycle gains, a second proof of item 65's (a) ⇔ (b), by Farkas' lemma
+  (`hasPrices_iff_of_lp`);
+- item 149, `Probability/Extinction` (which now imports `Combinatorics/AlgebraicGeneratingFunction`
+  and Mathlib's `RingTheory/PowerSeries/Trunc`): the total-progeny series `T = X · f(T)` has exactly
+  one power-series solution (`existsUnique_progeny`), its coefficients sum to `extinctionChance p`
+  for `p ≥ 0` summing to `1` (`progeny_eval_one_eq_extinctionChance`), and for `f s = (1 + s²)/2`
+  they are the Catalan numbers over powers of `2` and sum to `1` (`coeff_progeny_catalan`);
+  GENERALIZED against the plan's row: no `p 0 > 0` (with `p 0 = 0` both sides are `0`), and the
+  uniqueness is a theorem of its own.
+
+Narrowing: none. Counts predicted by this order's step 5, to be re-measured by its gates on the
+clean tree (round 76's fragment): **140 modules, 3827 theorem constants (3666 + 161, the new theorem
+constants of the five modules), `lake build` 4193 jobs, 0 warnings** (no module added); the type
+dump `added=183`, `removed=0 changed=0`; the witness gate `WITNESSGATE PASS` with 189 `OK` (182 +
+this order's 7), 1 `LISTED`, 205 `TYPED`.
+
 ---
 
 ## 2. What I claimed, and what I actually checked

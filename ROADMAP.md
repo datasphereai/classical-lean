@@ -946,6 +946,35 @@ review. No module is added. Narrowing: none; item 132 is wider than its plan row
   `|y (t₀ + k h) − u_k| ≤ h² (K + 3 L M)/(12 L) · (exp (L k h) − 1)`, of order `h²` for a fixed end
   time (`abs_sub_heunIterate_le`).
 
+### 1.31 Five items from below the plan's cut (order LEAN-37, round 76)
+
+Items 123, 141, 143, 145 and 149 of MATH-PLAN-library-2 sit below the plan's cut. Their proofs were
+drafted and reviewed outside the library (the lane's API-CREDIT-1 work); order LEAN-37 landed them
+on DSMain in their home modules, with seven witnesses and one cold review of the statements and
+witnesses. No module is added. Narrowing: none; items 141 and 149 are wider than their plan rows:
+
+* `Algebra/MinMax` (item 123): Cauchy interlacing. For a symmetric `T` on a space of dimension `n`
+  and its compression `A` to a subspace of dimension `m` (`⟪A x, y⟫ = ⟪T x, y⟫` there),
+  `λ_k(T) ≥ λ_k(A) ≥ λ_{k+n−m}(T)`, in the forms `λ_k(A) ≤ λ_i(T)` for `i ≤ k`
+  (`eigenvalues_compression_le`) and `λ_j(T) ≤ λ_k(A)` for `k + n ≤ j + m`
+  (`le_eigenvalues_compression`).
+* `Analysis/FiniteGame` (item 141, which now imports `Analysis/LinearProgram`): a third proof of the
+  minimax theorem for every real matrix, from linear-program duality (`minimax_eq_of_lp`); wider:
+  no nonempty sides, as item 85's.
+* `Probability/LongestRun` (item 143, which now imports `NumberTheory/Tribonacci`): runs and
+  Fibonacci. In `n` fair independent trials, no two losses in a row has chance `fib (n + 2) / 2^n`
+  (`measureReal_no_run_two_eq`), and no three `tribonacci (n + 3) / 2^n`
+  (`measureReal_no_run_three_eq`).
+* `Combinatorics/ArbitrageCycle` (item 145, which now imports `Analysis/LinearProgram`): item 65's
+  (a) ⇔ (b) again, by Farkas' lemma: prices exist exactly when no cycle gains
+  (`hasPrices_iff_of_lp`).
+* `Probability/Extinction` (item 149, which now imports `Combinatorics/AlgebraicGeneratingFunction`
+  and Mathlib's `RingTheory/PowerSeries/Trunc`): total progeny. The equation `T = X · f(T)` has one
+  power-series solution (`existsUnique_progeny`); for `p ≥ 0` summing to `1` its coefficients sum to
+  the extinction chance (`progeny_eval_one_eq_extinctionChance`); for `f s = (1 + s²)/2` they are
+  `C_n / 2^(2n+1)` at the odd places, `0` at the even ones, and sum to `1`
+  (`coeff_progeny_catalan`); wider: no `p 0 > 0`.
+
 ## 2. Categories to add
 
 Tiered by how much work they do inside the system that already exists, not by how interesting
