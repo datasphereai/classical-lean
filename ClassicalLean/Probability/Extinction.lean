@@ -8,6 +8,8 @@ import Mathlib.Analysis.Normed.Group.FunctionSeries
 import Mathlib.Analysis.SpecificLimits.Basic
 import Mathlib.Topology.Algebra.InfiniteSum.Real
 import Mathlib.Algebra.Ring.GeomSum
+import ClassicalLean.Combinatorics.AlgebraicGeneratingFunction
+import Mathlib.RingTheory.PowerSeries.Trunc
 
 /-!
 # Galton–Watson extinction: the least fixed point of the generating function
@@ -29,6 +31,17 @@ Order LEAN-22 (item 45 of the plan) proves, for `p k ≥ 0` with `∑ p k = 1`:
 * `extinctionChance_eq_zero_of_eq_one`: the exception, one child for sure (`p 1 = 1`): then
   `f s = s` for every `s`, the least fixed point is `0` (the family never dies out), while the
   mean is `1`.
+
+Order LEAN-37 (item 149 of the plan) adds the total-progeny series `T = X · f(T)` (a power series
+in `X`; its `n`-th coefficient is the chance that the family has `n` members in all):
+
+* `existsUnique_progeny`: the equation has exactly one power-series solution, for every `p`
+  (through the library's functional-equation theorem, `ClassicalLean.IsLocal`);
+* `progeny_eval_one_eq_extinctionChance`: for `p k ≥ 0` with `∑ p k = 1`, the coefficients of the
+  solution sum to `extinctionChance p` (the plan's row asks `p 0 > 0`; with `p 0 = 0` both sides
+  are `0`);
+* `coeff_progeny_catalan`: for `f s = (1 + s²)/2` the odd coefficients are the Catalan numbers
+  over powers of `2`, the even ones `0`, and they sum to `1`.
 
 The mean is written `Summable (fun k ↦ k * p k) ∧ ∑' k, k * p k ≤ 1`, so that an infinite mean
 counts as above `1` (Lean's `∑'` of a series that is not summable is `0`).
@@ -305,6 +318,432 @@ theorem extinctionChance_eq_one_iff (hp1 : p 1 ≠ 1) :
 
 end
 
+/-! ### Order LEAN-37, item 149: the total-progeny series -/
+
+section Progeny
+
+open PowerSeries
+
+/-- Coefficientwise nonnegativity is closed under products. -/
+private lemma coeff_mul_nonneg' {A B : ℝ⟦X⟧} (hA : ∀ n, 0 ≤ coeff n A)
+    (hB : ∀ n, 0 ≤ coeff n B) (n : ℕ) : 0 ≤ coeff n (A * B) := by
+  rw [coeff_mul]
+  exact Finset.sum_nonneg fun x _ => mul_nonneg (hA _) (hB _)
+
+/-- Coefficientwise nonnegativity is closed under powers. -/
+private lemma coeff_pow_nonneg' {A : ℝ⟦X⟧} (hA : ∀ n, 0 ≤ coeff n A) (k : ℕ) :
+    ∀ n, 0 ≤ coeff n (A ^ k) := by
+  induction k with
+  | zero => intro n; rw [pow_zero, coeff_one]; split_ifs <;> norm_num
+  | succ k ih => intro n; rw [pow_succ]; exact coeff_mul_nonneg' ih hA n
+
+/-- Powers are coefficientwise monotone on nonnegative series. -/
+private lemma coeff_pow_mono' {A B : ℝ⟦X⟧} (hA : ∀ n, 0 ≤ coeff n A)
+    (hAB : ∀ n, coeff n A ≤ coeff n B) (k : ℕ) :
+    ∀ n, coeff n (A ^ k) ≤ coeff n (B ^ k) := by
+  induction k with
+  | zero => intro n; exact le_rfl
+  | succ k ih =>
+    intro n
+    rw [pow_succ, pow_succ, coeff_mul, coeff_mul]
+    exact Finset.sum_le_sum fun x _ =>
+      mul_le_mul (ih _) (hAB _) (hA _) ((coeff_pow_nonneg' hA k _).trans (ih _))
+
+/-- The `n`-th coefficient of a power depends only on coefficients up to `n`. -/
+private lemma coeff_pow_eq_of_agree {A B : ℝ⟦X⟧} (n k : ℕ)
+    (h : ∀ m ≤ n, coeff m A = coeff m B) : coeff n (A ^ k) = coeff n (B ^ k) :=
+  ClassicalLean.isLocal_pow (ClassicalLean.isLocalId (R := ℝ)) k n A B h
+
+private lemma coeff_pow_nonneg_of_le {T : ℝ⟦X⟧} (n k : ℕ) (h : ∀ m ≤ n, 0 ≤ coeff m T) :
+    0 ≤ coeff n (T ^ k) := by
+  rw [coeff_pow_eq_of_agree n k (B := PowerSeries.mk fun j => if j ≤ n then coeff j T else 0)
+    fun j hj => by rw [coeff_mk, ite_eq_left hj]]
+  refine coeff_pow_nonneg' (fun j => ?_) k n
+  rw [coeff_mk]
+  split_ifs with hj
+  · exact h j hj
+  · exact le_rfl
+
+/-- The value at `1` of a polynomial is the sum of its coefficients. -/
+private lemma eval_one_eq_sum (Q : Polynomial ℝ) {M : ℕ} (h : Q.natDegree < M) :
+    Q.eval 1 = ∑ n ∈ Finset.range M, Q.coeff n := by
+  rw [Polynomial.eval_eq_sum_range' h]
+  simp
+
+private lemma sum_coeff_le_eval_one (Q : Polynomial ℝ) (hQ : ∀ n, 0 ≤ Q.coeff n) (M : ℕ) :
+    ∑ n ∈ Finset.range M, Q.coeff n ≤ Q.eval 1 := by
+  rw [eval_one_eq_sum Q (M := max M (Q.natDegree + 1))
+    (lt_of_lt_of_le (Nat.lt_succ_self _) (le_max_right _ _))]
+  exact Finset.sum_le_sum_of_subset_of_nonneg
+    (fun i hi => Finset.mem_range.mpr (lt_of_lt_of_le (Finset.mem_range.mp hi) (le_max_left _ _)))
+    fun i _ _ => hQ i
+
+/-- **Total progeny and extinction.** If `T = X f(T)` as power series, the coefficients of `T`
+sum to the least fixed point of `f` in `[0, 1]`. -/
+theorem progeny_eval_one_eq_extinctionChance {p : ℕ → ℝ} (hp0 : ∀ k, 0 ≤ p k)
+    (hp : HasSum p 1) (T : ℝ⟦X⟧)
+    (hT : T = X * PowerSeries.mk (fun n => ∑' k, p k * coeff n (T ^ k))) :
+    HasSum (fun n => coeff n T) (extinctionChance p) := by
+  obtain ⟨U, hU⟩ : ∃ U, T = X * U := ⟨_, hT⟩
+  have hzero : ∀ n k, n < k → coeff n (T ^ k) = 0 := by
+    intro n k hnk
+    rw [hU, mul_pow, coeff_X_pow_mul', ite_eq_right (by omega)]
+  have h0 : coeff 0 T = 0 := by rw [hU]; simp
+  have hrec : ∀ n, coeff (n + 1) T = ∑ k ∈ Finset.range (n + 1), p k * coeff n (T ^ k) := by
+    intro n
+    conv_lhs => rw [hT]
+    rw [coeff_succ_X_mul, coeff_mk]
+    exact tsum_eq_sum (s := Finset.range (n + 1)) fun k hk => by
+      rw [hzero n k (by rw [Finset.mem_range] at hk; omega), mul_zero]
+  have hnn : ∀ n, 0 ≤ coeff n T := by
+    have key : ∀ n, ∀ m ≤ n, 0 ≤ coeff m T := by
+      intro n
+      induction n with
+      | zero =>
+        intro m hm
+        obtain rfl : m = 0 := by omega
+        exact h0.ge
+      | succ n ih =>
+        intro m hm
+        rcases Nat.lt_or_ge m (n + 1) with h | h
+        · exact ih m (by omega)
+        · obtain rfl : m = n + 1 := by omega
+          rw [hrec]
+          exact Finset.sum_nonneg fun k _ => mul_nonneg (hp0 k) (coeff_pow_nonneg_of_le n k ih)
+    exact fun n => key n n le_rfl
+  have hdeg : ∀ N, (PowerSeries.trunc N T).natDegree ≤ N := fun N =>
+    Polynomial.natDegree_le_iff_coeff_eq_zero.mpr fun m hm => by
+      rw [coeff_trunc, ite_eq_right (by omega)]
+  have hPc : ∀ N m, coeff m (↑(PowerSeries.trunc N T) : ℝ⟦X⟧)
+      = if m < N then coeff m T else 0 := fun N m => by
+    rw [Polynomial.coeff_coe, coeff_trunc]
+  have hPnn' : ∀ N m, 0 ≤ coeff m (↑(PowerSeries.trunc N T) : ℝ⟦X⟧) := fun N m => by
+    rw [hPc]; split_ifs
+    · exact hnn m
+    · exact le_rfl
+  have hPnn : ∀ N k n, 0 ≤ ((PowerSeries.trunc N T) ^ k).coeff n := fun N k n => by
+    rw [← Polynomial.coeff_coe, Polynomial.coe_pow]
+    exact coeff_pow_nonneg' (hPnn' N) k n
+  have hPe : ∀ N, (PowerSeries.trunc N T).eval 1 = ∑ n ∈ Finset.range N, coeff n T := by
+    intro N
+    rw [eval_one_eq_sum _ (M := N + 1) (Nat.lt_succ_of_le (hdeg N)), Finset.sum_range_succ,
+      coeff_trunc, ite_eq_right (lt_irrefl N), add_zero]
+    exact Finset.sum_congr rfl fun n hn => by rw [coeff_trunc, ite_eq_left (Finset.mem_range.mp hn)]
+  have step : ∀ N, (∑ n ∈ Finset.range N, coeff n T) ∈ Icc (0 : ℝ) 1 →
+      ∑ n ∈ Finset.range (N + 1), coeff n T ≤ pgf p (∑ n ∈ Finset.range N, coeff n T) := by
+    intro N hSI
+    calc ∑ n ∈ Finset.range (N + 1), coeff n T
+        = ∑ n ∈ Finset.range N, ∑ k ∈ Finset.range (n + 1),
+            p k * ((PowerSeries.trunc N T) ^ k).coeff n := by
+          rw [Finset.sum_range_succ', h0, add_zero]
+          refine Finset.sum_congr rfl fun n hn => ?_
+          rw [hrec]
+          refine Finset.sum_congr rfl fun k _ => ?_
+          rw [← Polynomial.coeff_coe, Polynomial.coe_pow]
+          congr 1
+          refine coeff_pow_eq_of_agree n k fun m hm => ?_
+          rw [hPc, ite_eq_left (by rw [Finset.mem_range] at hn; omega)]
+      _ ≤ ∑ n ∈ Finset.range N, ∑ k ∈ Finset.range N,
+            p k * ((PowerSeries.trunc N T) ^ k).coeff n := by
+          refine Finset.sum_le_sum fun n hn => ?_
+          refine Finset.sum_le_sum_of_subset_of_nonneg ?_
+            fun k _ _ => mul_nonneg (hp0 k) (hPnn N k n)
+          intro k hk
+          rw [Finset.mem_range] at hk hn ⊢
+          omega
+      _ = ∑ k ∈ Finset.range N, p k * ∑ n ∈ Finset.range N,
+            ((PowerSeries.trunc N T) ^ k).coeff n := by
+          simp_rw [Finset.mul_sum]
+          exact Finset.sum_comm
+      _ ≤ ∑ k ∈ Finset.range N, p k * (∑ n ∈ Finset.range N, coeff n T) ^ k := by
+          refine Finset.sum_le_sum fun k _ => mul_le_mul_of_nonneg_left ?_ (hp0 k)
+          rw [← hPe N, ← Polynomial.eval_pow]
+          exact sum_coeff_le_eval_one _ (hPnn N k) N
+      _ ≤ pgf p (∑ n ∈ Finset.range N, coeff n T) :=
+          (summable_pgf hp0 hp hSI).sum_le_tsum _
+            fun k _ => mul_nonneg (hp0 k) (pow_nonneg hSI.1 k)
+  have hqI : extinctionChance p ∈ Icc (0 : ℝ) 1 := (isLeast_extinctionChance hp0 hp).1.1
+  have hqfix : pgf p (extinctionChance p) = extinctionChance p :=
+    (isLeast_extinctionChance hp0 hp).1.2
+  have hS : ∀ N, ∑ n ∈ Finset.range N, coeff n T ≤ extinctionChance p := by
+    intro N
+    induction N with
+    | zero => simpa using hqI.1
+    | succ N ih =>
+      have hSI : (∑ n ∈ Finset.range N, coeff n T) ∈ Icc (0 : ℝ) 1 :=
+        ⟨Finset.sum_nonneg fun n _ => hnn n, ih.trans hqI.2⟩
+      calc _ ≤ pgf p (∑ n ∈ Finset.range N, coeff n T) := step N hSI
+        _ ≤ pgf p (extinctionChance p) := pgf_mono hp0 hp hSI hqI ih
+        _ = extinctionChance p := hqfix
+  have hsum : Summable (fun n => coeff n T) := summable_of_sum_range_le hnn hS
+  have hSq : ∑' n, coeff n T ≤ extinctionChance p := Real.tsum_le_of_sum_range_le hnn hS
+  have hSI : (∑' n, coeff n T) ∈ Icc (0 : ℝ) 1 := ⟨tsum_nonneg hnn, hSq.trans hqI.2⟩
+  have lower : ∀ N K, ∑ k ∈ Finset.range K, p k * (∑ n ∈ Finset.range N, coeff n T) ^ k
+      ≤ ∑' n, coeff n T := by
+    intro N K
+    calc ∑ k ∈ Finset.range K, p k * (∑ n ∈ Finset.range N, coeff n T) ^ k
+        = ∑ k ∈ Finset.range K, p k * ∑ n ∈ Finset.range (K * N + 1),
+            ((PowerSeries.trunc N T) ^ k).coeff n := by
+          refine Finset.sum_congr rfl fun k hk => ?_
+          have hdk : ((PowerSeries.trunc N T) ^ k).natDegree < K * N + 1 :=
+            Nat.lt_succ_of_le (Polynomial.natDegree_pow_le.trans
+              (Nat.mul_le_mul (Finset.mem_range.mp hk).le (hdeg N)))
+          rw [← hPe N, ← Polynomial.eval_pow, eval_one_eq_sum _ hdk]
+      _ ≤ ∑ k ∈ Finset.range K, p k * ∑ n ∈ Finset.range (K * N + 1), coeff n (T ^ k) := by
+          refine Finset.sum_le_sum fun k _ =>
+            mul_le_mul_of_nonneg_left (Finset.sum_le_sum fun n _ => ?_) (hp0 k)
+          rw [← Polynomial.coeff_coe, Polynomial.coe_pow]
+          refine coeff_pow_mono' (hPnn' N) (fun m => ?_) k n
+          rw [hPc]
+          split_ifs
+          · exact le_rfl
+          · exact hnn m
+      _ = ∑ n ∈ Finset.range (K * N + 1), ∑ k ∈ Finset.range K, p k * coeff n (T ^ k) := by
+          simp_rw [Finset.mul_sum]
+          exact Finset.sum_comm
+      _ ≤ ∑ n ∈ Finset.range (K * N + 1), coeff (n + 1) T := by
+          refine Finset.sum_le_sum fun n _ => ?_
+          rw [hrec]
+          have hg : ∀ k, 0 ≤ p k * coeff n (T ^ k) := fun k =>
+            mul_nonneg (hp0 k) (coeff_pow_nonneg' hnn k n)
+          calc ∑ k ∈ Finset.range K, p k * coeff n (T ^ k)
+              ≤ ∑ k ∈ Finset.range (K + (n + 1)), p k * coeff n (T ^ k) :=
+                Finset.sum_le_sum_of_subset_of_nonneg
+                  (fun k hk => by rw [Finset.mem_range] at hk ⊢; omega) fun k _ _ => hg k
+            _ = ∑ k ∈ Finset.range (n + 1), p k * coeff n (T ^ k) :=
+                (Finset.sum_subset (fun k hk => by rw [Finset.mem_range] at hk ⊢; omega)
+                  fun k _ hk => by
+                    rw [hzero n k (by rw [Finset.mem_range] at hk; omega), mul_zero]).symm
+      _ = ∑ n ∈ Finset.range (K * N + 1 + 1), coeff n T := by
+          rw [Finset.sum_range_succ' _ (K * N + 1), h0, add_zero]
+      _ ≤ ∑' n, coeff n T := sum_le_hasSum _ (fun i _ => hnn i) hsum.hasSum
+  have hfS : pgf p (∑' n, coeff n T) ≤ ∑' n, coeff n T := by
+    change ∑' k, p k * (∑' n, coeff n T) ^ k ≤ ∑' n, coeff n T
+    refine Real.tsum_le_of_sum_range_le
+      (fun k => mul_nonneg (hp0 k) (pow_nonneg hSI.1 k)) fun K => ?_
+    have ht : Tendsto (fun N => ∑ k ∈ Finset.range K,
+        p k * (∑ n ∈ Finset.range N, coeff n T) ^ k) atTop
+        (𝓝 (∑ k ∈ Finset.range K, p k * (∑' n, coeff n T) ^ k)) :=
+      tendsto_finsetSum _ fun k _ => (hsum.hasSum.tendsto_sum_nat.pow k).const_mul (p k)
+    exact le_of_tendsto' ht fun N => lower N K
+  have hqS : extinctionChance p ≤ ∑' n, coeff n T :=
+    le_of_tendsto' (tendsto_iterate_zero hp0 hp) (iterate_zero_le hp0 hp hSI hfS)
+  have := hsum.hasSum
+  rwa [le_antisymm hSq hqS] at this
+
+/-! ### Existence and uniqueness of the progeny series -/
+
+/-- The operator `T ↦ f(T)`, coefficientwise `∑' k, p k * coeff n (T ^ k)`. -/
+private noncomputable def progenyOp (p : ℕ → ℝ) (T : ℝ⟦X⟧) : ℝ⟦X⟧ :=
+  PowerSeries.mk fun n => ∑' k, p k * coeff n (T ^ k)
+
+/-- The operator is local: coefficient `n` of `f(T)` depends on coefficients of `T` up to `n`. -/
+private lemma isLocal_progenyOp (p : ℕ → ℝ) : ClassicalLean.IsLocal (progenyOp p) := by
+  intro n a b h
+  simp only [progenyOp, coeff_mk]
+  exact tsum_congr fun k => by rw [coeff_pow_eq_of_agree n k h]
+
+/-- The iterates `T₀ = 0`, `T_{N+1} = X f(T_N)`. -/
+private noncomputable def progenyApprox (p : ℕ → ℝ) : ℕ → ℝ⟦X⟧
+  | 0 => 0
+  | N + 1 => X * progenyOp p (progenyApprox p N)
+
+private lemma approx_succ (p : ℕ → ℝ) (N : ℕ) :
+    progenyApprox p (N + 1) = X * progenyOp p (progenyApprox p N) := rfl
+
+/-- Consecutive iterates agree below `N`. -/
+private lemma approx_stab (p : ℕ → ℝ) : ∀ N m, m < N →
+    coeff m (progenyApprox p N) = coeff m (progenyApprox p (N + 1)) := by
+  intro N
+  induction N with
+  | zero => intro m hm; omega
+  | succ N ih =>
+    intro m hm
+    rcases m with _ | j
+    · simp only [approx_succ, coeff_zero_X_mul]
+    · rw [approx_succ p N, approx_succ p (N + 1), coeff_succ_X_mul, coeff_succ_X_mul]
+      exact isLocal_progenyOp p j _ _ fun i hi => ih i (by omega)
+
+/-- Coefficient `n` is fixed from the iterate `n + 1` on. -/
+private lemma approx_stable (p : ℕ → ℝ) (n : ℕ) : ∀ N, n + 1 ≤ N →
+    coeff n (progenyApprox p N) = coeff n (progenyApprox p (n + 1)) := by
+  intro N hN
+  induction N, hN using Nat.le_induction with
+  | base => rfl
+  | succ N hN ih => exact (approx_stab p N n (by omega)).symm.trans ih
+
+/-- The limit of the iterates. -/
+private noncomputable def progenyLimit (p : ℕ → ℝ) : ℝ⟦X⟧ :=
+  PowerSeries.mk fun n => coeff n (progenyApprox p (n + 1))
+
+private lemma coeff_progenyLimit (p : ℕ → ℝ) (n : ℕ) :
+    coeff n (progenyLimit p) = coeff n (progenyApprox p (n + 1)) := coeff_mk _ _
+
+private lemma progenyLimit_eq (p : ℕ → ℝ) :
+    progenyLimit p = X * progenyOp p (progenyLimit p) := by
+  ext n
+  rcases n with _ | j
+  · rw [coeff_zero_X_mul, coeff_progenyLimit, approx_succ, coeff_zero_X_mul]
+  · rw [coeff_succ_X_mul, coeff_progenyLimit, approx_succ, coeff_succ_X_mul]
+    exact isLocal_progenyOp p j _ _ fun i hi => by
+      rw [coeff_progenyLimit]; exact approx_stable p i (j + 1) (by omega)
+
+/-- **The progeny equation has exactly one solution.** For every sequence `p`, exactly one power
+series satisfies `T = X f(T)`; each `∑'` is a finite sum since `T` has no constant term. -/
+theorem existsUnique_progeny (p : ℕ → ℝ) :
+    ∃! T : ℝ⟦X⟧, T = X * PowerSeries.mk (fun n => ∑' k, p k * coeff n (T ^ k)) := by
+  refine ⟨progenyLimit p, progenyLimit_eq p, fun U hU => ?_⟩
+  refine ClassicalLean.eq_of_eq_C_add_X_mul (isLocal_progenyOp p) 0 U (progenyLimit p) ?_ ?_
+  · rw [map_zero, zero_add]; exact hU
+  · rw [map_zero, zero_add]; exact progenyLimit_eq p
+
+/-! ### The law `(1/2, 0, 1/2)`: Catalan numbers -/
+
+/-- The law with `f s = (1 + s²)/2`. -/
+private noncomputable def catalanLaw (k : ℕ) : ℝ := if k = 0 ∨ k = 2 then 1 / 2 else 0
+
+/-- The embedding `(a, b) ↦ (2a + 1, 2b + 1)`. -/
+private def oddEmb : ℕ × ℕ ↪ ℕ × ℕ :=
+  ⟨fun x => (2 * x.1 + 1, 2 * x.2 + 1), fun x y h => by
+    simp only [Prod.mk.injEq] at h
+    obtain ⟨h1, h2⟩ := h
+    exact Prod.ext (by omega) (by omega)⟩
+
+/-- When the even coefficients vanish, the convolution at `2k + 2` only sees odd pairs. -/
+private lemma sum_antidiagonal_odd (T : ℝ⟦X⟧) (hf : ∀ i, coeff (2 * i) T = 0) (k : ℕ) :
+    ∑ x ∈ Finset.antidiagonal (2 * k + 2), coeff x.1 T * coeff x.2 T
+      = ∑ x ∈ Finset.antidiagonal k, coeff (2 * x.1 + 1) T * coeff (2 * x.2 + 1) T := by
+  have hmap : ∑ x ∈ Finset.antidiagonal k, coeff (2 * x.1 + 1) T * coeff (2 * x.2 + 1) T
+      = ∑ x ∈ (Finset.antidiagonal k).map oddEmb, coeff x.1 T * coeff x.2 T :=
+    (Finset.sum_map (Finset.antidiagonal k) oddEmb fun x => coeff x.1 T * coeff x.2 T).symm
+  rw [hmap]
+  symm
+  refine Finset.sum_subset ?_ ?_
+  · intro x hx
+    obtain ⟨y, hy, rfl⟩ := Finset.mem_map.mp hx
+    have hy' : y.1 + y.2 = k := Finset.mem_antidiagonal.mp hy
+    exact Finset.mem_antidiagonal.mpr (by change 2 * y.1 + 1 + (2 * y.2 + 1) = 2 * k + 2; omega)
+  · rintro ⟨i, j⟩ hx hnot
+    have hx' : i + j = 2 * k + 2 := Finset.mem_antidiagonal.mp hx
+    change coeff i T * coeff j T = 0
+    rcases Nat.even_or_odd' i with ⟨a, ha | ha⟩
+    · rw [ha, hf, zero_mul]
+    · exfalso
+      obtain ⟨b, hb⟩ : ∃ b, j = 2 * b + 1 := ⟨j / 2, by omega⟩
+      exact hnot (Finset.mem_map.mpr ⟨(a, b),
+        Finset.mem_antidiagonal.mpr (by change a + b = k; omega), by subst ha hb; rfl⟩)
+
+/-- **Catalan numbers.** For `f s = (1 + s²)/2`, the solution of `T = X f(T)` has
+`coeff (2n+1) T = C_n / 2^(2n+1)`, vanishing even coefficients, and coefficients summing to `1`. -/
+theorem coeff_progeny_catalan (T : ℝ⟦X⟧)
+    (hT : T = X * PowerSeries.mk (fun n =>
+      ∑' k, (if k = 0 ∨ k = 2 then (1 / 2 : ℝ) else 0) * coeff n (T ^ k))) :
+    (∀ n, coeff (2 * n + 1) T = (catalan n : ℝ) / 2 ^ (2 * n + 1)) ∧
+      (∀ n, coeff (2 * n) T = 0) ∧ HasSum (fun n => coeff n T) 1 := by
+  -- the quadratic form `T = X (1/2 + T²/2)`
+  have hop : PowerSeries.mk (fun n =>
+      ∑' k, (if k = 0 ∨ k = 2 then (1 / 2 : ℝ) else 0) * coeff n (T ^ k))
+      = C (1 / 2 : ℝ) + C (1 / 2 : ℝ) * T ^ 2 := by
+    ext n
+    rw [coeff_mk, tsum_eq_sum (s := ({0, 2} : Finset ℕ)) (fun k hk => by
+        rw [ite_eq_right (show ¬(k = 0 ∨ k = 2) by simpa using hk), zero_mul]),
+      Finset.sum_pair (show (0 : ℕ) ≠ 2 by norm_num)]
+    by_cases hn : n = 0 <;> simp [hn, coeff_one, coeff_C]
+  have hT2 : T = X * (C (1 / 2 : ℝ) + C (1 / 2 : ℝ) * T ^ 2) := by
+    rw [← hop]; exact hT
+  have hloc : ClassicalLean.IsLocal (fun f : ℝ⟦X⟧ => C (1 / 2 : ℝ) + C (1 / 2 : ℝ) * f ^ 2) :=
+    ClassicalLean.isLocal_add (ClassicalLean.isLocal_const _)
+      (ClassicalLean.isLocal_mul (ClassicalLean.isLocal_const _)
+        (ClassicalLean.isLocal_pow ClassicalLean.isLocalId 2))
+  -- `T` is odd: `-T(-X)` solves the same equation
+  have hRX : rescale (-1 : ℝ) X = -X := by
+    ext n
+    rw [coeff_rescale, map_neg, coeff_X]
+    split_ifs with h
+    · subst h; norm_num
+    · simp
+  have hRC : ∀ c : ℝ, rescale (-1 : ℝ) (C c) = C c := by
+    intro c
+    ext n
+    rw [coeff_rescale, coeff_C]
+    split_ifs with h
+    · subst h; simp
+    · simp
+  have hR : rescale (-1 : ℝ) T
+      = -X * (C (1 / 2 : ℝ) + C (1 / 2 : ℝ) * (rescale (-1 : ℝ) T) ^ 2) := by
+    conv_lhs => rw [hT2]
+    rw [map_mul, map_add, map_mul, map_pow, hRX, hRC]
+  have hneg : -rescale (-1 : ℝ) T
+      = X * (C (1 / 2 : ℝ) + C (1 / 2 : ℝ) * (-rescale (-1 : ℝ) T) ^ 2) := by
+    linear_combination (-1 : ℝ⟦X⟧) * hR
+  have huniq : -rescale (-1 : ℝ) T = T :=
+    ClassicalLean.eq_of_eq_C_add_X_mul hloc 0 _ _
+      (by rw [map_zero, zero_add]; exact hneg) (by rw [map_zero, zero_add]; exact hT2)
+  have hodd : ∀ i, coeff (2 * i) T = 0 := by
+    intro i
+    have h : coeff (2 * i) (-rescale (-1 : ℝ) T) = coeff (2 * i) T := by rw [huniq]
+    rw [map_neg, coeff_rescale, pow_mul, neg_one_sq, one_pow, one_mul] at h
+    linarith
+  have h0 : coeff 0 T = 0 := by simpa using hodd 0
+  -- the coefficient recursion
+  have hrec : ∀ n, coeff (n + 1) T = (if n = 0 then (1 / 2 : ℝ) else 0)
+      + 1 / 2 * ∑ x ∈ Finset.antidiagonal n, coeff x.1 T * coeff x.2 T := by
+    intro n
+    conv_lhs => rw [hT2]
+    rw [coeff_succ_X_mul, map_add, coeff_C, coeff_C_mul, sq, coeff_mul]
+  have hcat : ∀ k, coeff (2 * k + 1) T = (catalan k : ℝ) / 2 ^ (2 * k + 1) := by
+    intro k
+    induction k using Nat.strong_induction_on with
+    | _ k ih =>
+      rcases k with _ | k
+      · have hz : ∑ x ∈ Finset.antidiagonal 0, coeff x.1 T * coeff x.2 T = 0 :=
+          Finset.sum_eq_zero fun x hx => by
+            have : x.1 = 0 := by have := Finset.mem_antidiagonal.mp hx; omega
+            rw [this, h0, zero_mul]
+        change coeff (0 + 1) T = _
+        rw [hrec 0, hz, ite_eq_left rfl, catalan_zero]
+        norm_num
+      · have hs : ∑ x ∈ Finset.antidiagonal k, coeff (2 * x.1 + 1) T * coeff (2 * x.2 + 1) T
+            = ∑ x ∈ Finset.antidiagonal k,
+                (catalan x.1 : ℝ) * catalan x.2 / 2 ^ (2 * k + 2) := by
+          refine Finset.sum_congr rfl fun x hx => ?_
+          have hx' := Finset.mem_antidiagonal.mp hx
+          rw [ih x.1 (by omega), ih x.2 (by omega), div_mul_div_comm, ← pow_add,
+            show 2 * x.1 + 1 + (2 * x.2 + 1) = 2 * k + 2 by omega]
+        rw [show 2 * (k + 1) + 1 = 2 * k + 2 + 1 by ring, hrec (2 * k + 2),
+          ite_eq_right (show ¬(2 * k + 2 = 0) by omega), zero_add, sum_antidiagonal_odd T hodd k,
+          hs]
+        simp only [div_eq_mul_inv]
+        rw [← Finset.sum_mul, catalan_succ']
+        push_cast
+        ring
+  -- the coefficients sum to the extinction chance, which is `1`
+  have hq0 : ∀ k, 0 ≤ catalanLaw k := fun k => by
+    unfold catalanLaw; split_ifs <;> norm_num
+  have hsupp : ∀ k ∉ ({0, 2} : Finset ℕ), catalanLaw k = 0 := fun k hk => by
+    rw [catalanLaw, ite_eq_right (show ¬(k = 0 ∨ k = 2) by simpa using hk)]
+  have hq : HasSum catalanLaw 1 := by
+    have h02 : catalanLaw 0 + catalanLaw 2 = 1 := by norm_num [catalanLaw]
+    have hfin : HasSum catalanLaw (∑ k ∈ ({0, 2} : Finset ℕ), catalanLaw k) :=
+      hasSum_sum_of_ne_finset_zero hsupp
+    rwa [Finset.sum_pair (show (0 : ℕ) ≠ 2 by norm_num), h02] at hfin
+  have hpgf : ∀ s, pgf catalanLaw s = 1 / 2 + 1 / 2 * s ^ 2 := by
+    intro s
+    rw [pgf, tsum_eq_sum (s := ({0, 2} : Finset ℕ)) (fun k hk => by rw [hsupp k hk, zero_mul]),
+      Finset.sum_pair (show (0 : ℕ) ≠ 2 by norm_num)]
+    norm_num [catalanLaw]
+  have hext : extinctionChance catalanLaw = 1 := by
+    obtain ⟨⟨hI, hfix⟩, -⟩ := isLeast_extinctionChance hq0 hq
+    rw [hpgf] at hfix
+    have h2 : (extinctionChance catalanLaw - 1) ^ 2 = 0 := by nlinarith
+    have h3 := (pow_eq_zero_iff two_ne_zero).mp h2
+    linarith
+  have hsum := progeny_eval_one_eq_extinctionChance hq0 hq T hT
+  rw [hext] at hsum
+  exact ⟨hcat, hodd, hsum⟩
+
+end Progeny
+
 end ClassicalLean.Probability.Extinction
 
 /-- The hypotheses of `tendsto_iterate_zero` hold together: the offspring law with chance `1/4` of
@@ -324,3 +763,40 @@ example := ClassicalLean.Probability.Extinction.tendsto_iterate_zero
         simp [show k ≠ 0 by omega, show k ≠ 1 by omega, show k ≠ 2 by omega]
     norm_num [Finset.sum_range_succ] at h
     exact h)
+
+/-- The hypotheses of `progeny_eval_one_eq_extinctionChance` hold together: the offspring law with
+chance `1/4` of no child, `1/4` of one and `1/2` of two (mean `5/4`), nonnegative and summing to
+`1`, as in the witness of `tendsto_iterate_zero`; `T` is the progeny series, the solution
+`existsUnique_progeny` gives (`Classical.choose`), and `hT` its defining equation
+(`Classical.choose_spec`). `p 0 > 0` and `p` is not a point mass, so the progeny series has
+infinitely many nonzero coefficients (`1/4`, `1/16`, `3/64`, `7/256`, …; all of the first 80
+nonzero, in exact fractions, `~/lean/lean37-checks/w149/series.py`) and its sum is the extinction
+chance `1/2`, strictly between `0` and `1`. -/
+example := ClassicalLean.Probability.Extinction.progeny_eval_one_eq_extinctionChance
+  (p := fun k : ℕ ↦ if k = 0 then (1 / 4 : ℝ) else if k = 1 then 1 / 4 else if k = 2 then 1 / 2
+    else 0)
+  (hp0 := fun k ↦ by split_ifs <;> norm_num)
+  (hp := by
+    have h : HasSum (fun k : ℕ ↦ if k = 0 then (1 / 4 : ℝ) else if k = 1 then 1 / 4
+        else if k = 2 then 1 / 2 else 0)
+        (∑ k ∈ Finset.range 3, if k = 0 then (1 / 4 : ℝ) else if k = 1 then 1 / 4
+          else if k = 2 then 1 / 2 else 0) :=
+      hasSum_sum_of_ne_finset_zero fun k hk ↦ by
+        simp only [Finset.mem_range, not_lt] at hk
+        simp [show k ≠ 0 by omega, show k ≠ 1 by omega, show k ≠ 2 by omega]
+    norm_num [Finset.sum_range_succ] at h
+    exact h)
+  (T := Classical.choose (ClassicalLean.Probability.Extinction.existsUnique_progeny _).exists)
+  (hT := Classical.choose_spec (ClassicalLean.Probability.Extinction.existsUnique_progeny _).exists)
+
+/-- The hypotheses of `coeff_progeny_catalan` hold together: `T` is the progeny series of the law `p
+k = 1/2` for `k = 0` and `k = 2`, `0` otherwise (written as in the theorem's hypothesis), the
+solution `existsUnique_progeny` gives (`Classical.choose`), and `hT` its defining equation
+(`Classical.choose_spec`); `existsUnique_progeny` does not rest on this theorem. What moves: the odd
+coefficients are the Catalan numbers over powers of `2`, `1/2`, `1/8`, `2/32`, …, all positive
+(checked to degree 80 in `~/lean/lean37-checks/w149/series.py`). -/
+example := ClassicalLean.Probability.Extinction.coeff_progeny_catalan
+  (T := Classical.choose (ClassicalLean.Probability.Extinction.existsUnique_progeny
+    (fun k ↦ if k = 0 ∨ k = 2 then 1 / 2 else 0)).exists)
+  (hT := Classical.choose_spec (ClassicalLean.Probability.Extinction.existsUnique_progeny
+    (fun k ↦ if k = 0 ∨ k = 2 then 1 / 2 else 0)).exists)
