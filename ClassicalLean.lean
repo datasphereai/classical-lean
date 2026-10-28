@@ -146,6 +146,7 @@ import ClassicalLean.Probability.BernsteinInequality
 import ClassicalLean.Probability.OrderStatistics
 import ClassicalLean.InformationTheory.HuffmanEntropy
 import ClassicalLean.Probability.PrincipalComponents
+import ClassicalLean.Statistics.JamesSteinRisk
 
 /-!
 # ClassicalLean
