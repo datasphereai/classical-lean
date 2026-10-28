@@ -6,6 +6,7 @@ Authors: Dustin Watkins, Claude (Anthropic)
 
 import Mathlib.Analysis.SpecialFunctions.Log.Basic
 import Mathlib.Analysis.SpecialFunctions.Exp
+import ClassicalLean.Analysis.LinearProgram
 
 /-!
 # No gain around any cycle, three ways, and Bellman–Ford
@@ -44,6 +45,12 @@ settle sooner)
 
 Use: a consistency check on prices from several sources. Quotes that admit no prices are stale,
 wrong, or a real gap, and Bellman–Ford finds out in `n` rounds.
+
+`hasPrices_iff_of_lp` (order LEAN-37, item 145): (b) ⇔ (a) again, by linear-program duality. The
+potentials `log p` are the variables of a linear program with constraints
+`z j − z i ≤ −log r i j`; by Farkas' lemma (`farkas`, module `ClassicalLean.Analysis.LinearProgram`)
+it is feasible exactly when every nonnegative certificate on the pairs with nonnegative net inflow
+at every vertex has nonnegative weight, and such a certificate splits into cycles.
 
 ## Hypotheses
 
@@ -526,6 +533,250 @@ example : NoNegativeCycle (![![0, -1, 5], ![5, 0, -1], ![5, 5, 0]] : Fin 3 → F
     linarith
   · simpa using bellmanFord_stable_of_short (w := w) fun c hc _ ↦ hneg c hc
 
+/-! ### Item 145 (order LEAN-37): (b) ⇔ (a) by linear-program duality -/
+
+section LinearProgramDual
+
+open ClassicalLean.LinearProgram
+
+/-- Every consecutive pair of the walk carries a positive entry of `y`. -/
+private def LpPosWalk {ι : Type*} (y : ι × ι → ℝ) : List ι → Prop
+  | [] => True
+  | [_] => True
+  | a :: b :: rest => 0 < y (a, b) ∧ LpPosWalk y (b :: rest)
+
+/-- How often each pair occurs consecutively along a walk. -/
+private noncomputable def lpMult {ι : Type*} [DecidableEq ι] : List ι → ι × ι → ℝ
+  | [], _ => 0
+  | [_], _ => 0
+  | a :: b :: rest, p => (if p = (a, b) then 1 else 0) + lpMult (b :: rest) p
+
+private theorem lpPosWalk_tail {ι : Type*} {y : ι × ι → ℝ} :
+    ∀ {a : ι} {L : List ι}, LpPosWalk y (a :: L) → LpPosWalk y L
+  | _, [], _ => by simp [LpPosWalk]
+  | _, _ :: _, h => by simp only [LpPosWalk] at h; exact h.2
+
+private theorem lpPosWalk_append_left {ι : Type*} {y : ι × ι → ℝ} :
+    ∀ (A B : List ι), LpPosWalk y (A ++ B) → LpPosWalk y B
+  | [], _, h => h
+  | _ :: A, B, h => lpPosWalk_append_left A B (lpPosWalk_tail h)
+
+private theorem lpPosWalk_append_right {ι : Type*} {y : ι × ι → ℝ} :
+    ∀ (A B : List ι), LpPosWalk y (A ++ B) → LpPosWalk y A
+  | [], _, _ => by simp [LpPosWalk]
+  | [_], _, _ => by simp [LpPosWalk]
+  | a :: b :: A, B, h => by
+    have h' : LpPosWalk y (a :: b :: (A ++ B)) := h
+    simp only [LpPosWalk] at h' ⊢
+    exact ⟨h'.1, lpPosWalk_append_right (b :: A) B h'.2⟩
+
+private theorem lpMult_nonneg {ι : Type*} [DecidableEq ι] :
+    ∀ (L : List ι) (p : ι × ι), 0 ≤ lpMult L p
+  | [], _ => by simp [lpMult]
+  | [_], _ => by simp [lpMult]
+  | a :: b :: rest, p => by
+    have := lpMult_nonneg (b :: rest) p
+    simp only [lpMult]
+    split_ifs <;> linarith
+
+private theorem lpPos_of_mult {ι : Type*} [DecidableEq ι] {y : ι × ι → ℝ} :
+    ∀ (L : List ι) (p : ι × ι), LpPosWalk y L → lpMult L p ≠ 0 → 0 < y p
+  | [], _, _, hm => by simp [lpMult] at hm
+  | [_], _, _, hm => by simp [lpMult] at hm
+  | a :: b :: rest, p, h, hm => by
+    simp only [LpPosWalk] at h
+    simp only [lpMult] at hm
+    by_cases hp : p = (a, b)
+    · rw [hp]; exact h.1
+    · rw [ite_eq_right hp, zero_add] at hm
+      exact lpPos_of_mult (b :: rest) p h.2 hm
+
+private theorem lpSum_mult {ι : Type*} [Fintype ι] [DecidableEq ι] :
+    ∀ (L : List ι) (f : ι × ι → ℝ),
+      ∑ p, lpMult L p * f p = walkSum (fun i j => f (i, j)) L
+  | [], _ => by simp [lpMult, walkSum]
+  | [_], _ => by simp [lpMult, walkSum]
+  | a :: b :: rest, f => by
+    have ih := lpSum_mult (b :: rest) f
+    simp [lpMult, walkSum, add_mul, Finset.sum_add_distrib, ih]
+
+/-- A nonnegative certificate with nonnegative net inflow everywhere has nonnegative weight
+when no cycle has negative weight. -/
+private theorem lpKey {ι : Type*} [Fintype ι] {w : ι → ι → ℝ}
+    (hw : NoNegativeCycle w) : ∀ (n : ℕ) (y : ι × ι → ℝ),
+      (univ.filter fun p => 0 < y p).card = n → 0 ≤ y →
+      (∀ z : ι → ℝ, 0 ≤ z → 0 ≤ ∑ p, y p * (z p.2 - z p.1)) →
+      0 ≤ ∑ p, y p * w p.1 p.2 := by
+  classical
+  intro n
+  induction n using Nat.strong_induction_on with
+  | _ n ih =>
+  intro y hn hy H
+  have hy' : ∀ p, 0 ≤ y p := fun p => hy p
+  rcases em (∃ p, 0 < y p) with ⟨⟨k, j⟩, hkj⟩ | hpos
+  swap
+  · refine le_of_eq (Finset.sum_eq_zero fun p _ => ?_).symm
+    have : y p = 0 := le_antisymm (not_lt.mp fun h => hpos ⟨p, h⟩) (hy' p)
+    rw [this, zero_mul]
+  -- an edge leaving `a` forces an edge entering `a`
+  have pred : ∀ a b, 0 < y (a, b) → ∃ i, 0 < y (i, a) := by
+    intro a b hab
+    by_contra hno
+    have hno' : ∀ i, y (i, a) = 0 :=
+      fun i => le_antisymm (not_lt.mp fun h => hno ⟨i, h⟩) (hy' _)
+    set ind : ι → ℝ := fun m => if m = a then 1 else 0 with hind
+    have hx : 0 ≤ ind := fun m => by
+      simp only [hind, Pi.zero_apply]
+      split_ifs <;> norm_num
+    have hba : b ≠ a := fun e => by
+      rw [e, hno' a] at hab
+      exact lt_irrefl _ hab
+    have hlt : ∑ p, y p * (ind p.2 - ind p.1) < ∑ _p : ι × ι, (0 : ℝ) := by
+      refine Finset.sum_lt_sum (fun p _ => ?_) ⟨(a, b), Finset.mem_univ _, ?_⟩
+      · obtain ⟨c, d⟩ := p
+        change y (c, d) * (ind d - ind c) ≤ 0
+        by_cases hd : d = a
+        · have : y (c, d) = 0 := by rw [hd]; exact hno' c
+          simp [this]
+        · have h1 : ind d = 0 := by simp [hind, hd]
+          have h2 : (0 : ℝ) ≤ ind c := hx c
+          rw [h1]
+          nlinarith [hy' (c, d), h2]
+      · change y (a, b) * (ind b - ind a) < 0
+        have h1 : ind b = 0 := by simp [hind, hba]
+        have h2 : ind a = 1 := by simp [hind]
+        rw [h1, h2]
+        linarith
+    rw [Finset.sum_const_zero] at hlt
+    linarith [H ind hx]
+  -- a long backward walk along positive entries
+  have walk : ∀ m : ℕ, ∃ a L, L.length = m ∧ LpPosWalk y (a :: L) ∧ ∃ b, 0 < y (a, b) := by
+    intro m
+    induction m with
+    | zero => exact ⟨k, [], rfl, by simp [LpPosWalk], j, hkj⟩
+    | succ m ihm =>
+      obtain ⟨a, L, hL, hP, b, hb⟩ := ihm
+      obtain ⟨i, hi⟩ := pred a b hb
+      refine ⟨i, a :: L, by simp [hL], ?_, a, hi⟩
+      simp only [LpPosWalk]
+      exact ⟨hi, hP⟩
+  obtain ⟨a, L, hL, hP, -⟩ := walk (Fintype.card ι)
+  have hnd : ¬ (a :: L).Nodup := fun hnd => by
+    have := hnd.length_le_card
+    simp only [List.length_cons, hL] at this
+    omega
+  obtain ⟨s, x, u, v, hsv⟩ := exists_dup_of_not_nodup hnd
+  have hC : LpPosWalk y (x :: (u ++ [x])) := by
+    have e : a :: L = s ++ ((x :: (u ++ [x])) ++ v) := by rw [hsv]; simp
+    rw [e] at hP
+    exact lpPosWalk_append_right _ _ (lpPosWalk_append_left _ _ hP)
+  have hcyc : ∀ w' : ι → ι → ℝ, cycleSum w' (x :: u) = walkSum w' (x :: (u ++ [x])) :=
+    fun w' => by rfl
+  obtain ⟨b, rest, hbr⟩ := List.exists_cons_of_ne_nil (show u ++ [x] ≠ [] by simp)
+  have hm0 : 0 < lpMult (x :: (u ++ [x])) (x, b) := by
+    rw [hbr]
+    have h1 : lpMult (x :: b :: rest) (x, b) = 1 + lpMult (b :: rest) (x, b) := by
+      simp [lpMult]
+    rw [h1]
+    linarith [lpMult_nonneg (b :: rest) (x, b)]
+  obtain ⟨p0, hp0P, hmin⟩ :=
+    (univ.filter fun p => 0 < lpMult (x :: (u ++ [x])) p).exists_min_image
+      (fun p => y p / lpMult (x :: (u ++ [x])) p)
+      ⟨(x, b), Finset.mem_filter.mpr ⟨Finset.mem_univ _, hm0⟩⟩
+  have hmp0 : 0 < lpMult (x :: (u ++ [x])) p0 := (Finset.mem_filter.mp hp0P).2
+  have hyp0 : 0 < y p0 := lpPos_of_mult _ p0 hC hmp0.ne'
+  obtain ⟨t, ht_def⟩ : ∃ t, t = y p0 / lpMult (x :: (u ++ [x])) p0 := ⟨_, rfl⟩
+  have ht : 0 ≤ t := by rw [ht_def]; exact div_nonneg hyp0.le hmp0.le
+  have htm : t * lpMult (x :: (u ++ [x])) p0 = y p0 := by
+    rw [ht_def]; exact div_mul_cancel₀ _ hmp0.ne'
+  have hle : ∀ p, t * lpMult (x :: (u ++ [x])) p ≤ y p := by
+    intro p
+    by_cases hp : 0 < lpMult (x :: (u ++ [x])) p
+    · have h3 : y p0 / lpMult (x :: (u ++ [x])) p0 ≤ y p / lpMult (x :: (u ++ [x])) p :=
+        hmin p (Finset.mem_filter.mpr ⟨Finset.mem_univ _, hp⟩)
+      rw [← ht_def, le_div_iff₀ hp] at h3
+      exact h3
+    · have : lpMult (x :: (u ++ [x])) p = 0 :=
+        le_antisymm (not_lt.mp hp) (lpMult_nonneg _ p)
+      rw [this, mul_zero]
+      exact hy' p
+  have hy'0 : (0 : ι × ι → ℝ) ≤ fun p => y p - t * lpMult (x :: (u ++ [x])) p := fun p => by
+    change (0 : ℝ) ≤ y p - t * lpMult (x :: (u ++ [x])) p
+    linarith [hle p]
+  have hsplit : ∀ f : ι × ι → ℝ, ∑ p, (y p - t * lpMult (x :: (u ++ [x])) p) * f p =
+      ∑ p, y p * f p - t * ∑ p, lpMult (x :: (u ++ [x])) p * f p := by
+    intro f
+    rw [Finset.mul_sum, ← Finset.sum_sub_distrib]
+    exact Finset.sum_congr rfl fun p _ => by ring
+  -- a cycle contributes nothing to the net inflow
+  have hZ : ∀ z : ι → ℝ, ∑ p, lpMult (x :: (u ++ [x])) p * (z p.2 - z p.1) = 0 := by
+    intro z
+    have e1 : ∑ p, lpMult (x :: (u ++ [x])) p * (z p.2 - z p.1) =
+        walkSum (fun i j => z j - z i) (x :: (u ++ [x])) :=
+      lpSum_mult _ (fun p => z p.2 - z p.1)
+    have e2 : ∑ p, lpMult (x :: (u ++ [x])) p * (z p.1 - z p.2) =
+        walkSum (fun i j => z i - z j) (x :: (u ++ [x])) :=
+      lpSum_mult _ (fun p => z p.1 - z p.2)
+    have c1 : 0 ≤ cycleSum (fun i j => z j - z i) (x :: u) :=
+      cycleSum_nonneg_of_potential (w := fun i j => z j - z i) (φ := z)
+        (fun i j => show z j ≤ z i + (z j - z i) by linarith) _ (List.cons_ne_nil _ _)
+    have c2 : 0 ≤ cycleSum (fun i j => z i - z j) (x :: u) :=
+      cycleSum_nonneg_of_potential (w := fun i j => z i - z j) (φ := fun i => -z i)
+        (fun i j => show -z j ≤ -z i + (z i - z j) by linarith) _ (List.cons_ne_nil _ _)
+    rw [hcyc] at c1 c2
+    have e3 : ∑ p, lpMult (x :: (u ++ [x])) p * (z p.1 - z p.2) =
+        -∑ p, lpMult (x :: (u ++ [x])) p * (z p.2 - z p.1) := by
+      rw [← Finset.sum_neg_distrib]
+      exact Finset.sum_congr rfl fun p _ => by ring
+    apply le_antisymm <;> linarith
+  have hcard : (univ.filter fun p => 0 < y p - t * lpMult (x :: (u ++ [x])) p).card < n := by
+    rw [← hn]
+    have hsub : (univ.filter fun p => 0 < y p - t * lpMult (x :: (u ++ [x])) p) ⊆
+        univ.filter fun p => 0 < y p := by
+      intro p hp
+      simp only [Finset.mem_filter, Finset.mem_univ, true_and] at hp ⊢
+      linarith [mul_nonneg ht (lpMult_nonneg (x :: (u ++ [x])) p)]
+    exact Finset.card_lt_card ((Finset.ssubset_iff_of_subset hsub).mpr
+      ⟨p0, Finset.mem_filter.mpr ⟨Finset.mem_univ _, hyp0⟩, by simp [htm]⟩)
+  have H' : ∀ z : ι → ℝ, 0 ≤ z →
+      0 ≤ ∑ p, (y p - t * lpMult (x :: (u ++ [x])) p) * (z p.2 - z p.1) := by
+    intro z hz
+    rw [hsplit (fun p => z p.2 - z p.1), hZ z, mul_zero, sub_zero]
+    exact H z hz
+  have hrec : 0 ≤ ∑ p, (y p - t * lpMult (x :: (u ++ [x])) p) * w p.1 p.2 :=
+    ih _ hcard (fun p => y p - t * lpMult (x :: (u ++ [x])) p) rfl hy'0 H'
+  have hcw : 0 ≤ ∑ p, lpMult (x :: (u ++ [x])) p * w p.1 p.2 := by
+    have e : ∑ p, lpMult (x :: (u ++ [x])) p * w p.1 p.2 = walkSum w (x :: (u ++ [x])) :=
+      lpSum_mult _ (fun p => w p.1 p.2)
+    rw [e, ← hcyc w]
+    exact hw _ (List.cons_ne_nil _ _)
+  rw [hsplit (fun p => w p.1 p.2)] at hrec
+  linarith [mul_nonneg ht hcw]
+
+/-- **Prices ⇔ no gain around any cycle, by linear-program duality.** For finitely many assets
+with positive rates, positive prices with `r i j · p j ≤ p i` exist exactly when every cycle's
+product of rates is at most `1`; the potentials `log p` are the variables of a linear program,
+whose feasibility Farkas' lemma reduces to cycles. -/
+theorem hasPrices_iff_of_lp {ι : Type*} [Finite ι] {r : ι → ι → ℝ}
+    (hr : ∀ i j, 0 < r i j) : HasPrices r ↔ NoGainCycle r := by
+  constructor
+  · intro h
+    obtain ⟨φ, hφ⟩ := (hasPrices_iff_potential hr).mp h
+    exact (noGainCycle_iff_noNegativeCycle hr).mpr (cycleSum_nonneg_of_potential hφ)
+  · intro h
+    classical
+    cases nonempty_fintype ι
+    have hw : NoNegativeCycle (negLog r) := (noGainCycle_iff_noNegativeCycle hr).mp h
+    let Lm : (ι → ℝ) →ₗ[ℝ] (ι × ι → ℝ) :=
+      LinearMap.funLeft ℝ ℝ Prod.snd - LinearMap.funLeft ℝ ℝ Prod.fst
+    obtain ⟨z, -, hz⟩ := (farkas Lm (fun p : ι × ι => negLog r p.1 p.2)).mpr
+      fun y hy hyL => lpKey hw _ y rfl hy fun x hx => hyL x hx
+    exact (hasPrices_iff_potential hr).mpr ⟨z, fun i j => by
+      have h1 : z j - z i ≤ negLog r i j := hz (i, j)
+      linarith⟩
+
+end LinearProgramDual
+
 end ClassicalLean.Combinatorics
 
 /-- The hypotheses of `bellmanFord_stable_iff` hold together: three assets, the rate `1` from an
@@ -537,3 +788,13 @@ example := ClassicalLean.Combinatorics.bellmanFord_stable_iff (ι := Fin 3)
 rate `1` from an asset to itself and `1/2` between two different ones, all positive. -/
 example := ClassicalLean.Combinatorics.forall_cycle_prod_le_one_iff_exists_prices (ι := Fin 3)
   (r := fun i j ↦ if i = j then 1 else 1 / 2) (fun i j ↦ by split_ifs <;> norm_num)
+
+/-- The hypotheses of `hasPrices_iff_of_lp` hold together: three assets with positive rates, not all
+equal: `1` from an asset to itself, `2` from `0` to `1`, `1/2` back and `1/2` for every other pair.
+Every cycle's product is at most `1`; it is exactly `1` only for cycles that use no conversion but
+`0 → 1`, `1 → 0` and the trips `i → i` (the round trip `0 → 1 → 0` has product `2 · 1/2 = 1`, which
+forces `p₀ = 2 p₁` on any prices), and below `1` for every cycle using another conversion (all
+3279 cycles of length at most `7`, in exact fractions, `~/lean/lean37-checks/w145/cycles.py`). -/
+example := ClassicalLean.Combinatorics.hasPrices_iff_of_lp (ι := Fin 3)
+  (r := ![![1, 2, 1 / 2], ![1 / 2, 1, 1 / 2], ![1 / 2, 1 / 2, 1]])
+  (fun i j ↦ by fin_cases i <;> fin_cases j <;> norm_num)
