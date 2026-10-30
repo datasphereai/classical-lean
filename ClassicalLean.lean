@@ -151,6 +151,7 @@ import ClassicalLean.Probability.HolmInsideStepUp
 import ClassicalLean.Probability.CorrelationBound
 import ClassicalLean.Statistics.PinskerTest
 import ClassicalLean.Analysis.HeunRichardson
+import ClassicalLean.Analysis.HeunEulerMaclaurin
 
 /-!
 # ClassicalLean
