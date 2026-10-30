@@ -150,6 +150,7 @@ import ClassicalLean.Statistics.JamesSteinRisk
 import ClassicalLean.Probability.UrnVille
 import ClassicalLean.Probability.RuinConditional
 import ClassicalLean.Probability.RuinDivisibility
+import ClassicalLean.Probability.RuinChain
 
 /-!
 # ClassicalLean
