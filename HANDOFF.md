@@ -596,6 +596,64 @@ clean tree (round 78's fragment): **143 modules, 3844 theorem constants (3827 + 
 `added=17`, `removed=0 changed=0 proof_only=0`; the witness gate `WITNESSGATE PASS` with 195 `OK`
 (189 + the cloud order's 6), copy-error 0.
 
+**Dated 2026-10-30 UTC (orders CLOUD-MATH-5, round 79, cloud branch `cloud-math-5`; CLOUD-MATH-6,
+round 80, cloud branch `cloud-math-6`; and MERGE-5, round 81, branch `merge-5`, DSMain):** ten
+bridges of `MATH-PLAN-library-2-bridges-2.md` as ten new modules, stated and proved in two cloud
+sessions (no drafts) and merged onto MERGE-4 by two merge commits, one after the other; no existing
+module changed. From CLOUD-MATH-5:
+
+- bridge 158, `Probability/HolmInsideStepUp` (new, imports `Probability/StepDownProcedure` and
+  `Probability/StepUpProcedure`): every hypothesis Holm's step-down procedure rejects at level
+  `q ≥ 0` is rejected by Benjamini and Hochberg's step-up procedure at the same level
+  (`le_mul_numRej_div_of_holmRejected`); 6 theorem constants (round 79's census);
+- bridge 155, `Probability/CorrelationBound` (new, imports `Analysis/Gruss` and
+  `Probability/LinearPrediction`): `cov[X, Y]² ≤ Var X · Var Y` (`covariance_sq_le_variance_mul`)
+  and the correlation lies in `[−1, 1]` (`abs_correlation_le_one`); 2 theorem constants;
+- bridge 164, `Statistics/PinskerTest` (new, imports `Statistics/NeymanPearson` and
+  `InformationTheory/Channel`): every test's size plus missed-detection chance is at least
+  `1 − √(D(p₁ ‖ p₀)/2)` (`size_add_one_sub_power_ge_pinsker`); 1 theorem constant;
+- bridge 166, `Analysis/HeunRichardson` (new, imports `Analysis/EulerMethod` and
+  `Analysis/Simpson`): for `y' = g(t)`, Heun's method is the composite trapezoidal rule
+  (`heunIterate_add_eq_trapezoidal`), its Richardson extrapolation `(4 u₂ₙ − uₙ)/3` is composite
+  Simpson's rule (`richardson_heunIterate_eq_simpson`), with Simpson's error bound
+  (`abs_sub_richardson_heunIterate_le`); 5 theorem constants;
+- bridge 167, `Analysis/HeunEulerMaclaurin` (new, imports `Analysis/EulerMethod` and
+  `Analysis/EulerMaclaurin`): at unit steps from an integer, Heun's exact global error by
+  Euler–Maclaurin to second order, `−(g' b − g' a)/12 + ∫ₐᵇ B₂(fract t)/2 · g''`
+  (`sub_heunIterate_eq_eulerMaclaurin`); 4 theorem constants.
+
+From CLOUD-MATH-6:
+
+- bridge 157, `Probability/UrnVille` (new, imports `Probability/PolyaUrn` and
+  `Probability/MaximalInequality`): the chance that Pólya's urn's red share ever reaches `c > 0` is
+  at most `r / ((r + b) c)` (`measureReal_exists_urnShare_ge_le`, Ville's inequality); 9 theorem
+  constants (round 80's census; 5 of them equation lemmas of `PolyaUrn`'s `urnRed`, generated here);
+- bridge 154, `Probability/RuinConditional` (new, imports `Probability/GamblersRuin` and
+  `Probability/LikelihoodScore`): a `±1` walk whose up-chance given the past is at most
+  `p ≤ 1/2` ever reaches `a` with chance at most `(p / (1 − p))^a`, with no independence assumed
+  (`measureReal_exists_ge_le_of_condProb`); 1 theorem constant;
+- bridge 156, `Probability/RuinDivisibility` (new, imports `Probability/GamblersRuin` and
+  `NumberTheory/LucasApparition`): at `p = 1/(r + 1)`, the chance of reaching `a` before `−b` is
+  `1/m` for a whole number `m` exactly when `b ∣ a` (`measureReal_hit_eq_inv_iff_dvd`); 3 theorem
+  constants;
+- bridge 165, `Probability/RuinChain` (new, imports `Probability/GamblersRuin` and
+  `Probability/FiniteChain`): the fair ruin walk's chain, whose first-step equations for the mean
+  time to an end have exactly one solution, `(a − x)(x + b)` (`ruinChain_meanHitting_iff`), equal
+  at the start to the mean exit time `a b` (`integral_exitTime_eq_meanHitting`); 34 theorem
+  constants;
+- bridge 159, `Probability/KolmogorovSmirnov` (new, imports `Probability/GlivenkoCantelli` and
+  `Probability/IntegralTransform`): for a continuous distribution function the Kolmogorov–Smirnov
+  statistic is almost surely that of the uniform draws `F(X i)`
+  (`sup_abs_empiricalCDF_sub_eq_of_continuous`), each uniform on `[0, 1]`
+  (`measureReal_cdf_le_eq_of_map_eq`); 5 theorem constants.
+
+Narrowing: none. Counts predicted by order MERGE-5's step 9, to be re-measured by its gates on the
+clean tree (round 81's fragment): **153 modules, 3914 theorem constants (3844 + 18 + 52), `lake
+build` 4206 jobs, 0 warnings**; the root's import closure 5742 modules (5732 + 10); the type dump
+`removed=0 changed=0 proof_only=0`, its `added` records the ten modules' constants, 70 of them
+theorems; the witness gate `WITNESSGATE PASS` with 208 `OK` (195 + the cloud orders' 7 and 6),
+copy-error 0.
+
 ---
 
 ## 2. What I claimed, and what I actually checked

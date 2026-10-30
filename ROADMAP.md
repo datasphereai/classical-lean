@@ -994,6 +994,43 @@ row (`p i ≥ 0`, not `p i > 0`):
   `E[1/‖X‖²] = 1/(d − 2)` (`integral_inv_sqNorm_zero`) and the James–Stein risk is `2`, against `d`
   for `X` itself (`integral_sqNorm_jamesStein_zero`).
 
+### 1.33 Ten bridges as ten new modules (orders CLOUD-MATH-5, round 79, CLOUD-MATH-6, round 80, and MERGE-5, round 81)
+
+Rows 155, 158, 164, 166, 167 and 154, 156, 157, 159, 165 of `MATH-PLAN-library-2-bridges-2.md` join
+two parts of the library each. Orders CLOUD-MATH-5 and CLOUD-MATH-6 stated and proved them in two
+cloud sessions, with no drafts, thirteen witnesses and one cold review each; order MERGE-5 merged
+them into master on DSMain. Ten modules are added; none existing changes. Narrowing: none; bridge
+159's identity is wider than its row (no independence of the draws assumed):
+
+* `Probability/HolmInsideStepUp` (bridge 158, Holm × Benjamini–Hochberg): Holm's rejections at
+  level `q` are rejections of the step-up procedure at the same level
+  (`le_mul_numRej_div_of_holmRejected`).
+* `Probability/CorrelationBound` (bridge 155, Grüss × linear prediction): `cov[X, Y]² ≤ Var X ·
+  Var Y` (`covariance_sq_le_variance_mul`), so the correlation lies in `[−1, 1]`
+  (`abs_correlation_le_one`).
+* `Statistics/PinskerTest` (bridge 164, Neyman–Pearson × Pinsker): size plus missed detection is at
+  least `1 − √(D(p₁ ‖ p₀)/2)` (`size_add_one_sub_power_ge_pinsker`).
+* `Analysis/HeunRichardson` (bridge 166, Heun × Simpson): Heun's method on `y' = g(t)` is the
+  composite trapezoid (`heunIterate_add_eq_trapezoidal`) and its Richardson extrapolation is
+  composite Simpson (`richardson_heunIterate_eq_simpson`), with Simpson's error bound
+  (`abs_sub_richardson_heunIterate_le`).
+* `Analysis/HeunEulerMaclaurin` (bridge 167, Heun × Euler–Maclaurin): Heun's exact global error at
+  unit steps, `−(g' b − g' a)/12 + ∫ₐᵇ B₂(fract t)/2 · g''` (`sub_heunIterate_eq_eulerMaclaurin`).
+* `Probability/UrnVille` (bridge 157, Pólya's urn × Ville): the red share ever reaches `c > 0` with
+  chance at most `r / ((r + b) c)` (`measureReal_exists_urnShare_ge_le`).
+* `Probability/RuinConditional` (bridge 154, gambler's ruin × likelihood score): a walk whose
+  up-chance given the past is at most `p ≤ 1/2` reaches `a` with chance at most `(p / (1 − p))^a`
+  (`measureReal_exists_ge_le_of_condProb`).
+* `Probability/RuinDivisibility` (bridge 156, gambler's ruin × Lucas divisibility): at
+  `p = 1/(r + 1)` the chance of reaching `a` before `−b` is a unit fraction exactly when `b ∣ a`
+  (`measureReal_hit_eq_inv_iff_dvd`).
+* `Probability/RuinChain` (bridge 165, gambler's ruin × finite chains): the first-step equations of
+  the ruin chain have the one solution `(a − x)(x + b)` (`ruinChain_meanHitting_iff`), the walk's
+  mean exit time at the start (`integral_exitTime_eq_meanHitting`).
+* `Probability/KolmogorovSmirnov` (bridge 159, Glivenko–Cantelli × the integral transform): for
+  continuous `F` the Kolmogorov–Smirnov statistic is almost surely that of the uniform draws
+  `F(X i)` (`sup_abs_empiricalCDF_sub_eq_of_continuous`, `measureReal_cdf_le_eq_of_map_eq`).
+
 ## 2. Categories to add
 
 Tiered by how much work they do inside the system that already exists, not by how interesting
