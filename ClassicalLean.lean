@@ -152,6 +152,11 @@ import ClassicalLean.Probability.CorrelationBound
 import ClassicalLean.Statistics.PinskerTest
 import ClassicalLean.Analysis.HeunRichardson
 import ClassicalLean.Analysis.HeunEulerMaclaurin
+import ClassicalLean.Probability.UrnVille
+import ClassicalLean.Probability.RuinConditional
+import ClassicalLean.Probability.RuinDivisibility
+import ClassicalLean.Probability.RuinChain
+import ClassicalLean.Probability.KolmogorovSmirnov
 
 /-!
 # ClassicalLean
