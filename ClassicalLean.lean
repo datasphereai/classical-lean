@@ -147,6 +147,11 @@ import ClassicalLean.Probability.OrderStatistics
 import ClassicalLean.InformationTheory.HuffmanEntropy
 import ClassicalLean.Probability.PrincipalComponents
 import ClassicalLean.Statistics.JamesSteinRisk
+import ClassicalLean.Probability.HolmInsideStepUp
+import ClassicalLean.Probability.CorrelationBound
+import ClassicalLean.Statistics.PinskerTest
+import ClassicalLean.Analysis.HeunRichardson
+import ClassicalLean.Analysis.HeunEulerMaclaurin
 
 /-!
 # ClassicalLean
