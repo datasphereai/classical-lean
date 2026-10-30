@@ -148,6 +148,7 @@ import ClassicalLean.InformationTheory.HuffmanEntropy
 import ClassicalLean.Probability.PrincipalComponents
 import ClassicalLean.Statistics.JamesSteinRisk
 import ClassicalLean.Probability.UrnVille
+import ClassicalLean.Probability.RuinConditional
 
 /-!
 # ClassicalLean
