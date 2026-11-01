@@ -159,6 +159,7 @@ import ClassicalLean.Probability.RuinChain
 import ClassicalLean.Probability.KolmogorovSmirnov
 import ClassicalLean.Algebra.HatMatrixRank
 import ClassicalLean.Algebra.CategoricalPseudoinverse
+import ClassicalLean.Analysis.KKTMultipliers
 
 /-!
 # ClassicalLean
