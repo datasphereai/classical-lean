@@ -157,6 +157,7 @@ import ClassicalLean.Probability.RuinConditional
 import ClassicalLean.Probability.RuinDivisibility
 import ClassicalLean.Probability.RuinChain
 import ClassicalLean.Probability.KolmogorovSmirnov
+import ClassicalLean.Algebra.HatMatrixRank
 
 /-!
 # ClassicalLean
