@@ -187,6 +187,14 @@ no log to scan. The switch waits on Dustin's reading of the 14 lines.
   `git add records` was blocked by the bulk-add guard and the paths were staged by name; the
   `step4_checks.sh` awk first read the wrong table cell and the map's folder citation sat in a lane
   row, both fixed before the step 4 commit.
+* The first push-review file had a defect: in `push-review.sh` the pattern variables were sourced but
+  not exported, so inside each `bash -c` the four `grep -cE` calls ran with an empty pattern and counted
+  every line (5799 over the 19 files, 6540 over the `+` lines, printed as if they were secret and IP
+  counts). It was filed before the defect was seen and is kept in the lane as
+  `lean/PUBLIC-1/data/PUBLIC-1-push-review-superseded-5e9c0aed.txt`, the record of the miss; the
+  corrected file (the script exports the variables; a control shows the subshell finds 11 of 11 planted
+  secret lines) is `lean/PUBLIC-1/data/PUBLIC-1-push-review-r2.txt`, the push review that counts, and
+  the report names both with their hashes. This bullet is a records-only commit after the close.
 
 ### Commits
 
