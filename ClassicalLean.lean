@@ -157,6 +157,11 @@ import ClassicalLean.Probability.RuinConditional
 import ClassicalLean.Probability.RuinDivisibility
 import ClassicalLean.Probability.RuinChain
 import ClassicalLean.Probability.KolmogorovSmirnov
+import ClassicalLean.Algebra.HatMatrixRank
+import ClassicalLean.Algebra.CategoricalPseudoinverse
+import ClassicalLean.Analysis.KKTMultipliers
+import ClassicalLean.Statistics.ChiSquaredTest
+import ClassicalLean.Analysis.EigenvalueSubgradient
 
 /-!
 # ClassicalLean
