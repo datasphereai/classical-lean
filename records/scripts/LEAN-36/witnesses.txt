@@ -1,0 +1,106 @@
+@@@ HermiteHadamard
+open Set in
+/-- The hypotheses of `convexOn_midpoint_mul_integral_le` hold together: on `[0, 1]`, with
+`0 ≤ 1`, the function `x ↦ x ^ 2` is convex (an even power) and continuous, and the weight
+`g x = x (1 − x)` is continuous, so integrable, nonnegative on `[0, 1]` and symmetric about `1/2`;
+the inequality is strict here (`1/24 < 1/20`). -/
+example := convexOn_midpoint_mul_integral_le (f := fun x ↦ x ^ 2) (g := fun x ↦ x * (1 - x))
+  (a := 0) (b := 1) (by norm_num)
+  ((Even.convexOn_pow even_two).subset (subset_univ _) (convex_Icc 0 1))
+  (continuous_pow 2).continuousOn
+  ((continuous_id.mul (continuous_const.sub continuous_id)).intervalIntegrable _ _)
+  (fun x hx ↦ mul_nonneg hx.1 (by linarith [hx.2]))
+  (fun x _ ↦ by ring)
+
+open Set in
+/-- The hypotheses of `integral_mul_le_endpoints` hold together: on `[0, 1]`, with `0 ≤ 1`, the
+function `x ↦ x ^ 2` is convex (an even power) and continuous, and the weight `g x = x (1 − x)` is
+continuous, so integrable, nonnegative on `[0, 1]` and symmetric about `1/2`; the inequality is
+strict here (`1/20 < 1/12`). -/
+example := integral_mul_le_endpoints (f := fun x ↦ x ^ 2) (g := fun x ↦ x * (1 - x))
+  (a := 0) (b := 1) (by norm_num)
+  ((Even.convexOn_pow even_two).subset (subset_univ _) (convex_Icc 0 1))
+  (continuous_pow 2).continuousOn
+  ((continuous_id.mul (continuous_const.sub continuous_id)).intervalIntegrable _ _)
+  (fun x hx ↦ mul_nonneg hx.1 (by linarith [hx.2]))
+  (fun x _ ↦ by ring)
+@@@ EulerMaclaurin
+open Set in
+/-- The hypotheses of `sum_eq_integral_add_two` hold together: the integers from `a = 0` to
+`b = 2` (`0 ≤ 2`, three points), `f x = x ^ 4`, continuous, with derivative `f' x = 4 x ^ 3` at
+every point, which is continuous with derivative `f'' x = 12 x ^ 2`, continuous, so integrable on
+`[0, 2]`; `f''` is not linear, so the remainder term is not zero (a cubic would make it zero). -/
+example := sum_eq_integral_add_two (f := fun x ↦ x ^ 4) (f' := fun x ↦ 4 * x ^ 3)
+  (f'' := fun x ↦ 12 * x ^ 2) (a := 0) (b := 2) (by norm_num)
+  (continuous_pow 4).continuousOn
+  (fun t _ ↦ by simpa using hasDerivAt_pow 4 t)
+  (continuous_const.mul (continuous_pow 3)).continuousOn
+  (fun t _ ↦ by convert (hasDerivAt_pow 3 t).const_mul (4 : ℝ) using 1; norm_num; ring)
+  ((continuous_const.mul (continuous_pow 2)).intervalIntegrable _ _)
+@@@ LinearODE
+open Matrix in
+/-- The hypotheses of `eq_exp_smul_mulVec_add_integral` hold together: on `ℝ²`, the rotation
+generator `A = [[0, 1], [−1, 0]]`, the constant push `f t = (0, 1)`, continuous, and the curve
+`x t = exp (t A) (1, 0) + (1, 0)`, whose derivative `A exp (t A) (1, 0)` equals `A x t + f t`
+since `A (1, 0) = (0, −1)`; `t = 1`. -/
+example := eq_exp_smul_mulVec_add_integral (n := Fin 2) (A := !![0, 1; -1, 0])
+  (f := fun _ ↦ ![0, 1]) continuous_const
+  (x := fun s ↦ NormedSpace.exp (s • !![0, 1; -1, 0]) *ᵥ ![1, 0] + ![1, 0])
+  (fun t ↦ by
+    convert (ClassicalLean.Analysis.hasDerivAt_exp_smul_mulVec
+      (!![0, 1; -1, 0] : Matrix (Fin 2) (Fin 2) ℝ) ![1, 0] t).add_const ![1, 0] using 1
+    rw [mulVec_add, add_assoc, add_eq_left]
+    ext i; fin_cases i <;> simp)
+  (t := 1)
+@@@ JacobiIteration
+open Finset Matrix in
+/-- The hypotheses of `norm_gaussSeidelIterate_sub_le` hold together: the `2 × 2` matrix with
+rows `(4, 1)` and `(1, 4)` has nonzero diagonal and each row's off-diagonal entry `1` at most
+`ρ = 1/4` times its diagonal `4`, with `ρ ≤ 1`; `b = (6, 9) = A y` for `y = (1, 2)`; start
+`x₀ = 0`, `k = 3` sweeps, each of which moves the iterate: `(3/2, 15/8)`, `(33/32, 255/128)`,
+`(513/512, 4095/2048)`. -/
+example := norm_gaussSeidelIterate_sub_le (m := 2) (A := !![4, 1; 1, 4])
+  (b := ![6, 9]) (x₀ := 0) (y := ![1, 2]) (ρ := 1 / 4)
+  (fun i ↦ by fin_cases i <;> simp)
+  (fun i ↦ by fin_cases i <;> simp [Finset.sum_erase_eq_sub, Fin.sum_univ_two])
+  (by norm_num)
+  (by ext i; fin_cases i <;> simp [mulVec, dotProduct, Fin.sum_univ_two] <;> norm_num) (k := 3)
+
+open Finset Matrix in
+/-- The hypotheses of `norm_gaussSeidelStep_sub_le` hold together: the same `2 × 2` matrix with
+rows `(4, 1)` and `(1, 4)`, nonzero diagonal, each row's off-diagonal entry `1` at most `ρ = 1/4`
+times its diagonal `4`, `ρ ≤ 1`, and `b = (6, 9) = A y` for `y = (1, 2)`; one sweep from `x = 0`
+moves to `(3/2, 15/8)`. -/
+example := ClassicalLean.Analysis.norm_gaussSeidelStep_sub_le (m := 2) (A := !![4, 1; 1, 4])
+  (b := ![6, 9]) (x := 0) (y := ![1, 2]) (ρ := 1 / 4)
+  (fun i ↦ by fin_cases i <;> simp)
+  (fun i ↦ by fin_cases i <;> simp [Finset.sum_erase_eq_sub, Fin.sum_univ_two])
+  (by norm_num)
+  (by ext i; fin_cases i <;> simp [mulVec, dotProduct, Fin.sum_univ_two] <;> norm_num)
+@@@ RoundingError
+/-- The hypotheses of `exists_forwardSubstComputed_eq` hold together: unit roundoff `u = 1/10`,
+the lower-triangular `l` with `l i j = 2` below the diagonal, `1` on it (so `l i i ≠ 0`) and `0`
+above, `b i = i + 1`, every rounding error `ε i j`, `δ i j` and `ρ i` equal to `1/20`, so at most
+`u` in size and none zero, and `n = 2` rows, where `n u = 1/5 < 1`. -/
+example := exists_forwardSubstComputed_eq (u := 1 / 10)
+  (l := fun i j ↦ if j < i then 2 else if j = i then 1 else 0) (b := fun i ↦ i + 1)
+  (ε := fun _ _ ↦ 1 / 20) (δ := fun _ _ ↦ 1 / 20) (ρ := fun _ ↦ 1 / 20) (n := 2)
+  (fun i _ ↦ by simp)
+  (fun _ _ _ _ ↦ by norm_num [abs_of_pos]) (fun _ _ _ _ ↦ by norm_num [abs_of_pos])
+  (fun _ _ ↦ by norm_num [abs_of_pos]) (by norm_num)
+@@@ EulerMethod
+/-- The hypotheses of `abs_sub_heunIterate_le` hold together: the equation `y' = f t y` with
+`f t y = cos t + (y − sin t)`, which depends on `y` with Lipschitz constant `L = 1 > 0`; its
+solution `y = sin`, along which `f t (y t) = cos t` is Lipschitz with `M = 1` and has derivative
+`G t = −sin t`, Lipschitz with `K = 1 > 0` and not constant (with `G` constant, `K = 0` would do and
+the bound's `K` term would test nothing); start `t₀ = 0`, step `h = 1/10 ≥ 0`, `k = 3` steps, and
+each step moves (`u₀ = 0`, `u₁ ≈ 0.0998`, `u₂ ≈ 0.1985`, `u₃ ≈ 0.2954`). -/
+example := abs_sub_heunIterate_le
+  (f := fun t y ↦ Real.cos t + (y - Real.sin t)) (y := Real.sin) (G := fun t ↦ -Real.sin t)
+  (t₀ := 0) (h := 1 / 10) (K := 1) (L := 1) (M := 1)
+  (fun t ↦ by simpa using Real.hasDerivAt_sin t)
+  (fun t ↦ by simpa using Real.hasDerivAt_cos t)
+  (by simpa using Real.lipschitzWith_cos)
+  Real.lipschitzWith_sin.neg
+  (fun t ↦ LipschitzWith.of_dist_le_mul fun a b ↦ by simp [Real.dist_eq])
+  (by norm_num) (by norm_num) (k := 3)

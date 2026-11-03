@@ -1,0 +1,32 @@
+OK  82 hm (m = 0): A = 1, m = 0, M = 1, x = (1): lhs 1, rhs 0, conclusion FAILS
+OK  82 hm (m < 0): A = 1, m = -1, M = 1, x = (1): lhs 1, rhs 0, conclusion FAILS
+OK  82 hmA: A = diag(1/4, 1), m = M = 1, x = (1, 1): lhs 25/4, rhs 4, conclusion FAILS
+OK  82 hAM: A = diag(1, 4), m = M = 1, x = (1, 1): lhs 25/4, rhs 4, conclusion FAILS
+OK  82 sanity: A = diag(1, 4), m = 1, M = 4, x = (1, 1) (equality, the equal mix): lhs 25/4, rhs 25/4, conclusion holds
+OK  82 sanity: A = diag(1, 4), m = 1, M = 4, x = (2, 1) (strict): lhs 34, rhs 625/16, conclusion holds
+OK  82eq hA: A = diag(1, 2, 0) singular, u = e0, v = e1, m = 1, M = 2: lhs 0, rhs 9/2, conclusion FAILS
+OK  82eq hu: A = diag(1, 2), u = e0 with m = 5 (not its eigenvalue), v = e1, M = 2: lhs 9/2, rhs 49/10, conclusion FAILS
+OK  82eq hv: A = diag(1, 2), u = e0, m = 1, v = e1 with M = 5: lhs 9/2, rhs 36/5, conclusion FAILS
+OK  82eq huv (u·u = v·v): A = diag(1, 2), u = 2 e0, v = e1, m = 1, M = 2: lhs 27, rhs 225/8, conclusion FAILS
+OK  82eq no orthogonality needed: A = [[1, 3/4], [0, 2]], u = (1, 0), v = (3/5, 4/5), u·v = 3/5: lhs 288/25, rhs 288/25, conclusion holds
+OK  82eq no unit length needed: A = diag(1, 2), u = 3 e0, v = 3 e1: lhs 729/2, rhs 729/2, conclusion holds
+OK  82eq sanity: A = diag(1, 2), u = e0, v = e1, m = 1, M = 2: lhs 9/2, rhs 9/2, conclusion holds
+OK  81 hV: V = [[2, 1], [0, 1]] (not symmetric): lhs [Fraction(1, 2), Fraction(1, 2)], rhs [Fraction(0, 1), Fraction(1, 1)], conclusion FAILS
+OK  81 sanity: V = [[2, 1], [1, 3]] (symmetric): lhs [Fraction(2, 3), Fraction(1, 3)], rhs [Fraction(2, 3), Fraction(1, 3)], conclusion holds
+OK  81 junk: V = [[1, 1], [1, 1]] singular, V⁻¹ = 0 in Lean, both sides 0: lhs [Fraction(0, 1), Fraction(0, 1)], rhs [Fraction(0, 1), Fraction(0, 1)], conclusion holds
+OK  80 hk: k = 0 (empty sum, Var 0): 0 / 0 = 0 against 1: lhs 0, rhs 1, conclusion FAILS
+OK  80 hγ: γ = 0 (X = 0), k = 2: 0 / 0 = 0 against 1: lhs 0, rhs 1, conclusion FAILS
+OK  80 sanity: γ = (2, 1, 1/2), k = 3: lhs 11/6, rhs 11/6, conclusion holds
+OK  80 sanity: MA(1), k = 1: lhs 2, rhs 2, conclusion holds
+OK  80 sanity: MA(1), k = 2: lhs 6, rhs 6, conclusion holds
+OK  80 sanity: MA(1), k = 3: lhs 10, rhs 10, conclusion holds
+OK  80 sanity: MA(1), k = 4: lhs 14, rhs 14, conclusion holds
+OK  80 sanity: MA(1), k = 5: lhs 18, rhs 18, conclusion holds
+OK  80 sanity: MA(1), k = 6: lhs 22, rhs 22, conclusion holds
+OK  83 hlam: λ = (0, 1), w = (0, 1), k = 1: lhs 1, rhs 0, conclusion FAILS
+OK  83 hw0: λ = (1, 0), w = (2, -1), k = 1: lhs 2, rhs 1, conclusion FAILS
+OK  83 hw1: λ = (1, 0, 0), w = (2, 0, 0), k = 2: lhs 2, rhs 1, conclusion FAILS
+OK  83 hsum: λ = (1, 1), w = (1, 1), k = 1 (Σ w = 2): lhs 2, rhs 1, conclusion FAILS
+OK  83 sanity: λ = (3, 1, -2), w = (1/2, 1, 1/2), k = 2: lhs 3/2, rhs 4, conclusion holds
+OK  83 hu: T = id on ℝ¹, k = 1, u_0 = 2 (not unit): lhs 4, rhs 1, conclusion FAILS
+ALL OK
