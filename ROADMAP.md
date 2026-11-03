@@ -1031,6 +1031,28 @@ them into master on DSMain. Ten modules are added; none existing changes. Narrow
   continuous `F` the Kolmogorov–Smirnov statistic is almost surely that of the uniform draws
   `F(X i)` (`sup_abs_empiricalCDF_sub_eq_of_continuous`, `measureReal_cdf_le_eq_of_map_eq`).
 
+### 1.34 Five bridges as five new modules (orders LEAN-38, CLOUD-MATH-7, round 82, and MERGE-6, round 83)
+
+Rows 168 to 172 of `MATH-PLAN-library-2-bridges-2.md` join two parts of the library each. Order
+LEAN-38 found and stated them by reading pairs of earlier bridge searches; order CLOUD-MATH-7 proved
+them in a cloud session, with no drafts, four witnesses and one cold review; order MERGE-6 merged
+them into master on DSMain. Five modules are added; none existing changes. Narrowing: none:
+
+* `Algebra/HatMatrixRank` (bridge 170, the pseudoinverse × Cochran): for any design `A`,
+  rank-deficient included, the hat matrix `A * pinv A` has rank and trace `rank A` and the
+  residual maker has rank `m - rank A` (`rank_mul_pinv_eq`).
+* `Algebra/CategoricalPseudoinverse` (bridge 172, the pseudoinverse × the simplex's second order):
+  the categorical covariance's pseudoinverse is `P * diagonal (1/p) * P`, the Fisher–Rao form on
+  the tangent space (`pinv_categoricalCov`).
+* `Analysis/KKTMultipliers` (bridge 168, gradient descent × KKT): under Slater's condition one
+  multiplier vector serves every minimiser (`exists_multipliers_isMinOn_iff`).
+* `Statistics/ChiSquaredTest` (bridge 169, chi-squared × Neyman–Pearson): the chi-squared test of
+  a normal variance is uniformly most powerful at the level `P(χ²ₖ > c / v₀)`
+  (`isUniformlyMostPowerful_sum_sq_gaussian`).
+* `Analysis/EigenvalueSubgradient` (bridge 171, min-max × the subgradient method): the top
+  eigenvector gives a subgradient of the largest eigenvalue, so the subgradient method minimises
+  it at its usual rate (`min_sub_le_of_subgradient_eigenvalues`).
+
 ## 2. Categories to add
 
 Tiered by how much work they do inside the system that already exists, not by how interesting

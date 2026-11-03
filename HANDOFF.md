@@ -654,6 +654,46 @@ build` 4206 jobs, 0 warnings**; the root's import closure 5742 modules (5732 + 1
 theorems; the witness gate `WITNESSGATE PASS` with 208 `OK` (195 + the cloud orders' 7 and 6),
 copy-error 0.
 
+**Dated 2026-11-03 UTC (orders LEAN-38, a reading order in the lane; CLOUD-MATH-7, round 82, cloud
+branch `cloud-math-7`; and MERGE-6, round 83, branch `merge-6`, DSMain):** five bridges of
+`MATH-PLAN-library-2-bridges-2.md` as five new modules, stated by order LEAN-38, proved in one cloud
+session (no drafts) and merged onto MERGE-5 by one merge commit; no existing module changed.
+LEAN-38 read pair by pair 223 of the NEW pairs of MERGE-2's and MERGE-3's bridge searches that had
+been judged only by their shared constants (171 and 52, stopping after 40 pairs in a row without a
+bridge) and found five bridges, rows 168 to 172, stated and elaborated with `sorry`. From
+CLOUD-MATH-7:
+
+- bridge 170, `Algebra/HatMatrixRank` (new, imports `Algebra/Pseudoinverse` and
+  `Statistics/Cochran`): for every real matrix `A`, rank-deficient included, the hat matrix
+  `A * pinv A` has rank and trace `rank A` and `1 - A * pinv A` has rank `m - rank A`
+  (`rank_mul_pinv_eq`); 2 theorem constants (round 82's census);
+- bridge 172, `Algebra/CategoricalPseudoinverse` (new, imports `Algebra/Pseudoinverse` and
+  `Simplex/SecondOrder`): for a strictly positive probability vector `p`, the pseudoinverse of the
+  categorical covariance is `P * diagonal (1/p) * P`, with `P` the projection onto the vectors
+  summing to `0`, the Fisher–Rao form on the tangent space (`pinv_categoricalCov`); 2 theorem
+  constants;
+- bridge 168, `Analysis/KKTMultipliers` (new, imports `Analysis/GradientDescent` and
+  `Analysis/KKT`): under Slater's condition one multiplier vector `w ≥ 0` serves every minimiser of
+  a convex, differentiable problem: the minimisers are exactly the feasible points where `w`
+  satisfies complementary slackness and stationarity (`exists_multipliers_isMinOn_iff`); 1 theorem
+  constant;
+- bridge 169, `Statistics/ChiSquaredTest` (new, imports `Probability/ChiSquared` and
+  `Statistics/NeymanPearson`): for `k ≥ 1` independent `N(0, v)` draws, the test rejecting when
+  `∑ i, x i ^ 2 > c` is uniformly most powerful for `v ≤ v₀` against `v > v₀` at the level
+  `P(χ²ₖ > c / v₀)` (`isUniformlyMostPowerful_sum_sq_gaussian`); 11 theorem constants;
+- bridge 171, `Analysis/EigenvalueSubgradient` (new, imports `Algebra/MinMax` and
+  `Analysis/SubgradientMethod`): the vector `(⟪A i u, u⟫)ᵢ`, with `u` the top unit eigenvector, is
+  a subgradient of the largest eigenvalue of `A₀ + ∑ i, x i • A i`, so the subgradient method has
+  `min_sub_le_of_subgradient`'s rate on it (`min_sub_le_of_subgradient_eigenvalues`); 1 theorem
+  constant.
+
+Narrowing: none. Counts predicted by order MERGE-6's step 7, to be re-measured by its gates on the
+clean tree (round 83's fragment): **158 modules, 3931 theorem constants (3914 + 17), `lake build`
+4211 jobs, 0 warnings**; the root's import closure 5747 modules (5742 + 5); the type dump
+`removed=0 changed=0 proof_only=0`, its `added` records the five modules' constants, 17 of them
+theorems; the witness gate `WITNESSGATE PASS` with 212 `OK` (208 + the cloud order's 4; bridge 170
+has no hypothesis, so no witness), copy-error 0.
+
 ---
 
 ## 2. What I claimed, and what I actually checked
