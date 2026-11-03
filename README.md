@@ -22,7 +22,7 @@ value, and still compile; that is why VacuityGate and the witness gate exist. No
 
 ## Areas
 
-Each is a folder under `ClassicalLean/`, and `ClassicalLean.lean` imports every module.
+Each is a folder under `ClassicalLean/`, with three of its modules named here as examples; `ClassicalLean.lean` imports every module.
 
 - Algebra: `HadamardInequality`, `MinMax`, `Kantorovich`.
 - Analysis: `EulerMaclaurin`, `Simpson`, `LinearProgram`.
