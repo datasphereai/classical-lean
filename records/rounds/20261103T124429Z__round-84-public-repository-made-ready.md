@@ -75,3 +75,121 @@ commit outside `records/`, and are quoted in this round's second part. The check
 commit is check_records on the staged tree.
 
 First part written before the commits; commit hashes are added at close, below.
+
+## Second part (written at close, 2026-11-03)
+
+### The cited files (step 4, commit `2e65957`)
+
+`records/scripts/` holds the 17 scripts, outputs and witness notes in order subfolders and
+`records/plan/` the plan and the bridges file, each copied by `step4_copy.sh` and byte-identical to
+its pinned source (sha256 and bytes equal to the order's pins, `step4_copy.out`), the seven lane
+files by `cp` out of the lane. The map `records/scripts/README.md` is generated from the same pins
+table (`pins.tsv`, by `step4_map.py`): one row per copied file with its cited names, the file here,
+its origin, bytes and sha256; one row for the folder GamblersRuin line 133 cites; one row for each
+of the five cited repository files; one row for `reviews/stmt-j2.md`, which survives nowhere. The 17
+bare `checks.py` citations were re-attributed by reading the order word on each line (`step1`'s
+grep output, in the session): all as the order lists. Checks (`step4_prescan.out` at the sources,
+`step4_checks.out` in the tree): secret, address and IP patterns 0, 0 and 0 over the 19 files and
+over the map; the host pattern 6 lines in the scripts (LEAN-25 line 158, LEAN-31 line 90, the plan's
+search script lines 4, 9, 290, 566), 9 in the plan, 14 in the bridges file, and on the map exactly
+the rows whose origin column names a box (14 rows, compared as line sets); `vocab_count.py` no
+index over the 19 files and over the map (retired[8] 0 in the plan and the bridges file); the
+network words on two lines, both Mathlib's GitHub remote in a quoted shell command.
+
+### The README (step 5, commit `67e9a38`, G)
+
+`README.md` is 115 lines, from `README-draft.md`, in the order's sequence of sections. The build
+block is the old README's lines 17 and 18 unchanged; the "how to check" block holds `HANDOFF.md`
+lines 48, 49, 50, 51 and 53 byte for byte, `python3 -I tools/witness_gate.py` from line 1309, and
+the drift command from `ci.yml` line 61 without its `|| exit 1`; line 52's command is absent.
+"Lean 4" is written as the toolchain string `leanprover/lean4:v4.34.0` so that no bare `4` appears,
+and "gate 7" as "the seventh gate", since the order's integer rule allows neither digit.
+`readme_check.py` PASS on every rule (`readme-check.out`: line count, no local path, no host name,
+the three counts each only with their defining words, the three forbidden counts absent, the version
+string equal to `lean-toolchain`'s, the build block, the seven command lines each a substring of its
+source line with all seven present, every integer allowed, "the lane" and "API-CREDIT-1" once each in
+the defining paragraph), and its four planted faults each FAIL (`readme-check-control.out`: `3932`,
+a `/home/` line, line 52's command added, `5747` added). Drift PASS before the commit
+(`pre-G-drift.out`). The new-text gate over the `+` lines of `git diff 24a75a3` before the commit
+(6422 lines, `preG-newtext-vocab.out`): no index matched; the licence index has no hit because the
+authorship line is unchanged context, not an added line; the secret and IP patterns 0; addresses the
+two allowed only (`git@github.com` 2, `noreply@anthropic.com` 5, all in the order copy).
+
+### The gates at G (`67e9a38`), clean tree, expected beside measured
+
+Expected results: `expected.txt`, sha256
+`2031df1edd2f512457e130611fef844a772ef84074063691b6b76a2ff7d2c2c2`, written before the gates ran.
+Each gate ran through `run.sh` (MERGE-6's with its one `D=` line changed, `diff` one line) under the
+12 GB cap (`runs.log`), one at a time, by `gates.sh` (`gates.log`, rc 0).
+
+| gate | expected | measured |
+|---|---|---|
+| empty diff | `git diff --stat 24a75a3 G` over the Lean tree, `tools`, `.github` and the lake files: nothing | 0 lines (`G-diffstat.out`) |
+| `G-build` | 4211 jobs, 0 warnings | `Build completed successfully (4211 jobs)`, 0 `warning:` lines; 1 s, since no Lean file changed and MERGE-6's build of this tree was in `.lake/` |
+| `G-axiom` | PASS 3931 | PASS 3931, 0 scoped exceptions |
+| `G-sorry` | PASS 158 | PASS 158 |
+| `G-records` | PASS 158, 1 exemption | PASS 158, 1 exemption (`Simplex/Hessian.lean`) |
+| `G-banned` | PASS, 158 files and the root | PASS, 158 files and the root, 0 hits |
+| `G-drift` | PASS no drift | PASS no drift |
+
+The type dump, VacuityGate, the witness gate and gate 7 were not run: the empty diff is the proof
+that nothing they measure changed.
+
+### The history and GitHub check (step 7, `history-check.out` and `history-check-g.out`)
+
+Reported for Dustin, not acted on. (a) `git ls-remote github`: `HEAD` and `refs/heads/master` at
+`24a75a3…` only. (b) `git log --all -p` over 480 commits (427186 lines): two indexes of the term list
+match, retired[3] (729 lines; the exceptions do not reach a `+` diff line) and retired[8] (16 lines
+raw, 0 after exceptions), no other; the secret and IP patterns 0; the address pattern
+`noreply@anthropic.com` 522 and `git@github.com` 2, the 8 more than the order's 514 being the
+order copy's 5 and 2 and the three new commit trailers; the planted control found 11 of 11 secret
+alternatives, 4 of 4 IP ranges, 1 of 1 address and the retired[8] scratch line. (c) The 14 retired[8]
+lines at HEAD (6, 6, 1 in the three `records/` files the order names, 1 in `HANDOFF.md`) are saved
+with file and line in `history/retired8-lines.txt` and quoted in the report, for Dustin. (d)
+Author and committer fields: 839 the owner's address, 121 `noreply@anthropic.com` (960 on 480
+commits). (e) Tracked files at HEAD: secret 0, IP 0, addresses `noreply@anthropic.com` on 2 older
+order files and the order copy's 5, `git@github.com` the order copy's 2; the host pattern 1881 lines
+in 157 files (provenance). (f) 0 pull requests, 0 issues, 0 artifacts, 0 releases; 82 runs, by
+branch master 18, cloud-math-1 to -7 8, 9, 9, 7, 9, 10, 10, cloud-ci 1, cloud-ci-fault 1; 78
+distinct heads, 77 ancestors of `github/master`, 1 not: `7992041…`, which is the `cloud-ci-fault`
+branch's head (the order's text calls it the `cloud-ci` head; the hash and message are the order's);
+the compare API lists 1 commit, its API patch 14 lines and its `git show` 32 lines ("CI planted
+fault: a sorry theorem; never merge", author and committer `noreply@anthropic.com`, 2 files):
+secret 0, IP 0, host 0, no index; `refs/remotes/github` holds `master` only before and after the
+fetch by hash. (g) Every run's log: `gh run view --log` printed nothing with exit 0 for every run on
+this box's `gh` 2.45.0 (82 empty files, `history-check.out`), so the logs were fetched again as
+zips through `gh api repos/…/actions/runs/<id>/logs`, each unzipped into its own empty folder
+outside the tree (`runlogs.sh`, `history-check-g.out`): 78 fetched, 46954 lines, secret 0, IP 0,
+no index, no address; the host pattern 4410 lines, all the runner's `/home/` and `/opt/` paths;
+4 cancelled runs (41359306486, 41139843071, 41137378481, 39345774451) returned an empty zip and have
+no log to scan. The switch waits on Dustin's reading of the 14 lines.
+
+### Misses
+
+* Two sessions ran this order at once (07:33 to 07:52 EST): a second Claude Code session
+  (`session_01HgueTXQnTobeGGgAmcPH11`, pid 2974231) was started with the same launch paste while this
+  one was in step 3; it shared `~/lean/public1-checks/` and the worktree, ran its own step 1 and
+  overwrote `vocab_count.py` at 07:49:27 with its own version. This session noticed in step 4 (the
+  counter printed a usage error it never had), stopped and reported the pids; Dustin ended the second
+  session, which left `NOTE-two-sessions-collision.md` and its files under their own names. The
+  counter was restored from this session's own text (the other kept as
+  `vocab_count-second-session.py`) and the step 2 control and planted controls re-run with the same
+  numbers (retired[3] 321 raw, 2 after; retired[8] 14 raw, 0 after; controls identical), the re-run at
+  RF `2f952eb` (530 tracked files; the first run at `24a75a3`, 528, kept as
+  `before-restore/vocab-tracked.out`). Outputs dated before 07:49 came from the original, later ones
+  from the restored copy.
+* `gh run view --log` was trusted once: its 82 empty logs scanned as "0 lines, 0 hits" before the
+  zero was questioned; the API zips replaced it, with the runner paths as the positive control.
+* The step-1 settings command held `python3 -I -c 1` (a no-op) and two heredoc edits held an empty
+  `python3 -` (no-ops); the launch rule forbids both forms. Nothing was computed by them.
+* One combined Bash call was denied as a whole and re-issued in parts; the first run of the
+  `rf_check.py` control passed `plant.py` two arguments (nothing planted) and was re-run; a
+  `git add records` was blocked by the bulk-add guard and the paths were staged by name; the
+  `step4_checks.sh` awk first read the wrong table cell and the map's folder citation sat in a lane
+  row, both fixed before the step 4 commit.
+
+### Commits
+
+`2f952eb` (records first), `2e65957` (the cited files), `67e9a38` (README, G) and this records
+commit. Nothing pushed; the push is Dustin's after claude-ai's push review, and the visibility
+switch after his reading of the 14 lines.
